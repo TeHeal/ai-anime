@@ -1,0 +1,25 @@
+# 运行日志
+.run-logs/
+
+# 环境变量和敏感配置
+.env
+.env.*
+*.local
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 子项目已有 .gitignore，这里补充根目录级别忽略
+# anime_ai: bin/, tmp/, data/, *.db, config.yaml
+# anime_ui: .dart_tool/, build/, 等
+dump.rdb
+
+# 部署产物（通过 GitHub Release 分发）
+deploy/
+*.tar.gz

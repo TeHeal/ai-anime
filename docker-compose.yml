@@ -1,0 +1,36 @@
+services:
+  api:
+    build:
+      context: ./anime_ai
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - db-data:/data
+      - uploads:/data/uploads
+    environment:
+      - APP_APP_PORT=8080
+      - APP_APP_MODE=release
+      - APP_APP_SECRET=${APP_SECRET:-change-me-in-production}
+      - APP_DB_PATH=/data/anime.db
+      - APP_REDIS_ADDR=redis:6379
+      - APP_STORAGE_DRIVER=local
+      - APP_STORAGE_LOCAL_ROOT=/data/uploads
+      - APP_STORAGE_BASE_URL=/files
+      - APP_ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - APP_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  uploads:
+  redis-data:
