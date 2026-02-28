@@ -68,4 +68,3 @@ export PATH="/usr/local/go/bin:/opt/flutter/bin:$PATH"
 ### 已知问题
 
 - `go vet` 报告 `module/episode/data.go:48` 自赋值警告，属仓库已有问题
-- `middleware.CORS()` 已定义（`pub/middleware/cors.go`）但未在 `main.go` 中注册，浏览器跨域请求（前端 :8080 → 后端 :3737）会被 CORS 策略阻止；终端 `curl` 不受影响。如需浏览器端测试，需将 `r.Use(middleware.CORS())` 添加到 `main.go` 的中间件链中
