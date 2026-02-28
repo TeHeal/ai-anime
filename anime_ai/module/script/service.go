@@ -2,10 +2,15 @@ package script
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/prompt"
+	"go.uber.org/zap"
 )
 
 // DummyProjectVerifier 占位实现，始终通过验证
@@ -17,14 +22,16 @@ func (DummyProjectVerifier) Verify(projectID, userID string) error { return nil 
 type Service struct {
 	store    SegmentStore
 	verifier crossmodule.ProjectVerifier
+	chat     capability.ChatCapability
+	logger   *zap.Logger
 }
 
 // NewService 创建脚本服务
-func NewService(store SegmentStore, verifier crossmodule.ProjectVerifier) *Service {
+func NewService(store SegmentStore, verifier crossmodule.ProjectVerifier, chat capability.ChatCapability, logger *zap.Logger) *Service {
 	if verifier == nil {
 		verifier = DummyProjectVerifier{}
 	}
-	return &Service{store: store, verifier: verifier}
+	return &Service{store: store, verifier: verifier, chat: chat, logger: logger}
 }
 
 // CreateSegmentRequest 创建分段请求
@@ -169,13 +176,59 @@ func (s *Service) SubmitParse(projectID, userID uint, req ScriptParseRequest) (*
 	return &ParseTask{TaskID: taskID, Status: "pending"}, nil
 }
 
-// ParseSync 同步解析（占位：返回空结构）
+// ParseSync 同步解析（调用 LLM 将剧本文本解析为脚本分段）
 func (s *Service) ParseSync(ctx context.Context, projectID, userID uint, req ScriptParseRequest) (*ParseResult, error) {
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 		return nil, err
 	}
-	_ = ctx
-	return &ParseResult{Script: nil, Issues: []string{}}, nil
+
+	if s.chat == nil {
+		if s.logger != nil {
+			s.logger.Warn("LLM 未配置，返回空解析结果")
+		}
+		return &ParseResult{Script: nil, Issues: []string{"LLM 未配置"}}, nil
+	}
+
+	messages := []capability.ChatMessage{
+		{Role: "system", Content: prompt.ScriptParseSystem()},
+		{Role: "user", Content: prompt.ScriptParseUser(req.Content)},
+	}
+	chatReq := capability.ChatRequest{Messages: messages}
+	ch, err := s.chat.ChatStream(ctx, chatReq)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Error("LLM 脚本解析失败", zap.Error(err))
+		}
+		return nil, pkg.NewBizError("AI 解析失败")
+	}
+
+	var sb strings.Builder
+	for chunk := range ch {
+		if chunk.Error != nil {
+			return nil, pkg.NewBizError("AI 解析中断: " + chunk.Error.Error())
+		}
+		sb.WriteString(chunk.Content)
+	}
+
+	// 解析 LLM 输出为分段列表
+	raw := strings.TrimSpace(sb.String())
+	if idx := strings.Index(raw, "["); idx >= 0 {
+		if end := strings.LastIndex(raw, "]"); end > idx {
+			raw = raw[idx : end+1]
+		}
+	}
+	var parsed []struct {
+		Content   string `json:"content"`
+		SortIndex int    `json:"sort_index"`
+	}
+	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("LLM 输出解析失败", zap.String("raw_length", fmt.Sprintf("%d", len(raw))))
+		}
+		return &ParseResult{Script: nil, Issues: []string{"AI 输出格式解析失败"}}, nil
+	}
+
+	return &ParseResult{Script: parsed, Issues: []string{}}, nil
 }
 
 // GetPreview 获取解析预览（占位）
@@ -220,14 +273,60 @@ type ChatChunk struct {
 	Done    bool
 }
 
-// StreamAssist AI 流式辅助（占位：返回立即关闭的空 channel）
+// StreamAssist AI 流式辅助（调用 LLM 进行扩写/细化/补全/润色）
 func (s *Service) StreamAssist(ctx context.Context, req ScriptAiRequest) (<-chan ChatChunk, error) {
-	_ = s
 	if req.Action == "" {
-		return nil, fmt.Errorf("未知的 AI 操作")
+		return nil, pkg.NewBizError("未指定 AI 操作类型")
 	}
-	ch := make(chan ChatChunk, 1)
-	ch <- ChatChunk{Done: true}
-	close(ch)
-	return ch, nil
+
+	if s.chat == nil {
+		ch := make(chan ChatChunk, 1)
+		ch <- ChatChunk{Content: "LLM 未配置，无法执行 AI 辅助", Done: true}
+		close(ch)
+		return ch, nil
+	}
+
+	instruction := req.Action
+	if req.BlockType != "" {
+		instruction += "（块类型: " + req.BlockType + "）"
+	}
+	currentContent := req.BlockContent
+	if req.SceneMeta != "" {
+		currentContent = "场景信息: " + req.SceneMeta + "\n\n" + currentContent
+	}
+	if len(req.ContextBlocks) > 0 {
+		currentContent += "\n\n上下文:\n" + strings.Join(req.ContextBlocks, "\n")
+	}
+
+	messages := []capability.ChatMessage{
+		{Role: "system", Content: prompt.ScriptAssistSystem()},
+		{Role: "user", Content: prompt.ScriptAssistUser(instruction, currentContent)},
+	}
+	chatReq := capability.ChatRequest{
+		ProviderHint: req.Provider,
+		Model:        req.Model,
+		Messages:     messages,
+	}
+
+	llmCh, err := s.chat.ChatStream(ctx, chatReq)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Error("AI 辅助调用失败", zap.String("action", req.Action), zap.Error(err))
+		}
+		return nil, pkg.NewBizError("AI 辅助调用失败")
+	}
+
+	// 转换为 script 包内的 ChatChunk 类型
+	out := make(chan ChatChunk, 16)
+	go func() {
+		defer close(out)
+		for chunk := range llmCh {
+			sc := ChatChunk{Content: chunk.Content, Done: chunk.Done}
+			if chunk.Error != nil {
+				sc.Error = chunk.Error.Error()
+			}
+			out <- sc
+		}
+	}()
+	return out, nil
 }

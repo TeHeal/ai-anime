@@ -31,6 +31,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/worker"
@@ -62,6 +63,12 @@ func main() {
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("加载配置失败: %v", err)
+	}
+
+	// 初始化日志（提前创建，供所有模块使用）
+	logger, _ := zap.NewProduction()
+	if cfg.App.Mode == "debug" {
+		logger, _ = zap.NewDevelopment()
 	}
 
 	// 用户存储：DB 可用时优先用 DBUserStore，否则用 BootstrapUserStore
@@ -129,10 +136,26 @@ func main() {
 	sceneSvc := scene.NewService(sceneStore, sceneBlockStore, episodeReader, projectVerifier)
 	sceneHandler := scene.NewHandler(sceneSvc)
 
+	// LLM Chat 路由（供分镜/脚本等 AI 生成模块使用）
+	chatPolicy := mesh.DefaultPolicy()
+	chatBreaker := mesh.NewBreaker(3)
+	meshLogger := mesh.NewZapLogger(logger)
+	chatRouter := mesh.NewRouter(chatPolicy, chatBreaker, meshLogger)
+	if cfg.LLM.DeepSeekKey != "" {
+		chatRouter.RegisterChatProvider(llm.AsChatProvider(llm.NewDeepSeekProvider(cfg.LLM.DeepSeekKey)))
+	}
+	if cfg.LLM.KimiKey != "" {
+		chatRouter.RegisterChatProvider(llm.AsChatProvider(llm.NewKimiProvider(cfg.LLM.KimiKey)))
+	}
+	if cfg.LLM.DoubaoKey != "" {
+		chatRouter.RegisterChatProvider(llm.AsChatProvider(llm.NewDoubaoProvider(cfg.LLM.DoubaoKey)))
+	}
+	logger.Info("LLM Chat 路由初始化完成")
+
 	// 分镜模块
 	storyboardAccess := project.NewStoryboardAccess(projectData)
 	storyboardData := storyboard.NewMemData(storyboardAccess)
-	storyboardSvc := storyboard.NewService(storyboardData, projectVerifier)
+	storyboardSvc := storyboard.NewService(storyboardData, projectVerifier, chatRouter, logger)
 	storyboardHandler := storyboard.NewHandler(storyboardSvc)
 
 	// 脚本模块：DB 可用时用 DBSegmentStore，否则 Mem
@@ -143,7 +166,7 @@ func main() {
 	} else {
 		segmentStore = script.NewMemSegmentStore()
 	}
-	scriptSvc := script.NewService(segmentStore, projectVerifier)
+	scriptSvc := script.NewService(segmentStore, projectVerifier, chatRouter, logger)
 	scriptHandler := script.NewHandler(scriptSvc)
 
 	// 角色模块：DB 可用时用 DBData，否则 Mem
@@ -199,14 +222,10 @@ func main() {
 	} else {
 		shotImageStore = shot_image.NewMemShotImageStore()
 	}
-	shotImageSvc := shot_image.NewService(shotImageStore, shotReader, projectVerifier)
-	shotImageHandler := shot_image.NewHandler(shotImageSvc)
+	// shotImageSvc 延迟到 asynqClient 初始化后创建（见下方）
+	_ = shotImageStore
 
 	// WebSocket Hub（任务进度推送等）
-	logger, _ := zap.NewProduction()
-	if cfg.App.Mode == "debug" {
-		logger, _ = zap.NewDevelopment()
-	}
 	realtimeHub := realtime.NewHub(logger)
 	wsHandler := realtime.NewWSHandler(realtimeHub, cfg.App.Secret)
 
@@ -240,7 +259,7 @@ func main() {
 	}
 	imageHandler := worker.NewImageTaskHandler(logger, imageTaskDeps)
 
-	// Asynq Worker：Redis 可用时创建 Client 与 Server，供 API 入队任务
+	// Asynq Worker + 镜图服务（依赖 asynqClient）
 	var asynqClient *asynq.Client
 	var asynqServer *asynq.Server
 	redisAddr := cfg.Redis.Addr
@@ -261,6 +280,10 @@ func main() {
 			logger.Warn("Redis 连接失败，跳过 Asynq Worker 启动", zap.String("addr", redisAddr))
 		}
 	}
+
+	// 镜图服务（需要 asynqClient，延迟到这里创建）
+	shotImageSvc := shot_image.NewService(shotImageStore, shotReader, projectVerifier, asynqClient, logger)
+	shotImageHandler := shot_image.NewHandler(shotImageSvc)
 
 	// 审核模块
 	reviewStore := review.NewMemReviewStore()
