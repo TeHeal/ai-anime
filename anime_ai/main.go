@@ -264,7 +264,7 @@ func main() {
 
 	// 审核模块
 	reviewStore := review.NewMemReviewStore()
-	reviewSvc := review.NewService(reviewStore)
+	reviewSvc := review.NewService(reviewStore, logger)
 	reviewHandler := review.NewHandler(reviewSvc)
 
 	// 通知模块
@@ -274,17 +274,17 @@ func main() {
 
 	// 风格资产模块
 	styleStore := style.NewMemStore()
-	styleSvc := style.NewService(styleStore)
+	styleSvc := style.NewService(styleStore, logger)
 	styleHandler := style.NewHandler(styleSvc)
 
 	// 任务锁模块
 	taskLockStore := tasklock.NewMemStore()
-	taskLockSvc := tasklock.NewService(taskLockStore)
+	taskLockSvc := tasklock.NewService(taskLockStore, logger)
 	taskLockHandler := tasklock.NewHandler(taskLockSvc)
 
 	// 调度模块
 	schedStore := schedule.NewMemStore()
-	schedSvc := schedule.NewService(schedStore)
+	schedSvc := schedule.NewService(schedStore, logger)
 	schedHandler := schedule.NewHandler(schedSvc)
 
 	routeCfg := &RouteConfig{

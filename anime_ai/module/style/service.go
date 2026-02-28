@@ -1,18 +1,22 @@
 package style
 
-import "errors"
+import (
+	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"go.uber.org/zap"
+)
 
-// Service 风格业务逻辑
+// Service 风格资产业务逻辑
 type Service struct {
-	store Store
+	store  Store
+	logger *zap.Logger
 }
 
 // NewService 创建风格服务
-func NewService(store Store) *Service {
-	return &Service{store: store}
+func NewService(store Store, logger *zap.Logger) *Service {
+	return &Service{store: store, logger: logger}
 }
 
-// CreateStyleRequest 创建请求
+// CreateStyleRequest 创建风格请求
 type CreateStyleRequest struct {
 	Name           string `json:"name" binding:"required"`
 	Description    string `json:"description"`
@@ -22,7 +26,7 @@ type CreateStyleRequest struct {
 	NegativePrompt string `json:"negative_prompt"`
 }
 
-// UpdateStyleRequest 更新请求
+// UpdateStyleRequest 更新风格请求
 type UpdateStyleRequest struct {
 	Name           string `json:"name"`
 	Description    string `json:"description"`
@@ -35,7 +39,7 @@ type UpdateStyleRequest struct {
 
 // Create 创建风格
 func (s *Service) Create(projectID string, req CreateStyleRequest) (*Style, error) {
-	style := &Style{
+	st := &Style{
 		ProjectID:      projectID,
 		Name:           req.Name,
 		Description:    req.Description,
@@ -45,7 +49,12 @@ func (s *Service) Create(projectID string, req CreateStyleRequest) (*Style, erro
 		NegativePrompt: req.NegativePrompt,
 		Status:         "draft",
 	}
-	return s.store.Create(style)
+	created, err := s.store.Create(st)
+	if err != nil {
+		s.logger.Error("创建风格失败", zap.String("project_id", projectID), zap.Error(err))
+		return nil, pkg.NewBizError("创建风格失败")
+	}
+	return created, nil
 }
 
 // List 列出项目风格
@@ -53,42 +62,53 @@ func (s *Service) List(projectID string) ([]*Style, error) {
 	return s.store.ListByProject(projectID)
 }
 
-// Get 获取风格
+// Get 获取风格详情
 func (s *Service) Get(id string) (*Style, error) {
-	return s.store.Get(id)
+	st, err := s.store.Get(id)
+	if err != nil {
+		return nil, pkg.ErrNotFound
+	}
+	return st, nil
 }
 
 // Update 更新风格
 func (s *Service) Update(id string, req UpdateStyleRequest) (*Style, error) {
-	style, err := s.store.Get(id)
+	st, err := s.store.Get(id)
 	if err != nil {
-		return nil, errors.New("风格不存在")
+		return nil, pkg.ErrNotFound
 	}
 	if req.Name != "" {
-		style.Name = req.Name
+		st.Name = req.Name
 	}
 	if req.Description != "" {
-		style.Description = req.Description
+		st.Description = req.Description
 	}
 	if req.Category != "" {
-		style.Category = req.Category
+		st.Category = req.Category
 	}
 	if req.PreviewURL != "" {
-		style.PreviewURL = req.PreviewURL
+		st.PreviewURL = req.PreviewURL
 	}
 	if req.PromptTemplate != "" {
-		style.PromptTemplate = req.PromptTemplate
+		st.PromptTemplate = req.PromptTemplate
 	}
 	if req.NegativePrompt != "" {
-		style.NegativePrompt = req.NegativePrompt
+		st.NegativePrompt = req.NegativePrompt
 	}
 	if req.Status != "" {
-		style.Status = req.Status
+		st.Status = req.Status
 	}
-	return style, s.store.Update(style)
+	if err := s.store.Update(st); err != nil {
+		s.logger.Error("更新风格失败", zap.String("id", id), zap.Error(err))
+		return nil, pkg.NewBizError("更新风格失败")
+	}
+	return st, nil
 }
 
 // Delete 删除风格
 func (s *Service) Delete(id string) error {
-	return s.store.Delete(id)
+	if err := s.store.Delete(id); err != nil {
+		return pkg.ErrNotFound
+	}
+	return nil
 }

@@ -1,15 +1,19 @@
 package schedule
 
-import "errors"
+import (
+	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"go.uber.org/zap"
+)
 
-// Service 调度业务逻辑
+// Service 调度任务业务逻辑
 type Service struct {
-	store Store
+	store  Store
+	logger *zap.Logger
 }
 
 // NewService 创建调度服务
-func NewService(store Store) *Service {
-	return &Service{store: store}
+func NewService(store Store, logger *zap.Logger) *Service {
+	return &Service{store: store, logger: logger}
 }
 
 // Create 创建定时任务
@@ -23,7 +27,13 @@ func (s *Service) Create(projectID, userID string, req CreateRequest) (*Schedule
 		Enabled:    req.Enabled,
 		CreatedBy:  userID,
 	}
-	return s.store.Create(sch)
+	created, err := s.store.Create(sch)
+	if err != nil {
+		s.logger.Error("创建调度任务失败", zap.String("project_id", projectID), zap.Error(err))
+		return nil, pkg.NewBizError("创建调度任务失败")
+	}
+	s.logger.Info("调度任务已创建", zap.String("id", created.ID), zap.String("cron", req.CronExpr))
+	return created, nil
 }
 
 // List 列出项目调度任务
@@ -33,14 +43,18 @@ func (s *Service) List(projectID string) ([]*Schedule, error) {
 
 // Get 获取调度任务
 func (s *Service) Get(id string) (*Schedule, error) {
-	return s.store.Get(id)
+	sch, err := s.store.Get(id)
+	if err != nil {
+		return nil, pkg.ErrNotFound
+	}
+	return sch, nil
 }
 
 // Update 更新调度任务
 func (s *Service) Update(id string, req UpdateRequest) (*Schedule, error) {
 	sch, err := s.store.Get(id)
 	if err != nil {
-		return nil, errors.New("调度任务不存在")
+		return nil, pkg.ErrNotFound
 	}
 	if req.Name != "" {
 		sch.Name = req.Name
@@ -57,10 +71,17 @@ func (s *Service) Update(id string, req UpdateRequest) (*Schedule, error) {
 	if req.Enabled != nil {
 		sch.Enabled = *req.Enabled
 	}
-	return sch, s.store.Update(sch)
+	if err := s.store.Update(sch); err != nil {
+		s.logger.Error("更新调度任务失败", zap.String("id", id), zap.Error(err))
+		return nil, pkg.NewBizError("更新调度任务失败")
+	}
+	return sch, nil
 }
 
 // Delete 删除调度任务
 func (s *Service) Delete(id string) error {
-	return s.store.Delete(id)
+	if err := s.store.Delete(id); err != nil {
+		return pkg.ErrNotFound
+	}
+	return nil
 }

@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"strconv"
 	"time"
 
@@ -35,11 +34,11 @@ type LoginResponse struct {
 func (s *AuthService) Login(req LoginRequest) (*LoginResponse, error) {
 	user, err := s.userStore.FindByUsername(req.Username)
 	if err != nil {
-		return nil, errors.New("用户名或密码错误")
+		return nil, pkg.NewBizError("用户名或密码错误")
 	}
 
 	if !pkg.CheckPassword(req.Password, user.PasswordHash) {
-		return nil, errors.New("用户名或密码错误")
+		return nil, pkg.NewBizError("用户名或密码错误")
 	}
 
 	userID := user.IDStr
@@ -48,7 +47,7 @@ func (s *AuthService) Login(req LoginRequest) (*LoginResponse, error) {
 	}
 	token, err := pkg.GenerateToken(s.jwtSecret, userID, user.Username, user.Role, 7*24*time.Hour)
 	if err != nil {
-		return nil, errors.New("生成 Token 失败")
+		return nil, pkg.NewBizError("生成 Token 失败")
 	}
 
 	return &LoginResponse{Token: token, User: user}, nil
@@ -76,11 +75,11 @@ type CreateUserRequest struct {
 // CreateUser 创建新用户（系统内创建）
 func (s *AuthService) CreateUser(req CreateUserRequest) (*User, error) {
 	if _, err := s.userStore.FindByUsername(req.Username); err == nil {
-		return nil, errors.New("用户名已存在")
+		return nil, pkg.NewBizError("用户名已存在")
 	}
 	hash, err := pkg.HashPassword(req.Password)
 	if err != nil {
-		return nil, errors.New("密码加密失败")
+		return nil, pkg.NewBizError("密码加密失败")
 	}
 	role := req.Role
 	if role == "" {
@@ -113,14 +112,14 @@ func (s *AuthService) DeleteUser(id string) error {
 func (s *AuthService) ChangePassword(userID string, req ChangePasswordRequest) error {
 	user, err := s.userStore.FindByID(userID)
 	if err != nil {
-		return errors.New("用户不存在")
+		return pkg.ErrNotFound
 	}
 	if !pkg.CheckPassword(req.OldPassword, user.PasswordHash) {
-		return errors.New("当前密码错误")
+		return pkg.NewBizError("当前密码错误")
 	}
 	hash, err := pkg.HashPassword(req.NewPassword)
 	if err != nil {
-		return errors.New("密码加密失败")
+		return pkg.NewBizError("密码加密失败")
 	}
 	user.PasswordHash = hash
 	return s.userStore.Update(user)

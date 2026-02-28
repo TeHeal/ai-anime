@@ -1,21 +1,26 @@
 package review
 
-import "errors"
+import (
+	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"go.uber.org/zap"
+)
 
 // Service 审核业务逻辑
 type Service struct {
-	store ReviewStore
+	store  ReviewStore
+	logger *zap.Logger
 }
 
 // NewService 创建审核服务
-func NewService(store ReviewStore) *Service {
-	return &Service{store: store}
+func NewService(store ReviewStore, logger *zap.Logger) *Service {
+	return &Service{store: store, logger: logger}
 }
 
 // SubmitForReview 提交审核（根据配置决定走 AI/人工/混合）
 func (s *Service) SubmitForReview(projectID string, req SubmitReviewRequest) (*ReviewRecord, error) {
 	cfg, err := s.store.GetConfig(projectID, req.Phase)
 	if err != nil {
+		s.logger.Warn("获取审核配置失败，使用默认 AI 模式", zap.String("project_id", projectID), zap.Error(err))
 		cfg = &ReviewConfig{Mode: ModeAI}
 	}
 
@@ -49,17 +54,29 @@ func (s *Service) SubmitForReview(projectID string, req SubmitReviewRequest) (*R
 		record.Status = StatusAIReviewing
 	}
 
-	return s.store.CreateRecord(record)
+	created, err := s.store.CreateRecord(record)
+	if err != nil {
+		s.logger.Error("创建审核记录失败", zap.String("project_id", projectID), zap.Error(err))
+		return nil, pkg.NewBizError("创建审核记录失败")
+	}
+	s.logger.Info("审核已提交",
+		zap.String("record_id", created.ID),
+		zap.String("phase", req.Phase),
+		zap.String("mode", cfg.Mode),
+		zap.Int("round", round),
+	)
+	return created, nil
 }
 
 // AIDecide AI 审核决策（由 Worker 或 AI 线调用）
 func (s *Service) AIDecide(recordID string, score int, reason string, approved bool) error {
 	record, err := s.store.GetRecord(recordID)
 	if err != nil {
-		return err
+		s.logger.Error("审核记录不存在", zap.String("record_id", recordID), zap.Error(err))
+		return pkg.ErrNotFound
 	}
 	if record.Status != StatusAIReviewing {
-		return errors.New("当前状态不允许 AI 审核")
+		return &pkg.BizError{Msg: "当前状态不允许 AI 审核，当前状态: " + record.Status}
 	}
 
 	// 获取审核配置，判断是否需要人工终审
@@ -67,46 +84,43 @@ func (s *Service) AIDecide(recordID string, score int, reason string, approved b
 
 	var newStatus string
 	if approved {
-		if cfg != nil && cfg.Mode == ModeHumanAI {
-			newStatus = StatusAIApproved
-		} else {
-			newStatus = StatusApproved
-		}
+		newStatus = StatusApproved
 	} else {
 		if cfg != nil && cfg.Mode == ModeHumanAI {
-			newStatus = StatusAIRejected
+			// 人工+AI 模式：AI 不通过时转人工审核
+			newStatus = StatusHumanReview
 		} else {
 			newStatus = StatusRejected
 		}
 	}
 
-	// 人工+AI 模式：AI 不通过时转人工审核
-	if newStatus == StatusAIRejected {
-		newStatus = StatusHumanReview
+	if err := s.store.UpdateDecision(recordID, newStatus, &score, reason, ""); err != nil {
+		s.logger.Error("更新审核决策失败", zap.String("record_id", recordID), zap.Error(err))
+		return pkg.NewBizError("更新审核决策失败")
 	}
-	if newStatus == StatusAIApproved {
-		newStatus = StatusApproved
-	}
-
-	return s.store.UpdateDecision(recordID, newStatus, &score, reason, "")
+	s.logger.Info("AI 审核完成", zap.String("record_id", recordID), zap.String("status", newStatus), zap.Int("score", score))
+	return nil
 }
 
 // HumanDecide 人工审核决策
 func (s *Service) HumanDecide(recordID, reviewerID string, req DecideReviewRequest) error {
 	record, err := s.store.GetRecord(recordID)
 	if err != nil {
-		return err
+		return pkg.ErrNotFound
 	}
 	if record.Status != StatusHumanReview && record.Status != StatusPending {
-		return errors.New("当前状态不允许人工审核")
+		return &pkg.BizError{Msg: "当前状态不允许人工审核，当前状态: " + record.Status}
+	}
+	if req.Status != StatusApproved && req.Status != StatusRejected {
+		return pkg.ErrReviewInvalidStatus
 	}
 
-	status := req.Status
-	if status != StatusApproved && status != StatusRejected {
-		return errors.New("无效的审核状态，仅支持 approved/rejected")
+	if err := s.store.UpdateDecision(recordID, req.Status, nil, "", req.Comment); err != nil {
+		s.logger.Error("人工审核决策更新失败", zap.String("record_id", recordID), zap.Error(err))
+		return pkg.NewBizError("更新审核决策失败")
 	}
-
-	return s.store.UpdateDecision(recordID, status, nil, "", req.Comment)
+	s.logger.Info("人工审核完成", zap.String("record_id", recordID), zap.String("reviewer", reviewerID), zap.String("status", req.Status))
+	return nil
 }
 
 // GetRecord 获取审核记录
@@ -137,7 +151,7 @@ func (s *Service) GetConfig(projectID, phase string) (*ReviewConfig, error) {
 // UpdateConfig 更新审核配置
 func (s *Service) UpdateConfig(projectID string, req UpdateConfigRequest) (*ReviewConfig, error) {
 	if req.Mode != ModeHuman && req.Mode != ModeAI && req.Mode != ModeHumanAI {
-		return nil, errors.New("无效的审核方式，仅支持 human/ai/human_ai")
+		return nil, pkg.ErrReviewInvalidMode
 	}
 	cfg := &ReviewConfig{
 		ProjectID: projectID,
