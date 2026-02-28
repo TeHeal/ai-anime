@@ -1,0 +1,5 @@
+# AI-Anime 后端配置示例
+# 复制为 config.yaml 并填写实际值，config.yaml 已在 .gitignore 中
+
+server:
+  port: 3737
