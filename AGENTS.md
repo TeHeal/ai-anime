@@ -87,15 +87,20 @@ export PATH="/usr/local/go/bin:/opt/flutter/bin:$PATH"
 
 ### 启动服务
 
-1. **Redis**: `redis-server --daemonize yes`
-2. **后端**: `cd anime_ai && cp config.yaml.example config.yaml`（仅首次），然后 `go run .` 或 `air`
+1. **Redis**: `redis-server --daemonize yes`，然后执行 `redis-cli config set stop-writes-on-bgsave-error no`（Cloud VM 磁盘权限问题导致 RDB 快照失败）
+2. **后端**: `cd anime_ai && go run .`（`config.yaml` 已提交在仓库中，无需手动复制）
 3. **前端**: `cd anime_ui && flutter run -d web-server --web-port 8080 --dart-define=API_BASE_URL=http://localhost:3737/api/v1`
+
+### 后端架构要点
+
+- PostgreSQL 为可选依赖：DSN 为空或连接失败时自动 fallback 到内存存储，后端可正常启动和测试所有 API。
+- Asynq Worker 依赖 Redis，Redis 可用时自动启动。
+- 默认管理员 `admin`/`admin123`，登录接口 `POST /api/v1/auth/login`。
 
 ### 已知问题
 
 - `anime_ui/test/widget_test.dart` 引用了不存在的 `MyApp`（实际为 `AnimeApp`），导致 `flutter test` 和 `flutter analyze` 报错。这是仓库已有问题，非环境配置错误。
-- 项目处于早期阶段，大部分模块仅包含占位 `doc.go` 文件。后端目前仅注册了 `/api/v1/health` 一个路由。
-- PostgreSQL 尚未在 `go.mod` 中作为依赖引入，后端启动不需要数据库连接。
+- `go vet` 报告 `module/episode/data.go:48` 存在自赋值警告，属于仓库已有问题。
 
 ### 常用命令参考
 
