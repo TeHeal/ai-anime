@@ -7,7 +7,9 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/script_ai_svc.dart';
 import 'package:anime_ui/pub/models/ai_action.dart';
+import 'ai_suggestion_panel.dart';
 import 'creation_assistant_pill_button.dart';
+import 'neg_prompt_field.dart';
 import 'tiny_btn.dart';
 
 /// 带「创作助理」和「提示词库」的提示词输入框，适用于所有需要提示词 / 反向提示词的场景。
@@ -368,7 +370,7 @@ class _PromptFieldWithAssistantState
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _NegPromptField(
+          NegPromptField(
             controller: _effectiveNegCtrl!,
             hint: negHint,
             accent: widget.accent,
@@ -512,7 +514,7 @@ class _PromptFieldWithAssistantState
         // 反向提示词（可选）
         if (_effectiveNegCtrl != null) ...[
           const SizedBox(height: 10),
-          _NegPromptField(
+          NegPromptField(
             controller: _effectiveNegCtrl!,
             hint: negHint,
             accent: widget.accent,
@@ -534,315 +536,21 @@ class _PromptFieldWithAssistantState
   }
 
   Widget _buildAiSuggestion() {
-    final accent = widget.accent;
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: accent.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(AppIcons.autoAwesome, size: 14, color: accent),
-              const SizedBox(width: 6),
-              Text(
-                _aiLoading ? 'AI 生成中…' : 'AI 建议（可直接编辑）',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: accent),
-              ),
-              if (_aiLoading) ...[
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 12,
-                  height: 12,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 1.5, color: accent),
-                ),
-              ],
-              const Spacer(),
-              if (_aiOriginalContent != null && _aiOriginalContent!.isNotEmpty)
-                GestureDetector(
-                  onTap: () =>
-                      setState(() => _showOriginalDiff = !_showOriginalDiff),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _showOriginalDiff
-                            ? Icons.unfold_less
-                            : Icons.compare_arrows,
-                        size: 14,
-                        color: accent.withValues(alpha: 0.6),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _showOriginalDiff ? '收起原文' : '对比原文',
-                        style: TextStyle(
-                            fontSize: 11, color: accent.withValues(alpha: 0.6)),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          if (_showOriginalDiff && _aiOriginalContent != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F0F17),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                    color: const Color(0xFF2A2A3C).withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '原文',
-                    style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _aiOriginalContent!.isEmpty ? '（空）' : _aiOriginalContent!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.5,
-                      color: Colors.grey[500],
-                      decoration: TextDecoration.lineThrough,
-                      decorationColor: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-          if (_aiLoading)
-            SelectableText(
-              _aiSuggestion ?? '',
-              style: const TextStyle(
-                  fontSize: 14, height: 1.6, color: Color(0xFFE4E4E7)),
-            )
-          else
-            TextField(
-              controller: _aiSuggestionCtrl,
-              maxLines: null,
-              minLines: 2,
-              style: const TextStyle(
-                  fontSize: 14, height: 1.6, color: Color(0xFFE4E4E7)),
-              decoration: InputDecoration(
-                hintText: '编辑 AI 建议内容…',
-                hintStyle: const TextStyle(
-                    color: Color(0xFF4B5563), fontSize: 14),
-                filled: true,
-                fillColor: const Color(0xFF0F0F17),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                      color: accent.withValues(alpha: 0.2), width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                      color: accent.withValues(alpha: 0.5), width: 1.5),
-                ),
-              ),
-            ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton.icon(
-                onPressed: _dismissAi,
-                icon: const Icon(AppIcons.close, size: 14),
-                label: const Text('放弃'),
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFF9CA3AF),
-                  textStyle: const TextStyle(fontSize: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                ),
-              ),
-              if (!_aiLoading &&
-                  (_aiSuggestionCtrl?.text.isNotEmpty ?? false)) ...[
-                const SizedBox(width: 6),
-                OutlinedButton.icon(
-                  onPressed: _acceptAppend,
-                  icon: const Icon(AppIcons.add, size: 14),
-                  label: const Text('追加'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: accent.withValues(alpha: 0.8),
-                    side: BorderSide(color: accent.withValues(alpha: 0.3)),
-                    textStyle: const TextStyle(fontSize: 12),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                FilledButton.icon(
-                  onPressed: _acceptReplace,
-                  icon: const Icon(AppIcons.check, size: 14),
-                  label: const Text('替换'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: accent,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 12),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
-                    minimumSize: Size.zero,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
+    return AiSuggestionPanel(
+      accent: widget.accent,
+      aiLoading: _aiLoading,
+      aiSuggestion: _aiSuggestion,
+      aiOriginalContent: _aiOriginalContent,
+      showOriginalDiff: _showOriginalDiff,
+      aiSuggestionCtrl: _aiSuggestionCtrl,
+      onToggleDiff: () => setState(() => _showOriginalDiff = !_showOriginalDiff),
+      onDismiss: _dismissAi,
+      onAppend: _acceptAppend,
+      onReplace: _acceptReplace,
     );
   }
 
   InputDecoration _defaultInputDeco(String hintText, Color accent) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: TextStyle(fontSize: 13, color: Colors.grey[600]),
-      filled: true,
-      fillColor: Colors.grey[900],
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey[800]!),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: accent),
-      ),
-    );
-  }
-}
-
-class _NegPromptField extends StatelessWidget {
-  const _NegPromptField({
-    required this.controller,
-    required this.hint,
-    required this.accent,
-    this.label,
-    this.onLibraryTap,
-    this.onAssistantAction,
-    this.onSaveToLibrary,
-  });
-
-  final TextEditingController controller;
-  final String hint;
-  final Color accent;
-  final String? label;
-  final VoidCallback? onLibraryTap;
-  final void Function(AiAction)? onAssistantAction;
-  final VoidCallback? onSaveToLibrary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              label ?? '反向提示词（选填）',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[400],
-              ),
-            ),
-            if (onAssistantAction != null || onLibraryTap != null || onSaveToLibrary != null) ...[
-              const Spacer(),
-              if (onAssistantAction != null)
-                CreationAssistantPillButton<AiAction>(
-                  itemBuilder: (_) => AiAction.values
-                      .map((a) => PopupMenuItem<AiAction>(
-                            value: a,
-                            height: 36,
-                            child: Row(
-                              children: [
-                                Icon(aiActionIcons[a],
-                                    size: 15, color: accent),
-                                const SizedBox(width: 8),
-                                Text(aiActionLabels[a]!,
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFFE4E4E7))),
-                              ],
-                            ),
-                          ))
-                      .toList(),
-                  onSelected: onAssistantAction!,
-                ),
-              if (onLibraryTap != null) ...[
-                const SizedBox(width: 6),
-                TinyBtn(
-                  icon: AppIcons.document,
-                  label: '提示词库',
-                  accent: accent,
-                  onTap: onLibraryTap!,
-                ),
-              ],
-            ],
-          ],
-        ),
-        const SizedBox(height: 6),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            TextField(
-              controller: controller,
-              style: const TextStyle(fontSize: 13, color: Colors.white),
-              maxLines: 2,
-              decoration: onSaveToLibrary != null
-                  ? _defaultDeco(hint).copyWith(
-                      contentPadding: const EdgeInsets.only(
-                        left: 12,
-                        top: 10,
-                        right: 70,
-                        bottom: 36,
-                      ),
-                    )
-                  : _defaultDeco(hint),
-            ),
-            if (onSaveToLibrary != null)
-              Positioned(
-                right: 8,
-                bottom: 8,
-                child: TinyBtn(
-                  icon: AppIcons.save,
-                  label: '入库',
-                  accent: accent,
-                  onTap: onSaveToLibrary!,
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  InputDecoration _defaultDeco(String hintText) {
     return InputDecoration(
       hintText: hintText,
       hintStyle: TextStyle(fontSize: 13, color: Colors.grey[600]),
