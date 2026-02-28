@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/models/asset_version.dart';
-import 'package:anime_ui/pub/providers/lock_provider.dart';
+import 'package:anime_ui/pub/providers/lock.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 
-import 'characters/providers/characters_provider.dart';
-import 'locations/providers/locations_provider.dart';
+import 'characters/providers/characters.dart';
+import 'locations/providers/locations.dart';
 import 'pending_changes_card.dart';
-import 'props/providers/props_provider.dart';
+import 'props/providers/props.dart';
 import 'versions_provider.dart';
 
 /// 资产版本管理页：冻结、解冻、版本历史、待发布变更

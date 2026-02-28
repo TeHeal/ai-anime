@@ -6,7 +6,7 @@ import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/character.dart';
 import 'package:anime_ui/pub/services/api.dart';
 import 'package:anime_ui/module/assets/shared/asset_status_chip.dart';
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 
 /// 角色列表页：展示项目角色、支持筛选与新增
 class AssetsCharactersPage extends ConsumerStatefulWidget {

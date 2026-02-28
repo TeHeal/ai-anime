@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/models/character.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/character_svc.dart';
 import 'package:anime_ui/pub/services/storyboard_svc.dart' show ExtractResult, StoryboardService;
-import 'package:anime_ui/module/assets/locations/providers/locations_provider.dart';
-import 'package:anime_ui/module/assets/props/providers/props_provider.dart';
+import 'package:anime_ui/module/assets/locations/providers/locations.dart';
+import 'package:anime_ui/module/assets/props/providers/props.dart';
 
 final _characterSvcProvider = Provider((_) => CharacterService());
 final _storyboardSvcProvider = Provider((_) => StoryboardService());

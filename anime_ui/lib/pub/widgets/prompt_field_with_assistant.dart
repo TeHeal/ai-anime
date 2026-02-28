@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/script_ai_svc.dart';
 import 'package:anime_ui/pub/models/ai_action.dart';
 import 'ai_suggestion_panel.dart';

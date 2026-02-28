@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/models/lock_status.dart';
 import 'package:anime_ui/pub/services/lock_svc.dart';
-import 'project_provider.dart';
+import 'project.dart';
 
 class LockNotifier extends Notifier<LockStatus> {
   final _svc = LockService();

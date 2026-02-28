@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
-import 'package:anime_ui/module/assets/locations/providers/locations_provider.dart';
-import 'package:anime_ui/module/assets/props/providers/props_provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
+import 'package:anime_ui/module/assets/locations/providers/locations.dart';
+import 'package:anime_ui/module/assets/props/providers/props.dart';
 import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
-import 'package:anime_ui/module/assets/overview/providers/styles_provider.dart';
+import 'package:anime_ui/module/assets/overview/providers/styles.dart';
 
 /// 资产总览数据
 class AssetOverviewData {

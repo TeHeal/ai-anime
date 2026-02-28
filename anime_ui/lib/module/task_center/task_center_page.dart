@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/task.dart';
-import 'package:anime_ui/module/task_center/providers/task_center_provider.dart';
+import 'package:anime_ui/module/task_center/providers/task_center.dart';
 
 /// 任务中心页：按状态分组展示任务列表
 class TaskCenterPage extends ConsumerWidget {

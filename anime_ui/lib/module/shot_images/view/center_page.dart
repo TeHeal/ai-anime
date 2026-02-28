@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/module/script/view/provider.dart' show shotsProvider;
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'provider.dart';
 import 'widgets/center_config_card.dart';
 import 'widgets/center_import_card.dart';

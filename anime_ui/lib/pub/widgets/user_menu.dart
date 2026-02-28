@@ -7,8 +7,8 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/app_dialog.dart';
 import 'package:anime_ui/main.dart';
-import 'package:anime_ui/pub/providers/lock_provider.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/lock.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/api.dart';
 
 /// 用户头像菜单 — 提供修改密码、账户分配、退出登录。

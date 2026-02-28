@@ -8,7 +8,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/pulse_widget.dart';
 import 'package:anime_ui/module/dashboard/provider.dart';
-import 'package:anime_ui/module/task_center/providers/task_center_provider.dart';
+import 'package:anime_ui/module/task_center/providers/task_center.dart';
 import 'user_menu.dart';
 
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {

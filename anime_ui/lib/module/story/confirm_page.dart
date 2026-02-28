@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/pub/providers/lock_provider.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/lock.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 
 /// 剧本锁定/解锁页
 class StoryConfirmPage extends ConsumerStatefulWidget {

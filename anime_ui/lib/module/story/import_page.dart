@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/pub/providers/lock_provider.dart';
+import 'package:anime_ui/pub/providers/lock.dart';
 import 'package:anime_ui/module/draft/page.dart';
 
 /// 剧本导入页 — 锁定后不可导入，展示 DraftPage

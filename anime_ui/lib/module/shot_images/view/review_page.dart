@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/module/script/view/provider.dart' show shotsProvider;
 import 'package:anime_ui/module/script/provider.dart';
 import 'package:anime_ui/pub/models/shot.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/widgets/review_layout/review_scaffold.dart';
 import 'package:anime_ui/pub/widgets/review_layout/shot_list_nav.dart';
 import 'review_ui_provider.dart';

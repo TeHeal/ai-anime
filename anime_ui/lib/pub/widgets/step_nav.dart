@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/providers/step_status_provider.dart';
+import 'package:anime_ui/pub/providers/step_status.dart';
 
 class StepNav extends StatelessWidget {
   const StepNav({

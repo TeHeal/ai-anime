@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/module/assets/overview/providers/overview_provider.dart';
+import 'package:anime_ui/module/assets/overview/providers/overview.dart';
 
 /// 关键问题列表
 class KeyIssuesList extends StatelessWidget {

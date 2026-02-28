@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 
 /// AI 资产提取对话框
 class AssetExtractDialog extends ConsumerWidget {

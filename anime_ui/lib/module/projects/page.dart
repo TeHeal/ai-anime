@@ -13,8 +13,8 @@ import 'package:anime_ui/pub/widgets/pulse_widget.dart';
 import 'package:anime_ui/pub/widgets/starfield_background.dart';
 import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/project.dart';
-import 'package:anime_ui/pub/providers/lock_provider.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/lock.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/project_svc.dart';
 import 'package:anime_ui/pub/widgets/user_menu.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/module/assets/overview/providers/overview_provider.dart';
+import 'package:anime_ui/module/assets/overview/providers/overview.dart';
 
 /// 资产就绪度进度条
 class ReadinessBar extends StatelessWidget {

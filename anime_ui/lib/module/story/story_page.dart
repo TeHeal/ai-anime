@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/providers/lock_provider.dart';
+import 'package:anime_ui/pub/providers/lock.dart';
 import 'package:anime_ui/pub/widgets/object_tab_bar.dart';
 
 /// 剧本页壳 — 含导入/预览/编辑/锁定四个 Tab

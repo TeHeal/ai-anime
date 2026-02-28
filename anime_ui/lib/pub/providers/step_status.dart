@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/module/board/provider.dart';
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/script/provider.dart';
 
 /// 对象状态枚举

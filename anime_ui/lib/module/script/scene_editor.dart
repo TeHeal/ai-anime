@@ -7,7 +7,7 @@ import 'package:anime_ui/pub/models/ai_action.dart';
 import 'package:anime_ui/pub/models/episode.dart';
 import 'package:anime_ui/pub/models/scene.dart';
 import 'package:anime_ui/pub/models/scene_block.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/script_ai_svc.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/insert_handle.dart';

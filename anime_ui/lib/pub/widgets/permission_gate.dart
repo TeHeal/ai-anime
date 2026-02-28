@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/pub/providers/auth_provider.dart';
+import 'package:anime_ui/pub/providers/auth.dart';
 
 /// Shows [child] only if the current user's effective role meets or exceeds
 /// [requiredRole]. Otherwise shows [fallback] (defaults to nothing).

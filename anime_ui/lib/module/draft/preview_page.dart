@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:anime_ui/module/draft/provider.dart';
 import 'package:anime_ui/module/story/story_action_bar.dart';
 import 'package:anime_ui/pub/const/routes.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/script_parse_svc.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 

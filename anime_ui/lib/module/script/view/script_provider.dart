@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/models/episode.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/storyboard_svc.dart';
 import 'package:anime_ui/pub/services/task_svc.dart';
 

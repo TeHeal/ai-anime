@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 
 /// 批量导入人物小传对话框
 class ImportProfileDialog extends ConsumerStatefulWidget {

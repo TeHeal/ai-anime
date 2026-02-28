@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/project.dart';
 import 'package:anime_ui/pub/services/project_svc.dart';
-import 'lock_provider.dart';
+import 'lock.dart';
 
 class CurrentProjectNotifier extends Notifier<AsyncValue<Project?>> {
   @override

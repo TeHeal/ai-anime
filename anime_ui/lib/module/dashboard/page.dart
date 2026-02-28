@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/models/dashboard.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/gradient_app_bar_bottom.dart';

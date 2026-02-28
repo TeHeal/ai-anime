@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/dashboard.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/dashboard_svc.dart';
 
 final dashboardServiceProvider = Provider((_) => DashboardService());

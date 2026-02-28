@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/script/view/review_ui_provider.dart';
 import 'package:anime_ui/module/script/view/widgets/editor_common.dart';
 import 'package:anime_ui/module/script/view/widgets/editor_header.dart';
