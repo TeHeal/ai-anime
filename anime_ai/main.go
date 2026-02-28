@@ -16,6 +16,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/review"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
@@ -257,6 +258,11 @@ func main() {
 		}
 	}
 
+	// 审核模块
+	reviewStore := review.NewMemReviewStore()
+	reviewSvc := review.NewService(reviewStore)
+	reviewHandler := review.NewHandler(reviewSvc)
+
 	routeCfg := &RouteConfig{
 		AuthHandler:        authHandler,
 		ProjectHandler:     projectHandler,
@@ -271,6 +277,7 @@ func main() {
 		ShotImageHandler:   shotImageHandler,
 		WSHandler:          wsHandler,
 		AsynqClient:        asynqClient,
+		ReviewHandler:      reviewHandler,
 		JWTSecret:          cfg.App.Secret,
 	}
 

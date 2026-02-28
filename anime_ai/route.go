@@ -8,6 +8,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/review"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
@@ -166,8 +167,19 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projects.POST("/:id/shots/composite", cfg.ShotHandler.BatchComposite)
 				}
 
-				// 镜图生成、审核
-				if cfg.ShotImageHandler != nil {
+			// 审核管理
+			if cfg.ReviewHandler != nil {
+				projects.POST("/:id/reviews", cfg.ReviewHandler.SubmitReview)
+				projects.GET("/:id/reviews", cfg.ReviewHandler.ListByProject)
+				projects.GET("/:id/reviews/pending-count", cfg.ReviewHandler.CountPending)
+				projects.PUT("/:id/reviews/:reviewId/decide", cfg.ReviewHandler.HumanDecide)
+				projects.GET("/:id/reviews/:reviewId", cfg.ReviewHandler.GetRecord)
+				projects.GET("/:id/review-config", cfg.ReviewHandler.GetConfig)
+				projects.PUT("/:id/review-config", cfg.ReviewHandler.UpdateConfig)
+			}
+
+			// 镜图生成、审核
+			if cfg.ShotImageHandler != nil {
 					projects.POST("/:id/shot-images/generate", cfg.ShotImageHandler.BatchGenerate)
 					projects.GET("/:id/shot-images/status", cfg.ShotImageHandler.GetStatus)
 					projects.POST("/:id/shot-images/select-candidate", cfg.ShotImageHandler.SelectCandidate)
@@ -234,6 +246,7 @@ type RouteConfig struct {
 	ShotHandler        *shot.Handler
 	ShotImageHandler   *shot_image.Handler
 	WSHandler          *realtime.WSHandler
+	ReviewHandler      *review.Handler
 	AsynqClient        *asynq.Client // 供 API 入队任务，Redis 不可用时为 nil
 	JWTSecret          string
 }
