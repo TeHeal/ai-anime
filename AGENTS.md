@@ -47,3 +47,32 @@
 - **不录制视频**：除非用户明确要求，否则不录制演示视频。
 - **README 修改**：AI 助手可应用户要求修改 README；日常开发以阅读参考为主。
 
+## Cursor Cloud specific instructions
+
+### 环境
+
+本项目为 monorepo：Go 后端 (`anime_ai/`, :3737) + Flutter Web 前端 (`anime_ui/`, :8080)。
+
+### 工具与 PATH
+
+- **Go** 1.26 → `/usr/local/go/bin`
+- **Flutter** 3.41.x（Dart 3.11.0）→ `/opt/flutter/bin`
+- **Redis** 7.x（apt 安装）
+
+```
+export PATH="/usr/local/go/bin:/opt/flutter/bin:$PATH"
+```
+
+### Cloud 启动注意事项
+
+启动顺序和命令见 §3（AGENTS.md 上方），Cloud 环境额外注意：
+
+1. **Redis**：启动后执行 `redis-cli config set stop-writes-on-bgsave-error no`（Cloud VM 磁盘权限导致 RDB 快照失败）
+2. **PostgreSQL 可选**：DSN 为空或连接失败时自动 fallback 到内存存储，后端可正常启动
+3. **Asynq Worker**：依赖 Redis，可用时自动启动
+4. **登录测试**：`POST /api/v1/auth/login`，凭证 `admin`/`admin123`
+
+### 已知问题
+
+- `go vet` 报告 `module/episode/data.go:48` 自赋值警告，属仓库已有问题
+
