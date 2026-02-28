@@ -10,12 +10,7 @@ alwaysApply: true
 ## 1. 架构与全局视野优先 (Architecture First)
 
 - **拒绝重复造轮子：** 在编写新功能前，必须先搜索项目中已有的类似实现、通用工具类（Utils）、全局状态管理和现有模型结构。
-- **保持风格一致：** 严格遵循现有的代码目录结构和命名规范，不要擅自引入与当前项目（Flutter / Go）已有模式不符的设计。
-- **目录设计原则（详见 README 目录设计）：**
-  - 模块化 + 公共层：业务放 `module/`，基础设施放 `pub/`
-  - 目录即上下文：模块内用层名（`handler.go`、`service.go`、`data.go`），不重复资源前缀
-  - Handler → Service → Data 分层
-  - pub 内跨模块文件用 `资源_层`（如 `shot_image_service.go`）
+- **保持风格一致：** 严格遵循现有的代码目录结构和命名规范，不要擅自引入与当前项目（Flutter / Go）已有模式不符的设计。具体目录设计见 README § 目录设计。
 
 ## 2. 拒绝幻觉与严谨依赖 (No Hallucinations)
 
@@ -30,7 +25,7 @@ alwaysApply: true
 ## 4. 安全第一 (Security & Privacy)
 
 - **严禁硬编码敏感信息：** API Key、密码、密钥等数据必须通过配置文件或环境变量加载，决不允许明文写在代码内。
-- **防范常见攻击：** 确保后端的 SQL 查询防范注入（使用 GORM 等 ORM 或参数化查询），接口注意鉴权与越权访问控制。
+- **防范常见攻击：** 确保后端的 SQL 查询防范注入（使用 sqlc 参数化查询或 ORM），接口注意鉴权与越权访问控制。
 
 ## 5. 性能与资源意识 (Performance Optimization)
 
@@ -45,3 +40,5 @@ alwaysApply: true
 - **人类可读性：** 保证你生成的每一行代码对于人类开发者来说都是清晰、易读的。绝对不可生成大段难以拆解的混淆逻辑。
 
 ## 7. 每个文件代码行数控制在600以内
+
+- **例外：** sqlc 生成的 `anime_ai/sch/db/*.sql.go` 为自动生成代码，不受此限制（详见 `anime_ai/sch/README.md`）。

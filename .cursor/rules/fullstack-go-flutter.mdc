@@ -1,0 +1,28 @@
+---
+description: Go 后端与 Flutter 前端联调、API 契约与双端同步开发规范
+globs: "**/*.{go,dart,proto,json}"
+alwaysApply: true
+---
+
+# Go + Flutter 全栈开发 Agent 规范
+
+单端规范见 `go-backend.mdc`、`flutter-frontend.mdc`，本规则仅约束跨端联调。
+
+## 1. 跨端契约优先 (Contract First)
+
+- **同步修改**：修改 Go 的 API 响应结构时，必须主动检查并提示修改 Flutter 端对应的 model 或序列化代码。
+- **类型映射**：
+  - `int64` (Go) → `int` (Dart)
+  - `float64` (Go) → `double` (Dart)
+  - `time.Time` (Go) → `DateTime` (Dart, ISO8601)
+  - `nil` (Go) → `null` (Dart)
+
+## 2. 全栈联调时机
+
+- **双端规划**：任务开始前输出 [Backend] 修改的 API 字段、[Frontend] 需更新的 Model 和 Screen。
+- **环境检查**：确认 `API_BASE_URL` 指向正确环境（开发：`http://localhost:3737/api/v1`；Android 模拟器访问宿主：`http://10.0.2.2:3737/api/v1`）。
+
+## 3. 自动化助手动作
+
+- 修改 API 后主动询问：「是否需要同步更新 Flutter 的 Model 层？」
+- 发现 Go 定义新字段但 Dart 未使用时，给出 TODO 提醒。
