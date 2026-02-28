@@ -8,8 +8,8 @@ abstract class AssetVersion with _$AssetVersion {
   const AssetVersion._();
 
   const factory AssetVersion({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default(0) int version,
     @Default('') String action,
     @Default('') String statsJson,

@@ -13,7 +13,7 @@ class ModelCatalogItem {
     this.providerName = '',
   });
 
-  final int id;
+  final String id;
   final String operator;
   final String operatorLabel;
   final String brand;
@@ -27,7 +27,7 @@ class ModelCatalogItem {
 
   factory ModelCatalogItem.fromJson(Map<String, dynamic> json) {
     return ModelCatalogItem(
-      id: json['id'] as int? ?? 0,
+      id: (json['id'] ?? '').toString(),
       operator: json['operator'] as String? ?? '',
       operatorLabel: json['operator_label'] as String? ?? json['operator'] as String? ?? '',
       brand: json['brand'] as String? ?? '',

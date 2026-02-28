@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Episode {
 
- int? get id; int? get projectId; String get title; int get sortIndex; String get summary; String get status; int get currentStep; DateTime? get lastActiveAt; List<Scene> get scenes;
+ String? get id; String? get projectId; String get title; int get sortIndex; String get summary; String get status; int get currentStep; DateTime? get lastActiveAt; List<Scene> get scenes;
 /// Create a copy of Episode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $EpisodeCopyWith<$Res>  {
   factory $EpisodeCopyWith(Episode value, $Res Function(Episode) _then) = _$EpisodeCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, String title, int sortIndex, String summary, String status, int currentStep, DateTime? lastActiveAt, List<Scene> scenes
+ String? id, String? projectId, String title, int sortIndex, String summary, String status, int currentStep, DateTime? lastActiveAt, List<Scene> scenes
 });
 
 
@@ -68,8 +68,8 @@ class _$EpisodeCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? title = null,Object? sortIndex = null,Object? summary = null,Object? status = null,Object? currentStep = null,Object? lastActiveAt = freezed,Object? scenes = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -161,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  DateTime? lastActiveAt,  List<Scene> scenes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  DateTime? lastActiveAt,  List<Scene> scenes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Episode() when $default != null:
 return $default(_that.id,_that.projectId,_that.title,_that.sortIndex,_that.summary,_that.status,_that.currentStep,_that.lastActiveAt,_that.scenes);case _:
@@ -182,7 +182,7 @@ return $default(_that.id,_that.projectId,_that.title,_that.sortIndex,_that.summa
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  DateTime? lastActiveAt,  List<Scene> scenes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  DateTime? lastActiveAt,  List<Scene> scenes)  $default,) {final _that = this;
 switch (_that) {
 case _Episode():
 return $default(_that.id,_that.projectId,_that.title,_that.sortIndex,_that.summary,_that.status,_that.currentStep,_that.lastActiveAt,_that.scenes);case _:
@@ -202,7 +202,7 @@ return $default(_that.id,_that.projectId,_that.title,_that.sortIndex,_that.summa
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  DateTime? lastActiveAt,  List<Scene> scenes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  DateTime? lastActiveAt,  List<Scene> scenes)?  $default,) {final _that = this;
 switch (_that) {
 case _Episode() when $default != null:
 return $default(_that.id,_that.projectId,_that.title,_that.sortIndex,_that.summary,_that.status,_that.currentStep,_that.lastActiveAt,_that.scenes);case _:
@@ -220,8 +220,8 @@ class _Episode implements Episode {
   const _Episode({this.id, this.projectId, this.title = '', this.sortIndex = 0, this.summary = '', this.status = 'not_started', this.currentStep = 0, this.lastActiveAt, final  List<Scene> scenes = const []}): _scenes = scenes;
   factory _Episode.fromJson(Map<String, dynamic> json) => _$EpisodeFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  String title;
 @override@JsonKey() final  int sortIndex;
 @override@JsonKey() final  String summary;
@@ -269,7 +269,7 @@ abstract mixin class _$EpisodeCopyWith<$Res> implements $EpisodeCopyWith<$Res> {
   factory _$EpisodeCopyWith(_Episode value, $Res Function(_Episode) _then) = __$EpisodeCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, String title, int sortIndex, String summary, String status, int currentStep, DateTime? lastActiveAt, List<Scene> scenes
+ String? id, String? projectId, String title, int sortIndex, String summary, String status, int currentStep, DateTime? lastActiveAt, List<Scene> scenes
 });
 
 
@@ -289,8 +289,8 @@ class __$EpisodeCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? title = null,Object? sortIndex = null,Object? summary = null,Object? status = null,Object? currentStep = null,Object? lastActiveAt = freezed,Object? scenes = null,}) {
   return _then(_Episode(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable

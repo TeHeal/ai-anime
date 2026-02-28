@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Character {
 
- int? get id; int? get projectId; String get name; String get aliasJson; String get appearance; String get style; bool get styleOverride; String get personality; String get voiceHint; String get emotions; String get scenes; String get gender; String get ageGroup; String get voiceId; String get voiceName; String get imageUrl; String get referenceImagesJson; String get taskId; String get imageStatus; bool get shared; String get status; String get source; String get variantsJson;// v3: classification
+ String? get id; String? get projectId; String get name; String get aliasJson; String get appearance; String get style; bool get styleOverride; String get personality; String get voiceHint; String get emotions; String get scenes; String get gender; String get ageGroup; String get voiceId; String get voiceName; String get imageUrl; String get referenceImagesJson; String get taskId; String get imageStatus; bool get shared; String get status; String get source; String get variantsJson;// v3: classification
  String get importance; String get consistency; String get roleType; String get tagsJson; String get propsJson;// v3: bio
  String get bio; String get bioFragmentsJson;// v3: image gen override
  String get imageGenOverrideJson;
@@ -51,7 +51,7 @@ abstract mixin class $CharacterCopyWith<$Res>  {
   factory $CharacterCopyWith(Character value, $Res Function(Character) _then) = _$CharacterCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, String name, String aliasJson, String appearance, String style, bool styleOverride, String personality, String voiceHint, String emotions, String scenes, String gender, String ageGroup, String voiceId, String voiceName, String imageUrl, String referenceImagesJson, String taskId, String imageStatus, bool shared, String status, String source, String variantsJson, String importance, String consistency, String roleType, String tagsJson, String propsJson, String bio, String bioFragmentsJson, String imageGenOverrideJson
+ String? id, String? projectId, String name, String aliasJson, String appearance, String style, bool styleOverride, String personality, String voiceHint, String emotions, String scenes, String gender, String ageGroup, String voiceId, String voiceName, String imageUrl, String referenceImagesJson, String taskId, String imageStatus, bool shared, String status, String source, String variantsJson, String importance, String consistency, String roleType, String tagsJson, String propsJson, String bio, String bioFragmentsJson, String imageGenOverrideJson
 });
 
 
@@ -71,8 +71,8 @@ class _$CharacterCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? name = null,Object? aliasJson = null,Object? appearance = null,Object? style = null,Object? styleOverride = null,Object? personality = null,Object? voiceHint = null,Object? emotions = null,Object? scenes = null,Object? gender = null,Object? ageGroup = null,Object? voiceId = null,Object? voiceName = null,Object? imageUrl = null,Object? referenceImagesJson = null,Object? taskId = null,Object? imageStatus = null,Object? shared = null,Object? status = null,Object? source = null,Object? variantsJson = null,Object? importance = null,Object? consistency = null,Object? roleType = null,Object? tagsJson = null,Object? propsJson = null,Object? bio = null,Object? bioFragmentsJson = null,Object? imageGenOverrideJson = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,aliasJson: null == aliasJson ? _self.aliasJson : aliasJson // ignore: cast_nullable_to_non_nullable
 as String,appearance: null == appearance ? _self.appearance : appearance // ignore: cast_nullable_to_non_nullable
 as String,style: null == style ? _self.style : style // ignore: cast_nullable_to_non_nullable
@@ -186,7 +186,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String name,  String aliasJson,  String appearance,  String style,  bool styleOverride,  String personality,  String voiceHint,  String emotions,  String scenes,  String gender,  String ageGroup,  String voiceId,  String voiceName,  String imageUrl,  String referenceImagesJson,  String taskId,  String imageStatus,  bool shared,  String status,  String source,  String variantsJson,  String importance,  String consistency,  String roleType,  String tagsJson,  String propsJson,  String bio,  String bioFragmentsJson,  String imageGenOverrideJson)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String name,  String aliasJson,  String appearance,  String style,  bool styleOverride,  String personality,  String voiceHint,  String emotions,  String scenes,  String gender,  String ageGroup,  String voiceId,  String voiceName,  String imageUrl,  String referenceImagesJson,  String taskId,  String imageStatus,  bool shared,  String status,  String source,  String variantsJson,  String importance,  String consistency,  String roleType,  String tagsJson,  String propsJson,  String bio,  String bioFragmentsJson,  String imageGenOverrideJson)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Character() when $default != null:
 return $default(_that.id,_that.projectId,_that.name,_that.aliasJson,_that.appearance,_that.style,_that.styleOverride,_that.personality,_that.voiceHint,_that.emotions,_that.scenes,_that.gender,_that.ageGroup,_that.voiceId,_that.voiceName,_that.imageUrl,_that.referenceImagesJson,_that.taskId,_that.imageStatus,_that.shared,_that.status,_that.source,_that.variantsJson,_that.importance,_that.consistency,_that.roleType,_that.tagsJson,_that.propsJson,_that.bio,_that.bioFragmentsJson,_that.imageGenOverrideJson);case _:
@@ -207,7 +207,7 @@ return $default(_that.id,_that.projectId,_that.name,_that.aliasJson,_that.appear
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String name,  String aliasJson,  String appearance,  String style,  bool styleOverride,  String personality,  String voiceHint,  String emotions,  String scenes,  String gender,  String ageGroup,  String voiceId,  String voiceName,  String imageUrl,  String referenceImagesJson,  String taskId,  String imageStatus,  bool shared,  String status,  String source,  String variantsJson,  String importance,  String consistency,  String roleType,  String tagsJson,  String propsJson,  String bio,  String bioFragmentsJson,  String imageGenOverrideJson)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String name,  String aliasJson,  String appearance,  String style,  bool styleOverride,  String personality,  String voiceHint,  String emotions,  String scenes,  String gender,  String ageGroup,  String voiceId,  String voiceName,  String imageUrl,  String referenceImagesJson,  String taskId,  String imageStatus,  bool shared,  String status,  String source,  String variantsJson,  String importance,  String consistency,  String roleType,  String tagsJson,  String propsJson,  String bio,  String bioFragmentsJson,  String imageGenOverrideJson)  $default,) {final _that = this;
 switch (_that) {
 case _Character():
 return $default(_that.id,_that.projectId,_that.name,_that.aliasJson,_that.appearance,_that.style,_that.styleOverride,_that.personality,_that.voiceHint,_that.emotions,_that.scenes,_that.gender,_that.ageGroup,_that.voiceId,_that.voiceName,_that.imageUrl,_that.referenceImagesJson,_that.taskId,_that.imageStatus,_that.shared,_that.status,_that.source,_that.variantsJson,_that.importance,_that.consistency,_that.roleType,_that.tagsJson,_that.propsJson,_that.bio,_that.bioFragmentsJson,_that.imageGenOverrideJson);case _:
@@ -227,7 +227,7 @@ return $default(_that.id,_that.projectId,_that.name,_that.aliasJson,_that.appear
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  String name,  String aliasJson,  String appearance,  String style,  bool styleOverride,  String personality,  String voiceHint,  String emotions,  String scenes,  String gender,  String ageGroup,  String voiceId,  String voiceName,  String imageUrl,  String referenceImagesJson,  String taskId,  String imageStatus,  bool shared,  String status,  String source,  String variantsJson,  String importance,  String consistency,  String roleType,  String tagsJson,  String propsJson,  String bio,  String bioFragmentsJson,  String imageGenOverrideJson)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String name,  String aliasJson,  String appearance,  String style,  bool styleOverride,  String personality,  String voiceHint,  String emotions,  String scenes,  String gender,  String ageGroup,  String voiceId,  String voiceName,  String imageUrl,  String referenceImagesJson,  String taskId,  String imageStatus,  bool shared,  String status,  String source,  String variantsJson,  String importance,  String consistency,  String roleType,  String tagsJson,  String propsJson,  String bio,  String bioFragmentsJson,  String imageGenOverrideJson)?  $default,) {final _that = this;
 switch (_that) {
 case _Character() when $default != null:
 return $default(_that.id,_that.projectId,_that.name,_that.aliasJson,_that.appearance,_that.style,_that.styleOverride,_that.personality,_that.voiceHint,_that.emotions,_that.scenes,_that.gender,_that.ageGroup,_that.voiceId,_that.voiceName,_that.imageUrl,_that.referenceImagesJson,_that.taskId,_that.imageStatus,_that.shared,_that.status,_that.source,_that.variantsJson,_that.importance,_that.consistency,_that.roleType,_that.tagsJson,_that.propsJson,_that.bio,_that.bioFragmentsJson,_that.imageGenOverrideJson);case _:
@@ -245,8 +245,8 @@ class _Character extends Character {
   const _Character({this.id, this.projectId, this.name = '', this.aliasJson = '', this.appearance = '', this.style = '', this.styleOverride = false, this.personality = '', this.voiceHint = '', this.emotions = '', this.scenes = '', this.gender = '', this.ageGroup = '', this.voiceId = '', this.voiceName = '', this.imageUrl = '', this.referenceImagesJson = '', this.taskId = '', this.imageStatus = 'none', this.shared = false, this.status = 'draft', this.source = 'manual', this.variantsJson = '', this.importance = '', this.consistency = '', this.roleType = '', this.tagsJson = '', this.propsJson = '', this.bio = '', this.bioFragmentsJson = '', this.imageGenOverrideJson = ''}): super._();
   factory _Character.fromJson(Map<String, dynamic> json) => _$CharacterFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String aliasJson;
 @override@JsonKey() final  String appearance;
@@ -313,7 +313,7 @@ abstract mixin class _$CharacterCopyWith<$Res> implements $CharacterCopyWith<$Re
   factory _$CharacterCopyWith(_Character value, $Res Function(_Character) _then) = __$CharacterCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, String name, String aliasJson, String appearance, String style, bool styleOverride, String personality, String voiceHint, String emotions, String scenes, String gender, String ageGroup, String voiceId, String voiceName, String imageUrl, String referenceImagesJson, String taskId, String imageStatus, bool shared, String status, String source, String variantsJson, String importance, String consistency, String roleType, String tagsJson, String propsJson, String bio, String bioFragmentsJson, String imageGenOverrideJson
+ String? id, String? projectId, String name, String aliasJson, String appearance, String style, bool styleOverride, String personality, String voiceHint, String emotions, String scenes, String gender, String ageGroup, String voiceId, String voiceName, String imageUrl, String referenceImagesJson, String taskId, String imageStatus, bool shared, String status, String source, String variantsJson, String importance, String consistency, String roleType, String tagsJson, String propsJson, String bio, String bioFragmentsJson, String imageGenOverrideJson
 });
 
 
@@ -333,8 +333,8 @@ class __$CharacterCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? name = null,Object? aliasJson = null,Object? appearance = null,Object? style = null,Object? styleOverride = null,Object? personality = null,Object? voiceHint = null,Object? emotions = null,Object? scenes = null,Object? gender = null,Object? ageGroup = null,Object? voiceId = null,Object? voiceName = null,Object? imageUrl = null,Object? referenceImagesJson = null,Object? taskId = null,Object? imageStatus = null,Object? shared = null,Object? status = null,Object? source = null,Object? variantsJson = null,Object? importance = null,Object? consistency = null,Object? roleType = null,Object? tagsJson = null,Object? propsJson = null,Object? bio = null,Object? bioFragmentsJson = null,Object? imageGenOverrideJson = null,}) {
   return _then(_Character(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,aliasJson: null == aliasJson ? _self.aliasJson : aliasJson // ignore: cast_nullable_to_non_nullable
 as String,appearance: null == appearance ? _self.appearance : appearance // ignore: cast_nullable_to_non_nullable
 as String,style: null == style ? _self.style : style // ignore: cast_nullable_to_non_nullable

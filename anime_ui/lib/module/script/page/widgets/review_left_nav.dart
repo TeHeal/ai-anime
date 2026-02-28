@@ -38,7 +38,7 @@ class ReviewLeftNav extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
-            child: DropdownButtonFormField<int>(
+            child: DropdownButtonFormField<String>(
               initialValue: uiState.selectedEpisodeId,
               decoration: const InputDecoration(
                 isDense: true,

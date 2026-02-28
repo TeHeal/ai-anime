@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ScriptSegment {
 
- int? get id; int? get projectId; int get sortIndex; String get content;
+ String? get id; String? get projectId; int get sortIndex; String get content;
 /// Create a copy of ScriptSegment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ScriptSegmentCopyWith<$Res>  {
   factory $ScriptSegmentCopyWith(ScriptSegment value, $Res Function(ScriptSegment) _then) = _$ScriptSegmentCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, int sortIndex, String content
+ String? id, String? projectId, int sortIndex, String content
 });
 
 
@@ -68,8 +68,8 @@ class _$ScriptSegmentCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? sortIndex = null,Object? content = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -156,7 +156,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int sortIndex,  String content)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  int sortIndex,  String content)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ScriptSegment() when $default != null:
 return $default(_that.id,_that.projectId,_that.sortIndex,_that.content);case _:
@@ -177,7 +177,7 @@ return $default(_that.id,_that.projectId,_that.sortIndex,_that.content);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int sortIndex,  String content)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  int sortIndex,  String content)  $default,) {final _that = this;
 switch (_that) {
 case _ScriptSegment():
 return $default(_that.id,_that.projectId,_that.sortIndex,_that.content);case _:
@@ -197,7 +197,7 @@ return $default(_that.id,_that.projectId,_that.sortIndex,_that.content);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  int sortIndex,  String content)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  int sortIndex,  String content)?  $default,) {final _that = this;
 switch (_that) {
 case _ScriptSegment() when $default != null:
 return $default(_that.id,_that.projectId,_that.sortIndex,_that.content);case _:
@@ -215,8 +215,8 @@ class _ScriptSegment implements ScriptSegment {
   const _ScriptSegment({this.id, this.projectId, this.sortIndex = 0, this.content = ''});
   factory _ScriptSegment.fromJson(Map<String, dynamic> json) => _$ScriptSegmentFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  int sortIndex;
 @override@JsonKey() final  String content;
 
@@ -253,7 +253,7 @@ abstract mixin class _$ScriptSegmentCopyWith<$Res> implements $ScriptSegmentCopy
   factory _$ScriptSegmentCopyWith(_ScriptSegment value, $Res Function(_ScriptSegment) _then) = __$ScriptSegmentCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, int sortIndex, String content
+ String? id, String? projectId, int sortIndex, String content
 });
 
 
@@ -273,8 +273,8 @@ class __$ScriptSegmentCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? sortIndex = null,Object? content = null,}) {
   return _then(_ScriptSegment(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,
   ));

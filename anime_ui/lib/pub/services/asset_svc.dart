@@ -3,7 +3,7 @@ import 'api.dart';
 
 class AssetService {
   Future<Asset> create({
-    int? projectId,
+    String? projectId,
     required String type,
     required String name,
     String desc = '',
@@ -30,17 +30,17 @@ class AssetService {
     return extractDataList(resp, Asset.fromJson);
   }
 
-  Future<List<Asset>> listByProject(int projectId) async {
+  Future<List<Asset>> listByProject(String projectId) async {
     final resp = await dio.get('/projects/$projectId/assets');
     return extractDataList(resp, Asset.fromJson);
   }
 
-  Future<Asset> get(int id) async {
+  Future<Asset> get(String id) async {
     final resp = await dio.get('/assets/$id');
     return extractDataObject(resp, Asset.fromJson);
   }
 
-  Future<Asset> update(int id, {
+  Future<Asset> update(String id, {
     String? name,
     String? desc,
     String? imageUrl,
@@ -57,7 +57,7 @@ class AssetService {
     return extractDataObject(resp, Asset.fromJson);
   }
 
-  Future<void> delete(int id) async {
+  Future<void> delete(String id) async {
     await dio.delete('/assets/$id');
   }
 }

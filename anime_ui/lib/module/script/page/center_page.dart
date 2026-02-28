@@ -38,7 +38,7 @@ class _ScriptCenterPageState extends ConsumerState<ScriptCenterPage> {
     if (episodes.isNotEmpty &&
         epStates.length != episodes.where((e) => e.id != null).length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final shotCounts = <int, int>{};
+        final shotCounts = <String, int>{};
         for (final ep in episodes) {
           if (ep.id != null) {
             shotCounts[ep.id!] = shotsMap[ep.id]?.length ?? 0;

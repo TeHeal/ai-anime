@@ -6,8 +6,8 @@ part 'segment.g.dart';
 @freezed
 abstract class ScriptSegment with _$ScriptSegment {
   const factory ScriptSegment({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default(0) int sortIndex,
     @Default('') String content,
   }) = _ScriptSegment;

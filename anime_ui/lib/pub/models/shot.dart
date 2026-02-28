@@ -8,10 +8,10 @@ abstract class StoryboardShot with _$StoryboardShot {
   const StoryboardShot._();
 
   const factory StoryboardShot({
-    int? id,
-    int? projectId,
-    int? segmentId,
-    int? sceneId,
+    String? id,
+    String? projectId,
+    String? segmentId,
+    String? sceneId,
     @Default(0) int sortIndex,
     @Default('') String prompt,
     @Default('') String stylePrompt,
@@ -26,7 +26,7 @@ abstract class StoryboardShot with _$StoryboardShot {
     String? voice,
     @Default('口型同步') String lipSync,
     String? characterName,
-    int? characterId,
+    String? characterId,
     String? emotion,
     String? voiceName,
     String? transition,

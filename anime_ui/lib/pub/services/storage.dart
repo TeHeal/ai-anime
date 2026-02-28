@@ -15,11 +15,8 @@ class StorageService {
   Future<bool> setToken(String value) => setString(kTokenKey, value);
   Future<bool> clearToken() => remove(kTokenKey);
 
-  int? get currentProjectId {
-    final v = getString(kCurrentProjectIdKey);
-    return v == null ? null : int.tryParse(v);
-  }
+  String? get currentProjectId => getString(kCurrentProjectIdKey);
 
-  Future<bool> setCurrentProjectId(int id) => setString(kCurrentProjectIdKey, id.toString());
+  Future<bool> setCurrentProjectId(String id) => setString(kCurrentProjectIdKey, id);
   Future<bool> clearCurrentProjectId() => remove(kCurrentProjectIdKey);
 }

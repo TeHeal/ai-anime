@@ -8,9 +8,9 @@ abstract class Voiceover with _$Voiceover {
   const Voiceover._();
 
   const factory Voiceover({
-    int? id,
-    int? projectId,
-    int? shotId,
+    String? id,
+    String? projectId,
+    String? shotId,
     @Default('') String text,
     @Default('') String voiceId,
     @Default('') String voiceName,

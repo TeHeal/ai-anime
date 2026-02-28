@@ -9,8 +9,8 @@ class VoiceoverService {
     String emotion = '',
     String provider = '',
     String model = '',
-    int? projectId,
-    int? shotId,
+    String? projectId,
+    String? shotId,
   }) async {
     final resp = await dio.post('/voiceovers', data: {
       'text': text,
@@ -25,7 +25,7 @@ class VoiceoverService {
     return extractDataObject(resp, Voiceover.fromJson);
   }
 
-  Future<List<Voiceover>> list({int? projectId, int? shotId}) async {
+  Future<List<Voiceover>> list({String? projectId, String? shotId}) async {
     final resp = await dio.get('/voiceovers', queryParameters: {
       'project_id': ?projectId,
       'shot_id': ?shotId,
@@ -33,12 +33,12 @@ class VoiceoverService {
     return extractDataList(resp, Voiceover.fromJson);
   }
 
-  Future<Voiceover> get(int id) async {
+  Future<Voiceover> get(String id) async {
     final resp = await dio.get('/voiceovers/$id');
     return extractDataObject(resp, Voiceover.fromJson);
   }
 
-  Future<void> delete(int id) async {
+  Future<void> delete(String id) async {
     await dio.delete('/voiceovers/$id');
   }
 }

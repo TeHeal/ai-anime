@@ -127,7 +127,7 @@ class _ShotsReviewPageState extends ConsumerState<ShotsReviewPage> {
           onFilterChanged: (f) => uiNotifier.setFilterStatus(f),
           shots: allShots
               .map((s) => ShotNavItem(
-                    id: s.id ?? 0,
+                    id: s.id ?? '',
                     shotNumber: (s.sortIndex ?? 0) + 1,
                     label: s.cameraType ?? '',
                     thumbnailUrl: s.imageUrl,

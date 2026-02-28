@@ -1169,7 +1169,7 @@ as int,
 /// @nodoc
 mixin _$DashboardEpisode {
 
- int? get id; String get title; int get sortIndex; String get summary; String get status; int get currentStep; String get currentPhase; int get sceneCount; List<String> get characterNames; DateTime? get lastActiveAt; DateTime? get createdAt; EpisodeProgress? get progress;
+ String? get id; String get title; int get sortIndex; String get summary; String get status; int get currentStep; String get currentPhase; int get sceneCount; List<String> get characterNames; DateTime? get lastActiveAt; DateTime? get createdAt; EpisodeProgress? get progress;
 /// Create a copy of DashboardEpisode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1202,7 +1202,7 @@ abstract mixin class $DashboardEpisodeCopyWith<$Res>  {
   factory $DashboardEpisodeCopyWith(DashboardEpisode value, $Res Function(DashboardEpisode) _then) = _$DashboardEpisodeCopyWithImpl;
 @useResult
 $Res call({
- int? id, String title, int sortIndex, String summary, String status, int currentStep, String currentPhase, int sceneCount, List<String> characterNames, DateTime? lastActiveAt, DateTime? createdAt, EpisodeProgress? progress
+ String? id, String title, int sortIndex, String summary, String status, int currentStep, String currentPhase, int sceneCount, List<String> characterNames, DateTime? lastActiveAt, DateTime? createdAt, EpisodeProgress? progress
 });
 
 
@@ -1222,7 +1222,7 @@ class _$DashboardEpisodeCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = null,Object? sortIndex = null,Object? summary = null,Object? status = null,Object? currentStep = null,Object? currentPhase = null,Object? sceneCount = null,Object? characterNames = null,Object? lastActiveAt = freezed,Object? createdAt = freezed,Object? progress = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -1330,7 +1330,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  String currentPhase,  int sceneCount,  List<String> characterNames,  DateTime? lastActiveAt,  DateTime? createdAt,  EpisodeProgress? progress)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  String currentPhase,  int sceneCount,  List<String> characterNames,  DateTime? lastActiveAt,  DateTime? createdAt,  EpisodeProgress? progress)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DashboardEpisode() when $default != null:
 return $default(_that.id,_that.title,_that.sortIndex,_that.summary,_that.status,_that.currentStep,_that.currentPhase,_that.sceneCount,_that.characterNames,_that.lastActiveAt,_that.createdAt,_that.progress);case _:
@@ -1351,7 +1351,7 @@ return $default(_that.id,_that.title,_that.sortIndex,_that.summary,_that.status,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  String currentPhase,  int sceneCount,  List<String> characterNames,  DateTime? lastActiveAt,  DateTime? createdAt,  EpisodeProgress? progress)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  String currentPhase,  int sceneCount,  List<String> characterNames,  DateTime? lastActiveAt,  DateTime? createdAt,  EpisodeProgress? progress)  $default,) {final _that = this;
 switch (_that) {
 case _DashboardEpisode():
 return $default(_that.id,_that.title,_that.sortIndex,_that.summary,_that.status,_that.currentStep,_that.currentPhase,_that.sceneCount,_that.characterNames,_that.lastActiveAt,_that.createdAt,_that.progress);case _:
@@ -1371,7 +1371,7 @@ return $default(_that.id,_that.title,_that.sortIndex,_that.summary,_that.status,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  String currentPhase,  int sceneCount,  List<String> characterNames,  DateTime? lastActiveAt,  DateTime? createdAt,  EpisodeProgress? progress)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String title,  int sortIndex,  String summary,  String status,  int currentStep,  String currentPhase,  int sceneCount,  List<String> characterNames,  DateTime? lastActiveAt,  DateTime? createdAt,  EpisodeProgress? progress)?  $default,) {final _that = this;
 switch (_that) {
 case _DashboardEpisode() when $default != null:
 return $default(_that.id,_that.title,_that.sortIndex,_that.summary,_that.status,_that.currentStep,_that.currentPhase,_that.sceneCount,_that.characterNames,_that.lastActiveAt,_that.createdAt,_that.progress);case _:
@@ -1389,7 +1389,7 @@ class _DashboardEpisode implements DashboardEpisode {
   const _DashboardEpisode({this.id, this.title = '', this.sortIndex = 0, this.summary = '', this.status = 'not_started', this.currentStep = 0, this.currentPhase = 'story', this.sceneCount = 0, final  List<String> characterNames = const [], this.lastActiveAt, this.createdAt, this.progress}): _characterNames = characterNames;
   factory _DashboardEpisode.fromJson(Map<String, dynamic> json) => _$DashboardEpisodeFromJson(json);
 
-@override final  int? id;
+@override final  String? id;
 @override@JsonKey() final  String title;
 @override@JsonKey() final  int sortIndex;
 @override@JsonKey() final  String summary;
@@ -1441,7 +1441,7 @@ abstract mixin class _$DashboardEpisodeCopyWith<$Res> implements $DashboardEpiso
   factory _$DashboardEpisodeCopyWith(_DashboardEpisode value, $Res Function(_DashboardEpisode) _then) = __$DashboardEpisodeCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, String title, int sortIndex, String summary, String status, int currentStep, String currentPhase, int sceneCount, List<String> characterNames, DateTime? lastActiveAt, DateTime? createdAt, EpisodeProgress? progress
+ String? id, String title, int sortIndex, String summary, String status, int currentStep, String currentPhase, int sceneCount, List<String> characterNames, DateTime? lastActiveAt, DateTime? createdAt, EpisodeProgress? progress
 });
 
 
@@ -1461,7 +1461,7 @@ class __$DashboardEpisodeCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? title = null,Object? sortIndex = null,Object? summary = null,Object? status = null,Object? currentStep = null,Object? currentPhase = null,Object? sceneCount = null,Object? characterNames = null,Object? lastActiveAt = freezed,Object? createdAt = freezed,Object? progress = freezed,}) {
   return _then(_DashboardEpisode(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable

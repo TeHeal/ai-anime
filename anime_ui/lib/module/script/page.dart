@@ -34,9 +34,9 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
     await ref.read(episodesProvider.notifier).load();
   }
 
-  final _loadedEpisodeScenes = <int>{};
+  final _loadedEpisodeScenes = <String>{};
 
-  Future<void> _onSceneSelected(int episodeId, int sceneDbId) async {
+  Future<void> _onSceneSelected(String episodeId, String sceneDbId) async {
     if (!_loadedEpisodeScenes.contains(episodeId)) {
       _loadedEpisodeScenes.add(episodeId);
       await ref.read(scenesProvider.notifier).loadForEpisode(episodeId);
@@ -63,7 +63,7 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
     }
   }
 
-  Future<void> _onAddScene(int episodeId) async {
+  Future<void> _onAddScene(String episodeId) async {
     try {
       final episodes = ref.read(episodesProvider).value ?? [];
       final ep = episodes.where((e) => e.id == episodeId).firstOrNull;
@@ -100,7 +100,7 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
     }
   }
 
-  Future<void> _onDeleteEpisode(int episodeId) async {
+  Future<void> _onDeleteEpisode(String episodeId) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -146,7 +146,7 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
     }
   }
 
-  Future<void> _onDeleteScene(int episodeId, int sceneDbId) async {
+  Future<void> _onDeleteScene(String episodeId, String sceneDbId) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -245,7 +245,7 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
 
   Widget _buildEditor(
     List<Episode> episodes,
-    ({int? episodeId, int? sceneId}) scriptSelection,
+    ({String? episodeId, String? sceneId}) scriptSelection,
   ) {
     return Row(
       children: [

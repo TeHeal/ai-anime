@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StoryboardShot {
 
- int? get id; int? get projectId; int? get segmentId; int? get sceneId; int get sortIndex; String get prompt; String get stylePrompt; String get imageUrl; String get videoUrl; String get taskId; String get status; int get duration; String? get cameraType; String? get cameraAngle; String? get dialogue; String? get voice; String get lipSync; String? get characterName; int? get characterId; String? get emotion; String? get voiceName; String? get transition; String? get audioDesign; String? get priority; String? get negativePrompt; String get reviewStatus; String? get reviewComment;
+ String? get id; String? get projectId; String? get segmentId; String? get sceneId; int get sortIndex; String get prompt; String get stylePrompt; String get imageUrl; String get videoUrl; String get taskId; String get status; int get duration; String? get cameraType; String? get cameraAngle; String? get dialogue; String? get voice; String get lipSync; String? get characterName; String? get characterId; String? get emotion; String? get voiceName; String? get transition; String? get audioDesign; String? get priority; String? get negativePrompt; String get reviewStatus; String? get reviewComment;
 /// Create a copy of StoryboardShot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $StoryboardShotCopyWith<$Res>  {
   factory $StoryboardShotCopyWith(StoryboardShot value, $Res Function(StoryboardShot) _then) = _$StoryboardShotCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, int? segmentId, int? sceneId, int sortIndex, String prompt, String stylePrompt, String imageUrl, String videoUrl, String taskId, String status, int duration, String? cameraType, String? cameraAngle, String? dialogue, String? voice, String lipSync, String? characterName, int? characterId, String? emotion, String? voiceName, String? transition, String? audioDesign, String? priority, String? negativePrompt, String reviewStatus, String? reviewComment
+ String? id, String? projectId, String? segmentId, String? sceneId, int sortIndex, String prompt, String stylePrompt, String imageUrl, String videoUrl, String taskId, String status, int duration, String? cameraType, String? cameraAngle, String? dialogue, String? voice, String lipSync, String? characterName, String? characterId, String? emotion, String? voiceName, String? transition, String? audioDesign, String? priority, String? negativePrompt, String reviewStatus, String? reviewComment
 });
 
 
@@ -68,10 +68,10 @@ class _$StoryboardShotCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? segmentId = freezed,Object? sceneId = freezed,Object? sortIndex = null,Object? prompt = null,Object? stylePrompt = null,Object? imageUrl = null,Object? videoUrl = null,Object? taskId = null,Object? status = null,Object? duration = null,Object? cameraType = freezed,Object? cameraAngle = freezed,Object? dialogue = freezed,Object? voice = freezed,Object? lipSync = null,Object? characterName = freezed,Object? characterId = freezed,Object? emotion = freezed,Object? voiceName = freezed,Object? transition = freezed,Object? audioDesign = freezed,Object? priority = freezed,Object? negativePrompt = freezed,Object? reviewStatus = null,Object? reviewComment = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,segmentId: freezed == segmentId ? _self.segmentId : segmentId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,segmentId: freezed == segmentId ? _self.segmentId : segmentId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,prompt: null == prompt ? _self.prompt : prompt // ignore: cast_nullable_to_non_nullable
 as String,stylePrompt: null == stylePrompt ? _self.stylePrompt : stylePrompt // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
@@ -86,7 +86,7 @@ as String?,voice: freezed == voice ? _self.voice : voice // ignore: cast_nullabl
 as String?,lipSync: null == lipSync ? _self.lipSync : lipSync // ignore: cast_nullable_to_non_nullable
 as String,characterName: freezed == characterName ? _self.characterName : characterName // ignore: cast_nullable_to_non_nullable
 as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int?,emotion: freezed == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable
+as String?,emotion: freezed == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable
 as String?,voiceName: freezed == voiceName ? _self.voiceName : voiceName // ignore: cast_nullable_to_non_nullable
 as String?,transition: freezed == transition ? _self.transition : transition // ignore: cast_nullable_to_non_nullable
 as String?,audioDesign: freezed == audioDesign ? _self.audioDesign : audioDesign // ignore: cast_nullable_to_non_nullable
@@ -179,7 +179,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int? segmentId,  int? sceneId,  int sortIndex,  String prompt,  String stylePrompt,  String imageUrl,  String videoUrl,  String taskId,  String status,  int duration,  String? cameraType,  String? cameraAngle,  String? dialogue,  String? voice,  String lipSync,  String? characterName,  int? characterId,  String? emotion,  String? voiceName,  String? transition,  String? audioDesign,  String? priority,  String? negativePrompt,  String reviewStatus,  String? reviewComment)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String? segmentId,  String? sceneId,  int sortIndex,  String prompt,  String stylePrompt,  String imageUrl,  String videoUrl,  String taskId,  String status,  int duration,  String? cameraType,  String? cameraAngle,  String? dialogue,  String? voice,  String lipSync,  String? characterName,  String? characterId,  String? emotion,  String? voiceName,  String? transition,  String? audioDesign,  String? priority,  String? negativePrompt,  String reviewStatus,  String? reviewComment)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StoryboardShot() when $default != null:
 return $default(_that.id,_that.projectId,_that.segmentId,_that.sceneId,_that.sortIndex,_that.prompt,_that.stylePrompt,_that.imageUrl,_that.videoUrl,_that.taskId,_that.status,_that.duration,_that.cameraType,_that.cameraAngle,_that.dialogue,_that.voice,_that.lipSync,_that.characterName,_that.characterId,_that.emotion,_that.voiceName,_that.transition,_that.audioDesign,_that.priority,_that.negativePrompt,_that.reviewStatus,_that.reviewComment);case _:
@@ -200,7 +200,7 @@ return $default(_that.id,_that.projectId,_that.segmentId,_that.sceneId,_that.sor
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int? segmentId,  int? sceneId,  int sortIndex,  String prompt,  String stylePrompt,  String imageUrl,  String videoUrl,  String taskId,  String status,  int duration,  String? cameraType,  String? cameraAngle,  String? dialogue,  String? voice,  String lipSync,  String? characterName,  int? characterId,  String? emotion,  String? voiceName,  String? transition,  String? audioDesign,  String? priority,  String? negativePrompt,  String reviewStatus,  String? reviewComment)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String? segmentId,  String? sceneId,  int sortIndex,  String prompt,  String stylePrompt,  String imageUrl,  String videoUrl,  String taskId,  String status,  int duration,  String? cameraType,  String? cameraAngle,  String? dialogue,  String? voice,  String lipSync,  String? characterName,  String? characterId,  String? emotion,  String? voiceName,  String? transition,  String? audioDesign,  String? priority,  String? negativePrompt,  String reviewStatus,  String? reviewComment)  $default,) {final _that = this;
 switch (_that) {
 case _StoryboardShot():
 return $default(_that.id,_that.projectId,_that.segmentId,_that.sceneId,_that.sortIndex,_that.prompt,_that.stylePrompt,_that.imageUrl,_that.videoUrl,_that.taskId,_that.status,_that.duration,_that.cameraType,_that.cameraAngle,_that.dialogue,_that.voice,_that.lipSync,_that.characterName,_that.characterId,_that.emotion,_that.voiceName,_that.transition,_that.audioDesign,_that.priority,_that.negativePrompt,_that.reviewStatus,_that.reviewComment);case _:
@@ -220,7 +220,7 @@ return $default(_that.id,_that.projectId,_that.segmentId,_that.sceneId,_that.sor
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  int? segmentId,  int? sceneId,  int sortIndex,  String prompt,  String stylePrompt,  String imageUrl,  String videoUrl,  String taskId,  String status,  int duration,  String? cameraType,  String? cameraAngle,  String? dialogue,  String? voice,  String lipSync,  String? characterName,  int? characterId,  String? emotion,  String? voiceName,  String? transition,  String? audioDesign,  String? priority,  String? negativePrompt,  String reviewStatus,  String? reviewComment)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String? segmentId,  String? sceneId,  int sortIndex,  String prompt,  String stylePrompt,  String imageUrl,  String videoUrl,  String taskId,  String status,  int duration,  String? cameraType,  String? cameraAngle,  String? dialogue,  String? voice,  String lipSync,  String? characterName,  String? characterId,  String? emotion,  String? voiceName,  String? transition,  String? audioDesign,  String? priority,  String? negativePrompt,  String reviewStatus,  String? reviewComment)?  $default,) {final _that = this;
 switch (_that) {
 case _StoryboardShot() when $default != null:
 return $default(_that.id,_that.projectId,_that.segmentId,_that.sceneId,_that.sortIndex,_that.prompt,_that.stylePrompt,_that.imageUrl,_that.videoUrl,_that.taskId,_that.status,_that.duration,_that.cameraType,_that.cameraAngle,_that.dialogue,_that.voice,_that.lipSync,_that.characterName,_that.characterId,_that.emotion,_that.voiceName,_that.transition,_that.audioDesign,_that.priority,_that.negativePrompt,_that.reviewStatus,_that.reviewComment);case _:
@@ -238,10 +238,10 @@ class _StoryboardShot extends StoryboardShot {
   const _StoryboardShot({this.id, this.projectId, this.segmentId, this.sceneId, this.sortIndex = 0, this.prompt = '', this.stylePrompt = '', this.imageUrl = '', this.videoUrl = '', this.taskId = '', this.status = 'pending', this.duration = 5, this.cameraType, this.cameraAngle, this.dialogue, this.voice, this.lipSync = '口型同步', this.characterName, this.characterId, this.emotion, this.voiceName, this.transition, this.audioDesign, this.priority, this.negativePrompt, this.reviewStatus = 'pending', this.reviewComment}): super._();
   factory _StoryboardShot.fromJson(Map<String, dynamic> json) => _$StoryboardShotFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
-@override final  int? segmentId;
-@override final  int? sceneId;
+@override final  String? id;
+@override final  String? projectId;
+@override final  String? segmentId;
+@override final  String? sceneId;
 @override@JsonKey() final  int sortIndex;
 @override@JsonKey() final  String prompt;
 @override@JsonKey() final  String stylePrompt;
@@ -256,7 +256,7 @@ class _StoryboardShot extends StoryboardShot {
 @override final  String? voice;
 @override@JsonKey() final  String lipSync;
 @override final  String? characterName;
-@override final  int? characterId;
+@override final  String? characterId;
 @override final  String? emotion;
 @override final  String? voiceName;
 @override final  String? transition;
@@ -299,7 +299,7 @@ abstract mixin class _$StoryboardShotCopyWith<$Res> implements $StoryboardShotCo
   factory _$StoryboardShotCopyWith(_StoryboardShot value, $Res Function(_StoryboardShot) _then) = __$StoryboardShotCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, int? segmentId, int? sceneId, int sortIndex, String prompt, String stylePrompt, String imageUrl, String videoUrl, String taskId, String status, int duration, String? cameraType, String? cameraAngle, String? dialogue, String? voice, String lipSync, String? characterName, int? characterId, String? emotion, String? voiceName, String? transition, String? audioDesign, String? priority, String? negativePrompt, String reviewStatus, String? reviewComment
+ String? id, String? projectId, String? segmentId, String? sceneId, int sortIndex, String prompt, String stylePrompt, String imageUrl, String videoUrl, String taskId, String status, int duration, String? cameraType, String? cameraAngle, String? dialogue, String? voice, String lipSync, String? characterName, String? characterId, String? emotion, String? voiceName, String? transition, String? audioDesign, String? priority, String? negativePrompt, String reviewStatus, String? reviewComment
 });
 
 
@@ -319,10 +319,10 @@ class __$StoryboardShotCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? segmentId = freezed,Object? sceneId = freezed,Object? sortIndex = null,Object? prompt = null,Object? stylePrompt = null,Object? imageUrl = null,Object? videoUrl = null,Object? taskId = null,Object? status = null,Object? duration = null,Object? cameraType = freezed,Object? cameraAngle = freezed,Object? dialogue = freezed,Object? voice = freezed,Object? lipSync = null,Object? characterName = freezed,Object? characterId = freezed,Object? emotion = freezed,Object? voiceName = freezed,Object? transition = freezed,Object? audioDesign = freezed,Object? priority = freezed,Object? negativePrompt = freezed,Object? reviewStatus = null,Object? reviewComment = freezed,}) {
   return _then(_StoryboardShot(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,segmentId: freezed == segmentId ? _self.segmentId : segmentId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,segmentId: freezed == segmentId ? _self.segmentId : segmentId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,sortIndex: null == sortIndex ? _self.sortIndex : sortIndex // ignore: cast_nullable_to_non_nullable
 as int,prompt: null == prompt ? _self.prompt : prompt // ignore: cast_nullable_to_non_nullable
 as String,stylePrompt: null == stylePrompt ? _self.stylePrompt : stylePrompt // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
@@ -337,7 +337,7 @@ as String?,voice: freezed == voice ? _self.voice : voice // ignore: cast_nullabl
 as String?,lipSync: null == lipSync ? _self.lipSync : lipSync // ignore: cast_nullable_to_non_nullable
 as String,characterName: freezed == characterName ? _self.characterName : characterName // ignore: cast_nullable_to_non_nullable
 as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int?,emotion: freezed == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable
+as String?,emotion: freezed == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable
 as String?,voiceName: freezed == voiceName ? _self.voiceName : voiceName // ignore: cast_nullable_to_non_nullable
 as String?,transition: freezed == transition ? _self.transition : transition // ignore: cast_nullable_to_non_nullable
 as String?,audioDesign: freezed == audioDesign ? _self.audioDesign : audioDesign // ignore: cast_nullable_to_non_nullable

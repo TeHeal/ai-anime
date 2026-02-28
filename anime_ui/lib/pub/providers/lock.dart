@@ -11,7 +11,7 @@ class LockNotifier extends Notifier<LockStatus> {
   @override
   LockStatus build() => const LockStatus();
 
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {
     final pid = _projectId;

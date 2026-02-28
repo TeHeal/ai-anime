@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Task {
 
- int get id; String get taskId; String get type; String get status; String get provider; String get model; String? get error; int get progress; Map<String, dynamic>? get result;
+ String get id; String get taskId; String get type; String get status; String get provider; String get model; String? get error; int get progress; Map<String, dynamic>? get result;
 /// Create a copy of Task
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $TaskCopyWith<$Res>  {
   factory $TaskCopyWith(Task value, $Res Function(Task) _then) = _$TaskCopyWithImpl;
 @useResult
 $Res call({
- int id, String taskId, String type, String status, String provider, String model, String? error, int progress, Map<String, dynamic>? result
+ String id, String taskId, String type, String status, String provider, String model, String? error, int progress, Map<String, dynamic>? result
 });
 
 
@@ -68,7 +68,7 @@ class _$TaskCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? taskId = null,Object? type = null,Object? status = null,Object? provider = null,Object? model = null,Object? error = freezed,Object? progress = null,Object? result = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
+as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
@@ -161,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String taskId,  String type,  String status,  String provider,  String model,  String? error,  int progress,  Map<String, dynamic>? result)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String taskId,  String type,  String status,  String provider,  String model,  String? error,  int progress,  Map<String, dynamic>? result)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Task() when $default != null:
 return $default(_that.id,_that.taskId,_that.type,_that.status,_that.provider,_that.model,_that.error,_that.progress,_that.result);case _:
@@ -182,7 +182,7 @@ return $default(_that.id,_that.taskId,_that.type,_that.status,_that.provider,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String taskId,  String type,  String status,  String provider,  String model,  String? error,  int progress,  Map<String, dynamic>? result)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String taskId,  String type,  String status,  String provider,  String model,  String? error,  int progress,  Map<String, dynamic>? result)  $default,) {final _that = this;
 switch (_that) {
 case _Task():
 return $default(_that.id,_that.taskId,_that.type,_that.status,_that.provider,_that.model,_that.error,_that.progress,_that.result);case _:
@@ -202,7 +202,7 @@ return $default(_that.id,_that.taskId,_that.type,_that.status,_that.provider,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String taskId,  String type,  String status,  String provider,  String model,  String? error,  int progress,  Map<String, dynamic>? result)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String taskId,  String type,  String status,  String provider,  String model,  String? error,  int progress,  Map<String, dynamic>? result)?  $default,) {final _that = this;
 switch (_that) {
 case _Task() when $default != null:
 return $default(_that.id,_that.taskId,_that.type,_that.status,_that.provider,_that.model,_that.error,_that.progress,_that.result);case _:
@@ -220,7 +220,7 @@ class _Task extends Task {
   const _Task({required this.id, required this.taskId, required this.type, required this.status, this.provider = '', this.model = '', this.error, this.progress = 0, final  Map<String, dynamic>? result}): _result = result,super._();
   factory _Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
 
-@override final  int id;
+@override final  String id;
 @override final  String taskId;
 @override final  String type;
 @override final  String status;
@@ -271,7 +271,7 @@ abstract mixin class _$TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
   factory _$TaskCopyWith(_Task value, $Res Function(_Task) _then) = __$TaskCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String taskId, String type, String status, String provider, String model, String? error, int progress, Map<String, dynamic>? result
+ String id, String taskId, String type, String status, String provider, String model, String? error, int progress, Map<String, dynamic>? result
 });
 
 
@@ -291,7 +291,7 @@ class __$TaskCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? taskId = null,Object? type = null,Object? status = null,Object? provider = null,Object? model = null,Object? error = freezed,Object? progress = null,Object? result = freezed,}) {
   return _then(_Task(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
+as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable

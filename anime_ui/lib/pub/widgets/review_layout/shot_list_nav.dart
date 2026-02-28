@@ -4,7 +4,7 @@ import 'package:anime_ui/pub/theme/colors.dart';
 
 /// Abstract descriptor for a shot item in the left navigation list.
 class ShotNavItem {
-  final int id;
+  final String id;
   final int shotNumber;
   final String label;
   final String? thumbnailUrl;
@@ -25,8 +25,8 @@ class ShotNavItem {
 /// filter chips, and a scrollable shot list.
 class ShotListNav extends StatelessWidget {
   final List<dynamic> episodes;
-  final int? selectedEpisodeId;
-  final ValueChanged<int?> onEpisodeChanged;
+  final String? selectedEpisodeId;
+  final ValueChanged<String?> onEpisodeChanged;
 
   final int approvedCount;
   final int totalCount;
@@ -36,8 +36,8 @@ class ShotListNav extends StatelessWidget {
   final ValueChanged<String> onFilterChanged;
 
   final List<ShotNavItem> shots;
-  final int? selectedShotId;
-  final ValueChanged<int> onShotTap;
+  final String? selectedShotId;
+  final ValueChanged<String> onShotTap;
 
   /// Optional builder to customise each list tile.
   final Widget Function(ShotNavItem shot, bool isSelected)? itemBuilder;
@@ -67,7 +67,7 @@ class ShotListNav extends StatelessWidget {
           // Episode selector
           Padding(
             padding: const EdgeInsets.all(12),
-            child: DropdownButtonFormField<int>(
+            child: DropdownButtonFormField<String>(
               initialValue: selectedEpisodeId,
               decoration: const InputDecoration(
                 isDense: true,
@@ -79,7 +79,7 @@ class ShotListNav extends StatelessWidget {
               items: episodes
                   .where((e) => e.id != null)
                   .map((e) => DropdownMenuItem(
-                        value: e.id as int,
+                        value: e.id as String?,
                         child: Text(
                           e.title?.isNotEmpty == true
                               ? e.title!

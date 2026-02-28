@@ -8,8 +8,8 @@ abstract class ExportRecord with _$ExportRecord {
   const ExportRecord._();
 
   const factory ExportRecord({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default('mp4') String format,
     @Default('1080p') String resolution,
     @Default('pending') String status,

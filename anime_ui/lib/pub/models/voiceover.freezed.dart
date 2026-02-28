@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Voiceover {
 
- int? get id; int? get projectId; int? get shotId; String get text; String get voiceId; String get voiceName; String get emotion; String get provider; String get model; String get audioUrl; double get duration; String get status; String get taskId;
+ String? get id; String? get projectId; String? get shotId; String get text; String get voiceId; String get voiceName; String get emotion; String get provider; String get model; String get audioUrl; double get duration; String get status; String get taskId;
 /// Create a copy of Voiceover
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $VoiceoverCopyWith<$Res>  {
   factory $VoiceoverCopyWith(Voiceover value, $Res Function(Voiceover) _then) = _$VoiceoverCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, int? shotId, String text, String voiceId, String voiceName, String emotion, String provider, String model, String audioUrl, double duration, String status, String taskId
+ String? id, String? projectId, String? shotId, String text, String voiceId, String voiceName, String emotion, String provider, String model, String audioUrl, double duration, String status, String taskId
 });
 
 
@@ -68,9 +68,9 @@ class _$VoiceoverCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? shotId = freezed,Object? text = null,Object? voiceId = null,Object? voiceName = null,Object? emotion = null,Object? provider = null,Object? model = null,Object? audioUrl = null,Object? duration = null,Object? status = null,Object? taskId = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
-as int?,text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
+as String?,text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,voiceId: null == voiceId ? _self.voiceId : voiceId // ignore: cast_nullable_to_non_nullable
 as String,voiceName: null == voiceName ? _self.voiceName : voiceName // ignore: cast_nullable_to_non_nullable
 as String,emotion: null == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable
@@ -165,7 +165,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int? shotId,  String text,  String voiceId,  String voiceName,  String emotion,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String? shotId,  String text,  String voiceId,  String voiceName,  String emotion,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Voiceover() when $default != null:
 return $default(_that.id,_that.projectId,_that.shotId,_that.text,_that.voiceId,_that.voiceName,_that.emotion,_that.provider,_that.model,_that.audioUrl,_that.duration,_that.status,_that.taskId);case _:
@@ -186,7 +186,7 @@ return $default(_that.id,_that.projectId,_that.shotId,_that.text,_that.voiceId,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int? shotId,  String text,  String voiceId,  String voiceName,  String emotion,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String? shotId,  String text,  String voiceId,  String voiceName,  String emotion,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)  $default,) {final _that = this;
 switch (_that) {
 case _Voiceover():
 return $default(_that.id,_that.projectId,_that.shotId,_that.text,_that.voiceId,_that.voiceName,_that.emotion,_that.provider,_that.model,_that.audioUrl,_that.duration,_that.status,_that.taskId);case _:
@@ -206,7 +206,7 @@ return $default(_that.id,_that.projectId,_that.shotId,_that.text,_that.voiceId,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  int? shotId,  String text,  String voiceId,  String voiceName,  String emotion,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String? shotId,  String text,  String voiceId,  String voiceName,  String emotion,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,) {final _that = this;
 switch (_that) {
 case _Voiceover() when $default != null:
 return $default(_that.id,_that.projectId,_that.shotId,_that.text,_that.voiceId,_that.voiceName,_that.emotion,_that.provider,_that.model,_that.audioUrl,_that.duration,_that.status,_that.taskId);case _:
@@ -224,9 +224,9 @@ class _Voiceover extends Voiceover {
   const _Voiceover({this.id, this.projectId, this.shotId, this.text = '', this.voiceId = '', this.voiceName = '', this.emotion = '', this.provider = '', this.model = '', this.audioUrl = '', this.duration = 0, this.status = 'pending', this.taskId = ''}): super._();
   factory _Voiceover.fromJson(Map<String, dynamic> json) => _$VoiceoverFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
-@override final  int? shotId;
+@override final  String? id;
+@override final  String? projectId;
+@override final  String? shotId;
 @override@JsonKey() final  String text;
 @override@JsonKey() final  String voiceId;
 @override@JsonKey() final  String voiceName;
@@ -271,7 +271,7 @@ abstract mixin class _$VoiceoverCopyWith<$Res> implements $VoiceoverCopyWith<$Re
   factory _$VoiceoverCopyWith(_Voiceover value, $Res Function(_Voiceover) _then) = __$VoiceoverCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, int? shotId, String text, String voiceId, String voiceName, String emotion, String provider, String model, String audioUrl, double duration, String status, String taskId
+ String? id, String? projectId, String? shotId, String text, String voiceId, String voiceName, String emotion, String provider, String model, String audioUrl, double duration, String status, String taskId
 });
 
 
@@ -291,9 +291,9 @@ class __$VoiceoverCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? shotId = freezed,Object? text = null,Object? voiceId = null,Object? voiceName = null,Object? emotion = null,Object? provider = null,Object? model = null,Object? audioUrl = null,Object? duration = null,Object? status = null,Object? taskId = null,}) {
   return _then(_Voiceover(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
-as int?,text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
+as String?,text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,voiceId: null == voiceId ? _self.voiceId : voiceId // ignore: cast_nullable_to_non_nullable
 as String,voiceName: null == voiceName ? _self.voiceName : voiceName // ignore: cast_nullable_to_non_nullable
 as String,emotion: null == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable

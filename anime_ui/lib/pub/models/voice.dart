@@ -8,7 +8,7 @@ abstract class Voice with _$Voice {
   const Voice._();
 
   const factory Voice({
-    int? id,
+    String? id,
     @Default('') String name,
     @Default('') String gender,
     @Default('') String voiceId,

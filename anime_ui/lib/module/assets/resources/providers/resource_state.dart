@@ -51,7 +51,7 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
     }
   }
 
-  Future<void> removeResource(int id) async {
+  Future<void> removeResource(String id) async {
     try {
       await _svc.delete(id);
     } catch (e) {
@@ -85,7 +85,7 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
     ]);
   }
 
-  Future<void> batchRemove(Set<int> ids) async {
+  Future<void> batchRemove(Set<String> ids) async {
     for (final id in ids) {
       try {
         await _svc.delete(id);
@@ -98,7 +98,7 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
   }
 
   Future<void> batchMoveToLibrary(
-      Set<int> ids, String newLibraryType, String newModality) async {
+      Set<String> ids, String newLibraryType, String newModality) async {
     final current = state.value ?? [];
     final updated = <Resource>[];
     for (final r in current) {

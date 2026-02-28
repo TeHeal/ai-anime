@@ -8,8 +8,8 @@ part of 'export_record.dart';
 
 _ExportRecord _$ExportRecordFromJson(Map<String, dynamic> json) =>
     _ExportRecord(
-      id: (json['id'] as num?)?.toInt(),
-      projectId: (json['projectId'] as num?)?.toInt(),
+      id: json['id'] as String?,
+      projectId: json['projectId'] as String?,
       format: json['format'] as String? ?? 'mp4',
       resolution: json['resolution'] as String? ?? '1080p',
       status: json['status'] as String? ?? 'pending',

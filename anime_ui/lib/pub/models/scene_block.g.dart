@@ -7,8 +7,8 @@ part of 'scene_block.dart';
 // **************************************************************************
 
 _SceneBlock _$SceneBlockFromJson(Map<String, dynamic> json) => _SceneBlock(
-  id: (json['id'] as num?)?.toInt(),
-  sceneId: (json['sceneId'] as num?)?.toInt(),
+  id: json['id'] as String?,
+  sceneId: json['sceneId'] as String?,
   type: json['type'] as String? ?? 'action',
   character: json['character'] as String? ?? '',
   emotion: json['emotion'] as String? ?? '',

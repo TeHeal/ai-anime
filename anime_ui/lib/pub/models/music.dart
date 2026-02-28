@@ -8,8 +8,8 @@ abstract class Music with _$Music {
   const Music._();
 
   const factory Music({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default('') String title,
     @Default('') String prompt,
     @Default('') String provider,

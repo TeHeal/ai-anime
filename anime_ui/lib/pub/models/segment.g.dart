@@ -8,8 +8,8 @@ part of 'segment.dart';
 
 _ScriptSegment _$ScriptSegmentFromJson(Map<String, dynamic> json) =>
     _ScriptSegment(
-      id: (json['id'] as num?)?.toInt(),
-      projectId: (json['projectId'] as num?)?.toInt(),
+      id: json['id'] as String?,
+      projectId: json['projectId'] as String?,
       sortIndex: (json['sortIndex'] as num?)?.toInt() ?? 0,
       content: json['content'] as String? ?? '',
     );

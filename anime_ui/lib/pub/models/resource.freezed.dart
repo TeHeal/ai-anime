@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Resource {
 
- int? get id; int? get userId; String get name; String get libraryType; String get modality; String get thumbnailUrl; String get tagsJson; String get version; String get metadataJson; String get bindingIdsJson; String get description; DateTime? get createdAt; DateTime? get updatedAt;
+ String? get id; String? get userId; String get name; String get libraryType; String get modality; String get thumbnailUrl; String get tagsJson; String get version; String get metadataJson; String get bindingIdsJson; String get description; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of Resource
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ResourceCopyWith<$Res>  {
   factory $ResourceCopyWith(Resource value, $Res Function(Resource) _then) = _$ResourceCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? userId, String name, String libraryType, String modality, String thumbnailUrl, String tagsJson, String version, String metadataJson, String bindingIdsJson, String description, DateTime? createdAt, DateTime? updatedAt
+ String? id, String? userId, String name, String libraryType, String modality, String thumbnailUrl, String tagsJson, String version, String metadataJson, String bindingIdsJson, String description, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -68,8 +68,8 @@ class _$ResourceCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? userId = freezed,Object? name = null,Object? libraryType = null,Object? modality = null,Object? thumbnailUrl = null,Object? tagsJson = null,Object? version = null,Object? metadataJson = null,Object? bindingIdsJson = null,Object? description = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,libraryType: null == libraryType ? _self.libraryType : libraryType // ignore: cast_nullable_to_non_nullable
 as String,modality: null == modality ? _self.modality : modality // ignore: cast_nullable_to_non_nullable
 as String,thumbnailUrl: null == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
@@ -165,7 +165,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? userId,  String name,  String libraryType,  String modality,  String thumbnailUrl,  String tagsJson,  String version,  String metadataJson,  String bindingIdsJson,  String description,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? userId,  String name,  String libraryType,  String modality,  String thumbnailUrl,  String tagsJson,  String version,  String metadataJson,  String bindingIdsJson,  String description,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Resource() when $default != null:
 return $default(_that.id,_that.userId,_that.name,_that.libraryType,_that.modality,_that.thumbnailUrl,_that.tagsJson,_that.version,_that.metadataJson,_that.bindingIdsJson,_that.description,_that.createdAt,_that.updatedAt);case _:
@@ -186,7 +186,7 @@ return $default(_that.id,_that.userId,_that.name,_that.libraryType,_that.modalit
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? userId,  String name,  String libraryType,  String modality,  String thumbnailUrl,  String tagsJson,  String version,  String metadataJson,  String bindingIdsJson,  String description,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? userId,  String name,  String libraryType,  String modality,  String thumbnailUrl,  String tagsJson,  String version,  String metadataJson,  String bindingIdsJson,  String description,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Resource():
 return $default(_that.id,_that.userId,_that.name,_that.libraryType,_that.modality,_that.thumbnailUrl,_that.tagsJson,_that.version,_that.metadataJson,_that.bindingIdsJson,_that.description,_that.createdAt,_that.updatedAt);case _:
@@ -206,7 +206,7 @@ return $default(_that.id,_that.userId,_that.name,_that.libraryType,_that.modalit
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? userId,  String name,  String libraryType,  String modality,  String thumbnailUrl,  String tagsJson,  String version,  String metadataJson,  String bindingIdsJson,  String description,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? userId,  String name,  String libraryType,  String modality,  String thumbnailUrl,  String tagsJson,  String version,  String metadataJson,  String bindingIdsJson,  String description,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Resource() when $default != null:
 return $default(_that.id,_that.userId,_that.name,_that.libraryType,_that.modality,_that.thumbnailUrl,_that.tagsJson,_that.version,_that.metadataJson,_that.bindingIdsJson,_that.description,_that.createdAt,_that.updatedAt);case _:
@@ -224,8 +224,8 @@ class _Resource extends Resource {
   const _Resource({this.id, this.userId, this.name = '', this.libraryType = '', this.modality = '', this.thumbnailUrl = '', this.tagsJson = '', this.version = '', this.metadataJson = '', this.bindingIdsJson = '', this.description = '', this.createdAt, this.updatedAt}): super._();
   factory _Resource.fromJson(Map<String, dynamic> json) => _$ResourceFromJson(json);
 
-@override final  int? id;
-@override final  int? userId;
+@override final  String? id;
+@override final  String? userId;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String libraryType;
 @override@JsonKey() final  String modality;
@@ -271,7 +271,7 @@ abstract mixin class _$ResourceCopyWith<$Res> implements $ResourceCopyWith<$Res>
   factory _$ResourceCopyWith(_Resource value, $Res Function(_Resource) _then) = __$ResourceCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? userId, String name, String libraryType, String modality, String thumbnailUrl, String tagsJson, String version, String metadataJson, String bindingIdsJson, String description, DateTime? createdAt, DateTime? updatedAt
+ String? id, String? userId, String name, String libraryType, String modality, String thumbnailUrl, String tagsJson, String version, String metadataJson, String bindingIdsJson, String description, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -291,8 +291,8 @@ class __$ResourceCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? userId = freezed,Object? name = null,Object? libraryType = null,Object? modality = null,Object? thumbnailUrl = null,Object? tagsJson = null,Object? version = null,Object? metadataJson = null,Object? bindingIdsJson = null,Object? description = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_Resource(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,libraryType: null == libraryType ? _self.libraryType : libraryType // ignore: cast_nullable_to_non_nullable
 as String,modality: null == modality ? _self.modality : modality // ignore: cast_nullable_to_non_nullable
 as String,thumbnailUrl: null == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable

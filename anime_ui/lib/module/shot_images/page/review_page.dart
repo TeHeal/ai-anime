@@ -59,13 +59,13 @@ class _ShotImageReviewPageState extends ConsumerState<ShotImageReviewPage> {
 
   List<StoryboardShot> _allShots() => ref.watch(shotsProvider).value ?? [];
 
-  StoryboardShot? _currentShot(int? selectedShotId) {
+  StoryboardShot? _currentShot(String? selectedShotId) {
     final shots = _allShots();
     if (selectedShotId == null && shots.isNotEmpty) return shots.first;
     return shots.where((s) => s.id == selectedShotId).firstOrNull;
   }
 
-  void _navigateShot(int delta, int? currentShotId) {
+  void _navigateShot(int delta, String? currentShotId) {
     final shots = _allShots();
     if (shots.isEmpty) return;
     final idx = shots.indexWhere((s) => s.id == currentShotId);
@@ -153,7 +153,7 @@ class _ShotImageReviewPageState extends ConsumerState<ShotImageReviewPage> {
           shots: allShots
               .map(
                 (s) => ShotNavItem(
-                  id: s.id ?? 0,
+                  id: s.id ?? '',
                   shotNumber: s.sortIndex + 1,
                   label: s.cameraType ?? '',
                   thumbnailUrl: s.imageUrl,

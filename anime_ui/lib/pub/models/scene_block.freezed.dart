@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SceneBlock {
 
- int? get id; int? get sceneId; String get type; String get character; String get emotion; String get content; int get sortIndex;
+ String? get id; String? get sceneId; String get type; String get character; String get emotion; String get content; int get sortIndex;
 /// Create a copy of SceneBlock
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SceneBlockCopyWith<$Res>  {
   factory $SceneBlockCopyWith(SceneBlock value, $Res Function(SceneBlock) _then) = _$SceneBlockCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? sceneId, String type, String character, String emotion, String content, int sortIndex
+ String? id, String? sceneId, String type, String character, String emotion, String content, int sortIndex
 });
 
 
@@ -68,8 +68,8 @@ class _$SceneBlockCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? sceneId = freezed,Object? type = null,Object? character = null,Object? emotion = null,Object? content = null,Object? sortIndex = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,character: null == character ? _self.character : character // ignore: cast_nullable_to_non_nullable
 as String,emotion: null == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable
 as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
@@ -159,7 +159,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? sceneId,  String type,  String character,  String emotion,  String content,  int sortIndex)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? sceneId,  String type,  String character,  String emotion,  String content,  int sortIndex)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SceneBlock() when $default != null:
 return $default(_that.id,_that.sceneId,_that.type,_that.character,_that.emotion,_that.content,_that.sortIndex);case _:
@@ -180,7 +180,7 @@ return $default(_that.id,_that.sceneId,_that.type,_that.character,_that.emotion,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? sceneId,  String type,  String character,  String emotion,  String content,  int sortIndex)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? sceneId,  String type,  String character,  String emotion,  String content,  int sortIndex)  $default,) {final _that = this;
 switch (_that) {
 case _SceneBlock():
 return $default(_that.id,_that.sceneId,_that.type,_that.character,_that.emotion,_that.content,_that.sortIndex);case _:
@@ -200,7 +200,7 @@ return $default(_that.id,_that.sceneId,_that.type,_that.character,_that.emotion,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? sceneId,  String type,  String character,  String emotion,  String content,  int sortIndex)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? sceneId,  String type,  String character,  String emotion,  String content,  int sortIndex)?  $default,) {final _that = this;
 switch (_that) {
 case _SceneBlock() when $default != null:
 return $default(_that.id,_that.sceneId,_that.type,_that.character,_that.emotion,_that.content,_that.sortIndex);case _:
@@ -218,8 +218,8 @@ class _SceneBlock implements SceneBlock {
   const _SceneBlock({this.id, this.sceneId, this.type = 'action', this.character = '', this.emotion = '', this.content = '', this.sortIndex = 0});
   factory _SceneBlock.fromJson(Map<String, dynamic> json) => _$SceneBlockFromJson(json);
 
-@override final  int? id;
-@override final  int? sceneId;
+@override final  String? id;
+@override final  String? sceneId;
 @override@JsonKey() final  String type;
 @override@JsonKey() final  String character;
 @override@JsonKey() final  String emotion;
@@ -259,7 +259,7 @@ abstract mixin class _$SceneBlockCopyWith<$Res> implements $SceneBlockCopyWith<$
   factory _$SceneBlockCopyWith(_SceneBlock value, $Res Function(_SceneBlock) _then) = __$SceneBlockCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? sceneId, String type, String character, String emotion, String content, int sortIndex
+ String? id, String? sceneId, String type, String character, String emotion, String content, int sortIndex
 });
 
 
@@ -279,8 +279,8 @@ class __$SceneBlockCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? sceneId = freezed,Object? type = null,Object? character = null,Object? emotion = null,Object? content = null,Object? sortIndex = null,}) {
   return _then(_SceneBlock(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,character: null == character ? _self.character : character // ignore: cast_nullable_to_non_nullable
 as String,emotion: null == emotion ? _self.emotion : emotion // ignore: cast_nullable_to_non_nullable
 as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable

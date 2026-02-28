@@ -8,8 +8,8 @@ abstract class Style with _$Style {
   const Style._();
 
   const factory Style({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default('') String name,
     @Default('') String description,
     @Default('') String negativePrompt,

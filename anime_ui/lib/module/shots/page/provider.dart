@@ -213,7 +213,7 @@ enum CompositeShotStatus {
 }
 
 class CompositeShotState {
-  final int shotId;
+  final String shotId;
   final CompositeShotStatus status;
   final Map<String, SubtaskState> subtasks;
 
@@ -249,20 +249,20 @@ class SubtaskState {
 }
 
 final compositeShotStatesProvider =
-    NotifierProvider<CompositeShotStatesNotifier, Map<int, CompositeShotState>>(
+    NotifierProvider<CompositeShotStatesNotifier, Map<String, CompositeShotState>>(
         CompositeShotStatesNotifier.new);
 
 class CompositeShotStatesNotifier
-    extends Notifier<Map<int, CompositeShotState>> {
+    extends Notifier<Map<String, CompositeShotState>> {
   @override
-  Map<int, CompositeShotState> build() => {};
+  Map<String, CompositeShotState> build() => {};
 
-  Future<void> batchGenerate(List<int> shotIds) async {
+  Future<void> batchGenerate(List<String> shotIds) async {
     final pid = ref.read(currentProjectProvider).value?.id;
     if (pid == null) return;
     final config = ref.read(compositeConfigProvider);
 
-    final updated = Map<int, CompositeShotState>.from(state);
+    final updated = Map<String, CompositeShotState>.from(state);
     for (final id in shotIds) {
       updated[id] = CompositeShotState(
           shotId: id, status: CompositeShotStatus.generating);
@@ -276,7 +276,7 @@ class CompositeShotStatesNotifier
     } catch (e, st) {
       debugPrint('ShotCompositeNotifier.batchGenerate: $e');
       debugPrint(st.toString());
-      final failed = Map<int, CompositeShotState>.from(state);
+      final failed = Map<String, CompositeShotState>.from(state);
       for (final id in shotIds) {
         failed[id] =
             CompositeShotState(shotId: id, status: CompositeShotStatus.failed);

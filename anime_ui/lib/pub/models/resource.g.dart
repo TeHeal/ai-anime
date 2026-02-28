@@ -7,8 +7,8 @@ part of 'resource.dart';
 // **************************************************************************
 
 _Resource _$ResourceFromJson(Map<String, dynamic> json) => _Resource(
-  id: (json['id'] as num?)?.toInt(),
-  userId: (json['userId'] as num?)?.toInt(),
+  id: json['id'] as String?,
+  userId: json['userId'] as String?,
   name: json['name'] as String? ?? '',
   libraryType: json['libraryType'] as String? ?? '',
   modality: json['modality'] as String? ?? '',

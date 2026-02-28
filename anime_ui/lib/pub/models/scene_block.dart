@@ -19,8 +19,8 @@ enum BlockType {
 @freezed
 abstract class SceneBlock with _$SceneBlock {
   const factory SceneBlock({
-    int? id,
-    int? sceneId,
+    String? id,
+    String? sceneId,
     @Default('action') String type,
     @Default('') String character,
     @Default('') String emotion,

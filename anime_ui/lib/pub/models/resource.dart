@@ -10,8 +10,8 @@ abstract class Resource with _$Resource {
   const Resource._();
 
   const factory Resource({
-    int? id,
-    int? userId,
+    String? id,
+    String? userId,
     @Default('') String name,
     @Default('') String libraryType,
     @Default('') String modality,
@@ -46,10 +46,10 @@ abstract class Resource with _$Resource {
     }
   }
 
-  List<int> get bindingIds {
+  List<String> get bindingIds {
     if (bindingIdsJson.isEmpty) return [];
     try {
-      return (jsonDecode(bindingIdsJson) as List).cast<int>();
+      return (jsonDecode(bindingIdsJson) as List).map((e) => e.toString()).toList();
     } catch (_) {
       return [];
     }

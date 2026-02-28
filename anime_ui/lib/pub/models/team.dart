@@ -1,6 +1,6 @@
 class Team {
-  final int id;
-  final int orgId;
+  final String id;
+  final String orgId;
   final String name;
   final String description;
 
@@ -12,8 +12,8 @@ class Team {
   });
 
   factory Team.fromJson(Map<String, dynamic> json) => Team(
-        id: json['id'] as int,
-        orgId: json['org_id'] as int,
+        id: json['id'].toString(),
+        orgId: json['org_id'].toString(),
         name: json['name'] as String,
         description: json['description'] as String? ?? '',
       );

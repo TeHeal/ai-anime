@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExportRecord {
 
- int? get id; int? get projectId; String get format; String get resolution; String get status; String get outputUrl; int get fileSize; String get taskId; String? get error; int get progress;
+ String? get id; String? get projectId; String get format; String get resolution; String get status; String get outputUrl; int get fileSize; String get taskId; String? get error; int get progress;
 /// Create a copy of ExportRecord
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ExportRecordCopyWith<$Res>  {
   factory $ExportRecordCopyWith(ExportRecord value, $Res Function(ExportRecord) _then) = _$ExportRecordCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, String format, String resolution, String status, String outputUrl, int fileSize, String taskId, String? error, int progress
+ String? id, String? projectId, String format, String resolution, String status, String outputUrl, int fileSize, String taskId, String? error, int progress
 });
 
 
@@ -68,8 +68,8 @@ class _$ExportRecordCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? format = null,Object? resolution = null,Object? status = null,Object? outputUrl = null,Object? fileSize = null,Object? taskId = null,Object? error = freezed,Object? progress = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
 as String,resolution: null == resolution ? _self.resolution : resolution // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,outputUrl: null == outputUrl ? _self.outputUrl : outputUrl // ignore: cast_nullable_to_non_nullable
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String format,  String resolution,  String status,  String outputUrl,  int fileSize,  String taskId,  String? error,  int progress)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String format,  String resolution,  String status,  String outputUrl,  int fileSize,  String taskId,  String? error,  int progress)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExportRecord() when $default != null:
 return $default(_that.id,_that.projectId,_that.format,_that.resolution,_that.status,_that.outputUrl,_that.fileSize,_that.taskId,_that.error,_that.progress);case _:
@@ -183,7 +183,7 @@ return $default(_that.id,_that.projectId,_that.format,_that.resolution,_that.sta
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String format,  String resolution,  String status,  String outputUrl,  int fileSize,  String taskId,  String? error,  int progress)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String format,  String resolution,  String status,  String outputUrl,  int fileSize,  String taskId,  String? error,  int progress)  $default,) {final _that = this;
 switch (_that) {
 case _ExportRecord():
 return $default(_that.id,_that.projectId,_that.format,_that.resolution,_that.status,_that.outputUrl,_that.fileSize,_that.taskId,_that.error,_that.progress);case _:
@@ -203,7 +203,7 @@ return $default(_that.id,_that.projectId,_that.format,_that.resolution,_that.sta
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  String format,  String resolution,  String status,  String outputUrl,  int fileSize,  String taskId,  String? error,  int progress)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String format,  String resolution,  String status,  String outputUrl,  int fileSize,  String taskId,  String? error,  int progress)?  $default,) {final _that = this;
 switch (_that) {
 case _ExportRecord() when $default != null:
 return $default(_that.id,_that.projectId,_that.format,_that.resolution,_that.status,_that.outputUrl,_that.fileSize,_that.taskId,_that.error,_that.progress);case _:
@@ -221,8 +221,8 @@ class _ExportRecord extends ExportRecord {
   const _ExportRecord({this.id, this.projectId, this.format = 'mp4', this.resolution = '1080p', this.status = 'pending', this.outputUrl = '', this.fileSize = 0, this.taskId = '', this.error, this.progress = 0}): super._();
   factory _ExportRecord.fromJson(Map<String, dynamic> json) => _$ExportRecordFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  String format;
 @override@JsonKey() final  String resolution;
 @override@JsonKey() final  String status;
@@ -265,7 +265,7 @@ abstract mixin class _$ExportRecordCopyWith<$Res> implements $ExportRecordCopyWi
   factory _$ExportRecordCopyWith(_ExportRecord value, $Res Function(_ExportRecord) _then) = __$ExportRecordCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, String format, String resolution, String status, String outputUrl, int fileSize, String taskId, String? error, int progress
+ String? id, String? projectId, String format, String resolution, String status, String outputUrl, int fileSize, String taskId, String? error, int progress
 });
 
 
@@ -285,8 +285,8 @@ class __$ExportRecordCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? format = null,Object? resolution = null,Object? status = null,Object? outputUrl = null,Object? fileSize = null,Object? taskId = null,Object? error = freezed,Object? progress = null,}) {
   return _then(_ExportRecord(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
 as String,resolution: null == resolution ? _self.resolution : resolution // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,outputUrl: null == outputUrl ? _self.outputUrl : outputUrl // ignore: cast_nullable_to_non_nullable

@@ -1,9 +1,9 @@
 import 'api.dart';
 
 class AuditLog {
-  final int id;
-  final int projectId;
-  final int userId;
+  final String id;
+  final String projectId;
+  final String userId;
   final String action;
   final String detail;
   final String createdAt;
@@ -18,9 +18,9 @@ class AuditLog {
   });
 
   factory AuditLog.fromJson(Map<String, dynamic> json) => AuditLog(
-        id: json['id'] as int,
-        projectId: json['project_id'] as int,
-        userId: json['user_id'] as int,
+        id: json['id'].toString(),
+        projectId: json['project_id'].toString(),
+        userId: json['user_id'].toString(),
         action: json['action'] as String? ?? '',
         detail: json['detail'] as String? ?? '',
         createdAt: json['created_at'] as String? ?? '',
@@ -29,7 +29,7 @@ class AuditLog {
 
 class AuditService {
   Future<List<AuditLog>> listByProject(
-    int projectId, {
+    String projectId, {
     int? limit,
     int? offset,
   }) async {

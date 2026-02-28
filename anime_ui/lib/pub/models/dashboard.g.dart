@@ -83,7 +83,7 @@ Map<String, dynamic> _$ReviewSummaryToJson(_ReviewSummary instance) =>
 
 _DashboardEpisode _$DashboardEpisodeFromJson(Map<String, dynamic> json) =>
     _DashboardEpisode(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as String?,
       title: json['title'] as String? ?? '',
       sortIndex: (json['sortIndex'] as num?)?.toInt() ?? 0,
       summary: json['summary'] as String? ?? '',

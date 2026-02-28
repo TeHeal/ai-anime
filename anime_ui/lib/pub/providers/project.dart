@@ -11,9 +11,9 @@ class CurrentProjectNotifier extends Notifier<AsyncValue<Project?>> {
 
   final _svc = ProjectService();
 
-  int? get projectId => state.value?.id;
+  String? get projectId => state.value?.id;
 
-  Future<void> load(int id) async {
+  Future<void> load(String id) async {
     state = const AsyncValue.loading();
     try {
       final raw = await _svc.getRaw(id);

@@ -20,8 +20,8 @@ class ScriptTreeNode {
   final String id;
   final String label;
   final bool isEpisode;
-  final int? episodeId;
-  final int? sceneDbId;
+  final String? episodeId;
+  final String? sceneDbId;
   final List<ScriptTreeNode> children;
 }
 
@@ -43,13 +43,13 @@ class ScriptTreeNav extends StatefulWidget {
   });
 
   final List<Episode> episodes;
-  final int? selectedEpisodeId;
-  final int? selectedSceneId;
-  final void Function(int episodeId, int sceneDbId) onSceneSelected;
+  final String? selectedEpisodeId;
+  final String? selectedSceneId;
+  final void Function(String episodeId, String sceneDbId) onSceneSelected;
   final VoidCallback? onAddEpisode;
-  final void Function(int episodeId)? onAddScene;
-  final void Function(int episodeId)? onDeleteEpisode;
-  final void Function(int episodeId, int sceneDbId)? onDeleteScene;
+  final void Function(String episodeId)? onAddScene;
+  final void Function(String episodeId)? onDeleteEpisode;
+  final void Function(String episodeId, String sceneDbId)? onDeleteScene;
 
   @override
   State<ScriptTreeNav> createState() => _ScriptTreeNavState();

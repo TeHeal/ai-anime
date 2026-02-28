@@ -3,10 +3,10 @@ import 'package:anime_ui/pub/models/scene_block.dart';
 import 'api.dart';
 
 class SceneService {
-  String _basePath(int projectId, int episodeId) =>
+  String _basePath(String projectId, String episodeId) =>
       '/projects/$projectId/episodes/$episodeId/scenes';
 
-  Future<Scene> create(int projectId, int episodeId, {
+  Future<Scene> create(String projectId, String episodeId, {
     required String sceneId,
     String location = '',
     String time = '',
@@ -23,18 +23,18 @@ class SceneService {
     return extractDataObject(resp, Scene.fromJson);
   }
 
-  Future<List<Scene>> list(int projectId, int episodeId) async {
+  Future<List<Scene>> list(String projectId, String episodeId) async {
     final resp = await dio.get(_basePath(projectId, episodeId));
     return extractDataList(resp, Scene.fromJson);
   }
 
-  Future<Scene> get(int projectId, int episodeId, int sceneDbId) async {
+  Future<Scene> get(String projectId, String episodeId, String sceneDbId) async {
     final resp = await dio
         .get('${_basePath(projectId, episodeId)}/$sceneDbId');
     return extractDataObject(resp, Scene.fromJson);
   }
 
-  Future<Scene> update(int projectId, int episodeId, int sceneDbId, {
+  Future<Scene> update(String projectId, String episodeId, String sceneDbId, {
     String? sceneId,
     String? location,
     String? time,
@@ -52,14 +52,14 @@ class SceneService {
     return extractDataObject(resp, Scene.fromJson);
   }
 
-  Future<void> delete(int projectId, int episodeId, int sceneDbId) async {
+  Future<void> delete(String projectId, String episodeId, String sceneDbId) async {
     final resp = await dio
         .delete('${_basePath(projectId, episodeId)}/$sceneDbId');
     extractData<dynamic>(resp);
   }
 
   Future<void> reorder(
-      int projectId, int episodeId, List<int> orderedIds) async {
+      String projectId, String episodeId, List<String> orderedIds) async {
     final resp = await dio
         .put('${_basePath(projectId, episodeId)}/reorder', data: {
       'ordered_ids': orderedIds,
@@ -68,7 +68,7 @@ class SceneService {
   }
 
   Future<List<SceneBlock>> saveBlocks(
-      int projectId, int episodeId, int sceneDbId, List<SceneBlock> blocks) async {
+      String projectId, String episodeId, String sceneDbId, List<SceneBlock> blocks) async {
     final resp = await dio.put(
       '${_basePath(projectId, episodeId)}/$sceneDbId/blocks',
       data: {

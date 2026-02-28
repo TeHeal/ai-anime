@@ -3,7 +3,7 @@ import 'api.dart';
 
 class ExportService {
   Future<ExportRecord> submit(
-    int projectId, {
+    String projectId, {
     String format = 'mp4',
     String resolution = '1080p',
   }) async {
@@ -14,14 +14,14 @@ class ExportService {
     return extractDataObject(resp, ExportRecord.fromJson);
   }
 
-  Future<List<ExportRecord>> list({int? projectId}) async {
+  Future<List<ExportRecord>> list({String? projectId}) async {
     final resp = await dio.get('/exports', queryParameters: {
       'project_id': ?projectId,
     });
     return extractDataList(resp, ExportRecord.fromJson);
   }
 
-  Future<ExportRecord> get(int id) async {
+  Future<ExportRecord> get(String id) async {
     final resp = await dio.get('/exports/$id');
     return extractDataObject(resp, ExportRecord.fromJson);
   }

@@ -8,14 +8,14 @@ part of 'prompt_record.dart';
 
 _PromptRecord _$PromptRecordFromJson(Map<String, dynamic> json) =>
     _PromptRecord(
-      id: (json['id'] as num?)?.toInt(),
-      projectId: (json['projectId'] as num).toInt(),
-      userId: (json['userId'] as num).toInt(),
-      episodeId: (json['episodeId'] as num?)?.toInt(),
-      sceneId: (json['sceneId'] as num?)?.toInt(),
-      shotId: (json['shotId'] as num?)?.toInt(),
-      characterId: (json['characterId'] as num?)?.toInt(),
-      locationId: (json['locationId'] as num?)?.toInt(),
+      id: json['id'] as String?,
+      projectId: json['projectId'] as String,
+      userId: json['userId'] as String,
+      episodeId: json['episodeId'] as String?,
+      sceneId: json['sceneId'] as String?,
+      shotId: json['shotId'] as String?,
+      characterId: json['characterId'] as String?,
+      locationId: json['locationId'] as String?,
       type: json['type'] as String? ?? '',
       inputText: json['inputText'] as String? ?? '',
       fullPrompt: json['fullPrompt'] as String? ?? '',

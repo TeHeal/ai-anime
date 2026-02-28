@@ -7,8 +7,8 @@ part 'scene.g.dart';
 @freezed
 abstract class Scene with _$Scene {
   const factory Scene({
-    int? id,
-    int? episodeId,
+    String? id,
+    String? episodeId,
     @Default('') String sceneId,
     @Default('') String location,
     @Default('') String time,

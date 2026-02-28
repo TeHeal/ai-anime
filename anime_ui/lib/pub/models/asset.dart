@@ -8,8 +8,8 @@ abstract class Asset with _$Asset {
   const Asset._();
 
   const factory Asset({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default('scene') String type,
     @Default('') String name,
     @Default('') String desc,

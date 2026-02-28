@@ -42,7 +42,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   List<String> _characters = [];
   List<SceneBlock> _blocks = [];
 
-  int? _boundSceneDbId;
+  String? _boundSceneDbId;
   bool _saving = false;
   bool _dirty = false;
   Timer? _autoSaveTimer;
@@ -278,7 +278,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
         '时间: $_time, 内外: $_ie, '
         '角色: ${_characters.join("、")}';
 
-    final pid = ref.read(currentProjectProvider).value?.id ?? 0;
+    final pid = ref.read(currentProjectProvider).value?.id ?? '';
 
     final stream = _scriptAiSvc.assistBlock(
       action: action.name,

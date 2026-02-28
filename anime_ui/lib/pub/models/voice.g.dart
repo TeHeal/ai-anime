@@ -7,7 +7,7 @@ part of 'voice.dart';
 // **************************************************************************
 
 _Voice _$VoiceFromJson(Map<String, dynamic> json) => _Voice(
-  id: (json['id'] as num?)?.toInt(),
+  id: json['id'] as String?,
   name: json['name'] as String? ?? '',
   gender: json['gender'] as String? ?? '',
   voiceId: json['voiceId'] as String? ?? '',

@@ -8,8 +8,8 @@ part of 'asset_version.dart';
 
 _AssetVersion _$AssetVersionFromJson(Map<String, dynamic> json) =>
     _AssetVersion(
-      id: (json['id'] as num?)?.toInt(),
-      projectId: (json['projectId'] as num?)?.toInt(),
+      id: json['id'] as String?,
+      projectId: json['projectId'] as String?,
       version: (json['version'] as num?)?.toInt() ?? 0,
       action: json['action'] as String? ?? '',
       statsJson: json['statsJson'] as String? ?? '',

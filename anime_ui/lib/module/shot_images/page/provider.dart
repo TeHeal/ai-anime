@@ -100,7 +100,7 @@ class ShotImageConfigNotifier extends Notifier<ShotImageConfig> {
 enum ShotImageStatus { notStarted, generating, completed, failed, rejected }
 
 class ShotImageState {
-  final int shotId;
+  final String shotId;
   final ShotImageStatus status;
   final int progress;
   final String? imageUrl;
@@ -118,16 +118,16 @@ class ShotImageState {
 }
 
 final shotImageStatesProvider =
-    NotifierProvider<ShotImageStatesNotifier, Map<int, ShotImageState>>(
+    NotifierProvider<ShotImageStatesNotifier, Map<String, ShotImageState>>(
   ShotImageStatesNotifier.new,
 );
 
-class ShotImageStatesNotifier extends Notifier<Map<int, ShotImageState>> {
+class ShotImageStatesNotifier extends Notifier<Map<String, ShotImageState>> {
   @override
-  Map<int, ShotImageState> build() => {};
+  Map<String, ShotImageState> build() => {};
 
   void initFromShots(List<StoryboardShot> shots) {
-    final map = <int, ShotImageState>{};
+    final map = <String, ShotImageState>{};
     for (final shot in shots) {
       final id = shot.id;
       if (id == null) continue;
@@ -143,12 +143,12 @@ class ShotImageStatesNotifier extends Notifier<Map<int, ShotImageState>> {
     state = map;
   }
 
-  Future<void> batchGenerate(List<int> shotIds) async {
+  Future<void> batchGenerate(List<String> shotIds) async {
     final pid = ref.read(currentProjectProvider).value?.id;
     if (pid == null) return;
     final config = ref.read(shotImageConfigProvider);
 
-    final updated = Map<int, ShotImageState>.from(state);
+    final updated = Map<String, ShotImageState>.from(state);
     for (final id in shotIds) {
       updated[id] = ShotImageState(
         shotId: id,
@@ -162,7 +162,7 @@ class ShotImageStatesNotifier extends Notifier<Map<int, ShotImageState>> {
           .read(shotImageServiceProvider)
           .batchGenerate(pid, shotIds: shotIds, config: config.toJson());
     } catch (e) {
-      final failed = Map<int, ShotImageState>.from(state);
+      final failed = Map<String, ShotImageState>.from(state);
       for (final id in shotIds) {
         failed[id] = ShotImageState(
           shotId: id,

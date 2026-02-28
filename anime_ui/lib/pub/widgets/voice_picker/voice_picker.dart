@@ -21,14 +21,14 @@ class VoicePicker extends StatefulWidget {
 
   final List<Resource> voices;
   final Color accentColor;
-  final int? selectedId;
+  final String? selectedId;
   final ValueChanged<Resource>? onSelected;
 
   static Future<Resource?> show(
     BuildContext context, {
     required List<Resource> voices,
     Color accentColor = const Color(0xFF3B82F6),
-    int? selectedId,
+    String? selectedId,
   }) {
     return showDialog<Resource>(
       context: context,

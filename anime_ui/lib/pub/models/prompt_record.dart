@@ -8,14 +8,14 @@ abstract class PromptRecord with _$PromptRecord {
   const PromptRecord._();
 
   const factory PromptRecord({
-    int? id,
-    required int projectId,
-    required int userId,
-    int? episodeId,
-    int? sceneId,
-    int? shotId,
-    int? characterId,
-    int? locationId,
+    String? id,
+    required String projectId,
+    required String userId,
+    String? episodeId,
+    String? sceneId,
+    String? shotId,
+    String? characterId,
+    String? locationId,
     @Default('') String type,
     @Default('') String inputText,
     @Default('') String fullPrompt,

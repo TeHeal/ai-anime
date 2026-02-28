@@ -8,7 +8,7 @@ part of 'timeline.dart';
 
 _TrackItem _$TrackItemFromJson(Map<String, dynamic> json) => _TrackItem(
   id: json['id'] as String,
-  sourceId: (json['sourceId'] as num?)?.toInt(),
+  sourceId: json['sourceId'] as String?,
   sourceUrl: json['sourceUrl'] as String? ?? '',
   label: json['label'] as String? ?? '',
   startAt: (json['startAt'] as num?)?.toDouble() ?? 0,
@@ -51,8 +51,8 @@ Map<String, dynamic> _$TrackToJson(_Track instance) => <String, dynamic>{
 
 _ProjectTimeline _$ProjectTimelineFromJson(Map<String, dynamic> json) =>
     _ProjectTimeline(
-      id: (json['id'] as num?)?.toInt(),
-      projectId: (json['projectId'] as num?)?.toInt(),
+      id: json['id'] as String?,
+      projectId: json['projectId'] as String?,
       duration: (json['duration'] as num?)?.toDouble() ?? 0,
       tracks:
           (json['tracks'] as List<dynamic>?)

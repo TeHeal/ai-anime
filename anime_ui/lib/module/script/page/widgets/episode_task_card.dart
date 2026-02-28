@@ -7,7 +7,7 @@ import 'package:anime_ui/pub/widgets/task_status/mini_action_button.dart';
 
 /// 单集脚本生成任务卡片
 class EpisodeTaskCard extends StatelessWidget {
-  final int episodeId;
+  final String episodeId;
   final String title;
   final int sortIndex;
   final EpisodeGenerateState? state;

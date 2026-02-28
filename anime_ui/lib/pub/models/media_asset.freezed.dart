@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MediaAsset {
 
- int? get id; int get projectId; int get userId; int? get episodeId; int? get sceneId; int? get shotId; int? get characterId; int? get locationId; String get type; String get subType; String get name; String get fileUrl; String get filePath; int get fileSize; String get fileHash; String get mimeType; int get width; int get height; double get duration; String get source; int? get promptId; String get taskId; String get provider; String get model; int get version; int? get parentId; String get status; String get roleIds; String get tags; DateTime? get createdAt; DateTime? get updatedAt;
+ String? get id; String get projectId; String get userId; String? get episodeId; String? get sceneId; String? get shotId; String? get characterId; String? get locationId; String get type; String get subType; String get name; String get fileUrl; String get filePath; int get fileSize; String get fileHash; String get mimeType; int get width; int get height; double get duration; String get source; String? get promptId; String get taskId; String get provider; String get model; int get version; String? get parentId; String get status; String get roleIds; String get tags; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of MediaAsset
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $MediaAssetCopyWith<$Res>  {
   factory $MediaAssetCopyWith(MediaAsset value, $Res Function(MediaAsset) _then) = _$MediaAssetCopyWithImpl;
 @useResult
 $Res call({
- int? id, int projectId, int userId, int? episodeId, int? sceneId, int? shotId, int? characterId, int? locationId, String type, String subType, String name, String fileUrl, String filePath, int fileSize, String fileHash, String mimeType, int width, int height, double duration, String source, int? promptId, String taskId, String provider, String model, int version, int? parentId, String status, String roleIds, String tags, DateTime? createdAt, DateTime? updatedAt
+ String? id, String projectId, String userId, String? episodeId, String? sceneId, String? shotId, String? characterId, String? locationId, String type, String subType, String name, String fileUrl, String filePath, int fileSize, String fileHash, String mimeType, int width, int height, double duration, String source, String? promptId, String taskId, String provider, String model, int version, String? parentId, String status, String roleIds, String tags, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -68,14 +68,14 @@ class _$MediaAssetCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = null,Object? userId = null,Object? episodeId = freezed,Object? sceneId = freezed,Object? shotId = freezed,Object? characterId = freezed,Object? locationId = freezed,Object? type = null,Object? subType = null,Object? name = null,Object? fileUrl = null,Object? filePath = null,Object? fileSize = null,Object? fileHash = null,Object? mimeType = null,Object? width = null,Object? height = null,Object? duration = null,Object? source = null,Object? promptId = freezed,Object? taskId = null,Object? provider = null,Object? model = null,Object? version = null,Object? parentId = freezed,Object? status = null,Object? roleIds = null,Object? tags = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
-as int?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
+as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
+as String?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,subType: null == subType ? _self.subType : subType // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fileUrl: null == fileUrl ? _self.fileUrl : fileUrl // ignore: cast_nullable_to_non_nullable
@@ -88,12 +88,12 @@ as int,height: null == height ? _self.height : height // ignore: cast_nullable_t
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,promptId: freezed == promptId ? _self.promptId : promptId // ignore: cast_nullable_to_non_nullable
-as int?,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
+as String?,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
-as int?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,roleIds: null == roleIds ? _self.roleIds : roleIds // ignore: cast_nullable_to_non_nullable
 as String,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -183,7 +183,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int projectId,  int userId,  int? episodeId,  int? sceneId,  int? shotId,  int? characterId,  int? locationId,  String type,  String subType,  String name,  String fileUrl,  String filePath,  int fileSize,  String fileHash,  String mimeType,  int width,  int height,  double duration,  String source,  int? promptId,  String taskId,  String provider,  String model,  int version,  int? parentId,  String status,  String roleIds,  String tags,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String projectId,  String userId,  String? episodeId,  String? sceneId,  String? shotId,  String? characterId,  String? locationId,  String type,  String subType,  String name,  String fileUrl,  String filePath,  int fileSize,  String fileHash,  String mimeType,  int width,  int height,  double duration,  String source,  String? promptId,  String taskId,  String provider,  String model,  int version,  String? parentId,  String status,  String roleIds,  String tags,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MediaAsset() when $default != null:
 return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.sceneId,_that.shotId,_that.characterId,_that.locationId,_that.type,_that.subType,_that.name,_that.fileUrl,_that.filePath,_that.fileSize,_that.fileHash,_that.mimeType,_that.width,_that.height,_that.duration,_that.source,_that.promptId,_that.taskId,_that.provider,_that.model,_that.version,_that.parentId,_that.status,_that.roleIds,_that.tags,_that.createdAt,_that.updatedAt);case _:
@@ -204,7 +204,7 @@ return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.scen
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int projectId,  int userId,  int? episodeId,  int? sceneId,  int? shotId,  int? characterId,  int? locationId,  String type,  String subType,  String name,  String fileUrl,  String filePath,  int fileSize,  String fileHash,  String mimeType,  int width,  int height,  double duration,  String source,  int? promptId,  String taskId,  String provider,  String model,  int version,  int? parentId,  String status,  String roleIds,  String tags,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String projectId,  String userId,  String? episodeId,  String? sceneId,  String? shotId,  String? characterId,  String? locationId,  String type,  String subType,  String name,  String fileUrl,  String filePath,  int fileSize,  String fileHash,  String mimeType,  int width,  int height,  double duration,  String source,  String? promptId,  String taskId,  String provider,  String model,  int version,  String? parentId,  String status,  String roleIds,  String tags,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _MediaAsset():
 return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.sceneId,_that.shotId,_that.characterId,_that.locationId,_that.type,_that.subType,_that.name,_that.fileUrl,_that.filePath,_that.fileSize,_that.fileHash,_that.mimeType,_that.width,_that.height,_that.duration,_that.source,_that.promptId,_that.taskId,_that.provider,_that.model,_that.version,_that.parentId,_that.status,_that.roleIds,_that.tags,_that.createdAt,_that.updatedAt);case _:
@@ -224,7 +224,7 @@ return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.scen
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int projectId,  int userId,  int? episodeId,  int? sceneId,  int? shotId,  int? characterId,  int? locationId,  String type,  String subType,  String name,  String fileUrl,  String filePath,  int fileSize,  String fileHash,  String mimeType,  int width,  int height,  double duration,  String source,  int? promptId,  String taskId,  String provider,  String model,  int version,  int? parentId,  String status,  String roleIds,  String tags,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String projectId,  String userId,  String? episodeId,  String? sceneId,  String? shotId,  String? characterId,  String? locationId,  String type,  String subType,  String name,  String fileUrl,  String filePath,  int fileSize,  String fileHash,  String mimeType,  int width,  int height,  double duration,  String source,  String? promptId,  String taskId,  String provider,  String model,  int version,  String? parentId,  String status,  String roleIds,  String tags,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _MediaAsset() when $default != null:
 return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.sceneId,_that.shotId,_that.characterId,_that.locationId,_that.type,_that.subType,_that.name,_that.fileUrl,_that.filePath,_that.fileSize,_that.fileHash,_that.mimeType,_that.width,_that.height,_that.duration,_that.source,_that.promptId,_that.taskId,_that.provider,_that.model,_that.version,_that.parentId,_that.status,_that.roleIds,_that.tags,_that.createdAt,_that.updatedAt);case _:
@@ -242,14 +242,14 @@ class _MediaAsset extends MediaAsset {
   const _MediaAsset({this.id, required this.projectId, required this.userId, this.episodeId, this.sceneId, this.shotId, this.characterId, this.locationId, this.type = '', this.subType = '', this.name = '', this.fileUrl = '', this.filePath = '', this.fileSize = 0, this.fileHash = '', this.mimeType = '', this.width = 0, this.height = 0, this.duration = 0.0, this.source = 'ai', this.promptId, this.taskId = '', this.provider = '', this.model = '', this.version = 1, this.parentId, this.status = 'active', this.roleIds = '', this.tags = '', this.createdAt, this.updatedAt}): super._();
   factory _MediaAsset.fromJson(Map<String, dynamic> json) => _$MediaAssetFromJson(json);
 
-@override final  int? id;
-@override final  int projectId;
-@override final  int userId;
-@override final  int? episodeId;
-@override final  int? sceneId;
-@override final  int? shotId;
-@override final  int? characterId;
-@override final  int? locationId;
+@override final  String? id;
+@override final  String projectId;
+@override final  String userId;
+@override final  String? episodeId;
+@override final  String? sceneId;
+@override final  String? shotId;
+@override final  String? characterId;
+@override final  String? locationId;
 @override@JsonKey() final  String type;
 @override@JsonKey() final  String subType;
 @override@JsonKey() final  String name;
@@ -262,12 +262,12 @@ class _MediaAsset extends MediaAsset {
 @override@JsonKey() final  int height;
 @override@JsonKey() final  double duration;
 @override@JsonKey() final  String source;
-@override final  int? promptId;
+@override final  String? promptId;
 @override@JsonKey() final  String taskId;
 @override@JsonKey() final  String provider;
 @override@JsonKey() final  String model;
 @override@JsonKey() final  int version;
-@override final  int? parentId;
+@override final  String? parentId;
 @override@JsonKey() final  String status;
 @override@JsonKey() final  String roleIds;
 @override@JsonKey() final  String tags;
@@ -307,7 +307,7 @@ abstract mixin class _$MediaAssetCopyWith<$Res> implements $MediaAssetCopyWith<$
   factory _$MediaAssetCopyWith(_MediaAsset value, $Res Function(_MediaAsset) _then) = __$MediaAssetCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int projectId, int userId, int? episodeId, int? sceneId, int? shotId, int? characterId, int? locationId, String type, String subType, String name, String fileUrl, String filePath, int fileSize, String fileHash, String mimeType, int width, int height, double duration, String source, int? promptId, String taskId, String provider, String model, int version, int? parentId, String status, String roleIds, String tags, DateTime? createdAt, DateTime? updatedAt
+ String? id, String projectId, String userId, String? episodeId, String? sceneId, String? shotId, String? characterId, String? locationId, String type, String subType, String name, String fileUrl, String filePath, int fileSize, String fileHash, String mimeType, int width, int height, double duration, String source, String? promptId, String taskId, String provider, String model, int version, String? parentId, String status, String roleIds, String tags, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -327,14 +327,14 @@ class __$MediaAssetCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = null,Object? userId = null,Object? episodeId = freezed,Object? sceneId = freezed,Object? shotId = freezed,Object? characterId = freezed,Object? locationId = freezed,Object? type = null,Object? subType = null,Object? name = null,Object? fileUrl = null,Object? filePath = null,Object? fileSize = null,Object? fileHash = null,Object? mimeType = null,Object? width = null,Object? height = null,Object? duration = null,Object? source = null,Object? promptId = freezed,Object? taskId = null,Object? provider = null,Object? model = null,Object? version = null,Object? parentId = freezed,Object? status = null,Object? roleIds = null,Object? tags = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_MediaAsset(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
-as int?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
+as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
+as String?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,subType: null == subType ? _self.subType : subType // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fileUrl: null == fileUrl ? _self.fileUrl : fileUrl // ignore: cast_nullable_to_non_nullable
@@ -347,12 +347,12 @@ as int,height: null == height ? _self.height : height // ignore: cast_nullable_t
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,promptId: freezed == promptId ? _self.promptId : promptId // ignore: cast_nullable_to_non_nullable
-as int?,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
+as String?,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
-as int?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,roleIds: null == roleIds ? _self.roleIds : roleIds // ignore: cast_nullable_to_non_nullable
 as String,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

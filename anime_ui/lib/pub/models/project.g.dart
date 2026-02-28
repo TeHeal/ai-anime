@@ -29,7 +29,7 @@ Map<String, dynamic> _$ProjectConfigToJson(_ProjectConfig instance) =>
     };
 
 _Project _$ProjectFromJson(Map<String, dynamic> json) => _Project(
-  id: (json['id'] as num?)?.toInt(),
+  id: json['id'] as String?,
   name: json['name'] as String? ?? 'Untitled',
   story: json['story'] as String? ?? '',
   storyMode: json['storyMode'] as String? ?? 'full_script',
@@ -39,7 +39,7 @@ _Project _$ProjectFromJson(Map<String, dynamic> json) => _Project(
   mirrorMode: json['mirrorMode'] as bool? ?? true,
   segmentIds:
       (json['segmentIds'] as List<dynamic>?)
-          ?.map((e) => (e as num).toInt())
+          ?.map((e) => e as String)
           .toList() ??
       const [],
   updatedAt: json['updatedAt'] == null

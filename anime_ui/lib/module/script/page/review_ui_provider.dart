@@ -8,7 +8,7 @@ import 'package:anime_ui/module/script/page/script_provider.dart';
 // ---------------------------------------------------------------------------
 
 class ReviewUiState {
-  final int? selectedEpisodeId;
+  final String? selectedEpisodeId;
   final int? selectedShotNumber;
   final String filterStatus;
   final bool editModeOverride;
@@ -29,7 +29,7 @@ class ReviewUiState {
   });
 
   ReviewUiState copyWith({
-    int? Function()? selectedEpisodeId,
+    String? Function()? selectedEpisodeId,
     int? Function()? selectedShotNumber,
     String? filterStatus,
     bool? editModeOverride,
@@ -63,7 +63,7 @@ class ReviewUiNotifier extends Notifier<ReviewUiState> {
   @override
   ReviewUiState build() => const ReviewUiState();
 
-  void selectEpisode(int? id) {
+  void selectEpisode(String? id) {
     state = state.copyWith(
       selectedEpisodeId: () => id,
       selectedShotNumber: () => null,
@@ -155,7 +155,7 @@ final reviewUiProvider =
 
 List<ShotV4> reviewCurrentShots(
   ReviewUiState ui,
-  Map<int, List<ShotV4>> shotsMap,
+  Map<String, List<ShotV4>> shotsMap,
 ) {
   if (ui.selectedEpisodeId == null) return [];
   return shotsMap[ui.selectedEpisodeId!] ?? [];
@@ -163,7 +163,7 @@ List<ShotV4> reviewCurrentShots(
 
 List<ShotV4> reviewFilteredShots(
   ReviewUiState ui,
-  Map<int, List<ShotV4>> shotsMap,
+  Map<String, List<ShotV4>> shotsMap,
 ) {
   final shots = reviewCurrentShots(ui, shotsMap);
   if (ui.filterStatus == 'all') return shots;
@@ -172,7 +172,7 @@ List<ShotV4> reviewFilteredShots(
 
 ShotV4? reviewCurrentShot(
   ReviewUiState ui,
-  Map<int, List<ShotV4>> shotsMap,
+  Map<String, List<ShotV4>> shotsMap,
 ) {
   final shots = reviewCurrentShots(ui, shotsMap);
   if (ui.selectedShotNumber == null && shots.isNotEmpty) return shots.first;

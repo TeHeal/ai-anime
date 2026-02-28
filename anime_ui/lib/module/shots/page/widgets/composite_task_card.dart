@@ -7,7 +7,7 @@ import 'package:anime_ui/pub/widgets/task_status/mini_action_button.dart';
 
 /// 单个复合生成任务卡片，展示子任务状态矩阵
 class CompositeTaskCard extends StatelessWidget {
-  final int shotId;
+  final String shotId;
   final int shotNumber;
   final String cameraScale;
   final String prompt;

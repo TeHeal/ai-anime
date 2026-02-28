@@ -62,12 +62,12 @@ class ResourceService {
     );
   }
 
-  Future<Resource> get(int resourceId) async {
+  Future<Resource> get(String resourceId) async {
     final resp = await dio.get('/resources/$resourceId');
     return extractDataObject(resp, Resource.fromJson);
   }
 
-  Future<Resource> update(int resourceId, {
+  Future<Resource> update(String resourceId, {
     String? name,
     String? thumbnailUrl,
     String? tagsJson,
@@ -88,7 +88,7 @@ class ResourceService {
     return extractDataObject(resp, Resource.fromJson);
   }
 
-  Future<void> delete(int resourceId) async {
+  Future<void> delete(String resourceId) async {
     await dio.delete('/resources/$resourceId');
   }
 
@@ -101,7 +101,6 @@ class ResourceService {
     return counts.map((k, v) => MapEntry(k, (v as num).toInt()));
   }
 
-  /// AI image generation -> resource
   Future<GenerateResourceResult> generateImage({
     required String name,
     required String libraryType,
@@ -143,7 +142,6 @@ class ResourceService {
     );
   }
 
-  /// Voice clone -> resource
   Future<GenerateResourceResult> generateVoice({
     required String name,
     required String sampleUrl,
@@ -165,7 +163,6 @@ class ResourceService {
     );
   }
 
-  /// Voice design (text prompt based) -> resource
   Future<GenerateResourceResult> generateVoiceDesign({
     required String name,
     required String prompt,
@@ -193,7 +190,6 @@ class ResourceService {
     );
   }
 
-  /// Generate preview text for voice design using LLM
   Future<String> generatePreviewText({
     required String voicePrompt,
     String operator = '',
@@ -208,13 +204,12 @@ class ResourceService {
     return data['text'] as String? ?? '';
   }
 
-  Future<Resource> syncVoiceResource(int resourceId) async {
+  Future<Resource> syncVoiceResource(String resourceId) async {
     final resp = await dio.post('/resources/$resourceId/sync-voice');
     final data = extractData<Map<String, dynamic>>(resp);
     return Resource.fromJson(data['resource'] as Map<String, dynamic>);
   }
 
-  /// LLM prompt generation -> resource (synchronous)
   Future<Resource> generatePrompt({
     required String name,
     required String instruction,

@@ -7,8 +7,8 @@ part of 'character.dart';
 // **************************************************************************
 
 _Character _$CharacterFromJson(Map<String, dynamic> json) => _Character(
-  id: (json['id'] as num?)?.toInt(),
-  projectId: (json['projectId'] as num?)?.toInt(),
+  id: json['id'] as String?,
+  projectId: json['projectId'] as String?,
   name: json['name'] as String? ?? '',
   aliasJson: json['aliasJson'] as String? ?? '',
   appearance: json['appearance'] as String? ?? '',

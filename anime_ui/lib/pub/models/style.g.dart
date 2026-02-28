@@ -7,8 +7,8 @@ part of 'style.dart';
 // **************************************************************************
 
 _Style _$StyleFromJson(Map<String, dynamic> json) => _Style(
-  id: (json['id'] as num?)?.toInt(),
-  projectId: (json['projectId'] as num?)?.toInt(),
+  id: json['id'] as String?,
+  projectId: json['projectId'] as String?,
   name: json['name'] as String? ?? '',
   description: json['description'] as String? ?? '',
   negativePrompt: json['negativePrompt'] as String? ?? '',

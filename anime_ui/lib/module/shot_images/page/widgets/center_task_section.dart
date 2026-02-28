@@ -33,7 +33,7 @@ class CenterTaskSection extends ConsumerWidget {
   Future<void> _batchGenerate(
     BuildContext context,
     WidgetRef ref,
-    Set<int> selected,
+    Set<String> selected,
   ) async {
     if (selected.isEmpty) return;
     _toast(context, '开始生成 ${selected.length} 个镜图');
@@ -195,7 +195,7 @@ class CenterTaskSection extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     List<StoryboardShot> shots,
-    Map<int, ShotImageState> imgStates,
+    Map<String, ShotImageState> imgStates,
     ShotImageCenterUiState uiState,
     ShotImageCenterUiNotifier uiNotifier,
   ) {

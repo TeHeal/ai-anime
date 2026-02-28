@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Scene {
 
- int? get id; int? get episodeId; String get sceneId; String get location; String get time; String get interiorExterior; List<String> get characters; int get sortIndex; List<SceneBlock> get blocks;
+ String? get id; String? get episodeId; String get sceneId; String get location; String get time; String get interiorExterior; List<String> get characters; int get sortIndex; List<SceneBlock> get blocks;
 /// Create a copy of Scene
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SceneCopyWith<$Res>  {
   factory $SceneCopyWith(Scene value, $Res Function(Scene) _then) = _$SceneCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? episodeId, String sceneId, String location, String time, String interiorExterior, List<String> characters, int sortIndex, List<SceneBlock> blocks
+ String? id, String? episodeId, String sceneId, String location, String time, String interiorExterior, List<String> characters, int sortIndex, List<SceneBlock> blocks
 });
 
 
@@ -68,8 +68,8 @@ class _$SceneCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? episodeId = freezed,Object? sceneId = null,Object? location = null,Object? time = null,Object? interiorExterior = null,Object? characters = null,Object? sortIndex = null,Object? blocks = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: null == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: null == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
 as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as String,time: null == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as String,interiorExterior: null == interiorExterior ? _self.interiorExterior : interiorExterior // ignore: cast_nullable_to_non_nullable
@@ -161,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? episodeId,  String sceneId,  String location,  String time,  String interiorExterior,  List<String> characters,  int sortIndex,  List<SceneBlock> blocks)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? episodeId,  String sceneId,  String location,  String time,  String interiorExterior,  List<String> characters,  int sortIndex,  List<SceneBlock> blocks)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Scene() when $default != null:
 return $default(_that.id,_that.episodeId,_that.sceneId,_that.location,_that.time,_that.interiorExterior,_that.characters,_that.sortIndex,_that.blocks);case _:
@@ -182,7 +182,7 @@ return $default(_that.id,_that.episodeId,_that.sceneId,_that.location,_that.time
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? episodeId,  String sceneId,  String location,  String time,  String interiorExterior,  List<String> characters,  int sortIndex,  List<SceneBlock> blocks)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? episodeId,  String sceneId,  String location,  String time,  String interiorExterior,  List<String> characters,  int sortIndex,  List<SceneBlock> blocks)  $default,) {final _that = this;
 switch (_that) {
 case _Scene():
 return $default(_that.id,_that.episodeId,_that.sceneId,_that.location,_that.time,_that.interiorExterior,_that.characters,_that.sortIndex,_that.blocks);case _:
@@ -202,7 +202,7 @@ return $default(_that.id,_that.episodeId,_that.sceneId,_that.location,_that.time
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? episodeId,  String sceneId,  String location,  String time,  String interiorExterior,  List<String> characters,  int sortIndex,  List<SceneBlock> blocks)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? episodeId,  String sceneId,  String location,  String time,  String interiorExterior,  List<String> characters,  int sortIndex,  List<SceneBlock> blocks)?  $default,) {final _that = this;
 switch (_that) {
 case _Scene() when $default != null:
 return $default(_that.id,_that.episodeId,_that.sceneId,_that.location,_that.time,_that.interiorExterior,_that.characters,_that.sortIndex,_that.blocks);case _:
@@ -220,8 +220,8 @@ class _Scene implements Scene {
   const _Scene({this.id, this.episodeId, this.sceneId = '', this.location = '', this.time = '', this.interiorExterior = '', final  List<String> characters = const [], this.sortIndex = 0, final  List<SceneBlock> blocks = const []}): _characters = characters,_blocks = blocks;
   factory _Scene.fromJson(Map<String, dynamic> json) => _$SceneFromJson(json);
 
-@override final  int? id;
-@override final  int? episodeId;
+@override final  String? id;
+@override final  String? episodeId;
 @override@JsonKey() final  String sceneId;
 @override@JsonKey() final  String location;
 @override@JsonKey() final  String time;
@@ -275,7 +275,7 @@ abstract mixin class _$SceneCopyWith<$Res> implements $SceneCopyWith<$Res> {
   factory _$SceneCopyWith(_Scene value, $Res Function(_Scene) _then) = __$SceneCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? episodeId, String sceneId, String location, String time, String interiorExterior, List<String> characters, int sortIndex, List<SceneBlock> blocks
+ String? id, String? episodeId, String sceneId, String location, String time, String interiorExterior, List<String> characters, int sortIndex, List<SceneBlock> blocks
 });
 
 
@@ -295,8 +295,8 @@ class __$SceneCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? episodeId = freezed,Object? sceneId = null,Object? location = null,Object? time = null,Object? interiorExterior = null,Object? characters = null,Object? sortIndex = null,Object? blocks = null,}) {
   return _then(_Scene(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: null == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: null == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
 as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as String,time: null == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as String,interiorExterior: null == interiorExterior ? _self.interiorExterior : interiorExterior // ignore: cast_nullable_to_non_nullable

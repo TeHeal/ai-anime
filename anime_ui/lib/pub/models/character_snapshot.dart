@@ -8,9 +8,9 @@ abstract class CharacterSnapshot with _$CharacterSnapshot {
   const CharacterSnapshot._();
 
   const factory CharacterSnapshot({
-    int? id,
-    required int characterId,
-    required int projectId,
+    String? id,
+    required String characterId,
+    required String projectId,
     @Default('') String startSceneId,
     @Default('') String endSceneId,
     @Default('') String triggerEvent,

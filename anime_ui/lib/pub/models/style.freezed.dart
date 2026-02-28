@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Style {
 
- int? get id; int? get projectId; String get name; String get description; String get negativePrompt; String get referenceImagesJson; String get thumbnailUrl; bool get isPreset; bool get isProjectDefault; DateTime? get createdAt;
+ String? get id; String? get projectId; String get name; String get description; String get negativePrompt; String get referenceImagesJson; String get thumbnailUrl; bool get isPreset; bool get isProjectDefault; DateTime? get createdAt;
 /// Create a copy of Style
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $StyleCopyWith<$Res>  {
   factory $StyleCopyWith(Style value, $Res Function(Style) _then) = _$StyleCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, String name, String description, String negativePrompt, String referenceImagesJson, String thumbnailUrl, bool isPreset, bool isProjectDefault, DateTime? createdAt
+ String? id, String? projectId, String name, String description, String negativePrompt, String referenceImagesJson, String thumbnailUrl, bool isPreset, bool isProjectDefault, DateTime? createdAt
 });
 
 
@@ -68,8 +68,8 @@ class _$StyleCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? name = null,Object? description = null,Object? negativePrompt = null,Object? referenceImagesJson = null,Object? thumbnailUrl = null,Object? isPreset = null,Object? isProjectDefault = null,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,negativePrompt: null == negativePrompt ? _self.negativePrompt : negativePrompt // ignore: cast_nullable_to_non_nullable
 as String,referenceImagesJson: null == referenceImagesJson ? _self.referenceImagesJson : referenceImagesJson // ignore: cast_nullable_to_non_nullable
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String name,  String description,  String negativePrompt,  String referenceImagesJson,  String thumbnailUrl,  bool isPreset,  bool isProjectDefault,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String name,  String description,  String negativePrompt,  String referenceImagesJson,  String thumbnailUrl,  bool isPreset,  bool isProjectDefault,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Style() when $default != null:
 return $default(_that.id,_that.projectId,_that.name,_that.description,_that.negativePrompt,_that.referenceImagesJson,_that.thumbnailUrl,_that.isPreset,_that.isProjectDefault,_that.createdAt);case _:
@@ -183,7 +183,7 @@ return $default(_that.id,_that.projectId,_that.name,_that.description,_that.nega
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String name,  String description,  String negativePrompt,  String referenceImagesJson,  String thumbnailUrl,  bool isPreset,  bool isProjectDefault,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String name,  String description,  String negativePrompt,  String referenceImagesJson,  String thumbnailUrl,  bool isPreset,  bool isProjectDefault,  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Style():
 return $default(_that.id,_that.projectId,_that.name,_that.description,_that.negativePrompt,_that.referenceImagesJson,_that.thumbnailUrl,_that.isPreset,_that.isProjectDefault,_that.createdAt);case _:
@@ -203,7 +203,7 @@ return $default(_that.id,_that.projectId,_that.name,_that.description,_that.nega
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  String name,  String description,  String negativePrompt,  String referenceImagesJson,  String thumbnailUrl,  bool isPreset,  bool isProjectDefault,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String name,  String description,  String negativePrompt,  String referenceImagesJson,  String thumbnailUrl,  bool isPreset,  bool isProjectDefault,  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Style() when $default != null:
 return $default(_that.id,_that.projectId,_that.name,_that.description,_that.negativePrompt,_that.referenceImagesJson,_that.thumbnailUrl,_that.isPreset,_that.isProjectDefault,_that.createdAt);case _:
@@ -221,8 +221,8 @@ class _Style extends Style {
   const _Style({this.id, this.projectId, this.name = '', this.description = '', this.negativePrompt = '', this.referenceImagesJson = '', this.thumbnailUrl = '', this.isPreset = false, this.isProjectDefault = false, this.createdAt}): super._();
   factory _Style.fromJson(Map<String, dynamic> json) => _$StyleFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String description;
 @override@JsonKey() final  String negativePrompt;
@@ -265,7 +265,7 @@ abstract mixin class _$StyleCopyWith<$Res> implements $StyleCopyWith<$Res> {
   factory _$StyleCopyWith(_Style value, $Res Function(_Style) _then) = __$StyleCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, String name, String description, String negativePrompt, String referenceImagesJson, String thumbnailUrl, bool isPreset, bool isProjectDefault, DateTime? createdAt
+ String? id, String? projectId, String name, String description, String negativePrompt, String referenceImagesJson, String thumbnailUrl, bool isPreset, bool isProjectDefault, DateTime? createdAt
 });
 
 
@@ -285,8 +285,8 @@ class __$StyleCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? name = null,Object? description = null,Object? negativePrompt = null,Object? referenceImagesJson = null,Object? thumbnailUrl = null,Object? isPreset = null,Object? isProjectDefault = null,Object? createdAt = freezed,}) {
   return _then(_Style(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,negativePrompt: null == negativePrompt ? _self.negativePrompt : negativePrompt // ignore: cast_nullable_to_non_nullable
 as String,referenceImagesJson: null == referenceImagesJson ? _self.referenceImagesJson : referenceImagesJson // ignore: cast_nullable_to_non_nullable

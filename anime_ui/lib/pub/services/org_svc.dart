@@ -13,12 +13,12 @@ class OrgService {
     return extractDataObject(resp, Organization.fromJson);
   }
 
-  Future<List<User>> listMembers(int orgId) async {
+  Future<List<User>> listMembers(String orgId) async {
     final resp = await dio.get('/orgs/$orgId/members');
     return extractDataList(resp, User.fromJson);
   }
 
-  Future<void> addMember(int orgId, int userId, String role) async {
+  Future<void> addMember(String orgId, String userId, String role) async {
     final resp = await dio.post('/orgs/$orgId/members', data: {
       'user_id': userId,
       'role': role,
@@ -26,7 +26,7 @@ class OrgService {
     extractData<dynamic>(resp);
   }
 
-  Future<void> removeMember(int orgId, int userId) async {
+  Future<void> removeMember(String orgId, String userId) async {
     final resp = await dio.delete('/orgs/$orgId/members/$userId');
     extractData<dynamic>(resp);
   }

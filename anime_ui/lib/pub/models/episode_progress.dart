@@ -6,9 +6,9 @@ part 'episode_progress.g.dart';
 @freezed
 abstract class EpisodeProgress with _$EpisodeProgress {
   const factory EpisodeProgress({
-    int? id,
-    @Default(0) int episodeId,
-    @Default(0) int projectId,
+    String? id,
+    @Default('') String episodeId,
+    @Default('') String projectId,
 
     @Default(false) bool storyDone,
     @Default(false) bool assetsDone,

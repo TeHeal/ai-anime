@@ -20,7 +20,7 @@ GenerationStatus toGenerationStatus(ShotImageStatus s) {
 
 /// 镜图任务卡片
 class ShotImageTaskCard extends StatefulWidget {
-  final int shotId;
+  final String shotId;
   final int shotNumber;
   final String cameraScale;
   final String prompt;

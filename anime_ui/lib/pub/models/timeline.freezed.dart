@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TrackItem {
 
- String get id; int? get sourceId; String get sourceUrl; String get label; double get startAt; double get duration; double get volume; double get trim;
+ String get id; String? get sourceId; String get sourceUrl; String get label; double get startAt; double get duration; double get volume; double get trim;
 /// Create a copy of TrackItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $TrackItemCopyWith<$Res>  {
   factory $TrackItemCopyWith(TrackItem value, $Res Function(TrackItem) _then) = _$TrackItemCopyWithImpl;
 @useResult
 $Res call({
- String id, int? sourceId, String sourceUrl, String label, double startAt, double duration, double volume, double trim
+ String id, String? sourceId, String sourceUrl, String label, double startAt, double duration, double volume, double trim
 });
 
 
@@ -69,7 +69,7 @@ class _$TrackItemCopyWithImpl<$Res>
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,sourceId: freezed == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
-as int?,sourceUrl: null == sourceUrl ? _self.sourceUrl : sourceUrl // ignore: cast_nullable_to_non_nullable
+as String?,sourceUrl: null == sourceUrl ? _self.sourceUrl : sourceUrl // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,startAt: null == startAt ? _self.startAt : startAt // ignore: cast_nullable_to_non_nullable
 as double,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int? sourceId,  String sourceUrl,  String label,  double startAt,  double duration,  double volume,  double trim)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? sourceId,  String sourceUrl,  String label,  double startAt,  double duration,  double volume,  double trim)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TrackItem() when $default != null:
 return $default(_that.id,_that.sourceId,_that.sourceUrl,_that.label,_that.startAt,_that.duration,_that.volume,_that.trim);case _:
@@ -181,7 +181,7 @@ return $default(_that.id,_that.sourceId,_that.sourceUrl,_that.label,_that.startA
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int? sourceId,  String sourceUrl,  String label,  double startAt,  double duration,  double volume,  double trim)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? sourceId,  String sourceUrl,  String label,  double startAt,  double duration,  double volume,  double trim)  $default,) {final _that = this;
 switch (_that) {
 case _TrackItem():
 return $default(_that.id,_that.sourceId,_that.sourceUrl,_that.label,_that.startAt,_that.duration,_that.volume,_that.trim);case _:
@@ -201,7 +201,7 @@ return $default(_that.id,_that.sourceId,_that.sourceUrl,_that.label,_that.startA
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int? sourceId,  String sourceUrl,  String label,  double startAt,  double duration,  double volume,  double trim)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? sourceId,  String sourceUrl,  String label,  double startAt,  double duration,  double volume,  double trim)?  $default,) {final _that = this;
 switch (_that) {
 case _TrackItem() when $default != null:
 return $default(_that.id,_that.sourceId,_that.sourceUrl,_that.label,_that.startAt,_that.duration,_that.volume,_that.trim);case _:
@@ -220,7 +220,7 @@ class _TrackItem implements TrackItem {
   factory _TrackItem.fromJson(Map<String, dynamic> json) => _$TrackItemFromJson(json);
 
 @override final  String id;
-@override final  int? sourceId;
+@override final  String? sourceId;
 @override@JsonKey() final  String sourceUrl;
 @override@JsonKey() final  String label;
 @override@JsonKey() final  double startAt;
@@ -261,7 +261,7 @@ abstract mixin class _$TrackItemCopyWith<$Res> implements $TrackItemCopyWith<$Re
   factory _$TrackItemCopyWith(_TrackItem value, $Res Function(_TrackItem) _then) = __$TrackItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int? sourceId, String sourceUrl, String label, double startAt, double duration, double volume, double trim
+ String id, String? sourceId, String sourceUrl, String label, double startAt, double duration, double volume, double trim
 });
 
 
@@ -282,7 +282,7 @@ class __$TrackItemCopyWithImpl<$Res>
   return _then(_TrackItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,sourceId: freezed == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
-as int?,sourceUrl: null == sourceUrl ? _self.sourceUrl : sourceUrl // ignore: cast_nullable_to_non_nullable
+as String?,sourceUrl: null == sourceUrl ? _self.sourceUrl : sourceUrl // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,startAt: null == startAt ? _self.startAt : startAt // ignore: cast_nullable_to_non_nullable
 as double,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
@@ -580,7 +580,7 @@ as List<TrackItem>,
 /// @nodoc
 mixin _$ProjectTimeline {
 
- int? get id; int? get projectId; double get duration; List<Track> get tracks;
+ String? get id; String? get projectId; double get duration; List<Track> get tracks;
 /// Create a copy of ProjectTimeline
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -613,7 +613,7 @@ abstract mixin class $ProjectTimelineCopyWith<$Res>  {
   factory $ProjectTimelineCopyWith(ProjectTimeline value, $Res Function(ProjectTimeline) _then) = _$ProjectTimelineCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, double duration, List<Track> tracks
+ String? id, String? projectId, double duration, List<Track> tracks
 });
 
 
@@ -633,8 +633,8 @@ class _$ProjectTimelineCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? duration = null,Object? tracks = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
 as List<Track>,
   ));
@@ -721,7 +721,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  double duration,  List<Track> tracks)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  double duration,  List<Track> tracks)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProjectTimeline() when $default != null:
 return $default(_that.id,_that.projectId,_that.duration,_that.tracks);case _:
@@ -742,7 +742,7 @@ return $default(_that.id,_that.projectId,_that.duration,_that.tracks);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  double duration,  List<Track> tracks)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  double duration,  List<Track> tracks)  $default,) {final _that = this;
 switch (_that) {
 case _ProjectTimeline():
 return $default(_that.id,_that.projectId,_that.duration,_that.tracks);case _:
@@ -762,7 +762,7 @@ return $default(_that.id,_that.projectId,_that.duration,_that.tracks);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  double duration,  List<Track> tracks)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  double duration,  List<Track> tracks)?  $default,) {final _that = this;
 switch (_that) {
 case _ProjectTimeline() when $default != null:
 return $default(_that.id,_that.projectId,_that.duration,_that.tracks);case _:
@@ -780,8 +780,8 @@ class _ProjectTimeline implements ProjectTimeline {
   const _ProjectTimeline({this.id, this.projectId, this.duration = 0, final  List<Track> tracks = const []}): _tracks = tracks;
   factory _ProjectTimeline.fromJson(Map<String, dynamic> json) => _$ProjectTimelineFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  double duration;
  final  List<Track> _tracks;
 @override@JsonKey() List<Track> get tracks {
@@ -824,7 +824,7 @@ abstract mixin class _$ProjectTimelineCopyWith<$Res> implements $ProjectTimeline
   factory _$ProjectTimelineCopyWith(_ProjectTimeline value, $Res Function(_ProjectTimeline) _then) = __$ProjectTimelineCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, double duration, List<Track> tracks
+ String? id, String? projectId, double duration, List<Track> tracks
 });
 
 
@@ -844,8 +844,8 @@ class __$ProjectTimelineCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? duration = null,Object? tracks = null,}) {
   return _then(_ProjectTimeline(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double,tracks: null == tracks ? _self._tracks : tracks // ignore: cast_nullable_to_non_nullable
 as List<Track>,
   ));

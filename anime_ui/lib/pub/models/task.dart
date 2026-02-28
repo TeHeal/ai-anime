@@ -8,7 +8,7 @@ abstract class Task with _$Task {
   const Task._();
 
   const factory Task({
-    required int id,
+    required String id,
     required String taskId,
     required String type,
     required String status,

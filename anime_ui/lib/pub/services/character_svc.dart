@@ -3,7 +3,7 @@ import 'api.dart';
 
 class CharacterService {
   Future<Character> create({
-    int? projectId,
+    String? projectId,
     required String name,
     String appearance = '',
     String style = '',
@@ -42,17 +42,17 @@ class CharacterService {
     return extractDataList(resp, Character.fromJson);
   }
 
-  Future<List<Character>> listByProject(int projectId) async {
+  Future<List<Character>> listByProject(String projectId) async {
     final resp = await dio.get('/projects/$projectId/characters');
     return extractDataList(resp, Character.fromJson);
   }
 
-  Future<Character> get(int id) async {
+  Future<Character> get(String id) async {
     final resp = await dio.get('/characters/$id');
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> update(int id, {
+  Future<Character> update(String id, {
     String? name,
     String? appearance,
     String? style,
@@ -101,36 +101,36 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<void> delete(int id) async {
+  Future<void> delete(String id) async {
     final resp = await dio.delete('/characters/$id');
     extractData<dynamic>(resp);
   }
 
-  Future<Character> confirm(int id) async {
+  Future<Character> confirm(String id) async {
     final resp = await dio.post('/characters/$id/confirm');
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<void> batchConfirm(List<int> ids) async {
+  Future<void> batchConfirm(List<String> ids) async {
     final resp = await dio.post('/characters/batch-confirm', data: {'ids': ids});
     extractData<dynamic>(resp);
   }
 
-  Future<int> batchSetStyle(List<int> ids, String style) async {
+  Future<int> batchSetStyle(List<String> ids, String style) async {
     final resp = await dio.post('/characters/batch-set-style', data: {'ids': ids, 'style': style});
     final data = extractData<Map<String, dynamic>>(resp);
     return data['updated'] as int? ?? 0;
   }
 
-  Future<int> batchAIComplete(List<int> ids) async {
+  Future<int> batchAIComplete(List<String> ids) async {
     final resp = await dio.post('/characters/batch-ai-complete', data: {'ids': ids});
     final data = extractData<Map<String, dynamic>>(resp);
     return data['completed'] as int? ?? 0;
   }
 
-  Future<Character> addVariant(int charId, {
+  Future<Character> addVariant(String charId, {
     required String label,
-    int? episodeId,
+    String? episodeId,
     String? sceneId,
     String? appearance,
     String? referenceImage,
@@ -145,7 +145,7 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> updateVariant(int charId, int idx, {
+  Future<Character> updateVariant(String charId, int idx, {
     String? label,
     String? appearance,
     String? referenceImage,
@@ -160,12 +160,12 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> deleteVariant(int charId, int idx) async {
+  Future<Character> deleteVariant(String charId, int idx) async {
     final resp = await dio.delete('/characters/$charId/variants/$idx');
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> generateImage(int id, {String? provider, String? model}) async {
+  Future<Character> generateImage(String id, {String? provider, String? model}) async {
     final resp = await dio.post('/characters/$id/generate-image', data: {
       'provider': ?provider,
       'model': ?model,
@@ -173,7 +173,7 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> addReferenceImage(int charId, {
+  Future<Character> addReferenceImage(String charId, {
     required String angle,
     required String url,
     Map<String, dynamic>? genMeta,
@@ -186,12 +186,12 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> deleteReferenceImage(int charId, int idx) async {
+  Future<Character> deleteReferenceImage(String charId, int idx) async {
     final resp = await dio.delete('/characters/$charId/reference-images/$idx');
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> extractBio(int projectId, int charId, {String? provider, String? model}) async {
+  Future<Character> extractBio(String projectId, String charId, {String? provider, String? model}) async {
     final resp = await dio.post('/projects/$projectId/characters/$charId/extract-bio', data: {
       'provider': ?provider,
       'model': ?model,
@@ -199,12 +199,12 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> updateBio(int charId, String bio) async {
+  Future<Character> updateBio(String charId, String bio) async {
     final resp = await dio.patch('/characters/$charId/bio', data: {'bio': bio});
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Character> regenerateBio(int charId, {String? provider, String? model}) async {
+  Future<Character> regenerateBio(String charId, {String? provider, String? model}) async {
     final resp = await dio.post('/characters/$charId/regenerate-bio', data: {
       'provider': ?provider,
       'model': ?model,
@@ -212,7 +212,7 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<Map<String, dynamic>> generateCandidates(int charId, {
+  Future<Map<String, dynamic>> generateCandidates(String charId, {
     String? angle,
     int? variantIdx,
     int count = 4,
@@ -227,12 +227,12 @@ class CharacterService {
     return extractData<Map<String, dynamic>>(resp);
   }
 
-  Future<Map<String, dynamic>> getCandidates(int charId, String taskId) async {
+  Future<Map<String, dynamic>> getCandidates(String charId, String taskId) async {
     final resp = await dio.get('/characters/$charId/candidates', queryParameters: {'taskId': taskId});
     return extractData<Map<String, dynamic>>(resp);
   }
 
-  Future<Character> selectCandidate(int charId, {
+  Future<Character> selectCandidate(String charId, {
     required String taskId,
     required int candidateIdx,
     required String action,

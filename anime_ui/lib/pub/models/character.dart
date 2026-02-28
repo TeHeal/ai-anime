@@ -10,8 +10,8 @@ abstract class Character with _$Character {
   const Character._();
 
   const factory Character({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default('') String name,
     @Default('') String aliasJson,
     @Default('') String appearance,

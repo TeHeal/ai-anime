@@ -7,8 +7,8 @@ part 'episode.g.dart';
 @freezed
 abstract class Episode with _$Episode {
   const factory Episode({
-    int? id,
-    int? projectId,
+    String? id,
+    String? projectId,
     @Default('') String title,
     @Default(0) int sortIndex,
     @Default('') String summary,

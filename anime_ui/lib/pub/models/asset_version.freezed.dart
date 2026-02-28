@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AssetVersion {
 
- int? get id; int? get projectId; int get version; String get action; String get statsJson; String get deltaJson; String get note; DateTime? get createdAt; DateTime? get updatedAt;
+ String? get id; String? get projectId; int get version; String get action; String get statsJson; String get deltaJson; String get note; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of AssetVersion
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $AssetVersionCopyWith<$Res>  {
   factory $AssetVersionCopyWith(AssetVersion value, $Res Function(AssetVersion) _then) = _$AssetVersionCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, int version, String action, String statsJson, String deltaJson, String note, DateTime? createdAt, DateTime? updatedAt
+ String? id, String? projectId, int version, String action, String statsJson, String deltaJson, String note, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -68,8 +68,8 @@ class _$AssetVersionCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? version = null,Object? action = null,Object? statsJson = null,Object? deltaJson = null,Object? note = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as String,statsJson: null == statsJson ? _self.statsJson : statsJson // ignore: cast_nullable_to_non_nullable
 as String,deltaJson: null == deltaJson ? _self.deltaJson : deltaJson // ignore: cast_nullable_to_non_nullable
@@ -161,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int version,  String action,  String statsJson,  String deltaJson,  String note,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  int version,  String action,  String statsJson,  String deltaJson,  String note,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetVersion() when $default != null:
 return $default(_that.id,_that.projectId,_that.version,_that.action,_that.statsJson,_that.deltaJson,_that.note,_that.createdAt,_that.updatedAt);case _:
@@ -182,7 +182,7 @@ return $default(_that.id,_that.projectId,_that.version,_that.action,_that.statsJ
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  int version,  String action,  String statsJson,  String deltaJson,  String note,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  int version,  String action,  String statsJson,  String deltaJson,  String note,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _AssetVersion():
 return $default(_that.id,_that.projectId,_that.version,_that.action,_that.statsJson,_that.deltaJson,_that.note,_that.createdAt,_that.updatedAt);case _:
@@ -202,7 +202,7 @@ return $default(_that.id,_that.projectId,_that.version,_that.action,_that.statsJ
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  int version,  String action,  String statsJson,  String deltaJson,  String note,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  int version,  String action,  String statsJson,  String deltaJson,  String note,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetVersion() when $default != null:
 return $default(_that.id,_that.projectId,_that.version,_that.action,_that.statsJson,_that.deltaJson,_that.note,_that.createdAt,_that.updatedAt);case _:
@@ -220,8 +220,8 @@ class _AssetVersion extends AssetVersion {
   const _AssetVersion({this.id, this.projectId, this.version = 0, this.action = '', this.statsJson = '', this.deltaJson = '', this.note = '', this.createdAt, this.updatedAt}): super._();
   factory _AssetVersion.fromJson(Map<String, dynamic> json) => _$AssetVersionFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  int version;
 @override@JsonKey() final  String action;
 @override@JsonKey() final  String statsJson;
@@ -263,7 +263,7 @@ abstract mixin class _$AssetVersionCopyWith<$Res> implements $AssetVersionCopyWi
   factory _$AssetVersionCopyWith(_AssetVersion value, $Res Function(_AssetVersion) _then) = __$AssetVersionCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, int version, String action, String statsJson, String deltaJson, String note, DateTime? createdAt, DateTime? updatedAt
+ String? id, String? projectId, int version, String action, String statsJson, String deltaJson, String note, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -283,8 +283,8 @@ class __$AssetVersionCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? version = null,Object? action = null,Object? statsJson = null,Object? deltaJson = null,Object? note = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_AssetVersion(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as String,statsJson: null == statsJson ? _self.statsJson : statsJson // ignore: cast_nullable_to_non_nullable
 as String,deltaJson: null == deltaJson ? _self.deltaJson : deltaJson // ignore: cast_nullable_to_non_nullable

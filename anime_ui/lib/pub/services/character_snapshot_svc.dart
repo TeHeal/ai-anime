@@ -2,25 +2,19 @@ import 'package:anime_ui/pub/models/character_snapshot.dart';
 import 'api.dart';
 
 class CharacterSnapshotService {
-  // ── Character-scoped ──
-
-  Future<List<CharacterSnapshot>> listByCharacter(int characterId) async {
+  Future<List<CharacterSnapshot>> listByCharacter(String characterId) async {
     final resp = await dio.get('/characters/$characterId/snapshots');
     return extractDataList(resp, CharacterSnapshot.fromJson);
   }
 
-  // ── Project-scoped ──
-
-  Future<List<CharacterSnapshot>> listByProject(int projectId) async {
+  Future<List<CharacterSnapshot>> listByProject(String projectId) async {
     final resp = await dio.get('/projects/$projectId/character-snapshots');
     return extractDataList(resp, CharacterSnapshot.fromJson);
   }
 
-  // ── CRUD ──
-
   Future<CharacterSnapshot> create({
-    required int characterId,
-    required int projectId,
+    required String characterId,
+    required String projectId,
     String startSceneId = '',
     String endSceneId = '',
     String triggerEvent = '',
@@ -53,24 +47,22 @@ class CharacterSnapshotService {
     return extractDataObject(resp, CharacterSnapshot.fromJson);
   }
 
-  Future<CharacterSnapshot> get(int snapshotId) async {
+  Future<CharacterSnapshot> get(String snapshotId) async {
     final resp = await dio.get('/character-snapshots/$snapshotId');
     return extractDataObject(resp, CharacterSnapshot.fromJson);
   }
 
-  Future<CharacterSnapshot> update(int snapshotId, Map<String, dynamic> fields) async {
+  Future<CharacterSnapshot> update(String snapshotId, Map<String, dynamic> fields) async {
     final resp = await dio.put('/character-snapshots/$snapshotId', data: fields);
     return extractDataObject(resp, CharacterSnapshot.fromJson);
   }
 
-  Future<void> delete(int snapshotId) async {
+  Future<void> delete(String snapshotId) async {
     final resp = await dio.delete('/character-snapshots/$snapshotId');
     extractData<dynamic>(resp);
   }
 
-  // ── AI Analysis ──
-
-  Future<Map<String, dynamic>> analyzePreview(int projectId, {String? provider, String? model}) async {
+  Future<Map<String, dynamic>> analyzePreview(String projectId, {String? provider, String? model}) async {
     final resp = await dio.post('/projects/$projectId/characters/analyze-preview', data: {
       'provider': ?provider,
       'model': ?model,
@@ -78,7 +70,7 @@ class CharacterSnapshotService {
     return extractData<Map<String, dynamic>>(resp);
   }
 
-  Future<Map<String, dynamic>> analyzeConfirm(int projectId, {String? provider, String? model}) async {
+  Future<Map<String, dynamic>> analyzeConfirm(String projectId, {String? provider, String? model}) async {
     final resp = await dio.post('/projects/$projectId/characters/analyze', data: {
       'provider': ?provider,
       'model': ?model,

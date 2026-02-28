@@ -2,7 +2,7 @@ import 'package:anime_ui/pub/models/episode.dart';
 import 'api.dart';
 
 class EpisodeService {
-  Future<Episode> create(int projectId, {
+  Future<Episode> create(String projectId, {
     required String title,
     String summary = '',
   }) async {
@@ -13,17 +13,17 @@ class EpisodeService {
     return extractDataObject(resp, Episode.fromJson);
   }
 
-  Future<List<Episode>> list(int projectId) async {
+  Future<List<Episode>> list(String projectId) async {
     final resp = await dio.get('/projects/$projectId/episodes');
     return extractDataList(resp, Episode.fromJson);
   }
 
-  Future<Episode> get(int projectId, int episodeId) async {
+  Future<Episode> get(String projectId, String episodeId) async {
     final resp = await dio.get('/projects/$projectId/episodes/$episodeId');
     return extractDataObject(resp, Episode.fromJson);
   }
 
-  Future<Episode> update(int projectId, int episodeId, {
+  Future<Episode> update(String projectId, String episodeId, {
     String? title,
     String? summary,
     String? status,
@@ -39,13 +39,13 @@ class EpisodeService {
     return extractDataObject(resp, Episode.fromJson);
   }
 
-  Future<void> delete(int projectId, int episodeId) async {
+  Future<void> delete(String projectId, String episodeId) async {
     final resp =
         await dio.delete('/projects/$projectId/episodes/$episodeId');
     extractData<dynamic>(resp);
   }
 
-  Future<void> reorder(int projectId, List<int> orderedIds) async {
+  Future<void> reorder(String projectId, List<String> orderedIds) async {
     final resp =
         await dio.put('/projects/$projectId/episodes/reorder', data: {
       'ordered_ids': orderedIds,

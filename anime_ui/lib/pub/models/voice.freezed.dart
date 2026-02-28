@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Voice {
 
- int? get id; String get name; String get gender; String get voiceId; String get provider; String get audioUrl; String get status; String get taskId; String? get error; bool get shared;
+ String? get id; String get name; String get gender; String get voiceId; String get provider; String get audioUrl; String get status; String get taskId; String? get error; bool get shared;
 /// Create a copy of Voice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $VoiceCopyWith<$Res>  {
   factory $VoiceCopyWith(Voice value, $Res Function(Voice) _then) = _$VoiceCopyWithImpl;
 @useResult
 $Res call({
- int? id, String name, String gender, String voiceId, String provider, String audioUrl, String status, String taskId, String? error, bool shared
+ String? id, String name, String gender, String voiceId, String provider, String audioUrl, String status, String taskId, String? error, bool shared
 });
 
 
@@ -68,7 +68,7 @@ class _$VoiceCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? gender = null,Object? voiceId = null,Object? provider = null,Object? audioUrl = null,Object? status = null,Object? taskId = null,Object? error = freezed,Object? shared = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String,voiceId: null == voiceId ? _self.voiceId : voiceId // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String name,  String gender,  String voiceId,  String provider,  String audioUrl,  String status,  String taskId,  String? error,  bool shared)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String name,  String gender,  String voiceId,  String provider,  String audioUrl,  String status,  String taskId,  String? error,  bool shared)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Voice() when $default != null:
 return $default(_that.id,_that.name,_that.gender,_that.voiceId,_that.provider,_that.audioUrl,_that.status,_that.taskId,_that.error,_that.shared);case _:
@@ -183,7 +183,7 @@ return $default(_that.id,_that.name,_that.gender,_that.voiceId,_that.provider,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String name,  String gender,  String voiceId,  String provider,  String audioUrl,  String status,  String taskId,  String? error,  bool shared)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String name,  String gender,  String voiceId,  String provider,  String audioUrl,  String status,  String taskId,  String? error,  bool shared)  $default,) {final _that = this;
 switch (_that) {
 case _Voice():
 return $default(_that.id,_that.name,_that.gender,_that.voiceId,_that.provider,_that.audioUrl,_that.status,_that.taskId,_that.error,_that.shared);case _:
@@ -203,7 +203,7 @@ return $default(_that.id,_that.name,_that.gender,_that.voiceId,_that.provider,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String name,  String gender,  String voiceId,  String provider,  String audioUrl,  String status,  String taskId,  String? error,  bool shared)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String name,  String gender,  String voiceId,  String provider,  String audioUrl,  String status,  String taskId,  String? error,  bool shared)?  $default,) {final _that = this;
 switch (_that) {
 case _Voice() when $default != null:
 return $default(_that.id,_that.name,_that.gender,_that.voiceId,_that.provider,_that.audioUrl,_that.status,_that.taskId,_that.error,_that.shared);case _:
@@ -221,7 +221,7 @@ class _Voice extends Voice {
   const _Voice({this.id, this.name = '', this.gender = '', this.voiceId = '', this.provider = '', this.audioUrl = '', this.status = 'pending', this.taskId = '', this.error, this.shared = false}): super._();
   factory _Voice.fromJson(Map<String, dynamic> json) => _$VoiceFromJson(json);
 
-@override final  int? id;
+@override final  String? id;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String gender;
 @override@JsonKey() final  String voiceId;
@@ -265,7 +265,7 @@ abstract mixin class _$VoiceCopyWith<$Res> implements $VoiceCopyWith<$Res> {
   factory _$VoiceCopyWith(_Voice value, $Res Function(_Voice) _then) = __$VoiceCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, String name, String gender, String voiceId, String provider, String audioUrl, String status, String taskId, String? error, bool shared
+ String? id, String name, String gender, String voiceId, String provider, String audioUrl, String status, String taskId, String? error, bool shared
 });
 
 
@@ -285,7 +285,7 @@ class __$VoiceCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? gender = null,Object? voiceId = null,Object? provider = null,Object? audioUrl = null,Object? status = null,Object? taskId = null,Object? error = freezed,Object? shared = null,}) {
   return _then(_Voice(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String,voiceId: null == voiceId ? _self.voiceId : voiceId // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable

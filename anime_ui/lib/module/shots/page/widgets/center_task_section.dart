@@ -24,7 +24,7 @@ class CenterTaskSection extends ConsumerWidget {
   }
 
   Future<void> _batchGenerate(
-      BuildContext context, WidgetRef ref, Set<int> selected) async {
+      BuildContext context, WidgetRef ref, Set<String> selected) async {
     if (selected.isEmpty) return;
     _toast(context, '开始复合生成 ${selected.length} 个镜头');
     await ref
@@ -135,7 +135,7 @@ class CenterTaskSection extends ConsumerWidget {
             allSelected: uiState.selectedShots.length == validShots.length &&
                 uiState.selectedShots.isNotEmpty,
             onToggleSelectAll: () => uiNotifier.toggleSelectAll(
-                validShots.where((s) => s.id != null).map((s) => s.id as int).toList()),
+                validShots.where((s) => s.id != null).map((s) => s.id as String).toList()),
             onBatchAction: () =>
                 _batchGenerate(context, ref, uiState.selectedShots),
           ),
@@ -167,7 +167,7 @@ class CenterTaskSection extends ConsumerWidget {
   Widget _buildTaskGrid(
     WidgetRef ref,
     List<dynamic> shots,
-    Map<int, CompositeShotState> compositeStates,
+    Map<String, CompositeShotState> compositeStates,
     ShotsCenterUiState uiState,
     ShotsCenterUiNotifier uiNotifier,
     CompositeConfig config,
@@ -176,7 +176,7 @@ class CenterTaskSection extends ConsumerWidget {
     var filtered = shots;
     if (uiState.statusFilter != 'all') {
       filtered = shots.where((shot) {
-        final sid = shot.id as int?;
+        final sid = shot.id as String?;
         if (sid == null) return false;
         final cs = compositeStates[sid];
         final status = cs?.status ?? CompositeShotStatus.notStarted;
@@ -202,7 +202,7 @@ class CenterTaskSection extends ConsumerWidget {
         spacing: 14,
         runSpacing: 14,
         children: filtered.map((shot) {
-          final sid = shot.id as int;
+          final sid = shot.id as String;
           final cs = compositeStates[sid];
 
           return SizedBox(

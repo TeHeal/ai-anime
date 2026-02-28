@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Asset {
 
- int? get id; int? get projectId; String get type; String get name; String get desc; String get imageUrl; String get tags; bool get shared;
+ String? get id; String? get projectId; String get type; String get name; String get desc; String get imageUrl; String get tags; bool get shared;
 /// Create a copy of Asset
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $AssetCopyWith<$Res>  {
   factory $AssetCopyWith(Asset value, $Res Function(Asset) _then) = _$AssetCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, String type, String name, String desc, String imageUrl, String tags, bool shared
+ String? id, String? projectId, String type, String name, String desc, String imageUrl, String tags, bool shared
 });
 
 
@@ -68,8 +68,8 @@ class _$AssetCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? type = null,Object? name = null,Object? desc = null,Object? imageUrl = null,Object? tags = null,Object? shared = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,desc: null == desc ? _self.desc : desc // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String type,  String name,  String desc,  String imageUrl,  String tags,  bool shared)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String type,  String name,  String desc,  String imageUrl,  String tags,  bool shared)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Asset() when $default != null:
 return $default(_that.id,_that.projectId,_that.type,_that.name,_that.desc,_that.imageUrl,_that.tags,_that.shared);case _:
@@ -181,7 +181,7 @@ return $default(_that.id,_that.projectId,_that.type,_that.name,_that.desc,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String type,  String name,  String desc,  String imageUrl,  String tags,  bool shared)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String type,  String name,  String desc,  String imageUrl,  String tags,  bool shared)  $default,) {final _that = this;
 switch (_that) {
 case _Asset():
 return $default(_that.id,_that.projectId,_that.type,_that.name,_that.desc,_that.imageUrl,_that.tags,_that.shared);case _:
@@ -201,7 +201,7 @@ return $default(_that.id,_that.projectId,_that.type,_that.name,_that.desc,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  String type,  String name,  String desc,  String imageUrl,  String tags,  bool shared)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String type,  String name,  String desc,  String imageUrl,  String tags,  bool shared)?  $default,) {final _that = this;
 switch (_that) {
 case _Asset() when $default != null:
 return $default(_that.id,_that.projectId,_that.type,_that.name,_that.desc,_that.imageUrl,_that.tags,_that.shared);case _:
@@ -219,8 +219,8 @@ class _Asset extends Asset {
   const _Asset({this.id, this.projectId, this.type = 'scene', this.name = '', this.desc = '', this.imageUrl = '', this.tags = '', this.shared = false}): super._();
   factory _Asset.fromJson(Map<String, dynamic> json) => _$AssetFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  String type;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String desc;
@@ -261,7 +261,7 @@ abstract mixin class _$AssetCopyWith<$Res> implements $AssetCopyWith<$Res> {
   factory _$AssetCopyWith(_Asset value, $Res Function(_Asset) _then) = __$AssetCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, String type, String name, String desc, String imageUrl, String tags, bool shared
+ String? id, String? projectId, String type, String name, String desc, String imageUrl, String tags, bool shared
 });
 
 
@@ -281,8 +281,8 @@ class __$AssetCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? type = null,Object? name = null,Object? desc = null,Object? imageUrl = null,Object? tags = null,Object? shared = null,}) {
   return _then(_Asset(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,desc: null == desc ? _self.desc : desc // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable

@@ -22,12 +22,12 @@ class VoiceService {
     return extractDataList(resp, Voice.fromJson);
   }
 
-  Future<Voice> get(int id) async {
+  Future<Voice> get(String id) async {
     final resp = await dio.get('/voices/$id');
     return extractDataObject(resp, Voice.fromJson);
   }
 
-  Future<Voice> update(int id, {
+  Future<Voice> update(String id, {
     String? name,
     String? gender,
     bool? shared,
@@ -40,7 +40,7 @@ class VoiceService {
     return extractDataObject(resp, Voice.fromJson);
   }
 
-  Future<void> delete(int id) async {
+  Future<void> delete(String id) async {
     await dio.delete('/voices/$id');
   }
 }

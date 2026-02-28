@@ -296,7 +296,7 @@ as String,
 /// @nodoc
 mixin _$Project {
 
- int? get id; String get name; String get story; String get storyMode; ProjectConfig? get config; bool get mirrorMode; List<int> get segmentIds; DateTime? get updatedAt;
+ String? get id; String get name; String get story; String get storyMode; ProjectConfig? get config; bool get mirrorMode; List<String> get segmentIds; DateTime? get updatedAt;
 /// Create a copy of Project
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -329,7 +329,7 @@ abstract mixin class $ProjectCopyWith<$Res>  {
   factory $ProjectCopyWith(Project value, $Res Function(Project) _then) = _$ProjectCopyWithImpl;
 @useResult
 $Res call({
- int? id, String name, String story, String storyMode, ProjectConfig? config, bool mirrorMode, List<int> segmentIds, DateTime? updatedAt
+ String? id, String name, String story, String storyMode, ProjectConfig? config, bool mirrorMode, List<String> segmentIds, DateTime? updatedAt
 });
 
 
@@ -349,13 +349,13 @@ class _$ProjectCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? story = null,Object? storyMode = null,Object? config = freezed,Object? mirrorMode = null,Object? segmentIds = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,story: null == story ? _self.story : story // ignore: cast_nullable_to_non_nullable
 as String,storyMode: null == storyMode ? _self.storyMode : storyMode // ignore: cast_nullable_to_non_nullable
 as String,config: freezed == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
 as ProjectConfig?,mirrorMode: null == mirrorMode ? _self.mirrorMode : mirrorMode // ignore: cast_nullable_to_non_nullable
 as bool,segmentIds: null == segmentIds ? _self.segmentIds : segmentIds // ignore: cast_nullable_to_non_nullable
-as List<int>,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as List<String>,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -453,7 +453,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String name,  String story,  String storyMode,  ProjectConfig? config,  bool mirrorMode,  List<int> segmentIds,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String name,  String story,  String storyMode,  ProjectConfig? config,  bool mirrorMode,  List<String> segmentIds,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Project() when $default != null:
 return $default(_that.id,_that.name,_that.story,_that.storyMode,_that.config,_that.mirrorMode,_that.segmentIds,_that.updatedAt);case _:
@@ -474,7 +474,7 @@ return $default(_that.id,_that.name,_that.story,_that.storyMode,_that.config,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String name,  String story,  String storyMode,  ProjectConfig? config,  bool mirrorMode,  List<int> segmentIds,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String name,  String story,  String storyMode,  ProjectConfig? config,  bool mirrorMode,  List<String> segmentIds,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Project():
 return $default(_that.id,_that.name,_that.story,_that.storyMode,_that.config,_that.mirrorMode,_that.segmentIds,_that.updatedAt);case _:
@@ -494,7 +494,7 @@ return $default(_that.id,_that.name,_that.story,_that.storyMode,_that.config,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String name,  String story,  String storyMode,  ProjectConfig? config,  bool mirrorMode,  List<int> segmentIds,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String name,  String story,  String storyMode,  ProjectConfig? config,  bool mirrorMode,  List<String> segmentIds,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Project() when $default != null:
 return $default(_that.id,_that.name,_that.story,_that.storyMode,_that.config,_that.mirrorMode,_that.segmentIds,_that.updatedAt);case _:
@@ -509,17 +509,17 @@ return $default(_that.id,_that.name,_that.story,_that.storyMode,_that.config,_th
 @JsonSerializable()
 
 class _Project implements Project {
-  const _Project({this.id, this.name = 'Untitled', this.story = '', this.storyMode = 'full_script', this.config, this.mirrorMode = true, final  List<int> segmentIds = const [], this.updatedAt}): _segmentIds = segmentIds;
+  const _Project({this.id, this.name = 'Untitled', this.story = '', this.storyMode = 'full_script', this.config, this.mirrorMode = true, final  List<String> segmentIds = const [], this.updatedAt}): _segmentIds = segmentIds;
   factory _Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);
 
-@override final  int? id;
+@override final  String? id;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String story;
 @override@JsonKey() final  String storyMode;
 @override final  ProjectConfig? config;
 @override@JsonKey() final  bool mirrorMode;
- final  List<int> _segmentIds;
-@override@JsonKey() List<int> get segmentIds {
+ final  List<String> _segmentIds;
+@override@JsonKey() List<String> get segmentIds {
   if (_segmentIds is EqualUnmodifiableListView) return _segmentIds;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_segmentIds);
@@ -560,7 +560,7 @@ abstract mixin class _$ProjectCopyWith<$Res> implements $ProjectCopyWith<$Res> {
   factory _$ProjectCopyWith(_Project value, $Res Function(_Project) _then) = __$ProjectCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, String name, String story, String storyMode, ProjectConfig? config, bool mirrorMode, List<int> segmentIds, DateTime? updatedAt
+ String? id, String name, String story, String storyMode, ProjectConfig? config, bool mirrorMode, List<String> segmentIds, DateTime? updatedAt
 });
 
 
@@ -580,13 +580,13 @@ class __$ProjectCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? story = null,Object? storyMode = null,Object? config = freezed,Object? mirrorMode = null,Object? segmentIds = null,Object? updatedAt = freezed,}) {
   return _then(_Project(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,story: null == story ? _self.story : story // ignore: cast_nullable_to_non_nullable
 as String,storyMode: null == storyMode ? _self.storyMode : storyMode // ignore: cast_nullable_to_non_nullable
 as String,config: freezed == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
 as ProjectConfig?,mirrorMode: null == mirrorMode ? _self.mirrorMode : mirrorMode // ignore: cast_nullable_to_non_nullable
 as bool,segmentIds: null == segmentIds ? _self._segmentIds : segmentIds // ignore: cast_nullable_to_non_nullable
-as List<int>,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as List<String>,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

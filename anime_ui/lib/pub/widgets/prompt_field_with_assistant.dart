@@ -189,7 +189,7 @@ class _PromptFieldWithAssistantState
       return;
     }
 
-    final pid = ref.read(currentProjectProvider).value?.id ?? 1;
+    final pid = ref.read(currentProjectProvider).value?.id ?? '';
     final stream = _scriptAiSvc.assistBlock(
       action: action.name,
       blockType: 'prompt',

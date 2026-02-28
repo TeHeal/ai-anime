@@ -4,7 +4,7 @@ import 'package:anime_ui/pub/models/model_catalog.dart';
 
 /// 镜图生成中心 UI 状态
 class ShotImageCenterUiState {
-  final Set<int> selectedShots;
+  final Set<String> selectedShots;
   final String statusFilter;
   final ModelCatalogItem? selectedModel;
 
@@ -15,7 +15,7 @@ class ShotImageCenterUiState {
   });
 
   ShotImageCenterUiState copyWith({
-    Set<int>? selectedShots,
+    Set<String>? selectedShots,
     String? statusFilter,
     ModelCatalogItem? selectedModel,
   }) {
@@ -31,8 +31,8 @@ class ShotImageCenterUiNotifier extends Notifier<ShotImageCenterUiState> {
   @override
   ShotImageCenterUiState build() => const ShotImageCenterUiState();
 
-  void toggleShotSelection(int shotId, bool isSelected) {
-    final newSelected = Set<int>.from(state.selectedShots);
+  void toggleShotSelection(String shotId, bool isSelected) {
+    final newSelected = Set<String>.from(state.selectedShots);
     if (isSelected) {
       newSelected.add(shotId);
     } else {
@@ -41,7 +41,7 @@ class ShotImageCenterUiNotifier extends Notifier<ShotImageCenterUiState> {
     state = state.copyWith(selectedShots: newSelected);
   }
 
-  void toggleSelectAll(List<int> allValidShotIds) {
+  void toggleSelectAll(List<String> allValidShotIds) {
     if (state.selectedShots.length == allValidShotIds.length) {
       state = state.copyWith(selectedShots: const {});
     } else {

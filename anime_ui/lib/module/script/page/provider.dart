@@ -12,7 +12,7 @@ class ShotsNotifier extends Notifier<AsyncValue<List<StoryboardShot>>> {
   AsyncValue<List<StoryboardShot>> build() => const AsyncValue.data([]);
 
   ShotService get _svc => ref.read(shotServiceProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {
     final pid = _projectId;

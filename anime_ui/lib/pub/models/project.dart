@@ -22,13 +22,13 @@ abstract class ProjectConfig with _$ProjectConfig {
 @freezed
 abstract class Project with _$Project {
   const factory Project({
-    int? id,
+    String? id,
     @Default('Untitled') String name,
     @Default('') String story,
     @Default('full_script') String storyMode,
     ProjectConfig? config,
     @Default(true) bool mirrorMode,
-    @Default([]) List<int> segmentIds,
+    @Default([]) List<String> segmentIds,
     DateTime? updatedAt,
   }) = _Project;
 

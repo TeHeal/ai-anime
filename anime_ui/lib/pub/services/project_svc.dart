@@ -23,17 +23,17 @@ class ProjectService {
     return extractDataList(resp, Project.fromJson);
   }
 
-  Future<Project> get(int id) async {
+  Future<Project> get(String id) async {
     final data = await getRaw(id);
     return Project.fromJson(data);
   }
 
-  Future<Map<String, dynamic>> getRaw(int id) async {
+  Future<Map<String, dynamic>> getRaw(String id) async {
     final resp = await dio.get('/projects/$id');
     return extractData<Map<String, dynamic>>(resp);
   }
 
-  Future<Project> update(int id, {
+  Future<Project> update(String id, {
     String? name,
     String? story,
     String? storyMode,
@@ -50,12 +50,12 @@ class ProjectService {
     return extractDataObject(resp, Project.fromJson);
   }
 
-  Future<void> delete(int id) async {
+  Future<void> delete(String id) async {
     final resp = await dio.delete('/projects/$id');
     extractData<dynamic>(resp);
   }
 
-  Future<List<Prop>> getProps(int id) async {
+  Future<List<Prop>> getProps(String id) async {
     final resp = await dio.get('/projects/$id/props');
     final data = extractData<Map<String, dynamic>>(resp);
     final list = data['props'] as List<dynamic>? ?? [];
@@ -64,7 +64,7 @@ class ProjectService {
         .toList();
   }
 
-  Future<void> updateProps(int id, List<Prop> props) async {
+  Future<void> updateProps(String id, List<Prop> props) async {
     await dio.put('/projects/$id/props', data: {
       'props': props.map((p) => p.toJson()).toList(),
     });

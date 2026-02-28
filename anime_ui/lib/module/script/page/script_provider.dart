@@ -44,16 +44,16 @@ final generateConfigProvider =
 // ---------------------------------------------------------------------------
 
 class EpisodeStatesNotifier
-    extends Notifier<Map<int, EpisodeGenerateState>> {
+    extends Notifier<Map<String, EpisodeGenerateState>> {
   @override
-  Map<int, EpisodeGenerateState> build() => {};
+  Map<String, EpisodeGenerateState> build() => {};
 
   StoryboardService get _svc => StoryboardService();
   TaskService get _taskSvc => TaskService();
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
-  void initFromEpisodes(List<Episode> episodes, Map<int, int> shotCounts) {
-    final map = <int, EpisodeGenerateState>{};
+  void initFromEpisodes(List<Episode> episodes, Map<String, int> shotCounts) {
+    final map = <String, EpisodeGenerateState>{};
     for (final ep in episodes) {
       if (ep.id == null) continue;
       final existing = state[ep.id];
@@ -77,7 +77,7 @@ class EpisodeStatesNotifier
   }
 
   void _update(
-    int episodeId,
+    String episodeId,
     EpisodeGenerateState Function(EpisodeGenerateState) fn,
   ) {
     final current = state[episodeId];
@@ -85,7 +85,7 @@ class EpisodeStatesNotifier
     state = {...state, episodeId: fn(current)};
   }
 
-  Future<void> generateSingle(int episodeId) async {
+  Future<void> generateSingle(String episodeId) async {
     final pid = _projectId;
     if (pid == null) return;
 
@@ -145,7 +145,7 @@ class EpisodeStatesNotifier
     }
   }
 
-  Future<void> batchGenerate(List<int> episodeIds) async {
+  Future<void> batchGenerate(List<String> episodeIds) async {
     for (final eid in episodeIds) {
       _update(eid, (s) => s.copyWith(
         status: EpisodeScriptStatus.generating,
@@ -156,7 +156,7 @@ class EpisodeStatesNotifier
     await Future.wait(episodeIds.map((eid) => generateSingle(eid)));
   }
 
-  void markCompleted(int episodeId, int shotCount) {
+  void markCompleted(String episodeId, int shotCount) {
     _update(episodeId, (s) => s.copyWith(
       status: EpisodeScriptStatus.completed,
       progress: 100,
@@ -165,7 +165,7 @@ class EpisodeStatesNotifier
     ));
   }
 
-  void updateReviewCounts(int episodeId, {
+  void updateReviewCounts(String episodeId, {
     required int approved,
     required int pending,
     required int revision,
@@ -179,24 +179,24 @@ class EpisodeStatesNotifier
 }
 
 final episodeStatesProvider =
-    NotifierProvider<EpisodeStatesNotifier, Map<int, EpisodeGenerateState>>(
+    NotifierProvider<EpisodeStatesNotifier, Map<String, EpisodeGenerateState>>(
         EpisodeStatesNotifier.new);
 
 // ---------------------------------------------------------------------------
 // 分集脚本数据（ShotV4 列表，按集存储）
 // ---------------------------------------------------------------------------
 
-class EpisodeShotsMapNotifier extends Notifier<Map<int, List<ShotV4>>> {
+class EpisodeShotsMapNotifier extends Notifier<Map<String, List<ShotV4>>> {
   @override
-  Map<int, List<ShotV4>> build() => {};
+  Map<String, List<ShotV4>> build() => {};
 
-  List<ShotV4> forEpisode(int episodeId) => state[episodeId] ?? [];
+  List<ShotV4> forEpisode(String episodeId) => state[episodeId] ?? [];
 
-  void setShots(int episodeId, List<ShotV4> shots) {
+  void setShots(String episodeId, List<ShotV4> shots) {
     state = {...state, episodeId: shots};
   }
 
-  void updateShot(int episodeId, int shotNumber, ShotV4 Function(ShotV4) fn) {
+  void updateShot(String episodeId, int shotNumber, ShotV4 Function(ShotV4) fn) {
     final list = forEpisode(episodeId);
     state = {
       ...state,
@@ -207,11 +207,11 @@ class EpisodeShotsMapNotifier extends Notifier<Map<int, List<ShotV4>>> {
     };
   }
 
-  void setReviewStatus(int episodeId, int shotNumber, String status) {
+  void setReviewStatus(String episodeId, int shotNumber, String status) {
     updateShot(episodeId, shotNumber, (s) => s.copyWith(reviewStatus: status));
   }
 
-  void batchApprove(int episodeId, List<int> shotNumbers) {
+  void batchApprove(String episodeId, List<int> shotNumbers) {
     final list = forEpisode(episodeId);
     state = {
       ...state,
@@ -225,7 +225,7 @@ class EpisodeShotsMapNotifier extends Notifier<Map<int, List<ShotV4>>> {
     };
   }
 
-  void approveAll(int episodeId) {
+  void approveAll(String episodeId) {
     final list = forEpisode(episodeId);
     state = {
       ...state,
@@ -233,7 +233,7 @@ class EpisodeShotsMapNotifier extends Notifier<Map<int, List<ShotV4>>> {
     };
   }
 
-  void addShot(int episodeId) {
+  void addShot(String episodeId) {
     final list = forEpisode(episodeId);
     final nextNum = list.isEmpty ? 1 : list.last.shotNumber + 1;
     state = {
@@ -242,7 +242,7 @@ class EpisodeShotsMapNotifier extends Notifier<Map<int, List<ShotV4>>> {
     };
   }
 
-  void insertShot(int episodeId, int afterShotNumber) {
+  void insertShot(String episodeId, int afterShotNumber) {
     final list = List<ShotV4>.of(forEpisode(episodeId));
     final idx = list.indexWhere((s) => s.shotNumber == afterShotNumber);
     if (idx < 0) return;
@@ -253,7 +253,7 @@ class EpisodeShotsMapNotifier extends Notifier<Map<int, List<ShotV4>>> {
     state = {...state, episodeId: list};
   }
 
-  void deleteShot(int episodeId, int shotNumber) {
+  void deleteShot(String episodeId, int shotNumber) {
     final list = forEpisode(episodeId)
         .where((s) => s.shotNumber != shotNumber)
         .toList();
@@ -265,7 +265,7 @@ class EpisodeShotsMapNotifier extends Notifier<Map<int, List<ShotV4>>> {
 }
 
 final episodeShotsMapProvider =
-    NotifierProvider<EpisodeShotsMapNotifier, Map<int, List<ShotV4>>>(
+    NotifierProvider<EpisodeShotsMapNotifier, Map<String, List<ShotV4>>>(
         EpisodeShotsMapNotifier.new);
 
 // ---------------------------------------------------------------------------

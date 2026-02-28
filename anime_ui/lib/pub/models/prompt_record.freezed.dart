@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PromptRecord {
 
- int? get id; int get projectId; int get userId; int? get episodeId; int? get sceneId; int? get shotId; int? get characterId; int? get locationId; String get type; String get inputText; String get fullPrompt; String get negativePrompt; String get provider; String get model; String get paramsJson; String get createdBy; String get assetIds; DateTime? get createdAt; DateTime? get updatedAt;
+ String? get id; String get projectId; String get userId; String? get episodeId; String? get sceneId; String? get shotId; String? get characterId; String? get locationId; String get type; String get inputText; String get fullPrompt; String get negativePrompt; String get provider; String get model; String get paramsJson; String get createdBy; String get assetIds; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of PromptRecord
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $PromptRecordCopyWith<$Res>  {
   factory $PromptRecordCopyWith(PromptRecord value, $Res Function(PromptRecord) _then) = _$PromptRecordCopyWithImpl;
 @useResult
 $Res call({
- int? id, int projectId, int userId, int? episodeId, int? sceneId, int? shotId, int? characterId, int? locationId, String type, String inputText, String fullPrompt, String negativePrompt, String provider, String model, String paramsJson, String createdBy, String assetIds, DateTime? createdAt, DateTime? updatedAt
+ String? id, String projectId, String userId, String? episodeId, String? sceneId, String? shotId, String? characterId, String? locationId, String type, String inputText, String fullPrompt, String negativePrompt, String provider, String model, String paramsJson, String createdBy, String assetIds, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -68,14 +68,14 @@ class _$PromptRecordCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = null,Object? userId = null,Object? episodeId = freezed,Object? sceneId = freezed,Object? shotId = freezed,Object? characterId = freezed,Object? locationId = freezed,Object? type = null,Object? inputText = null,Object? fullPrompt = null,Object? negativePrompt = null,Object? provider = null,Object? model = null,Object? paramsJson = null,Object? createdBy = null,Object? assetIds = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
-as int?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
+as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
+as String?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,inputText: null == inputText ? _self.inputText : inputText // ignore: cast_nullable_to_non_nullable
 as String,fullPrompt: null == fullPrompt ? _self.fullPrompt : fullPrompt // ignore: cast_nullable_to_non_nullable
 as String,negativePrompt: null == negativePrompt ? _self.negativePrompt : negativePrompt // ignore: cast_nullable_to_non_nullable
@@ -171,7 +171,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int projectId,  int userId,  int? episodeId,  int? sceneId,  int? shotId,  int? characterId,  int? locationId,  String type,  String inputText,  String fullPrompt,  String negativePrompt,  String provider,  String model,  String paramsJson,  String createdBy,  String assetIds,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String projectId,  String userId,  String? episodeId,  String? sceneId,  String? shotId,  String? characterId,  String? locationId,  String type,  String inputText,  String fullPrompt,  String negativePrompt,  String provider,  String model,  String paramsJson,  String createdBy,  String assetIds,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PromptRecord() when $default != null:
 return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.sceneId,_that.shotId,_that.characterId,_that.locationId,_that.type,_that.inputText,_that.fullPrompt,_that.negativePrompt,_that.provider,_that.model,_that.paramsJson,_that.createdBy,_that.assetIds,_that.createdAt,_that.updatedAt);case _:
@@ -192,7 +192,7 @@ return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.scen
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int projectId,  int userId,  int? episodeId,  int? sceneId,  int? shotId,  int? characterId,  int? locationId,  String type,  String inputText,  String fullPrompt,  String negativePrompt,  String provider,  String model,  String paramsJson,  String createdBy,  String assetIds,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String projectId,  String userId,  String? episodeId,  String? sceneId,  String? shotId,  String? characterId,  String? locationId,  String type,  String inputText,  String fullPrompt,  String negativePrompt,  String provider,  String model,  String paramsJson,  String createdBy,  String assetIds,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _PromptRecord():
 return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.sceneId,_that.shotId,_that.characterId,_that.locationId,_that.type,_that.inputText,_that.fullPrompt,_that.negativePrompt,_that.provider,_that.model,_that.paramsJson,_that.createdBy,_that.assetIds,_that.createdAt,_that.updatedAt);case _:
@@ -212,7 +212,7 @@ return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.scen
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int projectId,  int userId,  int? episodeId,  int? sceneId,  int? shotId,  int? characterId,  int? locationId,  String type,  String inputText,  String fullPrompt,  String negativePrompt,  String provider,  String model,  String paramsJson,  String createdBy,  String assetIds,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String projectId,  String userId,  String? episodeId,  String? sceneId,  String? shotId,  String? characterId,  String? locationId,  String type,  String inputText,  String fullPrompt,  String negativePrompt,  String provider,  String model,  String paramsJson,  String createdBy,  String assetIds,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _PromptRecord() when $default != null:
 return $default(_that.id,_that.projectId,_that.userId,_that.episodeId,_that.sceneId,_that.shotId,_that.characterId,_that.locationId,_that.type,_that.inputText,_that.fullPrompt,_that.negativePrompt,_that.provider,_that.model,_that.paramsJson,_that.createdBy,_that.assetIds,_that.createdAt,_that.updatedAt);case _:
@@ -230,14 +230,14 @@ class _PromptRecord extends PromptRecord {
   const _PromptRecord({this.id, required this.projectId, required this.userId, this.episodeId, this.sceneId, this.shotId, this.characterId, this.locationId, this.type = '', this.inputText = '', this.fullPrompt = '', this.negativePrompt = '', this.provider = '', this.model = '', this.paramsJson = '', this.createdBy = 'ai', this.assetIds = '', this.createdAt, this.updatedAt}): super._();
   factory _PromptRecord.fromJson(Map<String, dynamic> json) => _$PromptRecordFromJson(json);
 
-@override final  int? id;
-@override final  int projectId;
-@override final  int userId;
-@override final  int? episodeId;
-@override final  int? sceneId;
-@override final  int? shotId;
-@override final  int? characterId;
-@override final  int? locationId;
+@override final  String? id;
+@override final  String projectId;
+@override final  String userId;
+@override final  String? episodeId;
+@override final  String? sceneId;
+@override final  String? shotId;
+@override final  String? characterId;
+@override final  String? locationId;
 @override@JsonKey() final  String type;
 @override@JsonKey() final  String inputText;
 @override@JsonKey() final  String fullPrompt;
@@ -283,7 +283,7 @@ abstract mixin class _$PromptRecordCopyWith<$Res> implements $PromptRecordCopyWi
   factory _$PromptRecordCopyWith(_PromptRecord value, $Res Function(_PromptRecord) _then) = __$PromptRecordCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int projectId, int userId, int? episodeId, int? sceneId, int? shotId, int? characterId, int? locationId, String type, String inputText, String fullPrompt, String negativePrompt, String provider, String model, String paramsJson, String createdBy, String assetIds, DateTime? createdAt, DateTime? updatedAt
+ String? id, String projectId, String userId, String? episodeId, String? sceneId, String? shotId, String? characterId, String? locationId, String type, String inputText, String fullPrompt, String negativePrompt, String provider, String model, String paramsJson, String createdBy, String assetIds, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -303,14 +303,14 @@ class __$PromptRecordCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = null,Object? userId = null,Object? episodeId = freezed,Object? sceneId = freezed,Object? shotId = freezed,Object? characterId = freezed,Object? locationId = freezed,Object? type = null,Object? inputText = null,Object? fullPrompt = null,Object? negativePrompt = null,Object? provider = null,Object? model = null,Object? paramsJson = null,Object? createdBy = null,Object? assetIds = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_PromptRecord(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
-as int?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
-as int?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
-as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,sceneId: freezed == sceneId ? _self.sceneId : sceneId // ignore: cast_nullable_to_non_nullable
+as String?,shotId: freezed == shotId ? _self.shotId : shotId // ignore: cast_nullable_to_non_nullable
+as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
+as String?,locationId: freezed == locationId ? _self.locationId : locationId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,inputText: null == inputText ? _self.inputText : inputText // ignore: cast_nullable_to_non_nullable
 as String,fullPrompt: null == fullPrompt ? _self.fullPrompt : fullPrompt // ignore: cast_nullable_to_non_nullable
 as String,negativePrompt: null == negativePrompt ? _self.negativePrompt : negativePrompt // ignore: cast_nullable_to_non_nullable

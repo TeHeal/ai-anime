@@ -2,7 +2,7 @@ import 'package:anime_ui/pub/models/style.dart';
 import 'api.dart';
 
 class StyleService {
-  Future<Style> create(int projectId, {
+  Future<Style> create(String projectId, {
     required String name,
     String description = '',
     String negativePrompt = '',
@@ -21,17 +21,17 @@ class StyleService {
     return extractDataObject(resp, Style.fromJson);
   }
 
-  Future<List<Style>> list(int projectId) async {
+  Future<List<Style>> list(String projectId) async {
     final resp = await dio.get('/projects/$projectId/styles');
     return extractDataList(resp, Style.fromJson);
   }
 
-  Future<Style> get(int projectId, int styleId) async {
+  Future<Style> get(String projectId, String styleId) async {
     final resp = await dio.get('/projects/$projectId/styles/$styleId');
     return extractDataObject(resp, Style.fromJson);
   }
 
-  Future<Style> update(int projectId, int styleId, {
+  Future<Style> update(String projectId, String styleId, {
     String? name,
     String? description,
     String? negativePrompt,
@@ -50,11 +50,11 @@ class StyleService {
     return extractDataObject(resp, Style.fromJson);
   }
 
-  Future<void> delete(int projectId, int styleId) async {
+  Future<void> delete(String projectId, String styleId) async {
     await dio.delete('/projects/$projectId/styles/$styleId');
   }
 
-  Future<int> applyAll(int projectId, int styleId) async {
+  Future<int> applyAll(String projectId, String styleId) async {
     final resp = await dio.post('/projects/$projectId/styles/$styleId/apply-all');
     final data = extractData<Map<String, dynamic>>(resp);
     return data['applied'] as int? ?? 0;

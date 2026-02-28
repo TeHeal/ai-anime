@@ -60,7 +60,7 @@ abstract class ReviewSummary with _$ReviewSummary {
 @freezed
 abstract class DashboardEpisode with _$DashboardEpisode {
   const factory DashboardEpisode({
-    int? id,
+    String? id,
     @Default('') String title,
     @Default(0) int sortIndex,
     @Default('') String summary,

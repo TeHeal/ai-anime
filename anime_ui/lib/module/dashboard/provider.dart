@@ -13,7 +13,7 @@ class DashboardNotifier extends Notifier<AsyncValue<Dashboard>> {
 
   DashboardService get _svc => ref.read(dashboardServiceProvider);
 
-  int? get _projectId {
+  String? get _projectId {
     final fromProvider = ref.read(currentProjectProvider).value?.id;
     if (fromProvider != null) return fromProvider;
     return storageService.currentProjectId;

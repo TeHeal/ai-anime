@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Music {
 
- int? get id; int? get projectId; String get title; String get prompt; String get provider; String get model; String get audioUrl; double get duration; String get status; String get taskId;
+ String? get id; String? get projectId; String get title; String get prompt; String get provider; String get model; String get audioUrl; double get duration; String get status; String get taskId;
 /// Create a copy of Music
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $MusicCopyWith<$Res>  {
   factory $MusicCopyWith(Music value, $Res Function(Music) _then) = _$MusicCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? projectId, String title, String prompt, String provider, String model, String audioUrl, double duration, String status, String taskId
+ String? id, String? projectId, String title, String prompt, String provider, String model, String audioUrl, double duration, String status, String taskId
 });
 
 
@@ -68,8 +68,8 @@ class _$MusicCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? projectId = freezed,Object? title = null,Object? prompt = null,Object? provider = null,Object? model = null,Object? audioUrl = null,Object? duration = null,Object? status = null,Object? taskId = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,prompt: null == prompt ? _self.prompt : prompt // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String title,  String prompt,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String title,  String prompt,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Music() when $default != null:
 return $default(_that.id,_that.projectId,_that.title,_that.prompt,_that.provider,_that.model,_that.audioUrl,_that.duration,_that.status,_that.taskId);case _:
@@ -183,7 +183,7 @@ return $default(_that.id,_that.projectId,_that.title,_that.prompt,_that.provider
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? projectId,  String title,  String prompt,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? projectId,  String title,  String prompt,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)  $default,) {final _that = this;
 switch (_that) {
 case _Music():
 return $default(_that.id,_that.projectId,_that.title,_that.prompt,_that.provider,_that.model,_that.audioUrl,_that.duration,_that.status,_that.taskId);case _:
@@ -203,7 +203,7 @@ return $default(_that.id,_that.projectId,_that.title,_that.prompt,_that.provider
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? projectId,  String title,  String prompt,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? projectId,  String title,  String prompt,  String provider,  String model,  String audioUrl,  double duration,  String status,  String taskId)?  $default,) {final _that = this;
 switch (_that) {
 case _Music() when $default != null:
 return $default(_that.id,_that.projectId,_that.title,_that.prompt,_that.provider,_that.model,_that.audioUrl,_that.duration,_that.status,_that.taskId);case _:
@@ -221,8 +221,8 @@ class _Music extends Music {
   const _Music({this.id, this.projectId, this.title = '', this.prompt = '', this.provider = '', this.model = '', this.audioUrl = '', this.duration = 0, this.status = 'pending', this.taskId = ''}): super._();
   factory _Music.fromJson(Map<String, dynamic> json) => _$MusicFromJson(json);
 
-@override final  int? id;
-@override final  int? projectId;
+@override final  String? id;
+@override final  String? projectId;
 @override@JsonKey() final  String title;
 @override@JsonKey() final  String prompt;
 @override@JsonKey() final  String provider;
@@ -265,7 +265,7 @@ abstract mixin class _$MusicCopyWith<$Res> implements $MusicCopyWith<$Res> {
   factory _$MusicCopyWith(_Music value, $Res Function(_Music) _then) = __$MusicCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? projectId, String title, String prompt, String provider, String model, String audioUrl, double duration, String status, String taskId
+ String? id, String? projectId, String title, String prompt, String provider, String model, String audioUrl, double duration, String status, String taskId
 });
 
 
@@ -285,8 +285,8 @@ class __$MusicCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? projectId = freezed,Object? title = null,Object? prompt = null,Object? provider = null,Object? model = null,Object? audioUrl = null,Object? duration = null,Object? status = null,Object? taskId = null,}) {
   return _then(_Music(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,prompt: null == prompt ? _self.prompt : prompt // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable

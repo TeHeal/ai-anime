@@ -76,12 +76,12 @@ class GenerateStatus {
 }
 
 class GenerateService {
-  Future<GenerateStatus> getStatus(int projectId) async {
+  Future<GenerateStatus> getStatus(String projectId) async {
     final resp = await dio.get('/projects/$projectId/generate/status');
     return extractDataObject(resp, GenerateStatus.fromJson);
   }
 
-  Future<Map<String, dynamic>> generateAll(int projectId, {String? provider, String? model}) async {
+  Future<Map<String, dynamic>> generateAll(String projectId, {String? provider, String? model}) async {
     final resp = await dio.post('/projects/$projectId/generate/all', data: {
       'provider': ?provider,
       'model': ?model,
@@ -89,7 +89,7 @@ class GenerateService {
     return extractData<Map<String, dynamic>>(resp);
   }
 
-  Future<Map<String, dynamic>> retryFailed(int projectId) async {
+  Future<Map<String, dynamic>> retryFailed(String projectId) async {
     final resp = await dio.post('/projects/$projectId/generate/retry');
     return extractData<Map<String, dynamic>>(resp);
   }

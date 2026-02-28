@@ -153,7 +153,7 @@ class CenterTaskSection extends ConsumerWidget {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () => uiNotifier.toggleSelectAll(
-            validEpisodes.where((e) => e.id != null).map((e) => e.id as int).toList()),
+            validEpisodes.where((e) => e.id != null).map((e) => e.id as String).toList()),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
@@ -395,7 +395,7 @@ class CenterTaskSection extends ConsumerWidget {
     ScriptCenterUiState uiState,
     ScriptCenterUiNotifier uiNotifier,
     List<dynamic> filtered,
-    Map<int, EpisodeGenerateState> states,
+    Map<String, EpisodeGenerateState> states,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -406,7 +406,7 @@ class CenterTaskSection extends ConsumerWidget {
           spacing: 14,
           runSpacing: 14,
           children: filtered.map((ep) {
-            final eid = ep.id as int;
+            final eid = ep.id as String;
             final epState = states[eid];
             final cardWidth =
                 (constraints.maxWidth - (crossAxisCount - 1) * 14) /

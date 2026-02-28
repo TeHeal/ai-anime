@@ -2,13 +2,13 @@ import 'package:anime_ui/pub/models/timeline.dart';
 import 'api.dart';
 
 class TimelineService {
-  Future<ProjectTimeline> get(int projectId) async {
+  Future<ProjectTimeline> get(String projectId) async {
     final resp = await dio.get('/projects/$projectId/timeline');
     return extractDataObject(resp, ProjectTimeline.fromJson);
   }
 
   Future<ProjectTimeline> save(
-    int projectId, {
+    String projectId, {
     required List<Track> tracks,
     required double duration,
   }) async {
@@ -19,7 +19,7 @@ class TimelineService {
     return extractDataObject(resp, ProjectTimeline.fromJson);
   }
 
-  Future<ProjectTimeline> autoGenerate(int projectId) async {
+  Future<ProjectTimeline> autoGenerate(String projectId) async {
     final resp = await dio.post('/projects/$projectId/timeline/auto');
     return extractDataObject(resp, ProjectTimeline.fromJson);
   }

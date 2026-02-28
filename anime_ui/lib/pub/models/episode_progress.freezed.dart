@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EpisodeProgress {
 
- int? get id; int get episodeId; int get projectId; bool get storyDone; bool get assetsDone; bool get scriptDone; bool get storyboardDone; bool get shotsDone; bool get episodeDone; int get storyPct; int get assetsPct; int get scriptPct; int get storyboardPct; int get shotsPct; int get episodePct; int get currentStep; String get currentPhase; int get overallPct;
+ String? get id; String get episodeId; String get projectId; bool get storyDone; bool get assetsDone; bool get scriptDone; bool get storyboardDone; bool get shotsDone; bool get episodeDone; int get storyPct; int get assetsPct; int get scriptPct; int get storyboardPct; int get shotsPct; int get episodePct; int get currentStep; String get currentPhase; int get overallPct;
 /// Create a copy of EpisodeProgress
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $EpisodeProgressCopyWith<$Res>  {
   factory $EpisodeProgressCopyWith(EpisodeProgress value, $Res Function(EpisodeProgress) _then) = _$EpisodeProgressCopyWithImpl;
 @useResult
 $Res call({
- int? id, int episodeId, int projectId, bool storyDone, bool assetsDone, bool scriptDone, bool storyboardDone, bool shotsDone, bool episodeDone, int storyPct, int assetsPct, int scriptPct, int storyboardPct, int shotsPct, int episodePct, int currentStep, String currentPhase, int overallPct
+ String? id, String episodeId, String projectId, bool storyDone, bool assetsDone, bool scriptDone, bool storyboardDone, bool shotsDone, bool episodeDone, int storyPct, int assetsPct, int scriptPct, int storyboardPct, int shotsPct, int episodePct, int currentStep, String currentPhase, int overallPct
 });
 
 
@@ -68,9 +68,9 @@ class _$EpisodeProgressCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? episodeId = null,Object? projectId = null,Object? storyDone = null,Object? assetsDone = null,Object? scriptDone = null,Object? storyboardDone = null,Object? shotsDone = null,Object? episodeDone = null,Object? storyPct = null,Object? assetsPct = null,Object? scriptPct = null,Object? storyboardPct = null,Object? shotsPct = null,Object? episodePct = null,Object? currentStep = null,Object? currentPhase = null,Object? overallPct = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,episodeId: null == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,storyDone: null == storyDone ? _self.storyDone : storyDone // ignore: cast_nullable_to_non_nullable
+as String?,episodeId: null == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,storyDone: null == storyDone ? _self.storyDone : storyDone // ignore: cast_nullable_to_non_nullable
 as bool,assetsDone: null == assetsDone ? _self.assetsDone : assetsDone // ignore: cast_nullable_to_non_nullable
 as bool,scriptDone: null == scriptDone ? _self.scriptDone : scriptDone // ignore: cast_nullable_to_non_nullable
 as bool,storyboardDone: null == storyboardDone ? _self.storyboardDone : storyboardDone // ignore: cast_nullable_to_non_nullable
@@ -170,7 +170,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int episodeId,  int projectId,  bool storyDone,  bool assetsDone,  bool scriptDone,  bool storyboardDone,  bool shotsDone,  bool episodeDone,  int storyPct,  int assetsPct,  int scriptPct,  int storyboardPct,  int shotsPct,  int episodePct,  int currentStep,  String currentPhase,  int overallPct)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String episodeId,  String projectId,  bool storyDone,  bool assetsDone,  bool scriptDone,  bool storyboardDone,  bool shotsDone,  bool episodeDone,  int storyPct,  int assetsPct,  int scriptPct,  int storyboardPct,  int shotsPct,  int episodePct,  int currentStep,  String currentPhase,  int overallPct)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EpisodeProgress() when $default != null:
 return $default(_that.id,_that.episodeId,_that.projectId,_that.storyDone,_that.assetsDone,_that.scriptDone,_that.storyboardDone,_that.shotsDone,_that.episodeDone,_that.storyPct,_that.assetsPct,_that.scriptPct,_that.storyboardPct,_that.shotsPct,_that.episodePct,_that.currentStep,_that.currentPhase,_that.overallPct);case _:
@@ -191,7 +191,7 @@ return $default(_that.id,_that.episodeId,_that.projectId,_that.storyDone,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int episodeId,  int projectId,  bool storyDone,  bool assetsDone,  bool scriptDone,  bool storyboardDone,  bool shotsDone,  bool episodeDone,  int storyPct,  int assetsPct,  int scriptPct,  int storyboardPct,  int shotsPct,  int episodePct,  int currentStep,  String currentPhase,  int overallPct)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String episodeId,  String projectId,  bool storyDone,  bool assetsDone,  bool scriptDone,  bool storyboardDone,  bool shotsDone,  bool episodeDone,  int storyPct,  int assetsPct,  int scriptPct,  int storyboardPct,  int shotsPct,  int episodePct,  int currentStep,  String currentPhase,  int overallPct)  $default,) {final _that = this;
 switch (_that) {
 case _EpisodeProgress():
 return $default(_that.id,_that.episodeId,_that.projectId,_that.storyDone,_that.assetsDone,_that.scriptDone,_that.storyboardDone,_that.shotsDone,_that.episodeDone,_that.storyPct,_that.assetsPct,_that.scriptPct,_that.storyboardPct,_that.shotsPct,_that.episodePct,_that.currentStep,_that.currentPhase,_that.overallPct);case _:
@@ -211,7 +211,7 @@ return $default(_that.id,_that.episodeId,_that.projectId,_that.storyDone,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int episodeId,  int projectId,  bool storyDone,  bool assetsDone,  bool scriptDone,  bool storyboardDone,  bool shotsDone,  bool episodeDone,  int storyPct,  int assetsPct,  int scriptPct,  int storyboardPct,  int shotsPct,  int episodePct,  int currentStep,  String currentPhase,  int overallPct)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String episodeId,  String projectId,  bool storyDone,  bool assetsDone,  bool scriptDone,  bool storyboardDone,  bool shotsDone,  bool episodeDone,  int storyPct,  int assetsPct,  int scriptPct,  int storyboardPct,  int shotsPct,  int episodePct,  int currentStep,  String currentPhase,  int overallPct)?  $default,) {final _that = this;
 switch (_that) {
 case _EpisodeProgress() when $default != null:
 return $default(_that.id,_that.episodeId,_that.projectId,_that.storyDone,_that.assetsDone,_that.scriptDone,_that.storyboardDone,_that.shotsDone,_that.episodeDone,_that.storyPct,_that.assetsPct,_that.scriptPct,_that.storyboardPct,_that.shotsPct,_that.episodePct,_that.currentStep,_that.currentPhase,_that.overallPct);case _:
@@ -226,12 +226,12 @@ return $default(_that.id,_that.episodeId,_that.projectId,_that.storyDone,_that.a
 @JsonSerializable()
 
 class _EpisodeProgress implements EpisodeProgress {
-  const _EpisodeProgress({this.id, this.episodeId = 0, this.projectId = 0, this.storyDone = false, this.assetsDone = false, this.scriptDone = false, this.storyboardDone = false, this.shotsDone = false, this.episodeDone = false, this.storyPct = 0, this.assetsPct = 0, this.scriptPct = 0, this.storyboardPct = 0, this.shotsPct = 0, this.episodePct = 0, this.currentStep = 0, this.currentPhase = 'story', this.overallPct = 0});
+  const _EpisodeProgress({this.id, this.episodeId = '', this.projectId = '', this.storyDone = false, this.assetsDone = false, this.scriptDone = false, this.storyboardDone = false, this.shotsDone = false, this.episodeDone = false, this.storyPct = 0, this.assetsPct = 0, this.scriptPct = 0, this.storyboardPct = 0, this.shotsPct = 0, this.episodePct = 0, this.currentStep = 0, this.currentPhase = 'story', this.overallPct = 0});
   factory _EpisodeProgress.fromJson(Map<String, dynamic> json) => _$EpisodeProgressFromJson(json);
 
-@override final  int? id;
-@override@JsonKey() final  int episodeId;
-@override@JsonKey() final  int projectId;
+@override final  String? id;
+@override@JsonKey() final  String episodeId;
+@override@JsonKey() final  String projectId;
 @override@JsonKey() final  bool storyDone;
 @override@JsonKey() final  bool assetsDone;
 @override@JsonKey() final  bool scriptDone;
@@ -281,7 +281,7 @@ abstract mixin class _$EpisodeProgressCopyWith<$Res> implements $EpisodeProgress
   factory _$EpisodeProgressCopyWith(_EpisodeProgress value, $Res Function(_EpisodeProgress) _then) = __$EpisodeProgressCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int episodeId, int projectId, bool storyDone, bool assetsDone, bool scriptDone, bool storyboardDone, bool shotsDone, bool episodeDone, int storyPct, int assetsPct, int scriptPct, int storyboardPct, int shotsPct, int episodePct, int currentStep, String currentPhase, int overallPct
+ String? id, String episodeId, String projectId, bool storyDone, bool assetsDone, bool scriptDone, bool storyboardDone, bool shotsDone, bool episodeDone, int storyPct, int assetsPct, int scriptPct, int storyboardPct, int shotsPct, int episodePct, int currentStep, String currentPhase, int overallPct
 });
 
 
@@ -301,9 +301,9 @@ class __$EpisodeProgressCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? episodeId = null,Object? projectId = null,Object? storyDone = null,Object? assetsDone = null,Object? scriptDone = null,Object? storyboardDone = null,Object? shotsDone = null,Object? episodeDone = null,Object? storyPct = null,Object? assetsPct = null,Object? scriptPct = null,Object? storyboardPct = null,Object? shotsPct = null,Object? episodePct = null,Object? currentStep = null,Object? currentPhase = null,Object? overallPct = null,}) {
   return _then(_EpisodeProgress(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,episodeId: null == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as int,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,storyDone: null == storyDone ? _self.storyDone : storyDone // ignore: cast_nullable_to_non_nullable
+as String?,episodeId: null == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,storyDone: null == storyDone ? _self.storyDone : storyDone // ignore: cast_nullable_to_non_nullable
 as bool,assetsDone: null == assetsDone ? _self.assetsDone : assetsDone // ignore: cast_nullable_to_non_nullable
 as bool,scriptDone: null == scriptDone ? _self.scriptDone : scriptDone // ignore: cast_nullable_to_non_nullable
 as bool,storyboardDone: null == storyboardDone ? _self.storyboardDone : storyboardDone // ignore: cast_nullable_to_non_nullable

@@ -8,9 +8,9 @@ part of 'character_snapshot.dart';
 
 _CharacterSnapshot _$CharacterSnapshotFromJson(Map<String, dynamic> json) =>
     _CharacterSnapshot(
-      id: (json['id'] as num?)?.toInt(),
-      characterId: (json['characterId'] as num).toInt(),
-      projectId: (json['projectId'] as num).toInt(),
+      id: json['id'] as String?,
+      characterId: json['characterId'] as String,
+      projectId: json['projectId'] as String,
       startSceneId: json['startSceneId'] as String? ?? '',
       endSceneId: json['endSceneId'] as String? ?? '',
       triggerEvent: json['triggerEvent'] as String? ?? '',
