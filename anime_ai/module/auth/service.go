@@ -65,6 +65,50 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
 
+// CreateUserRequest 创建用户请求
+type CreateUserRequest struct {
+	Username    string `json:"username" binding:"required,min=2,max=64"`
+	Password    string `json:"password" binding:"required,min=6"`
+	DisplayName string `json:"display_name"`
+	Role        string `json:"role"`
+}
+
+// CreateUser 创建新用户（系统内创建）
+func (s *AuthService) CreateUser(req CreateUserRequest) (*User, error) {
+	if _, err := s.userStore.FindByUsername(req.Username); err == nil {
+		return nil, errors.New("用户名已存在")
+	}
+	hash, err := pkg.HashPassword(req.Password)
+	if err != nil {
+		return nil, errors.New("密码加密失败")
+	}
+	role := req.Role
+	if role == "" {
+		role = "member"
+	}
+	displayName := req.DisplayName
+	if displayName == "" {
+		displayName = req.Username
+	}
+	user := &User{
+		Username:     req.Username,
+		PasswordHash: hash,
+		DisplayName:  displayName,
+		Role:         role,
+	}
+	return s.userStore.Create(user)
+}
+
+// ListUsers 列出所有用户
+func (s *AuthService) ListUsers() ([]*User, error) {
+	return s.userStore.List()
+}
+
+// DeleteUser 删除用户
+func (s *AuthService) DeleteUser(id string) error {
+	return s.userStore.Delete(id)
+}
+
 // ChangePassword 修改密码
 func (s *AuthService) ChangePassword(userID string, req ChangePasswordRequest) error {
 	user, err := s.userStore.FindByID(userID)

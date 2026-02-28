@@ -11,22 +11,33 @@ import (
 )
 
 type Querier interface {
+	AcquireTaskLock(ctx context.Context, arg AcquireTaskLockParams) (TaskLock, error)
 	BulkCreateSegments(ctx context.Context, arg []BulkCreateSegmentsParams) (int64, error)
+	CancelTaskLock(ctx context.Context, id pgtype.UUID) error
 	CountEpisodesByProject(ctx context.Context, projectID pgtype.UUID) (int32, error)
+	CountPendingReviews(ctx context.Context, projectID pgtype.UUID) (int64, error)
 	CountSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) (int32, error)
 	CountScenesByEpisode(ctx context.Context, episodeID pgtype.UUID) (int32, error)
 	CountShotsByProject(ctx context.Context, projectID pgtype.UUID) (int32, error)
+	CountUnreadNotifications(ctx context.Context, userID pgtype.UUID) (int64, error)
+	CreateAssetVersion(ctx context.Context, arg CreateAssetVersionParams) (AssetVersion, error)
 	// 角色 CRUD（项目级）
 	CreateCharacter(ctx context.Context, arg CreateCharacterParams) (Character, error)
+	CreateCharacterSnapshot(ctx context.Context, arg CreateCharacterSnapshotParams) (CharacterSnapshot, error)
+	CreateCompositeTask(ctx context.Context, arg CreateCompositeTaskParams) (CompositeTask, error)
 	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
 	// 场景资产 CRUD（项目级）
 	CreateLocation(ctx context.Context, arg CreateLocationParams) (Location, error)
+	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	CreateProjectMember(ctx context.Context, arg CreateProjectMemberParams) (ProjectMember, error)
 	// 道具资产 CRUD（项目级）
 	CreateProp(ctx context.Context, arg CreatePropParams) (Prop, error)
+	CreateProviderUsage(ctx context.Context, arg CreateProviderUsageParams) (ProviderUsage, error)
+	CreateReviewRecord(ctx context.Context, arg CreateReviewRecordParams) (ReviewRecord, error)
 	CreateScene(ctx context.Context, arg CreateSceneParams) (Scene, error)
 	CreateSceneBlock(ctx context.Context, arg CreateSceneBlockParams) (SceneBlock, error)
+	CreateSchedule(ctx context.Context, arg CreateScheduleParams) (Schedule, error)
 	// 脚本分段 CRUD（项目级）
 	CreateSegment(ctx context.Context, arg CreateSegmentParams) (Segment, error)
 	// 镜头 CRUD（脚本指令，项目级）
@@ -35,36 +46,62 @@ type Querier interface {
 	CreateShotImage(ctx context.Context, arg CreateShotImageParams) (ShotImage, error)
 	// 镜头视频 CRUD（每个镜头的视频片段）
 	CreateShotVideo(ctx context.Context, arg CreateShotVideoParams) (ShotVideo, error)
+	CreateStyle(ctx context.Context, arg CreateStyleParams) (Style, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteCharacterSnapshot(ctx context.Context, id pgtype.UUID) error
+	DeleteSchedule(ctx context.Context, id pgtype.UUID) error
+	DeleteStyle(ctx context.Context, id pgtype.UUID) error
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
+	ExpireTaskLocks(ctx context.Context) error
+	GetActiveTaskLock(ctx context.Context, arg GetActiveTaskLockParams) (TaskLock, error)
+	GetAssetVersion(ctx context.Context, id pgtype.UUID) (AssetVersion, error)
 	GetCharacterByID(ctx context.Context, id pgtype.UUID) (Character, error)
 	GetCharacterByNameAndProject(ctx context.Context, arg GetCharacterByNameAndProjectParams) (Character, error)
+	GetCharacterSnapshot(ctx context.Context, id pgtype.UUID) (CharacterSnapshot, error)
+	GetCompositeTask(ctx context.Context, id pgtype.UUID) (CompositeTask, error)
 	GetEpisodeByID(ctx context.Context, id pgtype.UUID) (Episode, error)
+	GetLatestAssetVersion(ctx context.Context, arg GetLatestAssetVersionParams) (AssetVersion, error)
 	GetLocationByID(ctx context.Context, id pgtype.UUID) (Location, error)
 	GetProjectByID(ctx context.Context, id pgtype.UUID) (Project, error)
 	GetProjectByIDAndUser(ctx context.Context, arg GetProjectByIDAndUserParams) (Project, error)
 	GetProjectMemberByProjectAndUser(ctx context.Context, arg GetProjectMemberByProjectAndUserParams) (ProjectMember, error)
 	GetPropByID(ctx context.Context, id pgtype.UUID) (Prop, error)
+	GetReviewConfig(ctx context.Context, arg GetReviewConfigParams) (ReviewConfig, error)
+	GetReviewRecord(ctx context.Context, id pgtype.UUID) (ReviewRecord, error)
 	GetSceneBlockByID(ctx context.Context, id pgtype.UUID) (SceneBlock, error)
 	GetSceneByID(ctx context.Context, id pgtype.UUID) (Scene, error)
+	GetSchedule(ctx context.Context, id pgtype.UUID) (Schedule, error)
 	GetSegmentByID(ctx context.Context, id pgtype.UUID) (Segment, error)
 	GetShotByID(ctx context.Context, id pgtype.UUID) (Shot, error)
 	GetShotImageByID(ctx context.Context, id pgtype.UUID) (ShotImage, error)
 	GetShotVideoByID(ctx context.Context, id pgtype.UUID) (ShotVideo, error)
 	GetShotVideoByShotPrimary(ctx context.Context, shotID pgtype.UUID) (ShotVideo, error)
+	GetStyle(ctx context.Context, id pgtype.UUID) (Style, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	ListAssetVersions(ctx context.Context, arg ListAssetVersionsParams) ([]AssetVersion, error)
+	ListCharacterSnapshotsByCharacter(ctx context.Context, characterID pgtype.UUID) ([]CharacterSnapshot, error)
+	ListCharacterSnapshotsByProject(ctx context.Context, projectID pgtype.UUID) ([]CharacterSnapshot, error)
 	ListCharactersByProject(ctx context.Context, projectID pgtype.UUID) ([]Character, error)
 	ListCharactersByUser(ctx context.Context, userID pgtype.UUID) ([]Character, error)
 	ListCharactersByUserWithShared(ctx context.Context, userID pgtype.UUID) ([]Character, error)
+	ListCompositeTasksByEpisode(ctx context.Context, episodeID pgtype.UUID) ([]CompositeTask, error)
+	ListCompositeTasksByProject(ctx context.Context, projectID pgtype.UUID) ([]CompositeTask, error)
+	ListDueSchedules(ctx context.Context) ([]Schedule, error)
 	ListEpisodesByProject(ctx context.Context, projectID pgtype.UUID) ([]Episode, error)
 	ListLocationsByProject(ctx context.Context, projectID pgtype.UUID) ([]Location, error)
+	ListNotificationsByUser(ctx context.Context, arg ListNotificationsByUserParams) ([]Notification, error)
 	ListProjectMembersByProject(ctx context.Context, projectID pgtype.UUID) ([]ProjectMember, error)
 	ListProjectsByUser(ctx context.Context, userID pgtype.UUID) ([]Project, error)
 	ListProjectsByUserOrMember(ctx context.Context, userID pgtype.UUID) ([]Project, error)
 	ListPropsByProject(ctx context.Context, projectID pgtype.UUID) ([]Prop, error)
+	ListRecentUsages(ctx context.Context, arg ListRecentUsagesParams) ([]ProviderUsage, error)
+	ListReviewConfigsByProject(ctx context.Context, projectID pgtype.UUID) ([]ReviewConfig, error)
+	ListReviewRecordsByProject(ctx context.Context, arg ListReviewRecordsByProjectParams) ([]ReviewRecord, error)
+	ListReviewRecordsByTarget(ctx context.Context, arg ListReviewRecordsByTargetParams) ([]ReviewRecord, error)
 	ListSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) ([]SceneBlock, error)
 	ListScenesByEpisode(ctx context.Context, episodeID pgtype.UUID) ([]Scene, error)
+	ListSchedulesByProject(ctx context.Context, projectID pgtype.UUID) ([]Schedule, error)
 	ListSegmentsByProject(ctx context.Context, projectID pgtype.UUID) ([]Segment, error)
 	ListShotImagesByProject(ctx context.Context, projectID pgtype.UUID) ([]ShotImage, error)
 	ListShotImagesByShot(ctx context.Context, shotID pgtype.UUID) ([]ShotImage, error)
@@ -73,7 +110,13 @@ type Querier interface {
 	ListShotsByProject(ctx context.Context, projectID pgtype.UUID) ([]Shot, error)
 	ListShotsByScene(ctx context.Context, sceneID pgtype.UUID) ([]Shot, error)
 	ListShotsBySegment(ctx context.Context, segmentID pgtype.UUID) ([]Shot, error)
+	ListStylesByProject(ctx context.Context, projectID pgtype.UUID) ([]Style, error)
+	ListTaskLocksByProject(ctx context.Context, arg ListTaskLocksByProjectParams) ([]TaskLock, error)
+	ListUnreadNotifications(ctx context.Context, userID pgtype.UUID) ([]Notification, error)
 	ListUsers(ctx context.Context) ([]User, error)
+	MarkAllNotificationsRead(ctx context.Context, userID pgtype.UUID) error
+	MarkNotificationRead(ctx context.Context, arg MarkNotificationReadParams) error
+	ReleaseTaskLock(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteCharacter(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteEpisode(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteEpisodesByProject(ctx context.Context, projectID pgtype.UUID) error
@@ -94,8 +137,15 @@ type Querier interface {
 	SoftDeleteShotVideosByShot(ctx context.Context, shotID pgtype.UUID) error
 	SoftDeleteShotsByProject(ctx context.Context, projectID pgtype.UUID) error
 	SoftDeleteUser(ctx context.Context, id pgtype.UUID) error
+	StartCompositeTask(ctx context.Context, id pgtype.UUID) error
+	SumUsageByProject(ctx context.Context, projectID pgtype.UUID) (SumUsageByProjectRow, error)
+	SumUsageByProjectAndProvider(ctx context.Context, projectID pgtype.UUID) ([]SumUsageByProjectAndProviderRow, error)
 	UpdateCharacter(ctx context.Context, arg UpdateCharacterParams) (Character, error)
 	UpdateCharacterImage(ctx context.Context, arg UpdateCharacterImageParams) (Character, error)
+	UpdateCharacterSnapshot(ctx context.Context, arg UpdateCharacterSnapshotParams) error
+	UpdateCompositeTaskOutput(ctx context.Context, arg UpdateCompositeTaskOutputParams) error
+	UpdateCompositeTaskStatus(ctx context.Context, arg UpdateCompositeTaskStatusParams) error
+	UpdateCompositeTaskTimeline(ctx context.Context, arg UpdateCompositeTaskTimelineParams) error
 	UpdateEpisode(ctx context.Context, arg UpdateEpisodeParams) (Episode, error)
 	UpdateEpisodeSortIndex(ctx context.Context, arg UpdateEpisodeSortIndexParams) error
 	UpdateLocation(ctx context.Context, arg UpdateLocationParams) (Location, error)
@@ -103,10 +153,13 @@ type Querier interface {
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 	UpdateProjectMemberRole(ctx context.Context, arg UpdateProjectMemberRoleParams) (ProjectMember, error)
 	UpdateProp(ctx context.Context, arg UpdatePropParams) (Prop, error)
+	UpdateReviewRecordDecision(ctx context.Context, arg UpdateReviewRecordDecisionParams) error
 	UpdateScene(ctx context.Context, arg UpdateSceneParams) (Scene, error)
 	UpdateSceneBlock(ctx context.Context, arg UpdateSceneBlockParams) (SceneBlock, error)
 	UpdateSceneBlockSortIndex(ctx context.Context, arg UpdateSceneBlockSortIndexParams) error
 	UpdateSceneSortIndex(ctx context.Context, arg UpdateSceneSortIndexParams) error
+	UpdateSchedule(ctx context.Context, arg UpdateScheduleParams) error
+	UpdateScheduleLastRun(ctx context.Context, arg UpdateScheduleLastRunParams) error
 	UpdateSegment(ctx context.Context, arg UpdateSegmentParams) (Segment, error)
 	UpdateSegmentSortIndex(ctx context.Context, arg UpdateSegmentSortIndexParams) error
 	UpdateShot(ctx context.Context, arg UpdateShotParams) (Shot, error)
@@ -120,7 +173,9 @@ type Querier interface {
 	UpdateShotVideoResult(ctx context.Context, arg UpdateShotVideoResultParams) (Shot, error)
 	UpdateShotVideoReview(ctx context.Context, arg UpdateShotVideoReviewParams) (ShotVideo, error)
 	UpdateShotVideoStatus(ctx context.Context, arg UpdateShotVideoStatusParams) (ShotVideo, error)
+	UpdateStyle(ctx context.Context, arg UpdateStyleParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpsertReviewConfig(ctx context.Context, arg UpsertReviewConfigParams) (ReviewConfig, error)
 }
 
 var _ Querier = (*Queries)(nil)

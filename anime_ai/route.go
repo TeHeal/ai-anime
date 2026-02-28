@@ -43,6 +43,15 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 		protected.GET("/auth/me", cfg.AuthHandler.Me)
 		protected.PUT("/auth/password", cfg.AuthHandler.ChangePassword)
 
+		// 用户管理（需管理员权限）
+		users := protected.Group("/users")
+		users.Use(middleware.AdminOnly())
+		{
+			users.POST("", cfg.AuthHandler.CreateUser)
+			users.GET("", cfg.AuthHandler.ListUsers)
+			users.DELETE("/:userId", cfg.AuthHandler.DeleteUser)
+		}
+
 		// 项目管理
 		if cfg.ProjectHandler != nil {
 			projects := protected.Group("/projects")
