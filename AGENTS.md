@@ -1,5 +1,5 @@
 # AGENTS
-
+/home/yikai/Dev/ai-anime 是新版本目录， /home/yikai/Dev/anime是旧版本目录！ sudo 密码： yikai
 > AI 助手必读：实现前先读 [README.md](README.md) 领域模型→目录设计→错误处理；开发时遵循 [.cursor/rules/ai-development-guidelines.mdc](.cursor/rules/ai-development-guidelines.mdc)。
 
 ## 1. 术语表（实现前必知）
@@ -54,6 +54,7 @@
 
 - Go 1.26+ 必须（README 技术选型写 1.26）
 - Flutter SDK ^3.11.0
+- **禁止修改 README.md**：AI 助手不得修改该文件，仅可阅读参考。
 
 ## 7. Cursor 偏好
 

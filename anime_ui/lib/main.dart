@@ -1,25 +1,28 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:anime_ui/route.dart';
-import 'package:anime_ui/pub/theme/app_theme.dart';
+import 'package:flutter/rendering.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(
-    const ProviderScope(
-      child: AnimeApp(),
-    ),
-  );
-}
+import 'app.dart';
+import 'package:anime_ui/pub/services/api.dart';
+import 'package:anime_ui/pub/services/storage.dart';
 
-class AnimeApp extends StatelessWidget {
-  const AnimeApp({super.key});
+late final StorageService storageService;
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'AI-Anime 漫剧智能创作平台',
-      theme: appDarkTheme,
-      routerConfig: appRouter,
-    );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (kIsWeb) {
+    SemanticsBinding.instance.ensureSemantics();
   }
+
+  final prefs = await SharedPreferences.getInstance();
+  storageService = StorageService(prefs);
+
+  final savedToken = storageService.token;
+  if (savedToken != null && savedToken.isNotEmpty) {
+    setAuthToken(savedToken);
+  }
+
+  runApp(const App());
 }

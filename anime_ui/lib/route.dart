@@ -1,30 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:anime_ui/pub/router/router.dart';
+
 /// 路由配置（集中注册）
+/// 主路由已迁移至 pub/router/router.dart，此处保留 appRouter 别名以兼容旧引用
 /// 连接后端需使用: --dart-define=API_BASE_URL=http://localhost:3737/api/v1
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const _HomePage(),
-    ),
-  ],
-);
-
-class _HomePage extends StatelessWidget {
-  const _HomePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI-Anime 漫剧智能创作平台'),
-      ),
-      body: const Center(
-        child: Text('欢迎使用 AI-Anime'),
-      ),
-    );
-  }
-}
+GoRouter get appRouter => goRouter;

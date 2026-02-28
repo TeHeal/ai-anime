@@ -1,0 +1,76 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'character.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_Character _$CharacterFromJson(Map<String, dynamic> json) => _Character(
+  id: (json['id'] as num?)?.toInt(),
+  projectId: (json['projectId'] as num?)?.toInt(),
+  name: json['name'] as String? ?? '',
+  aliasJson: json['aliasJson'] as String? ?? '',
+  appearance: json['appearance'] as String? ?? '',
+  style: json['style'] as String? ?? '',
+  styleOverride: json['styleOverride'] as bool? ?? false,
+  personality: json['personality'] as String? ?? '',
+  voiceHint: json['voiceHint'] as String? ?? '',
+  emotions: json['emotions'] as String? ?? '',
+  scenes: json['scenes'] as String? ?? '',
+  gender: json['gender'] as String? ?? '',
+  ageGroup: json['ageGroup'] as String? ?? '',
+  voiceId: json['voiceId'] as String? ?? '',
+  voiceName: json['voiceName'] as String? ?? '',
+  imageUrl: json['imageUrl'] as String? ?? '',
+  referenceImagesJson: json['referenceImagesJson'] as String? ?? '',
+  taskId: json['taskId'] as String? ?? '',
+  imageStatus: json['imageStatus'] as String? ?? 'none',
+  shared: json['shared'] as bool? ?? false,
+  status: json['status'] as String? ?? 'draft',
+  source: json['source'] as String? ?? 'manual',
+  variantsJson: json['variantsJson'] as String? ?? '',
+  importance: json['importance'] as String? ?? '',
+  consistency: json['consistency'] as String? ?? '',
+  roleType: json['roleType'] as String? ?? '',
+  tagsJson: json['tagsJson'] as String? ?? '',
+  propsJson: json['propsJson'] as String? ?? '',
+  bio: json['bio'] as String? ?? '',
+  bioFragmentsJson: json['bioFragmentsJson'] as String? ?? '',
+  imageGenOverrideJson: json['imageGenOverrideJson'] as String? ?? '',
+);
+
+Map<String, dynamic> _$CharacterToJson(_Character instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'projectId': instance.projectId,
+      'name': instance.name,
+      'aliasJson': instance.aliasJson,
+      'appearance': instance.appearance,
+      'style': instance.style,
+      'styleOverride': instance.styleOverride,
+      'personality': instance.personality,
+      'voiceHint': instance.voiceHint,
+      'emotions': instance.emotions,
+      'scenes': instance.scenes,
+      'gender': instance.gender,
+      'ageGroup': instance.ageGroup,
+      'voiceId': instance.voiceId,
+      'voiceName': instance.voiceName,
+      'imageUrl': instance.imageUrl,
+      'referenceImagesJson': instance.referenceImagesJson,
+      'taskId': instance.taskId,
+      'imageStatus': instance.imageStatus,
+      'shared': instance.shared,
+      'status': instance.status,
+      'source': instance.source,
+      'variantsJson': instance.variantsJson,
+      'importance': instance.importance,
+      'consistency': instance.consistency,
+      'roleType': instance.roleType,
+      'tagsJson': instance.tagsJson,
+      'propsJson': instance.propsJson,
+      'bio': instance.bio,
+      'bioFragmentsJson': instance.bioFragmentsJson,
+      'imageGenOverrideJson': instance.imageGenOverrideJson,
+    };

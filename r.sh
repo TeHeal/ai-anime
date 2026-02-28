@@ -2,6 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 若存在国内源配置则自动加载（Go + Flutter 中国镜像）
+[[ -f "$ROOT_DIR/env.china.sh" ]] && source "$ROOT_DIR/env.china.sh"
 API_DIR="$ROOT_DIR/anime_ai"
 UI_DIR="$ROOT_DIR/anime_ui"
 LOG_DIR="$ROOT_DIR/.run-logs"
