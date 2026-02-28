@@ -59,3 +59,44 @@
 ## 7. Cursor 偏好
 
 - **不录制视频**：除非用户明确要求，否则不录制演示视频。
+
+## Cursor Cloud specific instructions
+
+### 环境概览
+
+本项目为 monorepo，包含 Go 后端 (`anime_ai/`) 和 Flutter Web 前端 (`anime_ui/`)。
+
+| 组件 | 位置 | 端口 |
+|------|------|------|
+| Go 后端 | `anime_ai/` | 3737 |
+| Flutter 前端 | `anime_ui/` | 8080 |
+| Redis | 系统服务 | 6379 |
+
+### 工具版本
+
+- **Go**: 1.26（安装于 `/usr/local/go/bin`）
+- **Flutter**: 3.41.x stable（安装于 `/opt/flutter/bin`，Dart SDK 3.11.0）
+- **Redis**: 7.x（通过 apt 安装）
+
+### PATH 设置
+
+Cloud VM 中 Go 和 Flutter 需要在 PATH 中：
+```
+export PATH="/usr/local/go/bin:/opt/flutter/bin:$PATH"
+```
+
+### 启动服务
+
+1. **Redis**: `redis-server --daemonize yes`
+2. **后端**: `cd anime_ai && cp config.yaml.example config.yaml`（仅首次），然后 `go run .` 或 `air`
+3. **前端**: `cd anime_ui && flutter run -d web-server --web-port 8080 --dart-define=API_BASE_URL=http://localhost:3737/api/v1`
+
+### 已知问题
+
+- `anime_ui/test/widget_test.dart` 引用了不存在的 `MyApp`（实际为 `AnimeApp`），导致 `flutter test` 和 `flutter analyze` 报错。这是仓库已有问题，非环境配置错误。
+- 项目处于早期阶段，大部分模块仅包含占位 `doc.go` 文件。后端目前仅注册了 `/api/v1/health` 一个路由。
+- PostgreSQL 尚未在 `go.mod` 中作为依赖引入，后端启动不需要数据库连接。
+
+### 常用命令参考
+
+见 §4（服务与启动）和 §5（常用命令）。后端 Makefile targets: `run`, `build`, `test`, `tidy`, `clean`。
