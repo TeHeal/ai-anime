@@ -49,7 +49,7 @@
 | 2 | **领域模型先行** | 实现前须冻结领域模型；接口结构先于业务逻辑 |
 | 3 | **资产引用** | 角色、场景等以 ID 引用，项目间不复制存储 |
 | 4 | **模块独立** | 后端每模块：handler（接口）→ service（逻辑）→ data（存储）；单文件 ≤600 行 |
-| 5 | **命名 AI 友好** | 文件/目录名语义化、模式一致，便于 AI 定位与生成。模块内用层名：`handler.go`、`service.go`、`data.go`（目录已表达资源）；避免 `s1.go`、`util2.dart` |
+| 5 | **命名 AI 友好** | 文件/目录名语义化、模式一致，便于 AI 定位与生成。目录即上下文、利用目录表达类型、单文件优先渐进拆分；详见 [目录设计](#目录设计) |
 
 ### 代码质量
 
@@ -445,9 +445,13 @@ AI 任务量大，不监控成本与延迟存在生产风险，可观测性为�
 | 原则 | 说明 |
 | ------ | ------ |
 | **模块化 + 公共层** | 业务按领域拆成 `module/`，基础设施放 `pub/`；入口 `main`、`route` 放根目录 |
-| **目录即上下文** | 模块内用层名（`handler.go`、`service.go`、`data.go`），不重复资源前缀 |
+| **目录即上下文** | 模块内用层名作目录/文件名，目录已表达资源时文件名不重复层名；AI 通过路径即可定位 |
+| **渐进式拆分** | 单文件优先，量大时再分子目录；同一层超 2–3 个文件或单文件近 600 行时拆分 |
+| **单一职责** | 一个文件尽量只包含一个主要类（如 `CharacterList`） |
+| **利用目录** | 将功能类似的 Provider 放入 `providers/`，类似组件放入 `widgets/`，而非在每个文件名后都加后缀 |
+| **后缀例外** | 仅在可能引起歧义时使用后缀，如 `character_list_screen.dart` 与 `character_list_logic.dart` 区分 UI 与逻辑 |
 | **Handler → Service → Data** | 后端三层：Handler 对外接口、Service 业务逻辑、Data 数据访问 |
-| **资源在前** | pub 内跨模块文件用 `资源_层`（如 `shot_image_service.go`），便于按业务检索 |
+| **资源_层（pub 内）** | pub 内跨模块文件用 `资源_层`（如 `shot_image_service.go`），便于按业务检索 |
 | **单文件 ≤600 行** | 超限则拆分子文件或子模块 |
 | **命名语义化** | 避免 `s1.go`、`util2.dart`，用可读、可搜索的名称 |
 
@@ -595,14 +599,38 @@ anime_ui/
 
 **目录说明**：`module`=业务模块、`pub`=公共层；入口 `main.dart`、`route.dart` 放 lib 根目录。
 
-**模块内部**：每个 module 子目录内统一用层名子目录，目录即上下文：
+**模块内部**：遵循渐进式拆分，单文件能承载时直接用，量大再分子目录。目录即上下文，文件名不重复层名。
+
+*简单模块*（单文件即可）：
+
+```text
+module/login/
+├── provider.dart    # 单一 Provider，单文件承载
+├── page.dart        # 单一页面
+└── index.dart      # 对外导出
+```
+
+*复杂模块*（某层文件多时拆子目录）：
 
 ```text
 module/shot_images/
-├── providers/    # 镜图相关 Provider
-├── widgets/      # 镜图相关组件
-└── view/         # 镜图页面
+├── providers/           # Provider 多时拆目录
+│   ├── shot_list.dart   # 目录已表达 provider，文件名只写业务
+│   └── shot_detail.dart
+├── widgets/             # 组件多时拆目录
+│   └── shot_card.dart   # 一文件一主类（ShotCard）
+└── page/                # 页面多时拆目录
+    └── list.dart        # 或 list_page.dart（仅歧义时加后缀）
 ```
+
+**前端模块组织细则**（AI 与团队须遵循）：
+
+| 细则 | 说明 |
+| ------ | ------ |
+| **单一职责** | 一个文件尽量只包含一个主要类（如 `CharacterList`、`ShotCard`） |
+| **利用目录** | 将功能类似的 Provider 放入 `providers/`，类似组件放入 `widgets/`，而非在每个文件名后都加 `_provider`、`_widget` 等后缀 |
+| **后缀例外** | 仅在可能引起歧义时使用后缀，如 `character_list_screen.dart` 与 `character_list_logic.dart` 以区分 UI 与逻辑 |
+| **pub 与 module 差异** | module 子目录=业务资源+层（`character/providers/`）；pub 子目录=能力类型（`router/`、`widgets/`、`providers/`），其下跨模块文件用 `资源_层` 便于检索 |
 
 ---
 
@@ -611,6 +639,8 @@ module/shot_images/
 | 层级 | 约定 | 示例 |
 | ------ | ------ | ------ |
 | 后端模块内 | 层名文件，目录即资源 | `handler.go`、`service.go`、`data.go` |
-| 后端 pub 内 | 资源_层（跨模块时需前缀） | `character_data.go`、`shot_image_service.go` |
-| 前端模块内 | 层名子目录，目录即资源 | `providers/`、`widgets/`、`view/` |
-| 前端 pub 内 | 语义化 | `character_list_provider.dart`、`ShotImageCard` |
+| 后端 pub 内 | 资源_层，便于按业务检索 | `character_data.go`、`shot_image_service.go` |
+| 前端模块内（简单） | 单文件，层名即文件名 | `provider.dart`、`page.dart` |
+| 前端模块内（复杂） | 层名子目录 + 文件名不重复层名 | `providers/character_list.dart`、`widgets/shot_card.dart` |
+| 前端模块内（歧义时） | 后缀区分 UI/逻辑 | `character_list_screen.dart`、`character_list_logic.dart` |
+| 前端 pub 内 | 跨模块用 资源_层；组件用 PascalCase | `character_list_provider.dart`、`ShotImageCard` |
