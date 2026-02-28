@@ -13,6 +13,8 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/insert_handle.dart';
 import 'package:anime_ui/module/script/block_item.dart';
 import 'package:anime_ui/module/script/provider.dart';
+import 'package:anime_ui/module/script/scene_action_bar.dart';
+import 'package:anime_ui/module/script/scene_metadata_section.dart';
 
 const _timeOptions = ['日', '夜', '黄昏', '凌晨'];
 const _ieOptions = ['内', '外'];
@@ -45,7 +47,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   bool _dirty = false;
   Timer? _autoSaveTimer;
 
-  _SaveStatus _saveStatus = _SaveStatus.clean;
+  SaveStatus _saveStatus = SaveStatus.clean;
 
   @override
   void dispose() {
@@ -59,7 +61,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   void _markDirty() {
     if (widget.readOnly) return;
     _dirty = true;
-    _saveStatus = _SaveStatus.unsaved;
+    _saveStatus = SaveStatus.unsaved;
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer(const Duration(seconds: 3), () {
       if (_dirty && mounted) _save(auto: true);
@@ -79,7 +81,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
         ? [const SceneBlock(type: 'action', sortIndex: 0)]
         : List<SceneBlock>.from(scene.blocks);
     _dirty = false;
-    _saveStatus = _SaveStatus.clean;
+    _saveStatus = SaveStatus.clean;
     _blockKeys.clear();
     _blockStableIds = List.generate(_blocks.length, (_) => _nextBlockKey());
   }
@@ -160,7 +162,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
     _autoSaveTimer?.cancel();
     setState(() {
       _saving = true;
-      _saveStatus = _SaveStatus.saving;
+      _saveStatus = SaveStatus.saving;
     });
     try {
       final notifier = ref.read(scenesProvider.notifier);
@@ -176,7 +178,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
       await notifier.saveBlocks(sel.episodeId!, sel.sceneId!, _blocks);
       _dirty = false;
       if (mounted) {
-        setState(() => _saveStatus = _SaveStatus.saved);
+        setState(() => _saveStatus = SaveStatus.saved);
         if (!auto) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -188,7 +190,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _saveStatus = _SaveStatus.error);
+        setState(() => _saveStatus = SaveStatus.error);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('保存失败: $e')),
         );
@@ -340,7 +342,27 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMetadataSection(),
+                SceneMetadataSection(
+                  sceneIdCtrl: _sceneIdCtrl,
+                  locationCtrl: _locationCtrl,
+                  characterCtrl: _characterCtrl,
+                  time: _time,
+                  ie: _ie,
+                  characters: _characters,
+                  timeOptions: _timeOptions,
+                  ieOptions: _ieOptions,
+                  onTimeChanged: (v) {
+                    setState(() => _time = v);
+                    _markDirty();
+                  },
+                  onIeChanged: (v) {
+                    setState(() => _ie = v);
+                    _markDirty();
+                  },
+                  onAddCharacter: _addCharacter,
+                  onRemoveCharacter: _removeCharacter,
+                  onFieldChanged: _markDirty,
+                ),
                 const SizedBox(height: 24),
                 Container(
                   height: 1,
@@ -360,7 +382,12 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
             ),
           ),
         ),
-        _buildActionBar(),
+        SceneActionBar(
+          saveStatus: _saveStatus,
+          saving: _saving,
+          readOnly: widget.readOnly,
+          onSave: () => _save(),
+        ),
       ],
     );
   }
@@ -449,186 +476,6 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
     );
   }
 
-  Widget _buildMetadataSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 3,
-              height: 18,
-              decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              '场景信息',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFE4E4E7),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            SizedBox(width: 100, child: _field('场景编号', _sceneIdCtrl)),
-            const SizedBox(width: 12),
-            Expanded(child: _field('地点', _locationCtrl)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _dropdown('时间', _time, _timeOptions, (v) {
-              setState(() => _time = v);
-              _markDirty();
-            }),
-            const SizedBox(width: 12),
-            _dropdown('内/外', _ie, _ieOptions, (v) {
-              setState(() => _ie = v);
-              _markDirty();
-            }),
-          ],
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          '角色',
-          style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final c in _characters)
-              Chip(
-                label: Text(
-                  c,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFFE4E4E7)),
-                ),
-                backgroundColor: const Color(0xFF2A2A3C),
-                deleteIconColor: const Color(0xFF6B7280),
-                onDeleted: () => _removeCharacter(c),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            SizedBox(
-              width: 120,
-              height: 32,
-              child: TextField(
-                controller: _characterCtrl,
-                onSubmitted: (_) => _addCharacter(),
-                style: const TextStyle(fontSize: 13, color: Color(0xFFE4E4E7)),
-                decoration: InputDecoration(
-                  hintText: '添加角色…',
-                  hintStyle:
-                      const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  filled: true,
-                  fillColor: const Color(0xFF0F0F17),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide.none,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: const Icon(AppIcons.add, size: 16),
-                    color: const Color(0xFF8B5CF6),
-                    onPressed: _addCharacter,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 24, minHeight: 24),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _field(String label, TextEditingController ctrl) {
-    return TextField(
-      controller: ctrl,
-      onChanged: (_) => _markDirty(),
-      style: const TextStyle(fontSize: 14, color: Color(0xFFE4E4E7)),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-        filled: true,
-        fillColor: const Color(0xFF0F0F17),
-        isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF232336), width: 1),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF232336), width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1),
-        ),
-      ),
-    );
-  }
-
-  Widget _dropdown(
-    String label,
-    String value,
-    List<String> options,
-    ValueChanged<String> onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F0F17),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFF232336)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: options.contains(value) ? value : null,
-              hint: Text(
-                '选择$label',
-                style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-              ),
-              isDense: true,
-              dropdownColor: const Color(0xFF1E1E2E),
-              style: const TextStyle(fontSize: 13, color: Color(0xFFE4E4E7)),
-              items: options
-                  .map((o) => DropdownMenuItem(value: o, child: Text(o)))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) onChanged(v);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildBlocksSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -710,78 +557,4 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
       ],
     );
   }
-
-  Widget _buildActionBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFF232336))),
-      ),
-      child: Row(
-        children: [
-          _buildSaveStatusIndicator(),
-          const Spacer(),
-          FilledButton.icon(
-            onPressed: (_saving || widget.readOnly) ? null : () => _save(),
-            icon: _saving
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(AppIcons.save, size: 15),
-            label: Text(_saving ? '保存中…' : '保存'),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF8B5CF6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const Spacer(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSaveStatusIndicator() {
-    IconData icon;
-    String text;
-    Color color;
-    switch (_saveStatus) {
-      case _SaveStatus.clean:
-      case _SaveStatus.saved:
-        icon = AppIcons.checkCircleOutline;
-        text = '已保存';
-        color = const Color(0xFF22C55E);
-      case _SaveStatus.unsaved:
-        icon = AppIcons.circleOutline;
-        text = '未保存';
-        color = const Color(0xFFF59E0B);
-      case _SaveStatus.saving:
-        icon = AppIcons.sync;
-        text = '自动保存中…';
-        color = const Color(0xFF3B82F6);
-      case _SaveStatus.error:
-        icon = AppIcons.errorOutline;
-        text = '保存失败';
-        color = const Color(0xFFEF4444);
-    }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 6),
-        Text(text, style: TextStyle(fontSize: 12, color: color)),
-      ],
-    );
-  }
 }
-
-enum _SaveStatus { clean, unsaved, saving, saved, error }
