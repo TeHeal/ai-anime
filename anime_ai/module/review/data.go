@@ -35,6 +35,7 @@ func NewMemReviewStore() *MemReviewStore {
 	}
 }
 
+// CreateRecord 创建审核记录
 func (s *MemReviewStore) CreateRecord(r *ReviewRecord) (*ReviewRecord, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -45,6 +46,7 @@ func (s *MemReviewStore) CreateRecord(r *ReviewRecord) (*ReviewRecord, error) {
 	return &cp, nil
 }
 
+// GetRecord 根据 ID 获取审核记录
 func (s *MemReviewStore) GetRecord(id string) (*ReviewRecord, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -57,6 +59,7 @@ func (s *MemReviewStore) GetRecord(id string) (*ReviewRecord, error) {
 	return nil, errNotFound
 }
 
+// ListByTarget 按目标类型和目标 ID 查询审核记录列表
 func (s *MemReviewStore) ListByTarget(targetType, targetID string) ([]*ReviewRecord, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -70,6 +73,7 @@ func (s *MemReviewStore) ListByTarget(targetType, targetID string) ([]*ReviewRec
 	return result, nil
 }
 
+// ListByProject 按项目 ID 分页查询审核记录
 func (s *MemReviewStore) ListByProject(projectID string, limit, offset int) ([]*ReviewRecord, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -90,6 +94,7 @@ func (s *MemReviewStore) ListByProject(projectID string, limit, offset int) ([]*
 	return filtered[offset:end], nil
 }
 
+// UpdateDecision 更新审核决策（状态、AI 评分、AI 理由、人工备注）
 func (s *MemReviewStore) UpdateDecision(id, status string, aiScore *int, aiReason, humanComment string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -105,6 +110,7 @@ func (s *MemReviewStore) UpdateDecision(id, status string, aiScore *int, aiReaso
 	return errNotFound
 }
 
+// CountPending 统计指定项目的待审核记录数量
 func (s *MemReviewStore) CountPending(projectID string) (int64, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -117,6 +123,7 @@ func (s *MemReviewStore) CountPending(projectID string) (int64, error) {
 	return count, nil
 }
 
+// GetConfig 获取指定项目和阶段的审核配置，不存在则返回默认配置
 func (s *MemReviewStore) GetConfig(projectID, phase string) (*ReviewConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -129,6 +136,7 @@ func (s *MemReviewStore) GetConfig(projectID, phase string) (*ReviewConfig, erro
 	return &ReviewConfig{ProjectID: projectID, Phase: phase, Mode: ModeAI}, nil
 }
 
+// UpsertConfig 创建或更新审核配置
 func (s *MemReviewStore) UpsertConfig(cfg *ReviewConfig) (*ReviewConfig, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -142,6 +150,7 @@ func (s *MemReviewStore) UpsertConfig(cfg *ReviewConfig) (*ReviewConfig, error) 
 	return &cp, nil
 }
 
+// ListConfigs 列出指定项目的所有审核配置
 func (s *MemReviewStore) ListConfigs(projectID string) ([]*ReviewConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

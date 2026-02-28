@@ -28,6 +28,7 @@ func NewMemStore() *MemStore {
 	return &MemStore{items: make(map[string]*Schedule), nextID: 1}
 }
 
+// Create 创建调度任务
 func (s *MemStore) Create(sch *Schedule) (*Schedule, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -38,6 +39,7 @@ func (s *MemStore) Create(sch *Schedule) (*Schedule, error) {
 	return &cp, nil
 }
 
+// Get 根据 ID 获取调度任务
 func (s *MemStore) Get(id string) (*Schedule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -48,6 +50,7 @@ func (s *MemStore) Get(id string) (*Schedule, error) {
 	return nil, fmt.Errorf("not found")
 }
 
+// ListByProject 按项目 ID 查询调度任务列表
 func (s *MemStore) ListByProject(projectID string) ([]*Schedule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -61,6 +64,7 @@ func (s *MemStore) ListByProject(projectID string) ([]*Schedule, error) {
 	return result, nil
 }
 
+// Update 更新调度任务
 func (s *MemStore) Update(sch *Schedule) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -72,6 +76,7 @@ func (s *MemStore) Update(sch *Schedule) error {
 	return nil
 }
 
+// Delete 根据 ID 删除调度任务
 func (s *MemStore) Delete(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -79,6 +84,7 @@ func (s *MemStore) Delete(id string) error {
 	return nil
 }
 
+// ListDue 查询所有已启用的待执行调度任务
 func (s *MemStore) ListDue() ([]*Schedule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -92,6 +98,7 @@ func (s *MemStore) ListDue() ([]*Schedule, error) {
 	return result, nil
 }
 
+// UpdateLastRun 更新调度任务的下次执行时间
 func (s *MemStore) UpdateLastRun(id, nextRunAt string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

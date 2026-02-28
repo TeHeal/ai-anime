@@ -27,6 +27,7 @@ func NewMemStore() *MemStore {
 	return &MemStore{nextID: 1}
 }
 
+// Create 创建通知记录
 func (s *MemStore) Create(n *Notification) (*Notification, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -37,6 +38,7 @@ func (s *MemStore) Create(n *Notification) (*Notification, error) {
 	return &cp, nil
 }
 
+// ListByUser 按用户 ID 分页查询通知列表（按时间倒序）
 func (s *MemStore) ListByUser(userID string, limit, offset int) ([]*Notification, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -57,6 +59,7 @@ func (s *MemStore) ListByUser(userID string, limit, offset int) ([]*Notification
 	return filtered[offset:end], nil
 }
 
+// ListUnread 查询指定用户的所有未读通知
 func (s *MemStore) ListUnread(userID string) ([]*Notification, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -70,6 +73,7 @@ func (s *MemStore) ListUnread(userID string) ([]*Notification, error) {
 	return result, nil
 }
 
+// CountUnread 统计指定用户的未读通知数量
 func (s *MemStore) CountUnread(userID string) (int64, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -82,6 +86,7 @@ func (s *MemStore) CountUnread(userID string) (int64, error) {
 	return count, nil
 }
 
+// MarkRead 将指定通知标记为已读
 func (s *MemStore) MarkRead(id, userID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -94,6 +99,7 @@ func (s *MemStore) MarkRead(id, userID string) error {
 	return fmt.Errorf("not found")
 }
 
+// MarkAllRead 将指定用户的所有通知标记为已读
 func (s *MemStore) MarkAllRead(userID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

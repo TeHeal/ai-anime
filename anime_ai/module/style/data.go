@@ -26,6 +26,7 @@ func NewMemStore() *MemStore {
 	return &MemStore{items: make(map[string]*Style), nextID: 1}
 }
 
+// Create 创建风格记录
 func (s *MemStore) Create(st *Style) (*Style, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -36,6 +37,7 @@ func (s *MemStore) Create(st *Style) (*Style, error) {
 	return &cp, nil
 }
 
+// Get 根据 ID 获取风格记录
 func (s *MemStore) Get(id string) (*Style, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -46,6 +48,7 @@ func (s *MemStore) Get(id string) (*Style, error) {
 	return nil, fmt.Errorf("not found")
 }
 
+// ListByProject 按项目 ID 查询风格列表
 func (s *MemStore) ListByProject(projectID string) ([]*Style, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -59,6 +62,7 @@ func (s *MemStore) ListByProject(projectID string) ([]*Style, error) {
 	return result, nil
 }
 
+// Update 更新风格记录
 func (s *MemStore) Update(st *Style) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -70,6 +74,7 @@ func (s *MemStore) Update(st *Style) error {
 	return nil
 }
 
+// Delete 根据 ID 删除风格记录
 func (s *MemStore) Delete(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
