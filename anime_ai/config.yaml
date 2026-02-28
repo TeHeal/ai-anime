@@ -11,7 +11,7 @@ db:
   host: localhost
   port: 5432
   user: postgres
-  password: ""  # 有 PostgreSQL 时填写，或 APP_DB_PASSWORD
+  password: "postgres"  # 本地开发用，生产请用 APP_DB_PASSWORD 环境变量
   dbname: ai_anime
 
 redis:
