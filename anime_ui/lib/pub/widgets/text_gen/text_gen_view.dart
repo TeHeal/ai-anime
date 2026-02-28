@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
 import 'package:anime_ui/pub/models/model_catalog.dart';
 import 'package:anime_ui/pub/services/model_catalog_svc.dart';
 import '../model_selector/model_selector.dart';

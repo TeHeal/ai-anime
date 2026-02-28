@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/app_search_field.dart';
-import 'package:anime_ui/module/assets/locations/providers/locations_providers.dart';
+import 'package:anime_ui/module/assets/locations/providers/selection.dart';
 
 /// 场景工具栏
 class LocationToolbar extends ConsumerStatefulWidget {

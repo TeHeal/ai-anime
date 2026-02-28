@@ -9,7 +9,7 @@ import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';
 import 'package:anime_ui/pub/widgets/model_selector/model_selector.dart';
 import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 import 'package:anime_ui/pub/widgets/prompt_library_dialog.dart';
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
 import 'package:anime_ui/module/script/view/center_ui_provider.dart';
 import 'package:anime_ui/module/script/view/script_provider.dart';
 

@@ -9,7 +9,7 @@ import 'package:anime_ui/module/assets/locations/providers/locations_provider.da
 import 'package:anime_ui/module/assets/props/providers/props_provider.dart';
 import 'package:anime_ui/module/assets/overview/providers/overview_provider.dart';
 import 'package:anime_ui/module/assets/overview/providers/styles_provider.dart';
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
 import 'package:anime_ui/module/assets/overview/widgets/asset_category_card.dart';
 import 'package:anime_ui/module/assets/overview/widgets/key_issues_list.dart';
 import 'package:anime_ui/module/assets/overview/widgets/readiness_bar.dart';

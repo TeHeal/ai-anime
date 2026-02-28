@@ -5,7 +5,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/prop.dart';
 import 'package:anime_ui/module/assets/shared/confirm_delete_dialog.dart';
 import 'package:anime_ui/module/assets/props/providers/props_provider.dart';
-import 'package:anime_ui/module/assets/props/providers/props_providers.dart';
+import 'package:anime_ui/module/assets/props/providers/selection.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_detail_panel.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_edit_dialog.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_list_panel.dart';

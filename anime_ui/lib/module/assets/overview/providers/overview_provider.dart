@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
 import 'package:anime_ui/module/assets/locations/providers/locations_provider.dart';
 import 'package:anime_ui/module/assets/props/providers/props_provider.dart';
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
 import 'package:anime_ui/module/assets/overview/providers/styles_provider.dart';
 
 /// 资产总览数据

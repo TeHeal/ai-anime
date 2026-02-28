@@ -5,7 +5,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/location.dart';
 import 'package:anime_ui/module/assets/shared/confirm_delete_dialog.dart';
 import 'package:anime_ui/module/assets/locations/providers/locations_provider.dart';
-import 'package:anime_ui/module/assets/locations/providers/locations_providers.dart';
+import 'package:anime_ui/module/assets/locations/providers/selection.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_detail_panel.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_edit_dialog.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_list_panel.dart';

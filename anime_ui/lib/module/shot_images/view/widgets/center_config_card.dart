@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
 import 'package:anime_ui/module/shot_images/view/center_ui_provider.dart';
 import 'package:anime_ui/module/shot_images/view/provider.dart';
 import 'package:anime_ui/pub/models/resource.dart';

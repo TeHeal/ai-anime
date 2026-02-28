@@ -7,7 +7,7 @@ import 'package:anime_ui/pub/models/scene_block.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/creation_assistant_pill_button.dart';
 import 'package:anime_ui/module/script/block_ai_suggestion.dart';
-import 'package:anime_ui/module/script/block_item_widgets.dart';
+import 'package:anime_ui/module/script/block_type_config.dart';
 
 /// 场景内容块编辑项
 class BlockItem extends StatefulWidget {

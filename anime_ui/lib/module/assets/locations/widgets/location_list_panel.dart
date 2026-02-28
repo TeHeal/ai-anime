@@ -5,7 +5,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/location.dart';
 import 'package:anime_ui/pub/services/api.dart';
-import 'package:anime_ui/module/assets/locations/providers/locations_providers.dart';
+import 'package:anime_ui/module/assets/locations/providers/selection.dart';
 
 /// 场景列表面板
 class LocationListPanel extends ConsumerWidget {

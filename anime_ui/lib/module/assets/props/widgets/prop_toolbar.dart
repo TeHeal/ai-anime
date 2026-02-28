@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/app_search_field.dart';
-import 'package:anime_ui/module/assets/props/providers/props_providers.dart';
+import 'package:anime_ui/module/assets/props/providers/selection.dart';
 
 /// 道具工具栏
 class PropToolbar extends ConsumerStatefulWidget {

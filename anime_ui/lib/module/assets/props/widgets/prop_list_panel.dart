@@ -5,7 +5,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/prop.dart';
 import 'package:anime_ui/pub/services/api.dart';
-import 'package:anime_ui/module/assets/props/providers/props_providers.dart';
+import 'package:anime_ui/module/assets/props/providers/selection.dart';
 
 /// 道具列表面板
 class PropListPanel extends ConsumerWidget {
