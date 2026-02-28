@@ -1,0 +1,68 @@
+# AI-Anime 后端配置（从 anime/ai-anime-api 迁移）
+# 敏感信息请勿提交，config.yaml 已在 .gitignore 中
+
+app:
+  port: 3737
+  mode: debug
+  secret: anime-dev-secret-2026
+
+# PostgreSQL：DSN 为空时 fallback 到内存存储，可正常测试
+db:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: ""  # 有 PostgreSQL 时填写，或 APP_DB_PASSWORD
+  dbname: ai_anime
+
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+
+storage:
+  driver: local
+  local_root: ./data/uploads
+  base_url: /files
+
+admin:
+  username: admin
+  password: admin123
+
+# ---- LLM ----
+llm:
+  deepseek_key: sk-8d8fa875e6864292812317e95080a497
+  kimi_key: sk-OEzXyM0io3Gn8LJkICPclZ3fQEHJZtTIkJh7wzztWQJb9KXm
+  doubao_key: 38599735-19f5-455d-897d-0543f81a7b4e
+  aliyun_key: ""
+
+# ---- 图像生成 ----
+image:
+  seedream_key: 38599735-19f5-455d-897d-0543f81a7b4e
+  wanx_key: sk-7401daa96091473db288f6fc2e9508ee
+  cogview_key: ""
+  flux_key: ""
+  stability_key: ""
+
+# ---- 视频生成 ----
+video:
+  seedance_key: 38599735-19f5-455d-897d-0543f81a7b4e
+  runway_key: ""
+  kling_key: ""
+  cogvideo_key: ""
+
+# ---- TTS ----
+tts:
+  volcengine_key: ""
+  volcengine_appid: ""
+  cosyvoice_key: sk-7401daa96091473db288f6fc2e9508ee
+  fish_audio_key: ""
+  minimax_key: sk-api-y7V5-k6HA2pPNjWcB0l7RmU-VaXNyWE40yy1tL3AALRF7KkG3PN6M1ghTLkxrx5VaRQQ6X56BWewV6h_U446bz4ynqr_B1452JVzYU9TIxiD6-aC7iImlLk
+
+# ---- 音乐 ----
+music:
+  suno_key: ""
+  suno_base_url: ""
+
+# ---- KIE ----
+kie:
+  api_key: ef3936723f32316968e586dff6475d33

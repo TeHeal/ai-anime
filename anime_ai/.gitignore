@@ -2,5 +2,5 @@ bin/
 tmp/
 data/
 *.db
-config.yaml
+# config.yaml 已提交用于测试，敏感环境请用 config.yaml.example 复制后本地覆盖
 *.log
