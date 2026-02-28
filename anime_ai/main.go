@@ -16,7 +16,11 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
 	"github.com/TeHeal/ai-anime/anime_ai/module/review"
+	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
+	"github.com/TeHeal/ai-anime/anime_ai/module/style"
+	"github.com/TeHeal/ai-anime/anime_ai/module/tasklock"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
@@ -263,6 +267,26 @@ func main() {
 	reviewSvc := review.NewService(reviewStore)
 	reviewHandler := review.NewHandler(reviewSvc)
 
+	// 通知模块
+	notifStore := notification.NewMemStore()
+	notifSvc := notification.NewService(notifStore)
+	notifHandler := notification.NewHandler(notifSvc)
+
+	// 风格资产模块
+	styleStore := style.NewMemStore()
+	styleSvc := style.NewService(styleStore)
+	styleHandler := style.NewHandler(styleSvc)
+
+	// 任务锁模块
+	taskLockStore := tasklock.NewMemStore()
+	taskLockSvc := tasklock.NewService(taskLockStore)
+	taskLockHandler := tasklock.NewHandler(taskLockSvc)
+
+	// 调度模块
+	schedStore := schedule.NewMemStore()
+	schedSvc := schedule.NewService(schedStore)
+	schedHandler := schedule.NewHandler(schedSvc)
+
 	routeCfg := &RouteConfig{
 		AuthHandler:        authHandler,
 		ProjectHandler:     projectHandler,
@@ -278,6 +302,10 @@ func main() {
 		WSHandler:          wsHandler,
 		AsynqClient:        asynqClient,
 		ReviewHandler:      reviewHandler,
+		NotifHandler:       notifHandler,
+		StyleHandler:       styleHandler,
+		TaskLockHandler:    taskLockHandler,
+		ScheduleHandler:    schedHandler,
 		JWTSecret:          cfg.App.Secret,
 	}
 
