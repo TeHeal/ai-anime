@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/script/view/provider.dart' show shotsProvider;
+import 'package:anime_ui/module/script/page/provider.dart' show shotsProvider;
 import 'package:anime_ui/module/script/provider.dart';
 import 'package:anime_ui/pub/models/shot.dart';
 import 'package:anime_ui/pub/providers/project.dart';

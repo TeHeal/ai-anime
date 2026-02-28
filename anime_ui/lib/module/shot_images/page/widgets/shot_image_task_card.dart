@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:anime_ui/module/shot_images/view/provider.dart';
+import 'package:anime_ui/module/shot_images/page/provider.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/theme/text.dart';

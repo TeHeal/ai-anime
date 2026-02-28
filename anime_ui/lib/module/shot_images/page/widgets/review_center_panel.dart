@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/shot_images/view/review_ui_provider.dart';
+import 'package:anime_ui/module/shot_images/page/review_ui_provider.dart';
 import 'package:anime_ui/pub/models/shot.dart';
 import 'package:anime_ui/pub/services/api.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/theme/app_icons.dart';

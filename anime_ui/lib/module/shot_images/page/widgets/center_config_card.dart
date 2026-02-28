@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
-import 'package:anime_ui/module/shot_images/view/center_ui_provider.dart';
-import 'package:anime_ui/module/shot_images/view/provider.dart';
+import 'package:anime_ui/module/shot_images/page/center_ui_provider.dart';
+import 'package:anime_ui/module/shot_images/page/provider.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';

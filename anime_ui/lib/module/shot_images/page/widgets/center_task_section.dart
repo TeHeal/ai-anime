@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:anime_ui/module/script/view/provider.dart' show shotsProvider;
-import 'package:anime_ui/module/shot_images/view/center_ui_provider.dart';
-import 'package:anime_ui/module/shot_images/view/provider.dart';
+import 'package:anime_ui/module/script/page/provider.dart' show shotsProvider;
+import 'package:anime_ui/module/shot_images/page/center_ui_provider.dart';
+import 'package:anime_ui/module/shot_images/page/provider.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/models/shot.dart';
 import 'package:anime_ui/pub/services/api.dart' show resolveFileUrl;
