@@ -244,7 +244,9 @@ final goRouter = GoRouter(
               path: Routes.episodeTimeline,
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: EpisodePlaceholderPage(
-                    title: '时间线', subtitle: '时间线编辑'),
+                    title: '时间线',
+                    subtitle: '时间线编辑',
+                    showTimeline: true),
               ),
             ),
             GoRoute(
