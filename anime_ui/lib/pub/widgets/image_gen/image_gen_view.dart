@@ -10,6 +10,7 @@ import '../prompt_library_dialog.dart';
 import 'package:anime_ui/pub/services/api.dart';
 import 'image_gen_config.dart';
 import 'image_gen_controller.dart';
+import 'image_lightbox.dart';
 import 'sub_widgets/gen_result_grid.dart';
 import 'sub_widgets/mode_badge.dart';
 import 'sub_widgets/output_count_bar.dart';
@@ -582,43 +583,10 @@ class _ImageGenViewState extends State<ImageGenView> {
       opaque: false,
       barrierColor: Colors.black87,
       barrierDismissible: true,
-      pageBuilder: (_, _, _) => _SimpleLightbox(
+      pageBuilder: (_, _, _) => ImageLightbox(
         imageUrl: resolveFileUrl(url),
         accent: accent,
       ),
     ));
-  }
-
-}
-
-// ─── 简易灯箱 ─────────────────────────────────────────────
-
-class _SimpleLightbox extends StatelessWidget {
-  const _SimpleLightbox({required this.imageUrl, required this.accent});
-
-  final String imageUrl;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Center(
-          child: InteractiveViewer(
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => Icon(
-                AppIcons.brokenImage,
-                size: 64,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
