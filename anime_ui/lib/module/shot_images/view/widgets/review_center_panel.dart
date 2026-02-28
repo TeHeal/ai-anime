@@ -7,6 +7,8 @@ import 'package:anime_ui/pub/services/api.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/theme/text.dart';
+import 'review_edit_toolbar.dart';
+import 'review_script_reference.dart';
 
 /// 镜图审核中心面板：图片预览 + 候选图 + 脚本对照
 class ReviewCenterPanel extends ConsumerStatefulWidget {
@@ -129,10 +131,14 @@ class _ReviewCenterPanelState extends ConsumerState<ReviewCenterPanel> {
           const SizedBox(height: 12),
           _buildCandidateGallery(imageUrl),
           const SizedBox(height: 16),
-          _buildScriptRef(widget.shot),
+          ReviewScriptReference(shot: widget.shot),
           if (uiState.editMode) ...[
             const SizedBox(height: 16),
-            _buildEditToolbar(widget.shot),
+            ReviewEditToolbar(
+              initialPrompt: widget.shot.prompt,
+              onGenerate: () => _toast('重新生成功能开发中'),
+              onRestore: () => _toast('已恢复'),
+            ),
           ],
         ],
       ),
@@ -438,216 +444,4 @@ class _ReviewCenterPanelState extends ConsumerState<ReviewCenterPanel> {
     );
   }
 
-  Widget _buildScriptRef(StoryboardShot shot) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey[800]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Icon(AppIcons.document, size: 16, color: Colors.grey[400]),
-                const SizedBox(width: 8),
-                Text(
-                  '脚本对照',
-                  style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: Colors.grey[800]),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _refField('画面描述', shot.prompt),
-                const SizedBox(height: 8),
-                _refField('风格提示', shot.stylePrompt),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 8,
-                  children: [
-                    _cameraChip('景别', shot.cameraType ?? ''),
-                    _cameraChip('运镜', shot.cameraAngle ?? ''),
-                    _durationChip('时长', '${shot.duration}s'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _refField(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.tiny.copyWith(color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value.isNotEmpty ? value : '—',
-          style: TextStyle(
-            fontSize: 13,
-            color: value.isNotEmpty ? Colors.grey[300] : Colors.grey[700],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _cameraChip(String label, String value) {
-    final chipColor = label == '景别'
-        ? AppColors.primary
-        : (label == '运镜' ? const Color(0xFF6366F1) : Colors.grey);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.tiny.copyWith(
-            color: Colors.grey[600],
-            fontSize: 10,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: chipColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: chipColor.withValues(alpha: 0.25),
-              width: 0.5,
-            ),
-          ),
-          child: Text(
-            value.isNotEmpty ? value : '—',
-            style: TextStyle(
-              fontSize: 12,
-              color: value.isNotEmpty ? chipColor : Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _durationChip(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.tiny.copyWith(
-            color: Colors.grey[600],
-            fontSize: 10,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceVariant,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEditToolbar(StoryboardShot shot) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '提示词编辑',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          TextFormField(
-            initialValue: shot.prompt,
-            maxLines: 3,
-            style: const TextStyle(fontSize: 13, color: Colors.white),
-            decoration: InputDecoration(
-              isDense: true,
-              hintText: '编辑提示词…',
-              hintStyle: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.grey[600],
-              ),
-              filled: true,
-              fillColor: AppColors.surfaceContainer,
-              contentPadding: const EdgeInsets.all(12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              FilledButton.icon(
-                onPressed: () => _toast('重新生成功能开发中'),
-                icon: const Icon(AppIcons.magicStick, size: 14),
-                label: const Text('生成', style: AppTextStyles.caption),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: () => _toast('已恢复'),
-                icon: const Icon(AppIcons.refresh, size: 14),
-                label: const Text('恢复原始', style: AppTextStyles.caption),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
