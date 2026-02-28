@@ -1,5 +1,49 @@
 # 数据库迁移
 
+## 本地开发环境配置
+
+### Redis
+
+```bash
+# Ubuntu/Debian 安装
+sudo apt-get install redis-server
+
+# 启动（安装后通常已自动启动）
+sudo systemctl start redis-server
+sudo systemctl enable redis-server  # 开机自启
+
+# 验证
+redis-cli ping  # 应返回 PONG
+```
+
+### PostgreSQL
+
+```bash
+# Ubuntu/Debian 安装
+sudo apt-get install postgresql postgresql-contrib
+
+# 创建专用用户和数据库（推荐，避免使用 postgres 超级用户）
+sudo -u postgres psql -c "CREATE USER ai_anime WITH PASSWORD 'ai_anime_dev' CREATEDB;"
+sudo -u postgres createdb -O ai_anime ai_anime
+
+# 应用 schema（从 anime_ai 目录执行）
+cd anime_ai
+PGPASSWORD=ai_anime_dev psql -h localhost -U ai_anime -d ai_anime -f sch/schema.sql
+```
+
+config.yaml 中配置：
+
+```yaml
+db:
+  host: localhost
+  port: 5432
+  user: ai_anime
+  password: "ai_anime_dev"  # 或使用 APP_DB_PASSWORD 环境变量
+  dbname: ai_anime
+```
+
+---
+
 ## 应用 Schema
 
 执行 `sch/schema.sql` 创建 PostgreSQL 表结构。
@@ -12,6 +56,15 @@ createdb -U postgres ai_anime
 
 # 应用 schema
 psql -U postgres -d ai_anime -f sch/schema.sql
+```
+
+### 增量迁移（已有数据库）
+
+若已应用过 schema.sql，可单独执行增量迁移：
+
+```bash
+# 领域模型补充表（Notification、ReviewRecord、Schedule、CompositeTask、AssetVersion、ProviderUsage）
+psql -U "$DB_USER" -d "$DB_NAME" -f migration/20250228_add_domain_tables.sql
 ```
 
 ### 方式二：apply_schema.sh

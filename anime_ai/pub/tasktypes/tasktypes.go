@@ -16,6 +16,8 @@ const (
 	TypeMusicGeneration = "gen:music"
 	// TypeExport 成片导出
 	TypeExport = "gen:export"
+	// TypePackage 按集打包 ZIP
+	TypePackage = "gen:package"
 	// TypeScriptParse 脚本解析
 	TypeScriptParse = "gen:script_parse"
 	// TypeStoryboardGenerate 分镜生成

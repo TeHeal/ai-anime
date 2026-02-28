@@ -12,21 +12,33 @@ import (
 
 	"github.com/TeHeal/ai-anime/anime_ai/module/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/module/character"
+	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
+	"github.com/TeHeal/ai-anime/anime_ai/module/download"
 	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
+	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
+	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
+	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/mesh"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/music"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/review_record"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/scheduler"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/worker"
 	"github.com/TeHeal/ai-anime/anime_ai/sch/db"
@@ -183,6 +195,7 @@ func main() {
 		shotStore = shot.NewMemShotStore()
 	}
 	shotReader := shot.ShotReaderAdapter(shotStore)
+	shotLocker := shot.ShotLockerAdapter(shotStore)
 	shotSvc := shot.NewService(shotStore, projectVerifier)
 	shotHandler := shot.NewHandler(shotSvc)
 
@@ -194,8 +207,32 @@ func main() {
 	} else {
 		shotImageStore = shot_image.NewMemShotImageStore()
 	}
-	shotImageSvc := shot_image.NewService(shotImageStore, shotReader, projectVerifier)
+	var reviewRecorder crossmodule.ReviewRecorder
+	if pool != nil {
+		reviewRecorder = review_record.NewDBRecorder(db.New(pool))
+	}
+	shotImageSvc := shot_image.NewService(shotImageStore, shotReader, shotLocker, projectVerifier, reviewRecorder)
 	shotImageHandler := shot_image.NewHandler(shotImageSvc)
+
+	// 通知模块（README 2.6 站内通知中心、红点）
+	var notificationHandler *notification.Handler
+	var taskNotifier worker.TaskNotifier
+	if pool != nil {
+		notificationData := notification.NewDBData(db.New(pool))
+		notificationSvc := notification.NewService(notificationData)
+		notificationHandler = notification.NewHandler(notificationSvc)
+		taskNotifier = notification.NewTaskNotifierAdapter(notificationSvc)
+		log.Println("通知模块已启用")
+	}
+
+	// 成片模块（README 成片阶段，状态机 editing→exporting→done）
+	var compositeStore composite.Store
+	var compositeSvc *composite.Service
+	if pool != nil {
+		compositeStore = composite.NewDBStore(db.New(pool))
+		compositeSvc = composite.NewService(compositeStore, projectVerifier)
+		log.Println("成片模块已启用")
+	}
 
 	// WebSocket Hub（任务进度推送等）
 	logger, _ := zap.NewProduction()
@@ -219,6 +256,17 @@ func main() {
 		imageRouter.RegisterProvider(kie.NewKIEImageProvider(cfg.KIE.APIKey))
 	}
 
+	// 音乐路由（README：Suno 通过 kie.ai API）
+	musicPolicy := mesh.DefaultPolicy()
+	musicBreaker := mesh.NewBreaker(3)
+	musicRouter := mesh.NewMusicRouter(musicPolicy, musicBreaker)
+	if cfg.KIE.APIKey != "" {
+		musicRouter.RegisterProvider(music.NewKieMusicProvider(cfg.KIE.APIKey))
+	}
+	if cfg.Music.SunoKey != "" {
+		musicRouter.RegisterProvider(music.NewSunoProvider(cfg.Music.SunoKey, cfg.Music.SunoBaseURL))
+	}
+
 	var store storage.Storage
 	if s, storeErr := storage.NewFromConfig(&cfg.Storage); storeErr != nil {
 		log.Printf("Storage 初始化失败，使用 nil: %v", storeErr)
@@ -227,13 +275,44 @@ func main() {
 		store = s
 	}
 
+	var downloadHandler *download.Handler
+	if store != nil {
+		downloadHandler = download.NewHandler(store, projectVerifier)
+	}
+
 	imageTaskDeps := worker.ImageTaskDeps{
 		ImageRouter:    imageRouter,
 		Storage:        store,
 		ShotImageStore: shotImageStore,
+		ShotLocker:     shotLocker,
 		RealtimeHub:    realtimeHub,
+		TaskNotifier:   taskNotifier,
+		UsageRecorder:  nil,
+	}
+	if pool != nil {
+		imageTaskDeps.UsageRecorder = provider_usage.NewDBRecorder(db.New(pool))
 	}
 	imageHandler := worker.NewImageTaskHandler(logger, imageTaskDeps)
+
+	var exportHandler *worker.ExportTaskHandler
+	if compositeSvc != nil {
+		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{CompositeService: compositeSvc})
+	}
+
+	// 按集打包模块（README 2.7）：Store 与 Worker 需在 Redis 块前创建，供 muxDeps 使用
+	var packageHandler *package_task.Handler
+	var packageStore package_task.Store
+	var packageWorkerHandler *worker.PackageTaskHandler
+	if pool != nil {
+		packageStore = package_task.NewDBStore(db.New(pool))
+		if packageStore != nil && store != nil {
+			packageWorkerHandler = worker.NewPackageTaskHandler(logger, worker.PackageTaskDeps{
+				PackageStore: packageStore,
+				Storage:      store,
+			})
+		}
+		log.Println("按集打包模块已启用")
+	}
 
 	// Asynq Worker：Redis 可用时创建 Client 与 Server，供 API 入队任务
 	var asynqClient *asynq.Client
@@ -242,7 +321,12 @@ func main() {
 	if redisAddr != "" && worker.PingRedis(redisAddr, cfg.Redis.Password, cfg.Redis.DB) {
 		asynqClient = worker.NewClient(redisAddr, cfg.Redis.Password, cfg.Redis.DB)
 		asynqServer = worker.NewServer(redisAddr, cfg.Redis.Password, cfg.Redis.DB, logger)
-		mux := worker.SetupMuxWithDeps(logger, &worker.MuxDeps{ImageHandler: imageHandler})
+		muxDeps := &worker.MuxDeps{
+			ImageHandler:   imageHandler,
+			ExportHandler:  exportHandler,
+			PackageHandler: packageWorkerHandler,
+		}
+		mux := worker.SetupMuxWithDeps(logger, muxDeps)
 		go func() {
 			if err := asynqServer.Run(mux); err != nil {
 				logger.Error("Asynq Worker 异常退出", zap.Error(err))
@@ -257,21 +341,58 @@ func main() {
 		}
 	}
 
+	var compositeHandler *composite.Handler
+	if compositeSvc != nil {
+		compositeHandler = composite.NewHandler(compositeSvc, asynqClient)
+	}
+
+	// 打包 HTTP Handler（需 asynqClient 入队，Redis 可用时创建）
+	if packageStore != nil {
+		packageSvc := package_task.NewService(packageStore, projectVerifier, asynqClient)
+		packageHandler = package_task.NewHandler(packageSvc)
+	}
+
+	// 用量查询模块（README 8.3 AI 成本控制）
+	var usageHandler *usage.Handler
+	if pool != nil {
+		usageData := usage.NewDBData(db.New(pool))
+		usageSvc := usage.NewService(usageData, projectVerifier)
+		usageHandler = usage.NewHandler(usageSvc)
+	}
+
+	// 定时任务模块（README 2.1 任务编排与定时）
+	var scheduleHandler *schedule.Handler
+	if pool != nil {
+		scheduleData := schedule.NewDBData(db.New(pool))
+		scheduleSvc := schedule.NewService(scheduleData, projectVerifier)
+		scheduleHandler = schedule.NewHandler(scheduleSvc)
+		// 启动调度器（占位触发器，后续可接入批量镜图等）
+		sched := scheduler.NewScheduler(scheduleData, scheduler.NewNoopTrigger(logger), logger)
+		go sched.Start()
+		logger.Info("定时任务调度器已启动")
+	}
+
 	routeCfg := &RouteConfig{
-		AuthHandler:        authHandler,
-		ProjectHandler:     projectHandler,
-		EpisodeHandler:     episodeHandler,
-		SceneHandler:       sceneHandler,
-		CharacterHandler:   characterHandler,
-		LocationHandler:    locationHandler,
-		PropHandler:        propHandler,
-		ScriptHandler:      scriptHandler,
-		StoryboardHandler:  storyboardHandler,
-		ShotHandler:        shotHandler,
-		ShotImageHandler:   shotImageHandler,
-		WSHandler:          wsHandler,
-		AsynqClient:        asynqClient,
-		JWTSecret:          cfg.App.Secret,
+		AuthHandler:         authHandler,
+		NotificationHandler: notificationHandler,
+		ProjectHandler:      projectHandler,
+		EpisodeHandler:      episodeHandler,
+		SceneHandler:        sceneHandler,
+		CharacterHandler:    characterHandler,
+		LocationHandler:     locationHandler,
+		PropHandler:         propHandler,
+		ScriptHandler:       scriptHandler,
+		StoryboardHandler:   storyboardHandler,
+		ShotHandler:         shotHandler,
+		ShotImageHandler:    shotImageHandler,
+		CompositeHandler:    compositeHandler,
+		DownloadHandler:     downloadHandler,
+		PackageHandler:      packageHandler,
+		UsageHandler:        usageHandler,
+		ScheduleHandler:     scheduleHandler,
+		WSHandler:           wsHandler,
+		AsynqClient:         asynqClient,
+		JWTSecret:           cfg.App.Secret,
 	}
 
 	port := os.Getenv("APP_APP_PORT")
@@ -287,6 +408,7 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger(logger))
+	r.Use(metrics.Middleware())
 	registerRoutes(r, routeCfg)
 
 	addr := fmt.Sprintf(":%s", port)

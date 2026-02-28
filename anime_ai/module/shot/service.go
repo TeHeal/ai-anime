@@ -242,6 +242,7 @@ func (s *Service) Reorder(projectID, userID string, orderedIDs []string) error {
 }
 
 // BatchGenerate 批量生成镜头（占位，后续接 Worker）
+// 执行前对每个 shot 加锁，被他人锁定时返回 status=locked（README 2.3）
 func (s *Service) BatchGenerate(projectID, userID string, shotIDs []string) ([]GenerateResult, error) {
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return nil, err
@@ -250,15 +251,25 @@ func (s *Service) BatchGenerate(projectID, userID string, shotIDs []string) ([]G
 	if err != nil {
 		return nil, err
 	}
+	shotMap := make(map[string]*Shot)
+	for i := range shots {
+		shotMap[shots[i].ID] = &shots[i]
+	}
 	results := make([]GenerateResult, len(shotIDs))
 	for i, id := range shotIDs {
-		results[i] = GenerateResult{ShotID: id, Status: "queued", TaskIDs: []string{}}
-		for _, sh := range shots {
-			if sh.ID == id && sh.ProjectID != projectID {
-				results[i] = GenerateResult{ShotID: id, Status: "error", Error: "镜头不属于该项目"}
-				break
-			}
+		if sh, ok := shotMap[id]; ok && sh.ProjectID != projectID {
+			results[i] = GenerateResult{ShotID: id, Status: "error", Error: "镜头不属于该项目"}
+			continue
 		}
+		if err := s.store.TryLockShot(id, userID); err != nil {
+			if errors.Is(err, pkg.ErrLocked) {
+				results[i] = GenerateResult{ShotID: id, Status: "locked", Error: "该镜头正在被他人执行"}
+				continue
+			}
+			results[i] = GenerateResult{ShotID: id, Status: "error", Error: err.Error()}
+			continue
+		}
+		results[i] = GenerateResult{ShotID: id, Status: "queued", TaskIDs: []string{}}
 	}
 	return results, nil
 }

@@ -96,12 +96,12 @@ func (d *DBData) FindCharacterByID(id string) (*Character, error) {
 	ctx := context.Background()
 	uid := pkg.ParseUUID(id)
 	if !uid.Valid {
-		return nil, ErrCharacterNotFound
+		return nil, pkg.ErrNotFound
 	}
 	row, err := d.q.GetCharacterByID(ctx, uid)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrCharacterNotFound
+			return nil, pkg.ErrNotFound
 		}
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (d *DBData) UpdateCharacter(c *Character) error {
 	ctx := context.Background()
 	uid := pkg.ParseUUID(c.ID)
 	if !uid.Valid {
-		return ErrCharacterNotFound
+		return pkg.ErrNotFound
 	}
 	arg := db.UpdateCharacterParams{
 		ID:                   uid,
@@ -187,7 +187,7 @@ func (d *DBData) DeleteCharacter(id string) error {
 	ctx := context.Background()
 	uid := pkg.ParseUUID(id)
 	if !uid.Valid {
-		return ErrCharacterNotFound
+		return pkg.ErrNotFound
 	}
 	return d.q.SoftDeleteCharacter(ctx, uid)
 }
@@ -197,7 +197,7 @@ func (d *DBData) UpdateCharacterImage(id string, imageURL, taskID, status string
 	ctx := context.Background()
 	uid := pkg.ParseUUID(id)
 	if !uid.Valid {
-		return ErrCharacterNotFound
+		return pkg.ErrNotFound
 	}
 	arg := db.UpdateCharacterImageParams{
 		ID:          uid,

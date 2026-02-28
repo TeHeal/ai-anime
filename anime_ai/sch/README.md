@@ -18,6 +18,10 @@ sch/
 └── README.md
 ```
 
+## 单文件行数例外说明
+
+项目规范要求单文件 ≤600 行（README §4、ai-development-guidelines §7）。**sqlc 生成的 `db/*.sql.go` 文件为自动生成代码，不受此限制**。因查询集中、类型定义共享，部分生成文件（如 `shots.sql.go`、`characters.sql.go`）可能超过 600 行，属预期情况，无需拆分。
+
 ## 领域模型对应
 
 | 表名 | 领域实体 | 说明 |

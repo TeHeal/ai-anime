@@ -32,7 +32,9 @@ func SetupMux(log *zap.Logger) *asynq.ServeMux {
 
 // MuxDeps 可选依赖，用于注册真实 handler；nil 字段使用占位
 type MuxDeps struct {
-	ImageHandler *ImageTaskHandler
+	ImageHandler   *ImageTaskHandler
+	ExportHandler  *ExportTaskHandler
+	PackageHandler *PackageTaskHandler
 }
 
 // SetupMuxWithDeps 注册任务 handler，deps 非空时注入真实实现
@@ -46,12 +48,23 @@ func SetupMuxWithDeps(log *zap.Logger, deps *MuxDeps) *asynq.ServeMux {
 		mux.HandleFunc(tasktypes.TypeImageGeneration, placeholderHandler(l, tasktypes.TypeImageGeneration))
 	}
 
+	if deps != nil && deps.ExportHandler != nil {
+		RegisterExportHandler(mux, deps.ExportHandler)
+	} else {
+		mux.HandleFunc(tasktypes.TypeExport, placeholderHandler(l, tasktypes.TypeExport))
+	}
+
+	if deps != nil && deps.PackageHandler != nil {
+		RegisterPackageHandler(mux, deps.PackageHandler)
+	} else {
+		mux.HandleFunc(tasktypes.TypePackage, placeholderHandler(l, tasktypes.TypePackage))
+	}
+
 	mux.HandleFunc(tasktypes.TypeVideoGeneration, placeholderHandler(l, tasktypes.TypeVideoGeneration))
 	mux.HandleFunc(tasktypes.TypeCharacterGeneration, placeholderHandler(l, tasktypes.TypeCharacterGeneration))
 	mux.HandleFunc(tasktypes.TypeTTS, placeholderHandler(l, tasktypes.TypeTTS))
 	mux.HandleFunc(tasktypes.TypeVoiceClone, placeholderHandler(l, tasktypes.TypeVoiceClone))
 	mux.HandleFunc(tasktypes.TypeMusicGeneration, placeholderHandler(l, tasktypes.TypeMusicGeneration))
-	mux.HandleFunc(tasktypes.TypeExport, placeholderHandler(l, tasktypes.TypeExport))
 	mux.HandleFunc(tasktypes.TypeScriptParse, placeholderHandler(l, tasktypes.TypeScriptParse))
 	mux.HandleFunc(tasktypes.TypeStoryboardGenerate, placeholderHandler(l, tasktypes.TypeStoryboardGenerate))
 

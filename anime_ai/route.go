@@ -2,17 +2,24 @@ package main
 
 import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/auth"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/module/character"
+	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
+	"github.com/TeHeal/ai-anime/anime_ai/module/download"
 	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
+	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/health"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
+	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
+	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/gin-gonic/gin"
@@ -20,6 +27,9 @@ import (
 )
 
 func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
+	// Prometheus /metrics（README 8.2 可观测性，无鉴权供 Prometheus 抓取）
+	r.GET("/metrics", gin.WrapH(metrics.Handler()))
+
 	api := r.Group("/api/v1")
 	{
 		api.GET("/health", health.Handler)
@@ -42,6 +52,14 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 	{
 		protected.GET("/auth/me", cfg.AuthHandler.Me)
 		protected.PUT("/auth/password", cfg.AuthHandler.ChangePassword)
+
+		// 站内通知（README 2.6）
+		if cfg.NotificationHandler != nil {
+			protected.GET("/notifications", cfg.NotificationHandler.List)
+			protected.GET("/notifications/unread-count", cfg.NotificationHandler.CountUnread)
+			protected.PUT("/notifications/:id/read", cfg.NotificationHandler.MarkAsRead)
+			protected.PUT("/notifications/read-all", cfg.NotificationHandler.MarkAllAsRead)
+		}
 
 		// 项目管理
 		if cfg.ProjectHandler != nil {
@@ -68,6 +86,44 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projects.PUT("/:id/episodes/:epId", cfg.EpisodeHandler.Update)
 					projects.DELETE("/:id/episodes/:epId", cfg.EpisodeHandler.Delete)
 					projects.PUT("/:id/episodes/reorder", cfg.EpisodeHandler.Reorder)
+					projects.GET("/:id/episodes/:epId/package-config", cfg.EpisodeHandler.GetPackageConfig)
+					// 按集打包（README 2.7）
+					if cfg.PackageHandler != nil {
+						projects.POST("/:id/episodes/:epId/package", cfg.PackageHandler.RequestPackage)
+						projects.GET("/:id/episodes/:epId/package", cfg.PackageHandler.ListByEpisode)
+					} else {
+						projects.POST("/:id/episodes/:epId/package", cfg.EpisodeHandler.RequestPackage)
+					}
+					// 成片导出
+					if cfg.CompositeHandler != nil {
+						projects.POST("/:id/episodes/:epId/export", cfg.CompositeHandler.CreateExport)
+						projects.GET("/:id/episodes/:epId/composite", cfg.CompositeHandler.ListByEpisode)
+					}
+				}
+				// 成片任务（项目级）
+				if cfg.CompositeHandler != nil {
+					projects.GET("/:id/composite", cfg.CompositeHandler.ListByProject)
+					projects.GET("/:id/composite/:taskId", cfg.CompositeHandler.Get)
+				}
+				// 单文件下载（README 2.7）
+				if cfg.DownloadHandler != nil {
+					projects.GET("/:id/download", cfg.DownloadHandler.Download)
+				}
+				// 打包任务状态（项目级）
+				if cfg.PackageHandler != nil {
+					projects.GET("/:id/package/:taskId", cfg.PackageHandler.Get)
+				}
+				// 用量查询（README 8.3 AI 成本控制）
+				if cfg.UsageHandler != nil {
+					projects.GET("/:id/usage", cfg.UsageHandler.List)
+				}
+				// 定时任务（README 2.1 任务编排与定时）
+				if cfg.ScheduleHandler != nil {
+					projects.POST("/:id/schedules", cfg.ScheduleHandler.Create)
+					projects.GET("/:id/schedules", cfg.ScheduleHandler.List)
+					projects.GET("/:id/schedules/:scheduleId", cfg.ScheduleHandler.Get)
+					projects.PUT("/:id/schedules/:scheduleId", cfg.ScheduleHandler.Update)
+					projects.DELETE("/:id/schedules/:scheduleId", cfg.ScheduleHandler.Delete)
 				}
 
 				// 场 CRUD（嵌套在集下）
@@ -213,18 +269,24 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 
 // RouteConfig 路由依赖配置
 type RouteConfig struct {
-	AuthHandler        *auth.Handler
-	ProjectHandler     *project.Handler
-	EpisodeHandler     *episode.Handler
-	SceneHandler       *scene.Handler
-	ScriptHandler      *script.Handler
-	CharacterHandler   *character.Handler
-	LocationHandler    *location.Handler
-	PropHandler        *prop.Handler
-	StoryboardHandler  *storyboard.Handler
-	ShotHandler        *shot.Handler
-	ShotImageHandler   *shot_image.Handler
-	WSHandler          *realtime.WSHandler
-	AsynqClient        *asynq.Client // 供 API 入队任务，Redis 不可用时为 nil
-	JWTSecret          string
+	AuthHandler         *auth.Handler
+	NotificationHandler *notification.Handler
+	ProjectHandler      *project.Handler
+	EpisodeHandler      *episode.Handler
+	SceneHandler        *scene.Handler
+	ScriptHandler       *script.Handler
+	CharacterHandler    *character.Handler
+	LocationHandler     *location.Handler
+	PropHandler         *prop.Handler
+	StoryboardHandler   *storyboard.Handler
+	ShotHandler         *shot.Handler
+	ShotImageHandler    *shot_image.Handler
+	CompositeHandler    *composite.Handler
+	DownloadHandler     *download.Handler
+	PackageHandler      *package_task.Handler
+	UsageHandler        *usage.Handler
+	ScheduleHandler     *schedule.Handler
+	WSHandler           *realtime.WSHandler
+	AsynqClient         *asynq.Client // 供 API 入队任务，Redis 不可用时为 nil
+	JWTSecret           string
 }

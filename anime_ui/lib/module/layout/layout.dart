@@ -9,6 +9,7 @@ import 'package:anime_ui/pub/widgets/ai_chat_panel.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/episode_svc.dart';
 import 'package:anime_ui/pub/widgets/header.dart';
+import 'package:anime_ui/pub/widgets/notification_drawer.dart';
 import 'package:anime_ui/pub/widgets/side_nav.dart';
 
 /// 主布局 — 侧边栏导航、项目选择、仪表盘入口、AI 助手面板
@@ -173,6 +174,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppHeader(),
+      endDrawer: const NotificationDrawer(),
       body: Stack(
         children: [
           Row(

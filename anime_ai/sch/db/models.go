@@ -8,6 +8,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AssetVersion struct {
+	ID        pgtype.UUID        `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+	ProjectID pgtype.UUID        `json:"project_id"`
+	Version   int32              `json:"version"`
+	Action    string             `json:"action"`
+	StatsJson pgtype.Text        `json:"stats_json"`
+	DeltaJson pgtype.Text        `json:"delta_json"`
+	Note      pgtype.Text        `json:"note"`
+}
+
 type Character struct {
 	ID                   pgtype.UUID        `json:"id"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
@@ -46,6 +59,20 @@ type Character struct {
 	BioFragmentsJson     []byte             `json:"bio_fragments_json"`
 	ImageGenOverrideJson []byte             `json:"image_gen_override_json"`
 	Version              int32              `json:"version"`
+}
+
+type CompositeTask struct {
+	ID         pgtype.UUID        `json:"id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	ProjectID  pgtype.UUID        `json:"project_id"`
+	EpisodeID  pgtype.UUID        `json:"episode_id"`
+	TaskID     pgtype.Text        `json:"task_id"`
+	Status     string             `json:"status"`
+	OutputUrl  pgtype.Text        `json:"output_url"`
+	ConfigJson []byte             `json:"config_json"`
+	ErrorMsg   pgtype.Text        `json:"error_msg"`
 }
 
 type Episode struct {
@@ -87,6 +114,18 @@ type Location struct {
 	Source              pgtype.Text        `json:"source"`
 }
 
+type Notification struct {
+	ID        pgtype.UUID        `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UserID    pgtype.UUID        `json:"user_id"`
+	Type      string             `json:"type"`
+	Title     string             `json:"title"`
+	Body      pgtype.Text        `json:"body"`
+	LinkUrl   pgtype.Text        `json:"link_url"`
+	ReadAt    pgtype.Timestamptz `json:"read_at"`
+	MetaJson  []byte             `json:"meta_json"`
+}
+
 type OrgMember struct {
 	ID        pgtype.UUID        `json:"id"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
@@ -107,6 +146,20 @@ type Organization struct {
 	AvatarUrl pgtype.Text        `json:"avatar_url"`
 	Plan      pgtype.Text        `json:"plan"`
 	OwnerID   pgtype.UUID        `json:"owner_id"`
+}
+
+type PackageTask struct {
+	ID         pgtype.UUID        `json:"id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	ProjectID  pgtype.UUID        `json:"project_id"`
+	EpisodeID  pgtype.UUID        `json:"episode_id"`
+	TaskID     pgtype.Text        `json:"task_id"`
+	Status     string             `json:"status"`
+	OutputUrl  pgtype.Text        `json:"output_url"`
+	ConfigJson []byte             `json:"config_json"`
+	ErrorMsg   pgtype.Text        `json:"error_msg"`
 }
 
 type Project struct {
@@ -164,6 +217,35 @@ type Prop struct {
 	Source              pgtype.Text        `json:"source"`
 }
 
+type ProviderUsage struct {
+	ID           pgtype.UUID        `json:"id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	ProjectID    pgtype.UUID        `json:"project_id"`
+	UserID       pgtype.UUID        `json:"user_id"`
+	OrgID        pgtype.UUID        `json:"org_id"`
+	Provider     string             `json:"provider"`
+	Model        string             `json:"model"`
+	ServiceType  string             `json:"service_type"`
+	TokenCount   pgtype.Int4        `json:"token_count"`
+	ImageCount   pgtype.Int4        `json:"image_count"`
+	VideoSeconds pgtype.Int4        `json:"video_seconds"`
+	CostCents    pgtype.Int4        `json:"cost_cents"`
+	MetaJson     []byte             `json:"meta_json"`
+}
+
+type ReviewRecord struct {
+	ID           pgtype.UUID        `json:"id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	TargetType   string             `json:"target_type"`
+	TargetID     pgtype.UUID        `json:"target_id"`
+	ProjectID    pgtype.UUID        `json:"project_id"`
+	ReviewerID   pgtype.UUID        `json:"reviewer_id"`
+	ReviewerType string             `json:"reviewer_type"`
+	Action       string             `json:"action"`
+	Comment      pgtype.Text        `json:"comment"`
+	FeedbackJson []byte             `json:"feedback_json"`
+}
+
 type Scene struct {
 	ID               pgtype.UUID        `json:"id"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
@@ -189,6 +271,22 @@ type SceneBlock struct {
 	Emotion   pgtype.Text        `json:"emotion"`
 	Content   string             `json:"content"`
 	SortIndex int32              `json:"sort_index"`
+}
+
+type Schedule struct {
+	ID         pgtype.UUID        `json:"id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	ProjectID  pgtype.UUID        `json:"project_id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	Name       string             `json:"name"`
+	CronExpr   string             `json:"cron_expr"`
+	Action     string             `json:"action"`
+	ConfigJson []byte             `json:"config_json"`
+	Enabled    bool               `json:"enabled"`
+	LastRunAt  pgtype.Timestamptz `json:"last_run_at"`
+	NextRunAt  pgtype.Timestamptz `json:"next_run_at"`
 }
 
 type Segment struct {

@@ -5,7 +5,7 @@ import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/services/api.dart';
 
 import 'package:anime_ui/module/login/page.dart';
-import 'package:anime_ui/module/projects/page.dart';
+import 'package:anime_ui/module/project/page.dart';
 import 'package:anime_ui/module/dashboard/page.dart';
 import 'package:anime_ui/module/layout/layout.dart';
 
@@ -42,8 +42,10 @@ import 'package:anime_ui/module/shots/shots_page.dart';
 import 'package:anime_ui/module/shots/view/center_page.dart';
 import 'package:anime_ui/module/shots/view/review_page.dart';
 
-// ⑥ 成片 Episode (占位)
+// ⑥ 成片 Episode
 import 'package:anime_ui/module/episode/episode_page.dart';
+import 'package:anime_ui/module/episode/composite_timeline_page.dart';
+import 'package:anime_ui/module/episode/composite_export_page.dart';
 import 'package:anime_ui/module/episode/placeholder_page.dart';
 
 // 任务中心
@@ -235,7 +237,7 @@ final goRouter = GoRouter(
           ],
         ),
 
-        // ⑥ 成片 Episode (占位)
+        // ⑥ 成片 Episode
         ShellRoute(
           builder: (context, state, child) =>
               EpisodeObjectPage(child: child),
@@ -243,8 +245,7 @@ final goRouter = GoRouter(
             GoRoute(
               path: Routes.episodeTimeline,
               pageBuilder: (context, state) => const NoTransitionPage(
-                child: EpisodePlaceholderPage(
-                    title: '时间线', subtitle: '时间线编辑'),
+                child: CompositeTimelinePage(),
               ),
             ),
             GoRoute(
@@ -264,8 +265,7 @@ final goRouter = GoRouter(
             GoRoute(
               path: Routes.episodeExport,
               pageBuilder: (context, state) => const NoTransitionPage(
-                child: EpisodePlaceholderPage(
-                    title: '导出', subtitle: '渲染导出设置与历史记录'),
+                child: CompositeExportPage(),
               ),
             ),
           ],

@@ -391,6 +391,16 @@ func (q *Queries) ListShotsBySegment(ctx context.Context, segmentID pgtype.UUID)
 	return items, nil
 }
 
+const releaseExpiredShotLocks = `-- name: ReleaseExpiredShotLocks :exec
+UPDATE shots SET locked_by = NULL, locked_at = NULL
+WHERE locked_at IS NOT NULL AND locked_at < now() - interval '1 hour'
+`
+
+func (q *Queries) ReleaseExpiredShotLocks(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, releaseExpiredShotLocks)
+	return err
+}
+
 const softDeleteShot = `-- name: SoftDeleteShot :exec
 UPDATE shots SET deleted_at = now() WHERE id = $1
 `
@@ -406,6 +416,42 @@ UPDATE shots SET deleted_at = now() WHERE project_id = $1
 
 func (q *Queries) SoftDeleteShotsByProject(ctx context.Context, projectID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, softDeleteShotsByProject, projectID)
+	return err
+}
+
+const tryLockShot = `-- name: TryLockShot :one
+UPDATE shots
+SET locked_by = $1, locked_at = now()
+WHERE id = $2 AND deleted_at IS NULL
+  AND (locked_by IS NULL OR locked_by = $1 OR locked_at < now() - interval '1 hour')
+RETURNING id
+`
+
+type TryLockShotParams struct {
+	LockedBy pgtype.UUID `json:"locked_by"`
+	ID       pgtype.UUID `json:"id"`
+}
+
+// 尝试加锁：仅当未锁、或本人持有、或超时(1h)时可加锁
+func (q *Queries) TryLockShot(ctx context.Context, arg TryLockShotParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, tryLockShot, arg.LockedBy, arg.ID)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const unlockShot = `-- name: UnlockShot :exec
+UPDATE shots SET locked_by = NULL, locked_at = NULL
+WHERE id = $1 AND locked_by = $2 AND deleted_at IS NULL
+`
+
+type UnlockShotParams struct {
+	ID       pgtype.UUID `json:"id"`
+	LockedBy pgtype.UUID `json:"locked_by"`
+}
+
+func (q *Queries) UnlockShot(ctx context.Context, arg UnlockShotParams) error {
+	_, err := q.db.Exec(ctx, unlockShot, arg.ID, arg.LockedBy)
 	return err
 }
 

@@ -1,18 +1,12 @@
 package character
 
 import (
-	"errors"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
-)
-
-var (
-	ErrCharacterNotFound        = errors.New("角色不存在")
-	ErrCharacterSnapshotNotFound = errors.New("角色快照不存在")
 )
 
 // Data 数据访问层接口，sch 就绪后可替换为 sqlc 实现
@@ -87,7 +81,7 @@ func (d *MemData) FindCharacterByID(id string) (*Character, error) {
 
 	c, ok := d.chars[id]
 	if !ok {
-		return nil, ErrCharacterNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return cloneCharacter(c), nil
 }
@@ -134,7 +128,7 @@ func (d *MemData) UpdateCharacter(c *Character) error {
 
 	old, ok := d.chars[c.ID]
 	if !ok {
-		return ErrCharacterNotFound
+		return pkg.ErrNotFound
 	}
 	c.UpdatedAt = time.Now()
 	c.CreatedAt = old.CreatedAt
@@ -147,7 +141,7 @@ func (d *MemData) DeleteCharacter(id string) error {
 	defer d.mu.Unlock()
 
 	if _, ok := d.chars[id]; !ok {
-		return ErrCharacterNotFound
+		return pkg.ErrNotFound
 	}
 	delete(d.chars, id)
 	// 删除该角色下所有快照
@@ -165,7 +159,7 @@ func (d *MemData) UpdateCharacterImage(id string, imageURL, taskID, status strin
 
 	c, ok := d.chars[id]
 	if !ok {
-		return ErrCharacterNotFound
+		return pkg.ErrNotFound
 	}
 	c.ImageURL = imageURL
 	c.TaskID = taskID
@@ -196,7 +190,7 @@ func (d *MemData) FindSnapshotByID(id uint) (*CharacterSnapshot, error) {
 
 	s, ok := d.snapshots[id]
 	if !ok {
-		return nil, ErrCharacterSnapshotNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return cloneSnapshot(s), nil
 }
@@ -242,7 +236,7 @@ func (d *MemData) UpdateSnapshot(s *CharacterSnapshot) error {
 
 	old, ok := d.snapshots[s.ID]
 	if !ok {
-		return ErrCharacterSnapshotNotFound
+		return pkg.ErrNotFound
 	}
 	s.UpdatedAt = time.Now()
 	s.CreatedAt = old.CreatedAt
@@ -255,7 +249,7 @@ func (d *MemData) DeleteSnapshot(id uint) error {
 	defer d.mu.Unlock()
 
 	if _, ok := d.snapshots[id]; !ok {
-		return ErrCharacterSnapshotNotFound
+		return pkg.ErrNotFound
 	}
 	delete(d.snapshots, id)
 	return nil

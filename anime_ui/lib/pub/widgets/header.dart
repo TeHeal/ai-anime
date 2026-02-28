@@ -8,7 +8,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/pulse_widget.dart';
 import 'package:anime_ui/module/dashboard/provider.dart';
-import 'package:anime_ui/module/task_center/providers/task_center_provider.dart';
+import 'package:anime_ui/pub/providers/notification_provider.dart';
 import 'user_menu.dart';
 
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
@@ -117,25 +117,43 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   }
 }
 
-/// 通知角标：显示运行中+等待中任务数，点击跳转任务中心
+/// 通知角标：显示未读通知数（README 2.6），点击弹出通知列表
 class _NotificationBadge extends ConsumerWidget {
   const _NotificationBadge();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(taskCenterProvider);
-    final count = state.runningCount + state.pendingCount;
+    final countAsync = ref.watch(unreadNotificationCountProvider);
 
-    final badge = Badge(
-      isLabelVisible: count > 0,
-      label: Text('$count', style: const TextStyle(fontSize: 10)),
-      child: IconButton(
-        icon: const Icon(AppIcons.notification, size: 18),
-        iconSize: 18,
-        tooltip: '任务中心',
-        onPressed: () => context.go(Routes.tasks),
+    return countAsync.when(
+      data: (count) => Builder(
+        builder: (ctx) => Badge(
+          isLabelVisible: count > 0,
+          label: Text('$count', style: const TextStyle(fontSize: 10)),
+          child: IconButton(
+            icon: const Icon(AppIcons.notification, size: 18),
+            iconSize: 18,
+            tooltip: '站内通知',
+            onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+          ),
+        ),
+      ),
+      loading: () => Builder(
+        builder: (ctx) => IconButton(
+          icon: const Icon(AppIcons.notification, size: 18),
+          iconSize: 18,
+          tooltip: '站内通知',
+          onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+        ),
+      ),
+      error: (e, st) => Builder(
+        builder: (ctx) => IconButton(
+          icon: const Icon(AppIcons.notification, size: 18),
+          iconSize: 18,
+          tooltip: '站内通知',
+          onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+        ),
       ),
     );
-    return badge;
   }
 }

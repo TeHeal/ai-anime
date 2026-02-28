@@ -10,4 +10,5 @@ var (
 	ErrBadRequest    = errors.New("ERR_BAD_REQUEST")
 	ErrAlreadyExists = errors.New("ERR_ALREADY_EXISTS")
 	ErrInternal      = errors.New("ERR_INTERNAL")
+	ErrLocked        = errors.New("ERR_LOCKED") // 任务被他人锁定（README 2.3）
 )

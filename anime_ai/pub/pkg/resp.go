@@ -83,11 +83,35 @@ func InternalError(c *gin.Context, message string) {
 	Fail(c, http.StatusInternalServerError, message)
 }
 
-// HandleError 根据错误类型返回对应 HTTP 响应
+// HandleError 根据错误类型返回对应 HTTP 响应（README §8.4 错误透传）
 func HandleError(c *gin.Context, err error) {
 	var biz *BizError
 	if errors.As(err, &biz) {
 		BadRequest(c, biz.Msg)
+		return
+	}
+	if errors.Is(err, ErrNotFound) {
+		NotFound(c, "资源不存在")
+		return
+	}
+	if errors.Is(err, ErrBadRequest) {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+	if errors.Is(err, ErrLocked) {
+		Forbidden(c, "任务被他人锁定")
+		return
+	}
+	if errors.Is(err, ErrUnauthorized) {
+		Unauthorized(c, "未授权")
+		return
+	}
+	if errors.Is(err, ErrForbidden) {
+		Forbidden(c, "无权限")
+		return
+	}
+	if errors.Is(err, ErrAlreadyExists) {
+		Fail(c, http.StatusConflict, "资源已存在")
 		return
 	}
 	InternalError(c, "服务器内部错误")

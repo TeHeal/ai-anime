@@ -9,6 +9,8 @@ import (
 
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
@@ -35,12 +37,20 @@ type ImageTaskPayload struct {
 	AspectRatio        string   `json:"aspect_ratio,omitempty"`
 }
 
+// TaskNotifier 任务完成时写入站内通知（README 2.6）
+type TaskNotifier interface {
+	NotifyTaskComplete(ctx context.Context, userID string, taskType string, taskID string, title string, body string, linkURL string)
+}
+
 // ImageTaskDeps 镜图任务 Handler 依赖
 type ImageTaskDeps struct {
-	ImageRouter   ImageRouter
-	Storage       storage.Storage
+	ImageRouter    ImageRouter
+	Storage        storage.Storage
 	ShotImageStore shot_image.ShotImageStore
-	RealtimeHub   *realtime.Hub
+	ShotLocker     crossmodule.ShotLocker // 可选，任务完成/失败时释放锁（README 2.3）
+	RealtimeHub    *realtime.Hub
+	TaskNotifier   TaskNotifier // 可选，任务完成时写入通知表
+	UsageRecorder  provider_usage.Recorder // 可选，AI 用量记录（README 8.3）
 }
 
 // ImageRouter 文生图路由接口，用于依赖注入
@@ -81,7 +91,7 @@ func (h *ImageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 	h.broadcastProgress(payload, 10, "running")
 
 	// 提交到 ImageRouter
-	_, providerTaskID, err := h.deps.ImageRouter.Submit(ctx, capability.ImageRequest{
+	providerName, providerTaskID, err := h.deps.ImageRouter.Submit(ctx, capability.ImageRequest{
 		Prompt:             payload.Prompt,
 		NegativePrompt:     payload.NegativePrompt,
 		Model:              payload.Model,
@@ -154,6 +164,24 @@ func (h *ImageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 
 	h.broadcastProgress(payload, 100, "completed")
 
+	// 任务完成写入站内通知（README 2.6）
+	if h.deps.TaskNotifier != nil {
+		h.deps.TaskNotifier.NotifyTaskComplete(ctx, payload.UserID, "image", payload.TaskID,
+			"镜图生成完成",
+			"镜图任务已完成，可前往项目查看",
+			"/projects/"+payload.ProjectID+"/shot-images")
+	}
+
+	// AI 用量记录（README 8.3）
+	if h.deps.UsageRecorder != nil && payload.ProjectID != "" {
+		imgCount := payload.Count
+		if imgCount <= 0 {
+			imgCount = 1
+		}
+		h.deps.UsageRecorder.RecordImage(ctx, payload.ProjectID, payload.UserID,
+			providerName, payload.Model, imgCount)
+	}
+
 	h.log.Info("镜图任务完成",
 		zap.String("task_id", payload.TaskID),
 		zap.String("shot_image_id", payload.ShotImageID),
@@ -183,18 +211,18 @@ func (h *ImageTaskHandler) failShotImage(payload ImageTaskPayload, errMsg string
 		zap.String("shot_image_id", payload.ShotImageID),
 		zap.String("error", errMsg),
 	)
-	if h.deps.ShotImageStore == nil {
-		return
+	if h.deps.ShotImageStore != nil {
+		img, err := h.deps.ShotImageStore.FindByID(payload.ShotImageID)
+		if err != nil {
+			h.log.Warn("查找镜图失败", zap.String("shot_image_id", payload.ShotImageID), zap.Error(err))
+		} else {
+			img.ImageURL = ""
+			img.TaskID = ""
+			img.Status = "failed"
+			_ = h.deps.ShotImageStore.Update(img)
+			h.releaseShotLock(img.ShotID, payload.UserID)
+		}
 	}
-	img, err := h.deps.ShotImageStore.FindByID(payload.ShotImageID)
-	if err != nil {
-		h.log.Warn("查找镜图失败", zap.String("shot_image_id", payload.ShotImageID), zap.Error(err))
-		return
-	}
-	img.ImageURL = ""
-	img.TaskID = ""
-	img.Status = "failed"
-	_ = h.deps.ShotImageStore.Update(img)
 	h.broadcastProgress(payload, 0, "failed")
 }
 
@@ -209,7 +237,19 @@ func (h *ImageTaskHandler) updateShotImageComplete(payload ImageTaskPayload, loc
 	img.ImageURL = localURL
 	img.TaskID = payload.TaskID
 	img.Status = "completed"
-	return h.deps.ShotImageStore.Update(img)
+	if err := h.deps.ShotImageStore.Update(img); err != nil {
+		return err
+	}
+	h.releaseShotLock(img.ShotID, payload.UserID)
+	return nil
+}
+
+func (h *ImageTaskHandler) releaseShotLock(shotID, userID string) {
+	if h.deps.ShotLocker != nil && shotID != "" && userID != "" {
+		if err := h.deps.ShotLocker.UnlockShot(shotID, userID); err != nil {
+			h.log.Warn("释放镜头锁失败", zap.String("shot_id", shotID), zap.Error(err))
+		}
+	}
 }
 
 // RegisterImageHandler 在 mux 中注册镜图 Handler

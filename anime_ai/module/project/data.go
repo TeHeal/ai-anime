@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
 // Data 数据访问层接口，使用 string ID 以兼容 PostgreSQL UUID
@@ -23,11 +25,6 @@ type Data interface {
 	UpdateMemberRole(projectID, userID string, role string) error
 	DeleteMember(projectID, userID string) error
 }
-
-var (
-	ErrProjectNotFound = errors.New("项目不存在")
-	ErrMemberNotFound  = errors.New("成员不存在")
-)
 
 // MemData 内存实现，使用 "1","2" 等数字串作为 ID
 type MemData struct {
@@ -79,10 +76,10 @@ func (d *MemData) FindByID(id, userID string) (*Project, error) {
 
 	p, ok := d.projects[id]
 	if !ok {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	if p.UserIDStr != userID && !d.isMember(id, userID) {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return cloneProject(p), nil
 }
@@ -93,7 +90,7 @@ func (d *MemData) FindByIDOnly(id string) (*Project, error) {
 
 	p, ok := d.projects[id]
 	if !ok {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return cloneProject(p), nil
 }
@@ -124,7 +121,7 @@ func (d *MemData) UpdateProject(p *Project) error {
 	}
 	old, ok := d.projects[key]
 	if !ok {
-		return ErrProjectNotFound
+		return pkg.ErrNotFound
 	}
 	p.UpdatedAt = time.Now()
 	p.CreatedAt = old.CreatedAt
@@ -138,10 +135,10 @@ func (d *MemData) DeleteProject(id, userID string) error {
 
 	p, ok := d.projects[id]
 	if !ok {
-		return ErrProjectNotFound
+		return pkg.ErrNotFound
 	}
 	if p.UserIDStr != userID {
-		return ErrProjectNotFound
+		return pkg.ErrNotFound
 	}
 	delete(d.projects, id)
 	delete(d.projUsers, id)
@@ -162,7 +159,7 @@ func (d *MemData) CreateMember(m *ProjectMember) error {
 		projKey = strconv.FormatUint(uint64(m.ProjectID), 10)
 	}
 	if _, ok := d.projects[projKey]; !ok {
-		return ErrProjectNotFound
+		return pkg.ErrNotFound
 	}
 	userKey := m.UserIDStr
 	if userKey == "" {
@@ -192,7 +189,7 @@ func (d *MemData) FindMemberByProjectAndUser(projectID, userID string) (*Project
 
 	m := d.findMemberUnlocked(projectID, userID)
 	if m == nil {
-		return nil, ErrMemberNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return cloneMember(m), nil
 }
@@ -217,7 +214,7 @@ func (d *MemData) UpdateMemberRole(projectID, userID string, role string) error 
 
 	m := d.findMemberUnlocked(projectID, userID)
 	if m == nil {
-		return ErrMemberNotFound
+		return pkg.ErrNotFound
 	}
 	m.Role = role
 	m.UpdatedAt = time.Now()
@@ -230,7 +227,7 @@ func (d *MemData) DeleteMember(projectID, userID string) error {
 
 	m := d.findMemberUnlocked(projectID, userID)
 	if m == nil {
-		return ErrMemberNotFound
+		return pkg.ErrNotFound
 	}
 	delete(d.members, m.IDStr)
 	if m.IDStr == "" {

@@ -115,3 +115,19 @@ UPDATE shots SET deleted_at = now() WHERE project_id = sqlc.arg('project_id');
 -- name: CountShotsByProject :one
 SELECT COUNT(*)::int FROM shots
 WHERE project_id = sqlc.arg('project_id') AND deleted_at IS NULL;
+
+-- name: TryLockShot :one
+-- 尝试加锁：仅当未锁、或本人持有、或超时(1h)时可加锁
+UPDATE shots
+SET locked_by = sqlc.arg('locked_by'), locked_at = now()
+WHERE id = sqlc.arg('id') AND deleted_at IS NULL
+  AND (locked_by IS NULL OR locked_by = sqlc.arg('locked_by') OR locked_at < now() - interval '1 hour')
+RETURNING id;
+
+-- name: UnlockShot :exec
+UPDATE shots SET locked_by = NULL, locked_at = NULL
+WHERE id = sqlc.arg('id') AND locked_by = sqlc.arg('locked_by') AND deleted_at IS NULL;
+
+-- name: ReleaseExpiredShotLocks :exec
+UPDATE shots SET locked_by = NULL, locked_at = NULL
+WHERE locked_at IS NOT NULL AND locked_at < now() - interval '1 hour';

@@ -1,7 +1,6 @@
 package shot
 
 import (
-	"errors"
 	"sort"
 	"strconv"
 	"sync"
@@ -27,11 +26,10 @@ type ShotStore interface {
 	UpdateImageURL(id string, imageURL string) error
 	UpdateReviewStatus(id string, status, comment string) error
 	BatchUpdateReviewStatus(ids []string, status string) error
+	// 任务锁（README 2.3，超时 1h）
+	TryLockShot(shotID, userID string) error
+	UnlockShot(shotID, userID string) error
 }
-
-var (
-	ErrShotNotFound = errors.New("镜头不存在")
-)
 
 // MemShotStore 内存占位实现，ID 使用 string（兼容 UUID）
 type MemShotStore struct {
@@ -247,6 +245,17 @@ func (s *MemShotStore) BatchUpdateReviewStatus(ids []string, status string) erro
 	return nil
 }
 
+// TryLockShot 内存模式无锁，仅校验镜头存在
+func (s *MemShotStore) TryLockShot(shotID, userID string) error {
+	_, err := s.FindByID(shotID)
+	return err
+}
+
+// UnlockShot 内存模式无锁
+func (s *MemShotStore) UnlockShot(shotID, userID string) error {
+	return nil
+}
+
 // ShotReaderAdapter 实现 crossmodule.ShotReader，供 shot_image 模块注入
 func ShotReaderAdapter(store ShotStore) crossmodule.ShotReader {
 	return &shotReaderAdapter{store: store}
@@ -274,4 +283,21 @@ func (a *shotReaderAdapter) UpdateShotReview(shotID string, status, comment stri
 
 func (a *shotReaderAdapter) BatchUpdateShotReview(shotIDs []string, status string) error {
 	return a.store.BatchUpdateReviewStatus(shotIDs, status)
+}
+
+// ShotLockerAdapter 实现 crossmodule.ShotLocker，供 shot_image、shot 模块注入
+func ShotLockerAdapter(store ShotStore) crossmodule.ShotLocker {
+	return &shotLockerAdapter{store: store}
+}
+
+type shotLockerAdapter struct {
+	store ShotStore
+}
+
+func (a *shotLockerAdapter) TryLockShot(shotID, userID string) error {
+	return a.store.TryLockShot(shotID, userID)
+}
+
+func (a *shotLockerAdapter) UnlockShot(shotID, userID string) error {
+	return a.store.UnlockShot(shotID, userID)
 }

@@ -1,6 +1,7 @@
 package shot_image
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -12,19 +13,25 @@ import (
 type Service struct {
 	store           ShotImageStore
 	shotReader      crossmodule.ShotReader
+	shotLocker      crossmodule.ShotLocker
 	projectVerifier crossmodule.ProjectVerifier
+	reviewRecorder  crossmodule.ReviewRecorder
 }
 
 // NewService 创建镜图服务
 func NewService(
 	store ShotImageStore,
 	shotReader crossmodule.ShotReader,
+	shotLocker crossmodule.ShotLocker,
 	projectVerifier crossmodule.ProjectVerifier,
+	reviewRecorder crossmodule.ReviewRecorder,
 ) *Service {
 	return &Service{
 		store:           store,
 		shotReader:      shotReader,
+		shotLocker:      shotLocker,
 		projectVerifier: projectVerifier,
+		reviewRecorder:  reviewRecorder,
 	}
 }
 
@@ -139,7 +146,13 @@ func (s *Service) UpdateImageReview(shotID, userID string, status, comment strin
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return err
 	}
-	return s.shotReader.UpdateShotReview(shotID, status, comment)
+	if err := s.shotReader.UpdateShotReview(shotID, status, comment); err != nil {
+		return err
+	}
+	if s.reviewRecorder != nil {
+		s.reviewRecorder.Record(context.Background(), "shot", shotID, projectID, userID, "human", status, comment, nil)
+	}
+	return nil
 }
 
 // BatchReview 批量审核镜图
@@ -157,17 +170,37 @@ func (s *Service) BatchReview(shotIDs []string, status string, userID string) er
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return err
 	}
-	return s.shotReader.BatchUpdateShotReview(shotIDs, status)
+	if err := s.shotReader.BatchUpdateShotReview(shotIDs, status); err != nil {
+		return err
+	}
+	if s.reviewRecorder != nil {
+		ctx := context.Background()
+		for _, shotID := range shotIDs {
+			s.reviewRecorder.Record(ctx, "shot", shotID, projectID, userID, "human", status, "", nil)
+		}
+	}
+	return nil
 }
 
 // BatchGenerate 批量生成镜图（占位，后续接 Worker）
+// 执行前对每个 shot 加锁，被他人锁定时返回 ErrLocked（README 2.3）
 func (s *Service) BatchGenerate(projectID, userID string, req BatchGenerateRequest) ([]BatchGenerateResult, error) {
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return nil, err
 	}
 	results := make([]BatchGenerateResult, len(req.ShotIDs))
-	for i, id := range req.ShotIDs {
-		results[i] = BatchGenerateResult{ShotID: id, Status: "queued", TaskIDs: []string{}}
+	for i, shotID := range req.ShotIDs {
+		if s.shotLocker != nil {
+			if err := s.shotLocker.TryLockShot(shotID, userID); err != nil {
+				if errors.Is(err, pkg.ErrLocked) {
+					results[i] = BatchGenerateResult{ShotID: shotID, Status: "locked", Error: "该镜头正在被他人执行"}
+					continue
+				}
+				results[i] = BatchGenerateResult{ShotID: shotID, Status: "error", Error: err.Error()}
+				continue
+			}
+		}
+		results[i] = BatchGenerateResult{ShotID: shotID, Status: "queued", TaskIDs: []string{}}
 	}
 	return results, nil
 }

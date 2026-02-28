@@ -52,7 +52,7 @@ func (d *DBData) FindByID(id string, userID string) (*Project, error) {
 	idUUID := pkg.StrToUUID(id)
 	userUUID := pkg.StrToUUID(userID)
 	if !idUUID.Valid {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	// 先尝试按所有者查询
 	row, err := d.q.GetProjectByIDAndUser(ctx, db.GetProjectByIDAndUserParams{ID: idUUID, UserID: userUUID})
@@ -64,12 +64,12 @@ func (d *DBData) FindByID(id string, userID string) (*Project, error) {
 		ProjectID: idUUID, UserID: userUUID,
 	})
 	if err != nil {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	_ = member // 成员存在，可访问
 	row2, err := d.q.GetProjectByID(ctx, idUUID)
 	if err != nil {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return dbProjectToProject(&row2), nil
 }
@@ -78,11 +78,11 @@ func (d *DBData) FindByIDOnly(id string) (*Project, error) {
 	ctx := context.Background()
 	idUUID := pkg.StrToUUID(id)
 	if !idUUID.Valid {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	row, err := d.q.GetProjectByID(ctx, idUUID)
 	if err != nil {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return dbProjectToProject(&row), nil
 }
@@ -108,7 +108,7 @@ func (d *DBData) UpdateProject(p *Project) error {
 	ctx := context.Background()
 	idUUID := pkg.StrToUUID(p.IDStr)
 	if !idUUID.Valid {
-		return ErrProjectNotFound
+		return pkg.ErrNotFound
 	}
 	arg := db.UpdateProjectParams{
 		ID:             idUUID,
@@ -129,7 +129,7 @@ func (d *DBData) DeleteProject(id string, userID string) error {
 	idUUID := pkg.StrToUUID(id)
 	userUUID := pkg.StrToUUID(userID)
 	if !idUUID.Valid || !userUUID.Valid {
-		return ErrProjectNotFound
+		return pkg.ErrNotFound
 	}
 	return d.q.SoftDeleteProject(ctx, db.SoftDeleteProjectParams{ID: idUUID, UserID: userUUID})
 }
@@ -139,7 +139,7 @@ func (d *DBData) CreateMember(m *ProjectMember) error {
 	projUUID := pkg.StrToUUID(m.ProjectIDStr)
 	userUUID := pkg.StrToUUID(m.UserIDStr)
 	if !projUUID.Valid || !userUUID.Valid {
-		return ErrProjectNotFound
+		return pkg.ErrNotFound
 	}
 	arg := db.CreateProjectMemberParams{
 		ProjectID: projUUID,
@@ -161,13 +161,13 @@ func (d *DBData) FindMemberByProjectAndUser(projectID, userID string) (*ProjectM
 	projUUID := pkg.StrToUUID(projectID)
 	userUUID := pkg.StrToUUID(userID)
 	if !projUUID.Valid || !userUUID.Valid {
-		return nil, ErrMemberNotFound
+		return nil, pkg.ErrNotFound
 	}
 	row, err := d.q.GetProjectMemberByProjectAndUser(ctx, db.GetProjectMemberByProjectAndUserParams{
 		ProjectID: projUUID, UserID: userUUID,
 	})
 	if err != nil {
-		return nil, ErrMemberNotFound
+		return nil, pkg.ErrNotFound
 	}
 	return dbMemberToMember(&row), nil
 }
@@ -176,7 +176,7 @@ func (d *DBData) ListMembersByProject(projectID string) ([]ProjectMember, error)
 	ctx := context.Background()
 	projUUID := pkg.StrToUUID(projectID)
 	if !projUUID.Valid {
-		return nil, ErrProjectNotFound
+		return nil, pkg.ErrNotFound
 	}
 	rows, err := d.q.ListProjectMembersByProject(ctx, projUUID)
 	if err != nil {
@@ -194,7 +194,7 @@ func (d *DBData) UpdateMemberRole(projectID, userID string, role string) error {
 	projUUID := pkg.StrToUUID(projectID)
 	userUUID := pkg.StrToUUID(userID)
 	if !projUUID.Valid || !userUUID.Valid {
-		return ErrMemberNotFound
+		return pkg.ErrNotFound
 	}
 	_, err := d.q.UpdateProjectMemberRole(ctx, db.UpdateProjectMemberRoleParams{
 		Role: pgtype.Text{String: role, Valid: true}, ProjectID: projUUID, UserID: userUUID,
@@ -207,7 +207,7 @@ func (d *DBData) DeleteMember(projectID, userID string) error {
 	projUUID := pkg.StrToUUID(projectID)
 	userUUID := pkg.StrToUUID(userID)
 	if !projUUID.Valid || !userUUID.Valid {
-		return ErrMemberNotFound
+		return pkg.ErrNotFound
 	}
 	return d.q.SoftDeleteProjectMember(ctx, db.SoftDeleteProjectMemberParams{
 		ProjectID: projUUID, UserID: userUUID,

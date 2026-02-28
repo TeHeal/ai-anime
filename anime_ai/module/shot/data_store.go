@@ -284,6 +284,35 @@ func (s *DBShotStore) BatchUpdateReviewStatus(ids []string, status string) error
 	return nil
 }
 
+// TryLockShot 尝试加锁（超时 1h 自动可重锁），被他人锁定时返回 pkg.ErrLocked
+func (s *DBShotStore) TryLockShot(shotID, userID string) error {
+	ctx := context.Background()
+	sid := pkg.ParseUUID(shotID)
+	uid := pkg.ParseUUID(userID)
+	if !sid.Valid || !uid.Valid {
+		return pkg.ErrNotFound
+	}
+	_, err := s.q.TryLockShot(ctx, db.TryLockShotParams{ID: sid, LockedBy: uid})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return pkg.ErrLocked
+		}
+		return err
+	}
+	return nil
+}
+
+// UnlockShot 释放锁
+func (s *DBShotStore) UnlockShot(shotID, userID string) error {
+	ctx := context.Background()
+	sid := pkg.ParseUUID(shotID)
+	uid := pkg.ParseUUID(userID)
+	if !sid.Valid || !uid.Valid {
+		return nil
+	}
+	return s.q.UnlockShot(ctx, db.UnlockShotParams{ID: sid, LockedBy: uid})
+}
+
 // 辅助：db.Shot -> module.Shot
 func dbShotToModule(d *db.Shot) Shot {
 	sh := Shot{

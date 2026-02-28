@@ -1,6 +1,8 @@
 package prop
 
 import (
+	"errors"
+
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +34,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	p, err := h.svc.Create(projectID, userID, req)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
@@ -53,7 +55,7 @@ func (h *Handler) List(c *gin.Context) {
 
 	props, err := h.svc.List(projectID, userID)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
@@ -75,7 +77,7 @@ func (h *Handler) Get(c *gin.Context) {
 
 	p, err := h.svc.Get(propID, projectID, userID)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "道具不存在")
 			return
 		}
@@ -103,7 +105,7 @@ func (h *Handler) Update(c *gin.Context) {
 
 	p, err := h.svc.Update(propID, projectID, userID, req)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "道具不存在")
 			return
 		}
@@ -125,7 +127,7 @@ func (h *Handler) Confirm(c *gin.Context) {
 
 	p, err := h.svc.Confirm(propID, projectID, userID)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "道具不存在")
 			return
 		}
@@ -146,7 +148,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	}
 
 	if err := h.svc.Delete(propID, projectID, userID); err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "道具不存在")
 			return
 		}

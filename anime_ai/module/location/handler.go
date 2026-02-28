@@ -1,6 +1,8 @@
 package location
 
 import (
+	"errors"
+
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +34,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	loc, err := h.svc.Create(projectID, userID, req)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
@@ -53,7 +55,7 @@ func (h *Handler) List(c *gin.Context) {
 
 	locs, err := h.svc.List(projectID, userID)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
@@ -75,7 +77,7 @@ func (h *Handler) Get(c *gin.Context) {
 
 	loc, err := h.svc.Get(locID, projectID, userID)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
@@ -103,7 +105,7 @@ func (h *Handler) Update(c *gin.Context) {
 
 	loc, err := h.svc.Update(locID, projectID, userID, req)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
@@ -125,7 +127,7 @@ func (h *Handler) Confirm(c *gin.Context) {
 
 	loc, err := h.svc.Confirm(locID, projectID, userID)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
@@ -146,7 +148,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	}
 
 	if err := h.svc.Delete(locID, projectID, userID); err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
@@ -174,7 +176,7 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 
 	loc, err := h.svc.GenerateImage(locID, projectID, userID, req.Provider, req.Model)
 	if err != nil {
-		if err == pkg.ErrNotFound {
+		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
