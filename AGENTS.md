@@ -99,7 +99,6 @@ export PATH="/usr/local/go/bin:/opt/flutter/bin:$PATH"
 
 ### 已知问题
 
-- `anime_ui/test/widget_test.dart` 引用了不存在的 `MyApp`（实际为 `AnimeApp`），导致 `flutter test` 和 `flutter analyze` 报错。这是仓库已有问题，非环境配置错误。
 - `go vet` 报告 `module/episode/data.go:48` 存在自赋值警告，属于仓库已有问题。
 
 ### 常用命令参考
