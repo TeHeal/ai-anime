@@ -8,6 +8,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
 	"github.com/TeHeal/ai-anime/anime_ai/module/review"
 	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
@@ -182,6 +183,15 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projects.POST("/:id/shots/composite", cfg.ShotHandler.BatchComposite)
 				}
 
+			// 成片合成
+			if cfg.CompositeHandler != nil {
+				projects.POST("/:id/composites", cfg.CompositeHandler.Create)
+				projects.GET("/:id/composites", cfg.CompositeHandler.List)
+				projects.GET("/:id/composites/:taskId", cfg.CompositeHandler.Get)
+				projects.PUT("/:id/composites/:taskId/timeline", cfg.CompositeHandler.UpdateTimeline)
+				projects.POST("/:id/composites/:taskId/export", cfg.CompositeHandler.Export)
+			}
+
 			// 风格资产
 			if cfg.StyleHandler != nil {
 				projects.POST("/:id/styles", cfg.StyleHandler.Create)
@@ -286,6 +296,7 @@ type RouteConfig struct {
 	ShotHandler        *shot.Handler
 	ShotImageHandler   *shot_image.Handler
 	WSHandler          *realtime.WSHandler
+	CompositeHandler   *composite.Handler
 	ReviewHandler      *review.Handler
 	NotifHandler       *notification.Handler
 	StyleHandler       *style.Handler

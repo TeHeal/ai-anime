@@ -16,6 +16,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
 	"github.com/TeHeal/ai-anime/anime_ai/module/review"
 	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
@@ -305,6 +306,11 @@ func main() {
 	taskLockSvc := tasklock.NewService(taskLockStore, logger)
 	taskLockHandler := tasklock.NewHandler(taskLockSvc)
 
+	// 成片合成模块
+	compositeStore := composite.NewMemStore()
+	compositeSvc := composite.NewService(compositeStore, logger)
+	compositeHandler := composite.NewHandler(compositeSvc)
+
 	// 调度模块
 	schedStore := schedule.NewMemStore()
 	schedSvc := schedule.NewService(schedStore, logger)
@@ -328,6 +334,7 @@ func main() {
 		NotifHandler:       notifHandler,
 		StyleHandler:       styleHandler,
 		TaskLockHandler:    taskLockHandler,
+		CompositeHandler:   compositeHandler,
 		ScheduleHandler:    schedHandler,
 		JWTSecret:          cfg.App.Secret,
 	}
