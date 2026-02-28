@@ -1,2 +1,2 @@
 // Re-export from canonical location in script/object.
-export '../script/view/provider.dart';
+export '../script/page/provider.dart';

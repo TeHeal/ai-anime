@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/script/provider.dart';
-import 'package:anime_ui/module/script/view/review_ui_provider.dart';
-import 'package:anime_ui/module/script/view/script_provider.dart';
-import 'package:anime_ui/module/script/view/widgets/review_editor.dart';
-import 'package:anime_ui/module/script/view/widgets/review_left_nav.dart';
-import 'package:anime_ui/module/script/view/widgets/review_right_panel.dart';
+import 'package:anime_ui/module/script/page/review_ui_provider.dart';
+import 'package:anime_ui/module/script/page/script_provider.dart';
+import 'package:anime_ui/module/script/page/widgets/review_editor.dart';
+import 'package:anime_ui/module/script/page/widgets/review_left_nav.dart';
+import 'package:anime_ui/module/script/page/widgets/review_right_panel.dart';
 
 // ---------------------------------------------------------------------------
 // 审核编辑页面（薄壳：组合三栏布局 + 快捷键）

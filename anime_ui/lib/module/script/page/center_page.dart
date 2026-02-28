@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/module/script/provider.dart';
-import 'package:anime_ui/module/script/view/script_provider.dart';
-import 'package:anime_ui/module/script/view/widgets/center_config_card.dart';
-import 'package:anime_ui/module/script/view/widgets/center_import_card.dart';
-import 'package:anime_ui/module/script/view/widgets/center_task_section.dart';
+import 'package:anime_ui/module/script/page/script_provider.dart';
+import 'package:anime_ui/module/script/page/widgets/center_config_card.dart';
+import 'package:anime_ui/module/script/page/widgets/center_import_card.dart';
+import 'package:anime_ui/module/script/page/widgets/center_task_section.dart';
 
 /// 脚本 - 生成中心（Tab 2）
 class ScriptCenterPage extends ConsumerStatefulWidget {

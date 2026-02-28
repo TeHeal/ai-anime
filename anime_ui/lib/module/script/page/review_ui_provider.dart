@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/module/script/view/script_provider.dart';
+import 'package:anime_ui/module/script/page/script_provider.dart';
 
 // ---------------------------------------------------------------------------
 // 审核页面 UI 状态

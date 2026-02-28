@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_common.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_common.dart';
 
 // ---------------------------------------------------------------------------
 // 6. 图像 & 7. 视频

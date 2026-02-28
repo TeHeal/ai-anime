@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/character.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/module/script/view/review_ui_provider.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_common.dart';
-import 'package:anime_ui/module/script/view/widgets/emotion_vector_widget.dart';
+import 'package:anime_ui/module/script/page/review_ui_provider.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_common.dart';
+import 'package:anime_ui/module/script/page/widgets/emotion_vector_widget.dart';
 
 // ---------------------------------------------------------------------------
 // 3. 角色卡片 & 4. 情绪卡片

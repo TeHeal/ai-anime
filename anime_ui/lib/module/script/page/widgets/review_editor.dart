@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
-import 'package:anime_ui/module/script/view/review_ui_provider.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_common.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_header.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_scene_prompt.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_character.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_audio.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_media.dart';
+import 'package:anime_ui/module/script/page/review_ui_provider.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_common.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_header.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_scene_prompt.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_character.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_audio.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_media.dart';
 
 // ---------------------------------------------------------------------------
 // 中栏：编辑器

@@ -8,7 +8,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';
 import 'package:anime_ui/module/script/provider.dart';
-import 'package:anime_ui/module/script/view/script_provider.dart';
+import 'package:anime_ui/module/script/page/script_provider.dart';
 
 /// JSON 导入卡片：上传分镜脚本 JSON 文件并导入到指定集
 class CenterImportCard extends ConsumerStatefulWidget {

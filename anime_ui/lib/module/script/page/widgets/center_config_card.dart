@@ -10,8 +10,8 @@ import 'package:anime_ui/pub/widgets/model_selector/model_selector.dart';
 import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 import 'package:anime_ui/pub/widgets/prompt_library_dialog.dart';
 import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
-import 'package:anime_ui/module/script/view/center_ui_provider.dart';
-import 'package:anime_ui/module/script/view/script_provider.dart';
+import 'package:anime_ui/module/script/page/center_ui_provider.dart';
+import 'package:anime_ui/module/script/page/script_provider.dart';
 
 /// 生成配置卡片：全局提示词、反向提示词、制作适配、模型选择
 class CenterConfigCard extends ConsumerStatefulWidget {

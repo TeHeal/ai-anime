@@ -8,9 +8,9 @@ import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
 import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';
 import 'package:anime_ui/module/script/provider.dart';
-import 'package:anime_ui/module/script/view/center_ui_provider.dart';
-import 'package:anime_ui/module/script/view/script_provider.dart';
-import 'package:anime_ui/module/script/view/widgets/episode_task_card.dart';
+import 'package:anime_ui/module/script/page/center_ui_provider.dart';
+import 'package:anime_ui/module/script/page/script_provider.dart';
+import 'package:anime_ui/module/script/page/widgets/episode_task_card.dart';
 
 /// 生成任务区域：筛选栏 + 批量操作 + 任务卡片网格
 class CenterTaskSection extends ConsumerWidget {

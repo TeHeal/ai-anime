@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/module/script/view/review_ui_provider.dart';
-import 'package:anime_ui/module/script/view/script_provider.dart';
+import 'package:anime_ui/module/script/page/review_ui_provider.dart';
+import 'package:anime_ui/module/script/page/script_provider.dart';
 
 // ---------------------------------------------------------------------------
 // 右栏：操作面板 (260px)

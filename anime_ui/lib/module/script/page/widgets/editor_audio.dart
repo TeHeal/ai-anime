@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/module/script/view/review_ui_provider.dart';
-import 'package:anime_ui/module/script/view/widgets/editor_common.dart';
+import 'package:anime_ui/module/script/page/review_ui_provider.dart';
+import 'package:anime_ui/module/script/page/widgets/editor_common.dart';
 
 // ---------------------------------------------------------------------------
 // 5. 音频（台词 + 音频设计 + 各音频通道）
