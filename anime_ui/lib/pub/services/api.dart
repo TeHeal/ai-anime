@@ -63,8 +63,20 @@ List<T> extractDataList<T>(
   Response response,
   T Function(Map<String, dynamic>) fromJson,
 ) {
-  final raw = extractData<List<dynamic>>(response);
-  return raw.map((e) => fromJson(e as Map<String, dynamic>)).toList();
+  final body = response.data;
+  if (body is Map<String, dynamic>) {
+    final code = body['code'] as int? ?? -1;
+    if (code != 0) {
+      throw ApiException(code, body['message'] as String? ?? 'Unknown error');
+    }
+    final raw = body['data'];
+    if (raw == null) return [];
+    if (raw is! List<dynamic>) {
+      throw ApiException(-1, 'Expected list but got ${raw.runtimeType}');
+    }
+    return raw.map((e) => fromJson(e as Map<String, dynamic>)).toList();
+  }
+  throw ApiException(-1, 'Unexpected response format');
 }
 
 /// Type-safe single object extraction.

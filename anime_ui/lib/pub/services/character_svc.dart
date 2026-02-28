@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import 'package:anime_ui/pub/models/character.dart';
 import 'api.dart';
 
@@ -43,8 +45,15 @@ class CharacterService {
   }
 
   Future<List<Character>> listByProject(String projectId) async {
-    final resp = await dio.get('/projects/$projectId/characters');
-    return extractDataList(resp, Character.fromJson);
+    try {
+      final resp = await dio.get('/projects/$projectId/characters');
+      return extractDataList(resp, Character.fromJson);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return [];
+      }
+      rethrow;
+    }
   }
 
   Future<Character> get(String id) async {

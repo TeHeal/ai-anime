@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
+
 import 'package:anime_ui/pub/models/task.dart';
 import 'api.dart';
 
@@ -10,10 +12,17 @@ class TaskService {
   }
 
   Future<List<Task>> list({String? type, int limit = 20}) async {
-    final params = <String, dynamic>{'limit': limit};
-    if (type != null) params['type'] = type;
-    final resp = await dio.get('/tasks', queryParameters: params);
-    return extractDataList(resp, Task.fromJson);
+    try {
+      final params = <String, dynamic>{'limit': limit};
+      if (type != null) params['type'] = type;
+      final resp = await dio.get('/tasks', queryParameters: params);
+      return extractDataList(resp, Task.fromJson);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return [];
+      }
+      rethrow;
+    }
   }
 
   Future<List<Task>> batchGet(List<String> taskIds) async {
