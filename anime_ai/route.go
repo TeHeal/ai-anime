@@ -23,11 +23,13 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 	api := r.Group("/api/v1")
 	{
+		api.GET("/metrics", gin.WrapH(promhttp.Handler()))
 		api.GET("/health", health.Handler)
 	}
 

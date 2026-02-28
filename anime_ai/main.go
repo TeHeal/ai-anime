@@ -350,6 +350,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(middleware.PrometheusMiddleware())
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger(logger))
 	registerRoutes(r, routeCfg)
