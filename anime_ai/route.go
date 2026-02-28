@@ -8,6 +8,12 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
+	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/review"
+	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
+	"github.com/TeHeal/ai-anime/anime_ai/module/style"
+	"github.com/TeHeal/ai-anime/anime_ai/module/tasklock"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
@@ -17,11 +23,13 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 	api := r.Group("/api/v1")
 	{
+		api.GET("/metrics", gin.WrapH(promhttp.Handler()))
 		api.GET("/health", health.Handler)
 	}
 
@@ -42,6 +50,26 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 	{
 		protected.GET("/auth/me", cfg.AuthHandler.Me)
 		protected.PUT("/auth/password", cfg.AuthHandler.ChangePassword)
+
+		// 用户管理（需管理员权限）
+		users := protected.Group("/users")
+		users.Use(middleware.AdminOnly())
+		{
+			users.POST("", cfg.AuthHandler.CreateUser)
+			users.GET("", cfg.AuthHandler.ListUsers)
+			users.DELETE("/:userId", cfg.AuthHandler.DeleteUser)
+		}
+
+		// 通知接口（用户级别）
+		if cfg.NotifHandler != nil {
+			notifs := protected.Group("/notifications")
+			{
+				notifs.GET("", cfg.NotifHandler.List)
+				notifs.GET("/unread-count", cfg.NotifHandler.UnreadCount)
+				notifs.PUT("/:notifId/read", cfg.NotifHandler.MarkRead)
+				notifs.PUT("/read-all", cfg.NotifHandler.MarkAllRead)
+			}
+		}
 
 		// 项目管理
 		if cfg.ProjectHandler != nil {
@@ -157,8 +185,53 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projects.POST("/:id/shots/composite", cfg.ShotHandler.BatchComposite)
 				}
 
-				// 镜图生成、审核
-				if cfg.ShotImageHandler != nil {
+			// 成片合成
+			if cfg.CompositeHandler != nil {
+				projects.POST("/:id/composites", cfg.CompositeHandler.Create)
+				projects.GET("/:id/composites", cfg.CompositeHandler.List)
+				projects.GET("/:id/composites/:taskId", cfg.CompositeHandler.Get)
+				projects.PUT("/:id/composites/:taskId/timeline", cfg.CompositeHandler.UpdateTimeline)
+				projects.POST("/:id/composites/:taskId/export", cfg.CompositeHandler.Export)
+			}
+
+			// 风格资产
+			if cfg.StyleHandler != nil {
+				projects.POST("/:id/styles", cfg.StyleHandler.Create)
+				projects.GET("/:id/styles", cfg.StyleHandler.List)
+				projects.GET("/:id/styles/:styleId", cfg.StyleHandler.Get)
+				projects.PUT("/:id/styles/:styleId", cfg.StyleHandler.Update)
+				projects.DELETE("/:id/styles/:styleId", cfg.StyleHandler.Delete)
+			}
+
+			// 任务锁
+			if cfg.TaskLockHandler != nil {
+				projects.POST("/:id/task-locks", cfg.TaskLockHandler.Acquire)
+				projects.DELETE("/:id/task-locks/:lockId", cfg.TaskLockHandler.Release)
+				projects.GET("/:id/task-locks/check", cfg.TaskLockHandler.Check)
+			}
+
+			// 定时调度
+			if cfg.ScheduleHandler != nil {
+				projects.POST("/:id/schedules", cfg.ScheduleHandler.Create)
+				projects.GET("/:id/schedules", cfg.ScheduleHandler.List)
+				projects.GET("/:id/schedules/:schedId", cfg.ScheduleHandler.Get)
+				projects.PUT("/:id/schedules/:schedId", cfg.ScheduleHandler.Update)
+				projects.DELETE("/:id/schedules/:schedId", cfg.ScheduleHandler.Delete)
+			}
+
+			// 审核管理
+			if cfg.ReviewHandler != nil {
+				projects.POST("/:id/reviews", cfg.ReviewHandler.SubmitReview)
+				projects.GET("/:id/reviews", cfg.ReviewHandler.ListByProject)
+				projects.GET("/:id/reviews/pending-count", cfg.ReviewHandler.CountPending)
+				projects.PUT("/:id/reviews/:reviewId/decide", cfg.ReviewHandler.HumanDecide)
+				projects.GET("/:id/reviews/:reviewId", cfg.ReviewHandler.GetRecord)
+				projects.GET("/:id/review-config", cfg.ReviewHandler.GetConfig)
+				projects.PUT("/:id/review-config", cfg.ReviewHandler.UpdateConfig)
+			}
+
+			// 镜图生成、审核
+			if cfg.ShotImageHandler != nil {
 					projects.POST("/:id/shot-images/generate", cfg.ShotImageHandler.BatchGenerate)
 					projects.GET("/:id/shot-images/status", cfg.ShotImageHandler.GetStatus)
 					projects.POST("/:id/shot-images/select-candidate", cfg.ShotImageHandler.SelectCandidate)
@@ -225,6 +298,12 @@ type RouteConfig struct {
 	ShotHandler        *shot.Handler
 	ShotImageHandler   *shot_image.Handler
 	WSHandler          *realtime.WSHandler
+	CompositeHandler   *composite.Handler
+	ReviewHandler      *review.Handler
+	NotifHandler       *notification.Handler
+	StyleHandler       *style.Handler
+	TaskLockHandler    *tasklock.Handler
+	ScheduleHandler    *schedule.Handler
 	AsynqClient        *asynq.Client // 供 API 入队任务，Redis 不可用时为 nil
 	JWTSecret          string
 }

@@ -59,3 +59,49 @@
 ## 7. Cursor 偏好
 
 - **不录制视频**：除非用户明确要求，否则不录制演示视频。
+
+## Cursor Cloud specific instructions
+
+### 环境概览
+
+本项目为 monorepo，包含 Go 后端 (`anime_ai/`) 和 Flutter Web 前端 (`anime_ui/`)。
+
+| 组件 | 位置 | 端口 |
+|------|------|------|
+| Go 后端 | `anime_ai/` | 3737 |
+| Flutter 前端 | `anime_ui/` | 8080 |
+| Redis | 系统服务 | 6379 |
+
+### 工具版本
+
+- **Go**: 1.26（安装于 `/usr/local/go/bin`）
+- **Flutter**: 3.41.x stable（安装于 `/opt/flutter/bin`，Dart SDK 3.11.0）
+- **Redis**: 7.x（通过 apt 安装）
+
+### PATH 设置
+
+Cloud VM 中 Go 和 Flutter 需要在 PATH 中：
+```
+export PATH="/usr/local/go/bin:/opt/flutter/bin:$PATH"
+```
+
+### 启动服务
+
+1. **Redis**: `redis-server --daemonize yes`，然后执行 `redis-cli config set stop-writes-on-bgsave-error no`（Cloud VM 磁盘权限问题导致 RDB 快照失败）
+2. **后端**: `cd anime_ai && go run .`（`config.yaml` 已提交在仓库中，无需手动复制）
+3. **前端**: `cd anime_ui && flutter run -d web-server --web-port 8080 --dart-define=API_BASE_URL=http://localhost:3737/api/v1`
+
+### 后端架构要点
+
+- PostgreSQL 为可选依赖：DSN 为空或连接失败时自动 fallback 到内存存储，后端可正常启动和测试所有 API。
+- Asynq Worker 依赖 Redis，Redis 可用时自动启动。
+- 默认管理员 `admin`/`admin123`，登录接口 `POST /api/v1/auth/login`。
+
+### 已知问题
+
+- `anime_ui/test/widget_test.dart` 引用了不存在的 `MyApp`（实际为 `AnimeApp`），导致 `flutter test` 和 `flutter analyze` 报错。这是仓库已有问题，非环境配置错误。
+- `go vet` 报告 `module/episode/data.go:48` 存在自赋值警告，属于仓库已有问题。
+
+### 常用命令参考
+
+见 §4（服务与启动）和 §5（常用命令）。后端 Makefile targets: `run`, `build`, `test`, `tidy`, `clean`。

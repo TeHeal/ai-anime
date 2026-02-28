@@ -32,7 +32,8 @@ func ProjectContext(
 
 		// 系统管理员拥有全部权限
 		if sysRole == "admin" {
-			auth.SetProjectContext(c, uint(projectID), auth.TeamRoleOwner, 0, 0)
+			auth.SetProjectContext(c, uint(projectID), auth.RoleDirector, 0, 0)
+			auth.SetRoles(c, []string{auth.RoleDirector})
 			c.Next()
 			return
 		}
@@ -46,7 +47,8 @@ func ProjectContext(
 		}
 
 		if project.UserID == userID {
-			auth.SetProjectContext(c, uint(projectID), auth.TeamRoleOwner, 0, project.TeamID)
+			auth.SetProjectContext(c, uint(projectID), auth.RoleDirector, 0, project.TeamID)
+			auth.SetRoles(c, []string{auth.RoleDirector})
 			c.Next()
 			return
 		}

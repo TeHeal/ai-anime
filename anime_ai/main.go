@@ -16,6 +16,12 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
+	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/review"
+	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
+	"github.com/TeHeal/ai-anime/anime_ai/module/style"
+	"github.com/TeHeal/ai-anime/anime_ai/module/tasklock"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
@@ -26,6 +32,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/worker"
@@ -57,6 +64,12 @@ func main() {
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("加载配置失败: %v", err)
+	}
+
+	// 初始化日志（提前创建，供所有模块使用）
+	logger, _ := zap.NewProduction()
+	if cfg.App.Mode == "debug" {
+		logger, _ = zap.NewDevelopment()
 	}
 
 	// 用户存储：DB 可用时优先用 DBUserStore，否则用 BootstrapUserStore
@@ -124,10 +137,26 @@ func main() {
 	sceneSvc := scene.NewService(sceneStore, sceneBlockStore, episodeReader, projectVerifier)
 	sceneHandler := scene.NewHandler(sceneSvc)
 
+	// LLM Chat 路由（供分镜/脚本等 AI 生成模块使用）
+	chatPolicy := mesh.DefaultPolicy()
+	chatBreaker := mesh.NewBreaker(3)
+	meshLogger := mesh.NewZapLogger(logger)
+	chatRouter := mesh.NewRouter(chatPolicy, chatBreaker, meshLogger)
+	if cfg.LLM.DeepSeekKey != "" {
+		chatRouter.RegisterChatProvider(llm.AsChatProvider(llm.NewDeepSeekProvider(cfg.LLM.DeepSeekKey)))
+	}
+	if cfg.LLM.KimiKey != "" {
+		chatRouter.RegisterChatProvider(llm.AsChatProvider(llm.NewKimiProvider(cfg.LLM.KimiKey)))
+	}
+	if cfg.LLM.DoubaoKey != "" {
+		chatRouter.RegisterChatProvider(llm.AsChatProvider(llm.NewDoubaoProvider(cfg.LLM.DoubaoKey)))
+	}
+	logger.Info("LLM Chat 路由初始化完成")
+
 	// 分镜模块
 	storyboardAccess := project.NewStoryboardAccess(projectData)
 	storyboardData := storyboard.NewMemData(storyboardAccess)
-	storyboardSvc := storyboard.NewService(storyboardData, projectVerifier)
+	storyboardSvc := storyboard.NewService(storyboardData, projectVerifier, chatRouter, logger)
 	storyboardHandler := storyboard.NewHandler(storyboardSvc)
 
 	// 脚本模块：DB 可用时用 DBSegmentStore，否则 Mem
@@ -138,7 +167,7 @@ func main() {
 	} else {
 		segmentStore = script.NewMemSegmentStore()
 	}
-	scriptSvc := script.NewService(segmentStore, projectVerifier)
+	scriptSvc := script.NewService(segmentStore, projectVerifier, chatRouter, logger)
 	scriptHandler := script.NewHandler(scriptSvc)
 
 	// 角色模块：DB 可用时用 DBData，否则 Mem
@@ -194,14 +223,10 @@ func main() {
 	} else {
 		shotImageStore = shot_image.NewMemShotImageStore()
 	}
-	shotImageSvc := shot_image.NewService(shotImageStore, shotReader, projectVerifier)
-	shotImageHandler := shot_image.NewHandler(shotImageSvc)
+	// shotImageSvc 延迟到 asynqClient 初始化后创建（见下方）
+	_ = shotImageStore
 
 	// WebSocket Hub（任务进度推送等）
-	logger, _ := zap.NewProduction()
-	if cfg.App.Mode == "debug" {
-		logger, _ = zap.NewDevelopment()
-	}
 	realtimeHub := realtime.NewHub(logger)
 	wsHandler := realtime.NewWSHandler(realtimeHub, cfg.App.Secret)
 
@@ -235,7 +260,7 @@ func main() {
 	}
 	imageHandler := worker.NewImageTaskHandler(logger, imageTaskDeps)
 
-	// Asynq Worker：Redis 可用时创建 Client 与 Server，供 API 入队任务
+	// Asynq Worker + 镜图服务（依赖 asynqClient）
 	var asynqClient *asynq.Client
 	var asynqServer *asynq.Server
 	redisAddr := cfg.Redis.Addr
@@ -257,6 +282,40 @@ func main() {
 		}
 	}
 
+	// 镜图服务（需要 asynqClient，延迟到这里创建）
+	shotImageSvc := shot_image.NewService(shotImageStore, shotReader, projectVerifier, asynqClient, logger)
+	shotImageHandler := shot_image.NewHandler(shotImageSvc)
+
+	// 审核模块
+	reviewStore := review.NewMemReviewStore()
+	reviewSvc := review.NewService(reviewStore, logger)
+	reviewHandler := review.NewHandler(reviewSvc)
+
+	// 通知模块
+	notifStore := notification.NewMemStore()
+	notifSvc := notification.NewService(notifStore)
+	notifHandler := notification.NewHandler(notifSvc)
+
+	// 风格资产模块
+	styleStore := style.NewMemStore()
+	styleSvc := style.NewService(styleStore, logger)
+	styleHandler := style.NewHandler(styleSvc)
+
+	// 任务锁模块
+	taskLockStore := tasklock.NewMemStore()
+	taskLockSvc := tasklock.NewService(taskLockStore, logger)
+	taskLockHandler := tasklock.NewHandler(taskLockSvc)
+
+	// 成片合成模块
+	compositeStore := composite.NewMemStore()
+	compositeSvc := composite.NewService(compositeStore, logger)
+	compositeHandler := composite.NewHandler(compositeSvc)
+
+	// 调度模块
+	schedStore := schedule.NewMemStore()
+	schedSvc := schedule.NewService(schedStore, logger)
+	schedHandler := schedule.NewHandler(schedSvc)
+
 	routeCfg := &RouteConfig{
 		AuthHandler:        authHandler,
 		ProjectHandler:     projectHandler,
@@ -271,6 +330,12 @@ func main() {
 		ShotImageHandler:   shotImageHandler,
 		WSHandler:          wsHandler,
 		AsynqClient:        asynqClient,
+		ReviewHandler:      reviewHandler,
+		NotifHandler:       notifHandler,
+		StyleHandler:       styleHandler,
+		TaskLockHandler:    taskLockHandler,
+		CompositeHandler:   compositeHandler,
+		ScheduleHandler:    schedHandler,
 		JWTSecret:          cfg.App.Secret,
 	}
 
@@ -285,6 +350,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(middleware.PrometheusMiddleware())
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger(logger))
 	registerRoutes(r, routeCfg)

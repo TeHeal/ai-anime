@@ -12,7 +12,7 @@ func RequireAction(action auth.Action) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := auth.FromContext(c)
 		if !id.Can(action) {
-			pkg.Forbidden(c, "权限不足：需要 "+auth.MinRole(action)+" 及以上角色")
+			pkg.Forbidden(c, "权限不足：当前角色无权执行此操作")
 			c.Abort()
 			return
 		}

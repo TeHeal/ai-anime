@@ -10,4 +10,19 @@ var (
 	ErrBadRequest    = errors.New("ERR_BAD_REQUEST")
 	ErrAlreadyExists = errors.New("ERR_ALREADY_EXISTS")
 	ErrInternal      = errors.New("ERR_INTERNAL")
+
+	// 审核相关
+	ErrReviewInvalidStatus = errors.New("ERR_REVIEW_INVALID_STATUS")
+	ErrReviewInvalidMode   = errors.New("ERR_REVIEW_INVALID_MODE")
+
+	// 任务锁相关
+	ErrTaskLocked    = errors.New("ERR_TASK_LOCKED")
+	ErrLockNotFound  = errors.New("ERR_LOCK_NOT_FOUND")
+	ErrLockExpired   = errors.New("ERR_LOCK_EXPIRED")
+
+	// 认证相关
+	ErrInvalidCredentials = errors.New("ERR_INVALID_CREDENTIALS")
+	ErrUserExists         = errors.New("ERR_USER_EXISTS")
+	ErrPasswordHashFailed = errors.New("ERR_PASSWORD_HASH_FAILED")
+	ErrTokenGenFailed     = errors.New("ERR_TOKEN_GEN_FAILED")
 )

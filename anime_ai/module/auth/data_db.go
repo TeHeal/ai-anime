@@ -56,6 +56,42 @@ func (s *DBUserStore) Update(user *User) error {
 	return err
 }
 
+func (s *DBUserStore) Create(user *User) (*User, error) {
+	ctx := context.Background()
+	row, err := s.q.CreateUser(ctx, db.CreateUserParams{
+		Username:     user.Username,
+		PasswordHash: user.PasswordHash,
+		DisplayName:  pgtype.Text{String: user.DisplayName, Valid: true},
+		Role:         user.Role,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return dbUserToUser(&row), nil
+}
+
+func (s *DBUserStore) List() ([]*User, error) {
+	ctx := context.Background()
+	rows, err := s.q.ListUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	users := make([]*User, len(rows))
+	for i, row := range rows {
+		users[i] = dbUserToUser(&row)
+	}
+	return users, nil
+}
+
+func (s *DBUserStore) Delete(id string) error {
+	ctx := context.Background()
+	idUUID := pkg.StrToUUID(id)
+	if !idUUID.Valid {
+		return pkg.ErrNotFound
+	}
+	return s.q.SoftDeleteUser(ctx, idUUID)
+}
+
 func dbUserToUser(row *db.User) *User {
 	u := &User{
 		IDStr:        pkg.UUIDToStr(row.ID),

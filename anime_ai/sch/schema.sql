@@ -105,7 +105,7 @@ CREATE INDEX idx_projects_user_id ON projects (user_id);
 CREATE INDEX idx_projects_team_id ON projects (team_id);
 CREATE INDEX idx_projects_deleted_at ON projects (deleted_at);
 
--- 项目成员表（团队协作）
+-- 项目成员表（团队协作，支持多角色）
 CREATE TABLE project_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -114,6 +114,7 @@ CREATE TABLE project_members (
     project_id UUID NOT NULL REFERENCES projects(id),
     user_id UUID NOT NULL REFERENCES users(id),
     role VARCHAR(16) NOT NULL DEFAULT 'viewer',
+    roles_json JSONB NOT NULL DEFAULT '["viewer"]',
     joined_at TIMESTAMPTZ
 );
 
@@ -386,6 +387,226 @@ CREATE TABLE props (
 CREATE INDEX idx_props_project_id ON props (project_id);
 CREATE INDEX idx_props_deleted_at ON props (deleted_at);
 
+-- ========== 风格资产 ==========
+
+-- 风格表（Style，项目级）
+CREATE TABLE styles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
+    project_id UUID NOT NULL REFERENCES projects(id),
+    name VARCHAR(128) NOT NULL,
+    description TEXT DEFAULT '',
+    category VARCHAR(32) DEFAULT '',
+    preview_url VARCHAR(512) DEFAULT '',
+    prompt_template TEXT DEFAULT '',
+    negative_prompt TEXT DEFAULT '',
+    params_json JSONB DEFAULT '{}',
+    status VARCHAR(16) DEFAULT 'draft',
+    source VARCHAR(20) DEFAULT 'manual'
+);
+
+CREATE INDEX idx_styles_project_id ON styles (project_id);
+CREATE INDEX idx_styles_deleted_at ON styles (deleted_at);
+
+-- ========== 资产版本 ==========
+
+-- 资产版本表（AssetVersion，通用资产版本管理）
+CREATE TABLE asset_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    asset_type VARCHAR(32) NOT NULL,
+    asset_id UUID NOT NULL,
+    project_id UUID NOT NULL REFERENCES projects(id),
+    version INT NOT NULL DEFAULT 1,
+    snapshot_json JSONB NOT NULL DEFAULT '{}',
+    change_note TEXT DEFAULT '',
+    created_by UUID NOT NULL REFERENCES users(id)
+);
+
+CREATE INDEX idx_asset_versions_asset ON asset_versions (asset_type, asset_id);
+CREATE INDEX idx_asset_versions_project ON asset_versions (project_id);
+
+-- ========== 审核体系 ==========
+
+-- 审核配置表（ReviewConfig，按项目+阶段配置审核方式）
+CREATE TABLE review_configs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    phase VARCHAR(32) NOT NULL,
+    mode VARCHAR(16) NOT NULL DEFAULT 'ai',
+    ai_model VARCHAR(64) DEFAULT '',
+    ai_prompt TEXT DEFAULT '',
+    UNIQUE (project_id, phase)
+);
+
+-- 审核记录表（ReviewRecord，审核闭环）
+CREATE TABLE review_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    phase VARCHAR(32) NOT NULL,
+    target_type VARCHAR(32) NOT NULL,
+    target_id UUID NOT NULL,
+    reviewer_type VARCHAR(16) NOT NULL DEFAULT 'ai',
+    reviewer_id UUID REFERENCES users(id),
+    status VARCHAR(16) NOT NULL DEFAULT 'pending',
+    ai_score INT,
+    ai_reason TEXT DEFAULT '',
+    human_comment TEXT DEFAULT '',
+    round INT NOT NULL DEFAULT 1,
+    decided_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_review_records_target ON review_records (target_type, target_id);
+CREATE INDEX idx_review_records_project ON review_records (project_id);
+CREATE INDEX idx_review_records_status ON review_records (status);
+
+-- ========== 通知系统 ==========
+
+-- 通知表（Notification）
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    project_id UUID REFERENCES projects(id),
+    type VARCHAR(32) NOT NULL,
+    title VARCHAR(256) NOT NULL,
+    content TEXT DEFAULT '',
+    ref_type VARCHAR(32) DEFAULT '',
+    ref_id UUID,
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    read_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_notifications_user ON notifications (user_id, is_read);
+CREATE INDEX idx_notifications_project ON notifications (project_id);
+
+-- ========== 成片合成 ==========
+
+-- 成片任务表（CompositeTask）
+CREATE TABLE composite_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    episode_id UUID REFERENCES episodes(id),
+    status VARCHAR(16) NOT NULL DEFAULT 'editing',
+    timeline_json JSONB DEFAULT '[]',
+    audio_tracks_json JSONB DEFAULT '[]',
+    subtitle_tracks_json JSONB DEFAULT '[]',
+    output_url VARCHAR(512) DEFAULT '',
+    output_format VARCHAR(16) DEFAULT 'mp4',
+    resolution VARCHAR(16) DEFAULT '1080p',
+    duration INT NOT NULL DEFAULT 0,
+    progress INT NOT NULL DEFAULT 0,
+    error_message TEXT DEFAULT '',
+    created_by UUID NOT NULL REFERENCES users(id),
+    started_at TIMESTAMPTZ,
+    finished_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_composite_tasks_project ON composite_tasks (project_id);
+CREATE INDEX idx_composite_tasks_episode ON composite_tasks (episode_id);
+CREATE INDEX idx_composite_tasks_status ON composite_tasks (status);
+
+-- ========== 任务锁 ==========
+
+-- 任务锁表（TaskLock，防冲突）
+CREATE TABLE task_locks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    resource_type VARCHAR(32) NOT NULL,
+    resource_id UUID NOT NULL,
+    action VARCHAR(32) NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'pending',
+    locked_by UUID REFERENCES users(id),
+    locked_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    cancelled_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX idx_task_locks_active ON task_locks (resource_type, resource_id, action)
+    WHERE status = 'running';
+CREATE INDEX idx_task_locks_project ON task_locks (project_id);
+CREATE INDEX idx_task_locks_status ON task_locks (status);
+
+-- ========== 定时调度 ==========
+
+-- 调度任务表（Schedule）
+CREATE TABLE schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
+    project_id UUID NOT NULL REFERENCES projects(id),
+    name VARCHAR(128) NOT NULL,
+    cron_expr VARCHAR(64) NOT NULL,
+    task_type VARCHAR(32) NOT NULL,
+    task_params_json JSONB DEFAULT '{}',
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    last_run_at TIMESTAMPTZ,
+    next_run_at TIMESTAMPTZ,
+    created_by UUID NOT NULL REFERENCES users(id)
+);
+
+CREATE INDEX idx_schedules_project ON schedules (project_id);
+CREATE INDEX idx_schedules_enabled ON schedules (enabled, next_run_at);
+CREATE INDEX idx_schedules_deleted_at ON schedules (deleted_at);
+
+-- ========== AI 成本控制 ==========
+
+-- AI 用量统计表（ProviderUsage）
+CREATE TABLE provider_usages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    project_id UUID REFERENCES projects(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    provider VARCHAR(32) NOT NULL,
+    model VARCHAR(64) NOT NULL,
+    capability VARCHAR(16) NOT NULL,
+    input_tokens INT NOT NULL DEFAULT 0,
+    output_tokens INT NOT NULL DEFAULT 0,
+    image_count INT NOT NULL DEFAULT 0,
+    video_seconds INT NOT NULL DEFAULT 0,
+    audio_seconds INT NOT NULL DEFAULT 0,
+    cost_cents INT NOT NULL DEFAULT 0,
+    task_id VARCHAR(64) DEFAULT '',
+    metadata_json JSONB DEFAULT '{}'
+);
+
+CREATE INDEX idx_provider_usages_project ON provider_usages (project_id);
+CREATE INDEX idx_provider_usages_user ON provider_usages (user_id);
+CREATE INDEX idx_provider_usages_created ON provider_usages (created_at);
+
+-- ========== 角色快照（已有，补充索引） ==========
+
+-- 角色快照表（CharacterSnapshot，如不存在则创建）
+CREATE TABLE IF NOT EXISTS character_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
+    character_id UUID NOT NULL REFERENCES characters(id),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    prompt TEXT DEFAULT '',
+    negative_prompt TEXT DEFAULT '',
+    image_url VARCHAR(512) DEFAULT '',
+    params_json JSONB DEFAULT '{}',
+    status VARCHAR(16) DEFAULT 'draft'
+);
+
+CREATE INDEX IF NOT EXISTS idx_character_snapshots_character ON character_snapshots (character_id);
+CREATE INDEX IF NOT EXISTS idx_character_snapshots_project ON character_snapshots (project_id);
+CREATE INDEX IF NOT EXISTS idx_character_snapshots_deleted ON character_snapshots (deleted_at);
+
 -- 更新 updated_at 的触发器函数
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -429,4 +650,18 @@ CREATE TRIGGER update_shot_videos_updated_at BEFORE UPDATE ON shot_videos
 CREATE TRIGGER update_locations_updated_at BEFORE UPDATE ON locations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_props_updated_at BEFORE UPDATE ON props
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_styles_updated_at BEFORE UPDATE ON styles
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_review_configs_updated_at BEFORE UPDATE ON review_configs
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_review_records_updated_at BEFORE UPDATE ON review_records
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_composite_tasks_updated_at BEFORE UPDATE ON composite_tasks
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_task_locks_updated_at BEFORE UPDATE ON task_locks
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_schedules_updated_at BEFORE UPDATE ON schedules
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_character_snapshots_updated_at BEFORE UPDATE ON character_snapshots
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
