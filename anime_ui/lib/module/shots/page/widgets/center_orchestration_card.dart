@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/module/assets/resources/providers/resource_state.dart';
-import 'package:anime_ui/module/shots/view/provider.dart';
+import 'package:anime_ui/module/shots/page/provider.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';

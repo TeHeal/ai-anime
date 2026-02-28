@@ -27,20 +27,20 @@ import 'package:anime_ui/module/assets/versions_page.dart';
 
 // ③ 脚本 Script
 import 'package:anime_ui/module/script/page.dart';
-import 'package:anime_ui/module/script/view/script_page.dart';
-import 'package:anime_ui/module/script/view/center_page.dart';
-import 'package:anime_ui/module/script/view/review_page.dart';
-import 'package:anime_ui/module/script/view/freeze_page.dart';
+import 'package:anime_ui/module/script/page/script_page.dart';
+import 'package:anime_ui/module/script/page/center_page.dart';
+import 'package:anime_ui/module/script/page/review_page.dart';
+import 'package:anime_ui/module/script/page/freeze_page.dart';
 
 // ④ 镜图 Shot Images
 import 'package:anime_ui/module/shot_images/shot_images_page.dart';
-import 'package:anime_ui/module/shot_images/view/center_page.dart';
-import 'package:anime_ui/module/shot_images/view/review_page.dart';
+import 'package:anime_ui/module/shot_images/page/center_page.dart';
+import 'package:anime_ui/module/shot_images/page/review_page.dart';
 
 // ⑤ 镜头 Shots
 import 'package:anime_ui/module/shots/shots_page.dart';
-import 'package:anime_ui/module/shots/view/center_page.dart';
-import 'package:anime_ui/module/shots/view/review_page.dart';
+import 'package:anime_ui/module/shots/page/center_page.dart';
+import 'package:anime_ui/module/shots/page/review_page.dart';
 
 // ⑥ 成片 Episode (占位)
 import 'package:anime_ui/module/episode/episode_page.dart';

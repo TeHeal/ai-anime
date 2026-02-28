@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/shots/view/provider.dart';
+import 'package:anime_ui/module/shots/page/provider.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';

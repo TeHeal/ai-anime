@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/script/view/provider.dart' show shotsProvider;
-import 'package:anime_ui/module/shots/view/center_ui_provider.dart';
-import 'package:anime_ui/module/shots/view/provider.dart';
+import 'package:anime_ui/module/script/page/provider.dart' show shotsProvider;
+import 'package:anime_ui/module/shots/page/center_ui_provider.dart';
+import 'package:anime_ui/module/shots/page/provider.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/generation_center/batch_action_bar.dart';
