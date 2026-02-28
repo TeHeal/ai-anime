@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 import 'package:anime_ui/pub/models/task.dart';
-import 'api.dart';
+import 'package:anime_ui/pub/services/api.dart';
 
 class AiService {
   Stream<String> chatStream({

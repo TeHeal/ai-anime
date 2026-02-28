@@ -5,7 +5,7 @@ import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/services/api.dart';
 
 import 'package:anime_ui/module/login/page.dart';
-import 'package:anime_ui/module/projects/page.dart';
+import 'package:anime_ui/module/project/page.dart';
 import 'package:anime_ui/module/dashboard/page.dart';
 import 'package:anime_ui/module/layout/layout.dart';
 

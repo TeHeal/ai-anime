@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/main.dart';
-import 'package:anime_ui/pub/widgets/ai_chat_panel.dart';
+import 'package:anime_ui/pub/ai/widgets/ai_chat_panel.dart';
 import 'package:anime_ui/pub/providers/project.dart';
 import 'package:anime_ui/pub/services/episode_svc.dart';
 import 'package:anime_ui/pub/widgets/header.dart';

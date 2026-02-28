@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/pub/services/ai_svc.dart';
+import 'package:anime_ui/pub/ai/services/ai_svc.dart';
 
 class AiChatPanel extends ConsumerStatefulWidget {
   const AiChatPanel({super.key, this.onClose});
