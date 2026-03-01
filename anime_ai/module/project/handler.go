@@ -262,3 +262,40 @@ func (h *Handler) RemoveMember(c *gin.Context) {
 
 	pkg.OK(c, nil)
 }
+
+// GetReviewConfig 获取项目审核配置（README §2.2 审核方式可配置）
+func (h *Handler) GetReviewConfig(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	projectID := c.Param("id")
+	if projectID == "" {
+		pkg.BadRequest(c, "无效的项目 ID")
+		return
+	}
+	cfg, err := h.svc.GetReviewConfig(projectID, userID)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+	pkg.OK(c, cfg)
+}
+
+// UpdateReviewConfig 更新项目审核配置
+func (h *Handler) UpdateReviewConfig(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	projectID := c.Param("id")
+	if projectID == "" {
+		pkg.BadRequest(c, "无效的项目 ID")
+		return
+	}
+	var req UpdateReviewConfigRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.BadRequest(c, "请求参数错误")
+		return
+	}
+	cfg, err := h.svc.UpdateReviewConfig(projectID, userID, req)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+	pkg.OK(c, cfg)
+}

@@ -196,3 +196,62 @@ func (s *Service) RemoveMember(projectID, operatorID, memberUserID string) error
 	}
 	return s.data.DeleteMember(projectID, memberUserID)
 }
+
+// GetReviewConfig 获取项目审核配置（README §2.2 审核方式可配置）
+func (s *Service) GetReviewConfig(projectID, userID string) (*ReviewConfig, error) {
+	p, err := s.data.FindByID(projectID, userID)
+	if err != nil {
+		return nil, err
+	}
+	cfg := p.GetReviewConfig()
+	return &cfg, nil
+}
+
+// UpdateReviewConfigRequest 更新审核配置请求
+type UpdateReviewConfigRequest struct {
+	Script    *StageReviewConfig `json:"script"`
+	ShotImage *StageReviewConfig `json:"shotImage"`
+	ShotVideo *StageReviewConfig `json:"shotVideo"`
+}
+
+// UpdateReviewConfig 更新项目审核配置
+func (s *Service) UpdateReviewConfig(projectID, userID string, req UpdateReviewConfigRequest) (*ReviewConfig, error) {
+	p, err := s.data.FindByID(projectID, userID)
+	if err != nil {
+		return nil, err
+	}
+	cfg := p.GetReviewConfig()
+	if req.Script != nil {
+		if !ValidReviewMode(req.Script.Mode) {
+			return nil, errors.New("无效的脚本审核模式")
+		}
+		cfg.Script = *req.Script
+	}
+	if req.ShotImage != nil {
+		if !ValidReviewMode(req.ShotImage.Mode) {
+			return nil, errors.New("无效的镜图审核模式")
+		}
+		cfg.ShotImage = *req.ShotImage
+	}
+	if req.ShotVideo != nil {
+		if !ValidReviewMode(req.ShotVideo.Mode) {
+			return nil, errors.New("无效的镜头审核模式")
+		}
+		cfg.ShotVideo = *req.ShotVideo
+	}
+	p.SetReviewConfig(cfg)
+	if err := s.data.UpdateProject(p); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+// GetReviewConfigByIDOnly 按项目 ID 获取审核配置（供跨模块使用，不需要用户权限校验）
+func (s *Service) GetReviewConfigByIDOnly(projectID string) (*ReviewConfig, error) {
+	p, err := s.data.FindByIDOnly(projectID)
+	if err != nil {
+		return nil, err
+	}
+	cfg := p.GetReviewConfig()
+	return &cfg, nil
+}
