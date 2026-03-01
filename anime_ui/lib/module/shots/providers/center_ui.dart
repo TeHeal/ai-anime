@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 镜头生成中心 UI 状态
 class ShotsCenterUiState {
-  final Set<int> selectedShots;
+  final Set<String> selectedShots;
   final String statusFilter;
   final String viewMode;
 
@@ -13,7 +13,7 @@ class ShotsCenterUiState {
   });
 
   ShotsCenterUiState copyWith({
-    Set<int>? selectedShots,
+    Set<String>? selectedShots,
     String? statusFilter,
     String? viewMode,
   }) {
@@ -29,8 +29,8 @@ class ShotsCenterUiNotifier extends Notifier<ShotsCenterUiState> {
   @override
   ShotsCenterUiState build() => const ShotsCenterUiState();
 
-  void toggleShotSelection(int shotId, bool isSelected) {
-    final updated = Set<int>.from(state.selectedShots);
+  void toggleShotSelection(String shotId, bool isSelected) {
+    final updated = Set<String>.from(state.selectedShots);
     if (isSelected) {
       updated.add(shotId);
     } else {
@@ -39,7 +39,7 @@ class ShotsCenterUiNotifier extends Notifier<ShotsCenterUiState> {
     state = state.copyWith(selectedShots: updated);
   }
 
-  void toggleSelectAll(List<int> allValidShotIds) {
+  void toggleSelectAll(List<String> allValidShotIds) {
     if (state.selectedShots.length == allValidShotIds.length) {
       state = state.copyWith(selectedShots: const {});
     } else {

@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'style.freezed.dart';
 part 'style.g.dart';
 
@@ -8,8 +10,8 @@ abstract class Style with _$Style {
   const Style._();
 
   const factory Style({
-    int? id,
-    int? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId,
     @Default('') String name,
     @Default('') String description,
     @Default('') String negativePrompt,

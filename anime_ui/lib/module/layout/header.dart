@@ -10,8 +10,10 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/pulse.dart';
 import 'package:anime_ui/module/dashboard/index.dart';
 import 'package:anime_ui/pub/providers/notification_provider.dart';
-import 'user_menu.dart';
+import 'package:anime_ui/pub/widgets/user_menu.dart';
 
+/// 主布局 AppBar — 仪表盘入口、项目列表、通知、用户菜单
+/// 归属 layout 模块，可依赖 dashboard 等同级模块
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({super.key});
 
@@ -65,8 +67,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                   : Icon(
                       AppIcons.movieFilter,
                       color: AppColors.primary,
-                        size: 22.r,
-                      ),
+                      size: 22.r,
+                    ),
               SizedBox(width: Spacing.sm.w),
               if (isDashboard)
                 Text(

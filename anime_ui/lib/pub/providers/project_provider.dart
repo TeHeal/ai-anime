@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/project.dart';
+import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/services/project_svc.dart';
 import 'lock_provider.dart';
 
@@ -11,9 +11,9 @@ class CurrentProjectNotifier extends Notifier<AsyncValue<Project?>> {
 
   final _svc = ProjectService();
 
-  int? get projectId => state.value?.id;
+  String? get projectId => state.value?.id;
 
-  Future<void> load(int id) async {
+  Future<void> load(String id) async {
     state = const AsyncValue.loading();
     try {
       final raw = await _svc.getRaw(id);
@@ -39,15 +39,18 @@ class CurrentProjectNotifier extends Notifier<AsyncValue<Project?>> {
       config: config,
     );
     state = AsyncValue.data(p);
-    storageService.setCurrentProjectId(p.id!);
+    ref.read(storageServiceProvider).setCurrentProjectId(p.id!);
     return p;
   }
 
   Future<void> updateStory(String story, {String? storyMode}) async {
     final current = state.value;
     if (current?.id == null) return;
-    final p = await _svc.update(current!.id!,
-        story: story, storyMode: storyMode);
+    final p = await _svc.update(
+      current!.id!,
+      story: story,
+      storyMode: storyMode,
+    );
     state = AsyncValue.data(p);
   }
 
@@ -77,7 +80,9 @@ class CurrentProjectNotifier extends Notifier<AsyncValue<Project?>> {
 }
 
 final currentProjectProvider =
-    NotifierProvider<CurrentProjectNotifier, AsyncValue<Project?>>(CurrentProjectNotifier.new);
+    NotifierProvider<CurrentProjectNotifier, AsyncValue<Project?>>(
+      CurrentProjectNotifier.new,
+    );
 
 final projectListProvider = FutureProvider<List<Project>>((ref) async {
   return ProjectService().list();

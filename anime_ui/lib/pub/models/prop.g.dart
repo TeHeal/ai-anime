@@ -7,8 +7,8 @@ part of 'prop.dart';
 // **************************************************************************
 
 _Prop _$PropFromJson(Map<String, dynamic> json) => _Prop(
-  id: _nullableIdFromJson(json['id']),
-  projectId: _nullableIdFromJson(json['projectId']),
+  id: nullableIdFromJson(json['id']),
+  projectId: nullableIdFromJson(json['projectId']),
   name: json['name'] as String? ?? '',
   appearance: json['appearance'] as String? ?? '',
   isKeyProp: json['isKeyProp'] as bool? ?? false,

@@ -280,7 +280,8 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
         '时间: $_time, 内外: $_ie, '
         '角色: ${_characters.join("、")}';
 
-    final pid = ref.read(currentProjectProvider).value?.id ?? 0;
+    final pid = ref.read(currentProjectProvider).value?.id;
+    if (pid == null) return;
 
     final stream = _scriptAiSvc.assistBlock(
       action: action.name,

@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/services/api_svc.dart';
 import 'package:anime_ui/pub/widgets/prompt_library_dialog.dart';
 import 'components/image_gen_footer.dart';
@@ -77,7 +77,7 @@ class _ImageGenViewState extends State<ImageGenView> {
             required onProgress,
             required onResult,
           }) async {
-            final notifier = widget.ref.read(resourceListProvider.notifier);
+            final port = widget.ref.read(resourceListPortProvider);
             final refImgUrl = refImages.isNotEmpty ? refImages.first : '';
             final multiRefImgs = refImages.length > 1 ? refImages : <String>[];
 
@@ -95,7 +95,7 @@ class _ImageGenViewState extends State<ImageGenView> {
             for (int i = 0; i < count; i++) {
               tasks.add(
                 _generateOne(
-                  notifier: notifier,
+                  port: port,
                   prompt: prompt,
                   negPrompt: negPrompt,
                   referenceImageUrl: refImgUrl,
@@ -116,7 +116,7 @@ class _ImageGenViewState extends State<ImageGenView> {
   }
 
   Future<void> _generateOne({
-    required dynamic notifier,
+    required dynamic port,
     required String prompt,
     required String negPrompt,
     required String referenceImageUrl,
@@ -129,7 +129,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     required void Function(int)? onProgress,
     required void Function(String) onResult,
   }) async {
-    final resourceId = await notifier.generateImage(
+    final resourceId = await port.generateImage(
       name: '${config.title}-${DateTime.now().millisecondsSinceEpoch}',
       libraryType: config.libraryType,
       modality: config.modality,
@@ -147,7 +147,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     );
 
     if (resourceId != null) {
-      final resources = widget.ref.read(resourceListProvider).value ?? [];
+      final resources = port.resources.value ?? [];
       final generated = resources.where((r) => r.id == resourceId).firstOrNull;
       if (generated != null && generated.thumbnailUrl.isNotEmpty) {
         onResult(generated.thumbnailUrl);
@@ -178,7 +178,8 @@ class _ImageGenViewState extends State<ImageGenView> {
   }
 
   void _showPromptLibrary(ValueChanged<String> onSelected) {
-    final resources = widget.ref.read(resourceListProvider).value ?? [];
+    final resources =
+        widget.ref.read(resourceListPortProvider).resources.value ?? [];
     final prompts = resources.where((r) => r.libraryType == 'prompt').toList();
     if (prompts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

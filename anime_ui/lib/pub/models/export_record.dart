@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'export_record.freezed.dart';
 part 'export_record.g.dart';
 
@@ -8,8 +10,8 @@ abstract class ExportRecord with _$ExportRecord {
   const ExportRecord._();
 
   const factory ExportRecord({
-    int? id,
-    int? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId,
     @Default('mp4') String format,
     @Default('1080p') String resolution,
     @Default('pending') String status,

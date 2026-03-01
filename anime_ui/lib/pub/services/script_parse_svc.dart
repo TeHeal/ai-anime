@@ -5,7 +5,7 @@ import 'api_svc.dart';
 class ScriptParseService {
   /// Submit async parse task. Returns task info with task_id.
   Future<Map<String, dynamic>> submitParse(
-    int projectId, {
+    String projectId, {
     required String content,
     String formatHint = 'standard',
   }) async {
@@ -18,7 +18,7 @@ class ScriptParseService {
 
   /// Synchronous parse – returns result directly.
   Future<ScriptParseResult> parseSync(
-    int projectId, {
+    String projectId, {
     required String content,
     String formatHint = 'standard',
   }) async {
@@ -37,13 +37,13 @@ class ScriptParseService {
   }
 
   /// Retrieve preview from a completed async parse task.
-  Future<ScriptParseResult> getPreview(int projectId) async {
+  Future<ScriptParseResult> getPreview(String projectId) async {
     final resp = await dio.get('/projects/$projectId/script/preview');
     return extractDataObject(resp, ScriptParseResult.fromJson);
   }
 
   /// Confirm and import the parsed structure into the database.
-  Future<void> confirm(int projectId, List<ParsedEpisode> episodes) async {
+  Future<void> confirm(String projectId, List<ParsedEpisode> episodes) async {
     final resp = await dio.post('/projects/$projectId/script/confirm', data: {
       'episodes': episodes.map((e) => e.toJson()).toList(),
     });

@@ -12,7 +12,7 @@ class AssetStylesNotifier extends Notifier<AsyncValue<List<Style>>> {
   AsyncValue<List<Style>> build() => const AsyncValue.data([]);
 
   StyleService get _svc => ref.read(_styleSvcProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {
     final pid = _projectId;
@@ -63,7 +63,7 @@ class AssetStylesNotifier extends Notifier<AsyncValue<List<Style>>> {
     }
   }
 
-  Future<void> remove(int styleId) async {
+  Future<void> remove(String styleId) async {
     final pid = _projectId;
     if (pid == null) return;
     try {

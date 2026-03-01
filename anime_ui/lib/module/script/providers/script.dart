@@ -23,7 +23,7 @@ class EpisodesNotifier extends Notifier<AsyncValue<List<Episode>>> {
   AsyncValue<List<Episode>> build() => const AsyncValue.data([]);
 
   EpisodeService get _svc => ref.read(episodeServiceProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {
     final pid = _projectId;
@@ -45,7 +45,7 @@ class EpisodesNotifier extends Notifier<AsyncValue<List<Episode>>> {
     return ep;
   }
 
-  Future<void> update(int episodeId, {String? title, String? summary}) async {
+  Future<void> update(String episodeId, {String? title, String? summary}) async {
     final pid = _projectId;
     if (pid == null) return;
     try {
@@ -64,7 +64,7 @@ class EpisodesNotifier extends Notifier<AsyncValue<List<Episode>>> {
     }
   }
 
-  Future<void> remove(int episodeId) async {
+  Future<void> remove(String episodeId) async {
     final pid = _projectId;
     if (pid == null) return;
     try {
@@ -76,13 +76,13 @@ class EpisodesNotifier extends Notifier<AsyncValue<List<Episode>>> {
     }
   }
 
-  Future<void> reorder(List<int> orderedIds) async {
+  Future<void> reorder(List<String> orderedIds) async {
     final pid = _projectId;
     if (pid == null) return;
     try {
       await _svc.reorder(pid, orderedIds);
       final list = state.value ?? [];
-      final map = {for (final e in list) e.id: e};
+      final map = {for (final e in list) if (e.id != null) e.id.toString(): e};
       state = AsyncValue.data(
         orderedIds
             .where((id) => map.containsKey(id))
@@ -106,20 +106,20 @@ final episodesProvider =
 
 /// 剧本选择 Notifier
 class ScriptSelectionNotifier
-    extends Notifier<({int? episodeId, int? sceneId})> {
+    extends Notifier<({String? episodeId, String? sceneId})> {
   @override
-  ({int? episodeId, int? sceneId}) build() => (episodeId: null, sceneId: null);
+  ({String? episodeId, String? sceneId}) build() => (episodeId: null, sceneId: null);
 
-  void selectEpisode(int id) => state = (episodeId: id, sceneId: null);
+  void selectEpisode(String? id) => state = (episodeId: id, sceneId: null);
 
-  void selectScene(int episodeId, int sceneId) =>
+  void selectScene(String? episodeId, String? sceneId) =>
       state = (episodeId: episodeId, sceneId: sceneId);
 
   void clear() => state = (episodeId: null, sceneId: null);
 }
 
 final scriptSelectionProvider =
-    NotifierProvider<ScriptSelectionNotifier, ({int? episodeId, int? sceneId})>(
+    NotifierProvider<ScriptSelectionNotifier, ({String? episodeId, String? sceneId})>(
       ScriptSelectionNotifier.new,
     );
 
@@ -133,9 +133,9 @@ class ScenesNotifier extends Notifier<AsyncValue<List<Scene>>> {
   AsyncValue<List<Scene>> build() => const AsyncValue.data([]);
 
   SceneService get _svc => ref.read(sceneServiceProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
-  Future<void> loadForEpisode(int episodeId) async {
+  Future<void> loadForEpisode(String episodeId) async {
     final pid = _projectId;
     if (pid == null) return;
     state = const AsyncValue.loading();
@@ -148,7 +148,7 @@ class ScenesNotifier extends Notifier<AsyncValue<List<Scene>>> {
   }
 
   Future<Scene> add(
-    int episodeId, {
+    String episodeId, {
     required String sceneId,
     String location = '',
     List<String> characters = const [],
@@ -167,8 +167,8 @@ class ScenesNotifier extends Notifier<AsyncValue<List<Scene>>> {
   }
 
   Future<void> update(
-    int episodeId,
-    int sceneDbId, {
+    String episodeId,
+    String sceneDbId, {
     String? sceneId,
     String? location,
     String? time,
@@ -197,7 +197,7 @@ class ScenesNotifier extends Notifier<AsyncValue<List<Scene>>> {
     }
   }
 
-  Future<void> remove(int episodeId, int sceneDbId) async {
+  Future<void> remove(String episodeId, String sceneDbId) async {
     final pid = _projectId;
     if (pid == null) return;
     try {
@@ -210,8 +210,8 @@ class ScenesNotifier extends Notifier<AsyncValue<List<Scene>>> {
   }
 
   Future<void> saveBlocks(
-    int episodeId,
-    int sceneDbId,
+    String episodeId,
+    String sceneDbId,
     List<SceneBlock> blocks,
   ) async {
     final pid = _projectId;
@@ -248,7 +248,7 @@ class SegmentsNotifier extends Notifier<AsyncValue<List<ScriptSegment>>> {
   AsyncValue<List<ScriptSegment>> build() => const AsyncValue.data([]);
 
   SegmentService get _svc => ref.read(segmentServiceProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {
     final pid = _projectId;

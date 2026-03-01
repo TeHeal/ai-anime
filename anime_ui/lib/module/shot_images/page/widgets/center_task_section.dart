@@ -24,7 +24,7 @@ class CenterTaskSection extends ConsumerWidget {
   Future<void> _batchGenerate(
     BuildContext context,
     WidgetRef ref,
-    Set<int> selected,
+    Set<String> selected,
   ) async {
     if (selected.isEmpty) return;
     showToast(context, '开始生成 ${selected.length} 个镜图');
@@ -111,7 +111,7 @@ class CenterTaskSection extends ConsumerWidget {
               onToggleSelectAll: () {
                 uiNotifier.toggleSelectAll(
                   validShots
-                      .where((s) => s.id != null)
+                      .where((s) => s.id != null && s.id!.isNotEmpty)
                       .map((s) => s.id!)
                       .toList(),
                 );
@@ -137,7 +137,7 @@ class CenterTaskSection extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     List<StoryboardShot> shots,
-    Map<int, ShotImageState> imgStates,
+    Map<String, ShotImageState> imgStates,
     ShotImageCenterUiState uiState,
     ShotImageCenterUiNotifier uiNotifier,
   ) {

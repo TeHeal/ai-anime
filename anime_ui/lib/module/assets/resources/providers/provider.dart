@@ -8,7 +8,9 @@ import 'package:anime_ui/pub/services/task_svc.dart';
 import '../models/resource_category.dart';
 
 final _resourceSvcProvider = Provider((_) => ResourceService());
-final _taskSvcProvider = Provider((_) => TaskService()); // 供 generateVoice 等轮询任务用
+final _taskSvcProvider = Provider(
+  (_) => TaskService(),
+); // 供 generateVoice 等轮询任务用
 
 /// 资源列表（桩实现，返回空列表）
 class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
@@ -98,13 +100,17 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
   }
 
   Future<void> batchMoveToLibrary(
-      Set<int> ids, String newLibraryType, String newModality) async {
+    Set<int> ids,
+    String newLibraryType,
+    String newModality,
+  ) async {
     final current = state.value ?? [];
     final updated = <Resource>[];
     for (final r in current) {
       if (ids.contains(r.id) && r.id != null) {
-        updated.add(r.copyWith(
-            libraryType: newLibraryType, modality: newModality));
+        updated.add(
+          r.copyWith(libraryType: newLibraryType, modality: newModality),
+        );
       } else {
         updated.add(r);
       }
@@ -182,10 +188,52 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
     );
   }
 
-  /// 生成预览文本
-  Future<String> generatePreviewText({
-    required String voicePrompt,
+  /// 图生：AI 生成图片并加入资源库
+  Future<int?> generateImage({
+    required String name,
+    required String libraryType,
+    required String modality,
+    required String prompt,
+    String negativePrompt = '',
+    String referenceImageUrl = '',
+    String provider = '',
+    String model = '',
+    int? width,
+    int? height,
+    String size = '',
+    void Function(int)? onProgress,
   }) async {
+    final result = await _svc.generateImage(
+      name: name,
+      libraryType: libraryType,
+      modality: modality,
+      prompt: prompt,
+      negativePrompt: negativePrompt,
+      referenceImageUrl: referenceImageUrl,
+      provider: provider,
+      model: model,
+      width: width,
+      height: height,
+      size: size,
+    );
+    final current = state.value ?? [];
+    state = AsyncValue.data([...current, result.resource]);
+    if (result.taskId.isNotEmpty) {
+      final taskSvc = ref.read(_taskSvcProvider);
+      await for (final t in taskSvc.poll(result.taskId)) {
+        onProgress?.call(t.progress);
+        if (t.isCompleted) {
+          await load();
+          break;
+        }
+        if (t.isFailed) throw Exception('图生失败');
+      }
+    }
+    return result.resource.id;
+  }
+
+  /// 生成预览文本
+  Future<String> generatePreviewText({required String voicePrompt}) async {
     return _svc.generatePreviewText(voicePrompt: voicePrompt);
   }
 
@@ -218,8 +266,8 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
 
 final resourceListProvider =
     NotifierProvider<ResourceListNotifier, AsyncValue<List<Resource>>>(
-  ResourceListNotifier.new,
-);
+      ResourceListNotifier.new,
+    );
 
 /// 选中模态
 class _ValueNotifier<T> extends Notifier<T> {
@@ -234,10 +282,10 @@ class _ValueNotifier<T> extends Notifier<T> {
 
 final selectedModalityProvider =
     NotifierProvider<_ValueNotifier<ResourceModality>, ResourceModality>(
-  () => _ValueNotifier(ResourceModality.visual),
-);
+      () => _ValueNotifier(ResourceModality.visual),
+    );
 
 final selectedLibraryTypeProvider =
     NotifierProvider<_ValueNotifier<ResourceLibraryType>, ResourceLibraryType>(
-  () => _ValueNotifier(ResourceLibraryType.style),
-);
+      () => _ValueNotifier(ResourceLibraryType.style),
+    );

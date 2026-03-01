@@ -436,7 +436,7 @@ class GenerateConfig {
 enum EpisodeScriptStatus { notStarted, generating, completed, failed }
 
 class EpisodeGenerateState {
-  final int episodeId;
+  final String episodeId;
   final String episodeTitle;
   final EpisodeScriptStatus status;
   final int progress;

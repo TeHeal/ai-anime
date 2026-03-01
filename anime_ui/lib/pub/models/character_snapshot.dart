@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'character_snapshot.freezed.dart';
 part 'character_snapshot.g.dart';
 
@@ -8,9 +10,9 @@ abstract class CharacterSnapshot with _$CharacterSnapshot {
   const CharacterSnapshot._();
 
   const factory CharacterSnapshot({
-    int? id,
-    required int characterId,
-    required int projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? characterId,
+    @JsonKey(fromJson: nullableIdFromJson) String? projectId,
     @Default('') String startSceneId,
     @Default('') String endSceneId,
     @Default('') String triggerEvent,

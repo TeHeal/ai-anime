@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/const/radius.dart';
 import 'colors.dart';
 import 'text.dart';
 
@@ -9,6 +11,16 @@ import 'text.dart';
 final ThemeData appDarkTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
+  inputDecorationTheme: InputDecorationTheme(
+    labelStyle: AppTextStyles.labelLarge,
+    hintStyle: AppTextStyles.bodySmall,
+    filled: true,
+    fillColor: AppColors.inputBackground,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+    ),
+    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+  ),
   colorScheme: const ColorScheme.dark(
     primary: AppColors.primary,
     secondary: AppColors.secondary,

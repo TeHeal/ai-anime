@@ -12,9 +12,10 @@ class ScriptAiService {
     required String blockContent,
     String sceneMeta = '',
     List<String> contextBlocks = const [],
-    int projectId = 0,
+    String? projectId,
   }) async* {
-    final pid = projectId > 0 ? projectId : 1;
+    final pid = projectId ?? '';
+    if (pid.isEmpty) return;
 
     final resp = await dio.post(
       '/projects/$pid/script/ai-assist',

@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'media_asset.freezed.dart';
 part 'media_asset.g.dart';
 
@@ -8,14 +10,14 @@ abstract class MediaAsset with _$MediaAsset {
   const MediaAsset._();
 
   const factory MediaAsset({
-    int? id,
-    required int projectId,
-    required int userId,
-    int? episodeId,
-    int? sceneId,
-    int? shotId,
-    int? characterId,
-    int? locationId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? userId,
+    @JsonKey(fromJson: nullableIdFromJson) String? episodeId,
+    @JsonKey(fromJson: nullableIdFromJson) String? sceneId,
+    @JsonKey(fromJson: nullableIdFromJson) String? shotId,
+    @JsonKey(fromJson: nullableIdFromJson) String? characterId,
+    @JsonKey(fromJson: nullableIdFromJson) String? locationId,
     @Default('') String type,
     @Default('') String subType,
     @Default('') String name,
@@ -28,12 +30,12 @@ abstract class MediaAsset with _$MediaAsset {
     @Default(0) int height,
     @Default(0.0) double duration,
     @Default('ai') String source,
-    int? promptId,
+    @JsonKey(fromJson: nullableIdFromJson) String? promptId,
     @Default('') String taskId,
     @Default('') String provider,
     @Default('') String model,
     @Default(1) int version,
-    int? parentId,
+    @JsonKey(fromJson: nullableIdFromJson) String? parentId,
     @Default('active') String status,
     @Default('') String roleIds,
     @Default('') String tags,

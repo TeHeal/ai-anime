@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:anime_ui/pub/utils/json_id.dart';
 
 import 'episode_progress.dart';
 
@@ -60,7 +61,7 @@ abstract class ReviewSummary with _$ReviewSummary {
 @freezed
 abstract class DashboardEpisode with _$DashboardEpisode {
   const factory DashboardEpisode({
-    int? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
     @Default('') String title,
     @Default(0) int sortIndex,
     @Default('') String summary,

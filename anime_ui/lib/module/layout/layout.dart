@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
-import 'package:anime_ui/main.dart';
-import 'package:anime_ui/pub/widgets/ai_chat_panel.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
+import 'package:anime_ui/pub/providers/storage_provider.dart';
+import 'package:anime_ui/pub/widgets/ai_chat_panel.dart';
 import 'package:anime_ui/pub/services/episode_svc.dart';
-import 'package:anime_ui/pub/widgets/header.dart';
+import 'package:anime_ui/module/assets/adapters/resource_list_adapter.dart';
+import 'package:anime_ui/module/layout/header.dart';
 import 'package:anime_ui/pub/widgets/notification_drawer.dart';
 import 'package:anime_ui/pub/widgets/side_nav.dart';
 
@@ -42,7 +44,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     if (_restored) return;
     _restored = true;
 
-    final savedId = storageService.currentProjectId;
+    final savedId = ref.read(storageServiceProvider).currentProjectId;
     if (savedId != null) {
       await ref.read(currentProjectProvider.notifier).load(savedId);
     }
@@ -170,41 +172,48 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     final disabledObjects = <String>{};
     final disabledHints = <String, String>{};
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: const AppHeader(),
-      endDrawer: const NotificationDrawer(),
-      body: Stack(
-        children: [
-          Row(
-            children: [
-              SideNav(
-                currentObject: _currentObject(),
-                onObjectTap: _onObjectTap,
-                disabledObjects: disabledObjects,
-                disabledHints: disabledHints,
-                onAiTap: () => setState(() => _showChat = !_showChat),
-                aiActive: _showChat,
-                initialCollapsed: Breakpoints.isNarrowContext(context),
-                onCollapsedChanged: (v) =>
-                    setState(() => _sideNavCollapsed = v),
-              ),
-              Expanded(child: widget.child),
-            ],
-          ),
-          if (_showChat)
-            Positioned(
-              left:
-                  (_sideNavCollapsed
-                      ? Spacing.sideNavCollapsedWidth
-                      : Spacing.sideNavExpandedWidth) +
-                  Spacing.sm,
-              bottom: Spacing.lg,
-              child: AiChatPanel(
-                onClose: () => setState(() => _showChat = false),
-              ),
+    return ProviderScope(
+      overrides: [
+        resourceListPortProvider.overrideWith(
+          (ref) => AssetResourceListAdapter(ref),
+        ),
+      ],
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: const AppHeader(),
+        endDrawer: const NotificationDrawer(),
+        body: Stack(
+          children: [
+            Row(
+              children: [
+                SideNav(
+                  currentObject: _currentObject(),
+                  onObjectTap: _onObjectTap,
+                  disabledObjects: disabledObjects,
+                  disabledHints: disabledHints,
+                  onAiTap: () => setState(() => _showChat = !_showChat),
+                  aiActive: _showChat,
+                  initialCollapsed: Breakpoints.isNarrowContext(context),
+                  onCollapsedChanged: (v) =>
+                      setState(() => _sideNavCollapsed = v),
+                ),
+                Expanded(child: widget.child),
+              ],
             ),
-        ],
+            if (_showChat)
+              Positioned(
+                left:
+                    (_sideNavCollapsed
+                        ? Spacing.sideNavCollapsedWidth
+                        : Spacing.sideNavExpandedWidth) +
+                    Spacing.sm,
+                bottom: Spacing.lg,
+                child: AiChatPanel(
+                  onClose: () => setState(() => _showChat = false),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -7,8 +7,8 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_dialog.dart';
-import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/providers/lock_provider.dart';
+import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/api_svc.dart';
 
@@ -101,10 +101,7 @@ class UserMenu extends ConsumerWidget {
         children: [
           Icon(icon, size: Spacing.menuIconSize.r, color: color),
           SizedBox(width: Spacing.iconGapMd.w),
-          Text(
-            label,
-            style: AppTextStyles.bodySmall.copyWith(color: color),
-          ),
+          Text(label, style: AppTextStyles.bodySmall.copyWith(color: color)),
         ],
       ),
     );
@@ -125,8 +122,9 @@ class UserMenu extends ConsumerWidget {
     setAuthToken(null);
     ref.read(currentProjectProvider.notifier).clear();
     ref.read(lockProvider.notifier).clear();
-    await storageService.clearToken();
-    await storageService.clearCurrentProjectId();
+    final storage = ref.read(storageServiceProvider);
+    await storage.clearToken();
+    await storage.clearCurrentProjectId();
     if (context.mounted) context.go(Routes.login);
   }
 

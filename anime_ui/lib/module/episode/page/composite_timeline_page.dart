@@ -62,7 +62,7 @@ class _CompositeTimelinePageState extends ConsumerState<CompositeTimelinePage> {
               ),
               SizedBox(height: Spacing.xl.h),
               ...episodes.where((ep) => ep.id != null).map((ep) => _EpisodeRow(
-                    projectId: project.id.toString(),
+                    projectId: project.id!,
                     episode: ep,
                     compositeSvc: _compositeSvc,
                     packageSvc: _packageSvc,
@@ -162,7 +162,7 @@ class _EpisodeRowState extends State<_EpisodeRow> {
   bool _packaging = false;
   String? _error;
 
-  String get _episodeId => widget.episode.id?.toString() ?? '';
+  String get _episodeId => widget.episode.id ?? '';
   String get _episodeTitle =>
       widget.episode.title.isNotEmpty
           ? widget.episode.title

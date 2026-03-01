@@ -36,7 +36,7 @@ class _CompositeExportPageState extends ConsumerState<CompositeExportPage> {
     return FutureBuilder<
       ({List<CompositeTask> composites, List<PackageTask> packages})
     >(
-      future: _loadTasks(project.id!, project),
+      future: _loadTasks(project),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return _buildLoading();
@@ -90,14 +90,14 @@ class _CompositeExportPageState extends ConsumerState<CompositeExportPage> {
   }
 
   Future<({List<CompositeTask> composites, List<PackageTask> packages})>
-  _loadTasks(int projectIdInt, Project project) async {
-    final projectId = projectIdInt.toString();
+  _loadTasks(Project project) async {
+    final projectId = project.id!;
     final composites = await _compositeSvc.listByProject(projectId);
-    final episodes = await EpisodeService().list(projectIdInt);
+    final episodes = await EpisodeService().list(projectId);
     final packages = <PackageTask>[];
     for (final ep in episodes) {
       if (ep.id == null) continue;
-      final list = await _packageSvc.listByEpisode(projectId, ep.id.toString());
+      final list = await _packageSvc.listByEpisode(projectId, ep.id!);
       packages.addAll(list);
     }
     packages.sort((a, b) => b.id.compareTo(a.id));

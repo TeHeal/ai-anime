@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:anime_ui/pub/utils/json_id.dart';
 
 part 'episode_progress.freezed.dart';
 part 'episode_progress.g.dart';
@@ -6,9 +7,9 @@ part 'episode_progress.g.dart';
 @freezed
 abstract class EpisodeProgress with _$EpisodeProgress {
   const factory EpisodeProgress({
-    int? id,
-    @Default(0) int episodeId,
-    @Default(0) int projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? episodeId,
+    @JsonKey(fromJson: nullableIdFromJson) String? projectId,
 
     @Default(false) bool storyDone,
     @Default(false) bool assetsDone,

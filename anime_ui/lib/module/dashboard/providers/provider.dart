@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/dashboard.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/services/dashboard_svc.dart';
 
 final dashboardServiceProvider = Provider((_) => DashboardService());
@@ -13,10 +13,10 @@ class DashboardNotifier extends Notifier<AsyncValue<Dashboard>> {
 
   DashboardService get _svc => ref.read(dashboardServiceProvider);
 
-  int? get _projectId {
+  String? get _projectId {
     final fromProvider = ref.read(currentProjectProvider).value?.id;
     if (fromProvider != null) return fromProvider;
-    return storageService.currentProjectId;
+    return ref.read(storageServiceProvider).currentProjectId;
   }
 
   Future<void> load() async {
@@ -34,5 +34,5 @@ class DashboardNotifier extends Notifier<AsyncValue<Dashboard>> {
 
 final dashboardProvider =
     NotifierProvider<DashboardNotifier, AsyncValue<Dashboard>>(
-  DashboardNotifier.new,
-);
+      DashboardNotifier.new,
+    );

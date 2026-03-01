@@ -41,8 +41,8 @@ class ReviewLeftNav extends ConsumerWidget {
         children: [
           Padding(
             padding: EdgeInsets.all(Spacing.md.r),
-            child: DropdownButtonFormField<int>(
-              initialValue: uiState.selectedEpisodeId,
+            child: DropdownButtonFormField<String>(
+              value: uiState.selectedEpisodeId,
               decoration: InputDecoration(
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(
@@ -55,7 +55,7 @@ class ReviewLeftNav extends ConsumerWidget {
               items: episodes
                   .where((e) => e.id != null)
                   .map(
-                    (e) => DropdownMenuItem(
+                    (e) => DropdownMenuItem<String>(
                       value: e.id,
                       child: Text(
                         e.title.isNotEmpty ? e.title : '第${e.sortIndex + 1}集',

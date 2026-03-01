@@ -8,10 +8,10 @@ part of 'shot.dart';
 
 _StoryboardShot _$StoryboardShotFromJson(Map<String, dynamic> json) =>
     _StoryboardShot(
-      id: (json['id'] as num?)?.toInt(),
-      projectId: (json['projectId'] as num?)?.toInt(),
-      segmentId: (json['segmentId'] as num?)?.toInt(),
-      sceneId: (json['sceneId'] as num?)?.toInt(),
+      id: nullableIdFromJson(json['id']),
+      projectId: nullableIdFromJson(json['projectId']),
+      segmentId: nullableIdFromJson(json['segmentId']),
+      sceneId: nullableIdFromJson(json['sceneId']),
       sortIndex: (json['sortIndex'] as num?)?.toInt() ?? 0,
       prompt: json['prompt'] as String? ?? '',
       stylePrompt: json['stylePrompt'] as String? ?? '',
@@ -26,7 +26,7 @@ _StoryboardShot _$StoryboardShotFromJson(Map<String, dynamic> json) =>
       voice: json['voice'] as String?,
       lipSync: json['lipSync'] as String? ?? '口型同步',
       characterName: json['characterName'] as String?,
-      characterId: (json['characterId'] as num?)?.toInt(),
+      characterId: nullableIdFromJson(json['characterId']),
       emotion: json['emotion'] as String?,
       voiceName: json['voiceName'] as String?,
       transition: json['transition'] as String?,

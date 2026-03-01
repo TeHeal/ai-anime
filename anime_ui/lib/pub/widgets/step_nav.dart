@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/providers/step_status_provider.dart';
+import 'package:anime_ui/pub/domain/step_status.dart';
 
 class StepNav extends StatelessWidget {
   const StepNav({

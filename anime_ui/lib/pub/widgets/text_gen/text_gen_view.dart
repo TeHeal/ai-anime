@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/model_catalog.dart';
 import 'package:anime_ui/pub/services/model_catalog_svc.dart';
@@ -106,8 +106,8 @@ class _TextGenViewState extends State<TextGenView> {
     if (_ctrl.result.isEmpty) return;
 
     if (_ctrl.savedResource == null && config.saveToLibrary) {
-      final notifier = widget.ref.read(resourceListProvider.notifier);
-      await notifier.generatePrompt(
+      final port = widget.ref.read(resourceListPortProvider);
+      await port.generatePrompt(
         name: _nameCtrl.text.trim().isNotEmpty
             ? _nameCtrl.text.trim()
             : '${config.mode.label}-${DateTime.now().millisecondsSinceEpoch}',
@@ -166,7 +166,10 @@ class _TextGenViewState extends State<TextGenView> {
                               setState(() => _selectedTargetModel = m),
                         ),
                       ),
-                      Container(width: 1.w, color: AppColors.surfaceMutedDarker),
+                      Container(
+                        width: 1.w,
+                        color: AppColors.surfaceMutedDarker,
+                      ),
                       Expanded(
                         child: TextGenResultPanel(
                           ctrl: _ctrl,

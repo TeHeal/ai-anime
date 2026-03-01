@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'package:anime_ui/pub/utils/json_id.dart';
 import 'scene_block.dart';
 
 part 'scene.freezed.dart';
@@ -7,8 +9,8 @@ part 'scene.g.dart';
 @freezed
 abstract class Scene with _$Scene {
   const factory Scene({
-    int? id,
-    int? episodeId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'episodeId') String? episodeId,
     @Default('') String sceneId,
     @Default('') String location,
     @Default('') String time,

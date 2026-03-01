@@ -59,6 +59,12 @@ abstract final class Spacing {
   /// 徽章内紧凑间距（状态徽章、模式徽章等）
   static const double badgeGap = 7;
 
+  /// 登录卡片尺寸（小屏适配用 clamp 边界）
+  static const double loginCardMinWidth = 280;
+  static const double loginCardMaxWidth = 420;
+  static const double loginCardMinHeight = 360;
+  static const double loginCardMaxHeight = 420;
+
   /// 资产列表面板宽度（min/max）
   static const double listPanelMinWidth = 260;
   static const double listPanelMaxWidth = 400;

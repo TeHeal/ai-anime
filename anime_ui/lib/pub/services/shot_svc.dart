@@ -2,14 +2,14 @@ import 'package:anime_ui/pub/models/shot.dart';
 import 'api_svc.dart';
 
 class ShotService {
-  Future<StoryboardShot> create(int projectId, {
-    int? segmentId,
+  Future<StoryboardShot> create(String projectId, {
+    String? segmentId,
     String prompt = '',
     String stylePrompt = '',
     int duration = 5,
   }) async {
     final resp = await dio.post('/projects/$projectId/shots', data: {
-      'segment_id': ?segmentId,
+      if (segmentId != null) 'segment_id': segmentId,
       'prompt': prompt,
       'style_prompt': stylePrompt,
       'duration': duration,
@@ -17,35 +17,35 @@ class ShotService {
     return extractDataObject(resp, StoryboardShot.fromJson);
   }
 
-  Future<List<StoryboardShot>> bulkCreate(int projectId, List<Map<String, dynamic>> shots) async {
+  Future<List<StoryboardShot>> bulkCreate(String projectId, List<Map<String, dynamic>> shots) async {
     final resp = await dio.put('/projects/$projectId/shots/bulk', data: {
       'shots': shots,
     });
     return extractDataList(resp, StoryboardShot.fromJson);
   }
 
-  Future<List<StoryboardShot>> list(int projectId) async {
+  Future<List<StoryboardShot>> list(String projectId) async {
     final resp = await dio.get('/projects/$projectId/shots');
     return extractDataList(resp, StoryboardShot.fromJson);
   }
 
-  Future<StoryboardShot> get(int projectId, int shotId) async {
+  Future<StoryboardShot> get(String projectId, String shotId) async {
     final resp = await dio.get('/projects/$projectId/shots/$shotId');
     return extractDataObject(resp, StoryboardShot.fromJson);
   }
 
-  Future<StoryboardShot> update(int projectId, int shotId, {
+  Future<StoryboardShot> update(String projectId, String shotId, {
     String? prompt,
     String? stylePrompt,
     int? duration,
-    int? segmentId,
+    String? segmentId,
     String? cameraType,
     String? cameraAngle,
     String? dialogue,
     String? voice,
     String? lipSync,
     String? characterName,
-    int? characterId,
+    String? characterId,
     String? emotion,
     String? voiceName,
     String? transition,
@@ -75,20 +75,20 @@ class ShotService {
     return extractDataObject(resp, StoryboardShot.fromJson);
   }
 
-  Future<void> delete(int projectId, int shotId) async {
+  Future<void> delete(String projectId, String shotId) async {
     final resp = await dio.delete('/projects/$projectId/shots/$shotId');
     extractData<dynamic>(resp);
   }
 
-  Future<void> reorder(int projectId, List<int> orderedIds) async {
+  Future<void> reorder(String projectId, List<String> orderedIds) async {
     final resp = await dio.put('/projects/$projectId/shots/reorder', data: {
       'ordered_ids': orderedIds,
     });
     extractData<dynamic>(resp);
   }
 
-  Future<List<Map<String, dynamic>>> batchGenerateImages(int projectId, {
-    required List<int> shotIds,
+  Future<List<Map<String, dynamic>>> batchGenerateImages(String projectId, {
+    required List<String> shotIds,
     String? provider,
     String? model,
     int? width,
@@ -96,42 +96,42 @@ class ShotService {
   }) async {
     final resp = await dio.post('/projects/$projectId/shots/generate', data: {
       'shot_ids': shotIds,
-      'provider': ?provider,
-      'model': ?model,
-      'width': ?width,
-      'height': ?height,
+      if (provider != null) 'provider': provider,
+      if (model != null) 'model': model,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
     });
     final data = extractData<List<dynamic>>(resp);
     return data.cast<Map<String, dynamic>>();
   }
 
-  Future<List<Map<String, dynamic>>> generateAllImages(int projectId, {
+  Future<List<Map<String, dynamic>>> generateAllImages(String projectId, {
     String? provider,
     String? model,
     int? width,
     int? height,
   }) async {
     final resp = await dio.post('/projects/$projectId/shots/generate-all', data: {
-      'provider': ?provider,
-      'model': ?model,
-      'width': ?width,
-      'height': ?height,
+      if (provider != null) 'provider': provider,
+      if (model != null) 'model': model,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
     });
     final data = extractData<List<dynamic>>(resp);
     return data.cast<Map<String, dynamic>>();
   }
 
-  Future<List<Map<String, dynamic>>> batchGenerateVideos(int projectId, {
-    required List<int> shotIds,
+  Future<List<Map<String, dynamic>>> batchGenerateVideos(String projectId, {
+    required List<String> shotIds,
     String? provider,
     String? model,
     int? duration,
   }) async {
     final resp = await dio.post('/projects/$projectId/shots/generate-video', data: {
       'shot_ids': shotIds,
-      'provider': ?provider,
-      'model': ?model,
-      'duration': ?duration,
+      if (provider != null) 'provider': provider,
+      if (model != null) 'model': model,
+      if (duration != null) 'duration': duration,
     });
     final data = extractData<List<dynamic>>(resp);
     return data.cast<Map<String, dynamic>>();

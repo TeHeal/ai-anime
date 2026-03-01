@@ -1,15 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/const/app_const.dart';
+import 'package:anime_ui/pub/const/breakpoints.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/glow_card.dart';
 import 'package:anime_ui/pub/widgets/starfield_background.dart';
-import 'package:anime_ui/main.dart';
+import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/services/api_svc.dart';
 import 'package:anime_ui/pub/services/auth_svc.dart';
 
@@ -50,7 +52,10 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final result = await AuthService().login(username, password);
       setAuthToken(result.token);
-      await storageService.setToken(result.token);
+      if (!mounted) return;
+      await ProviderScope.containerOf(
+        context,
+      ).read(storageServiceProvider).setToken(result.token);
       if (mounted) context.go(Routes.projects);
     } on DioException catch (e) {
       setState(
@@ -85,118 +90,147 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           Center(
-            child: SingleChildScrollView(
-              child: SizedBox(
-                width: 420.w,
-                height: 420.h,
-                child: GlowCard(
-                  glowColor: AppColors.primary,
-                  glowIntensity: 0.1,
-                  hoverGlowIntensity: 0.25,
-                  hoverElevation: 0,
-                  showTopAccent: true,
-                  topAccentHeight: 3,
-                  padding: EdgeInsets.fromLTRB(
-                    Spacing.xxl.r,
-                    Spacing.dialogPaddingTop.r,
-                    Spacing.xxl.r,
-                    Spacing.xxl.r,
+            child: LayoutBuilder(
+              builder: (context, _) {
+                final screenW = Breakpoints.screenWidth(context);
+                final screenH = MediaQuery.sizeOf(context).height;
+                // 小屏：占满宽度减边距，使用 Spacing 常量避免硬编码
+                final cardW = (screenW - Spacing.xl.w * 2).clamp(
+                  Spacing.loginCardMinWidth,
+                  Spacing.loginCardMaxWidth,
+                );
+                final cardH = (screenH - Spacing.xl.h * 2).clamp(
+                  Spacing.loginCardMinHeight,
+                  Spacing.loginCardMaxHeight,
+                );
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.xl.w,
+                    vertical: Spacing.xl.h,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        AppIcons.movieFilter,
-                        size: 44.r,
-                        color: AppColors.primary,
+                  child: SizedBox(
+                    width: cardW,
+                    height: cardH,
+                    child: GlowCard(
+                      glowColor: AppColors.primary,
+                      glowIntensity: 0.1,
+                      hoverGlowIntensity: 0.25,
+                      hoverElevation: 0,
+                      showTopAccent: true,
+                      topAccentHeight: 3,
+                      padding: EdgeInsets.fromLTRB(
+                        Spacing.xxl.r,
+                        Spacing.dialogPaddingTop.r,
+                        Spacing.xxl.r,
+                        Spacing.xxl.r,
                       ),
-                      SizedBox(height: Spacing.formGap.h),
-                      Text(
-                        appName,
-                        style: AppTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onPrimary,
-                        ),
-                      ),
-                      SizedBox(height: Spacing.xs.h),
-                      Text(
-                        '登录以继续',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.mutedDark,
-                        ),
-                      ),
-                      SizedBox(height: Spacing.xl.h),
-                      TextField(
-                        controller: _usernameCtrl,
-                        decoration: InputDecoration(
-                          labelText: '用户名',
-                          prefixIcon: Icon(AppIcons.person, size: 20.r),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              RadiusTokens.lg.r,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              AppIcons.movieFilter,
+                              size: Spacing.thumbnailSize.r,
+                              color: AppColors.primary,
                             ),
-                          ),
-                          filled: true,
-                          fillColor: AppColors.background,
-                        ),
-                        textInputAction: TextInputAction.next,
-                      ),
-                      SizedBox(height: Spacing.gridGap.h),
-                      TextField(
-                        controller: _passwordCtrl,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: '密码',
-                          prefixIcon: Icon(AppIcons.lockOutline, size: 20.r),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              RadiusTokens.lg.r,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: AppColors.background,
-                        ),
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _login(),
-                      ),
-                      if (_error != null) ...[
-                        SizedBox(height: RadiusTokens.lg.r),
-                        Text(
-                          _error!,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.error,
-                          ),
-                        ),
-                      ],
-                      SizedBox(height: Spacing.mid.h),
-                      SizedBox(
-                        width: double.infinity,
-                        height: Spacing.barHeight.h,
-                        child: FilledButton(
-                          onPressed: _loading ? null : _login,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                RadiusTokens.lg.r,
+                            SizedBox(height: Spacing.formGap.h),
+                            Text(
+                              appName,
+                              style: AppTextStyles.h2.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onPrimary,
                               ),
                             ),
-                          ),
-                          child: _loading
-                              ? SizedBox(
-                                  width: Spacing.mid.w,
-                                  height: Spacing.mid.h,
-                                  child: const CircularProgressIndicator(
-                                    strokeWidth: 2,
+                            SizedBox(height: Spacing.xs.h),
+                            Text(
+                              '登录以继续',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.mutedDark,
+                              ),
+                            ),
+                            SizedBox(height: Spacing.xl.h),
+                            TextField(
+                              controller: _usernameCtrl,
+                              style: AppTextStyles.bodyMedium,
+                              decoration: InputDecoration(
+                                labelText: '用户名',
+                                prefixIcon: Icon(AppIcons.person, size: 20.r),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    RadiusTokens.lg.r,
                                   ),
-                                )
-                              : Text('登录', style: AppTextStyles.labelLarge),
+                                ),
+                                filled: true,
+                                fillColor: AppColors.background,
+                              ),
+                              textInputAction: TextInputAction.next,
+                            ),
+                            SizedBox(height: Spacing.gridGap.h),
+                            TextField(
+                              controller: _passwordCtrl,
+                              obscureText: true,
+                              style: AppTextStyles.bodyMedium,
+                              decoration: InputDecoration(
+                                labelText: '密码',
+                                prefixIcon: Icon(
+                                  AppIcons.lockOutline,
+                                  size: 20.r,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    RadiusTokens.lg.r,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: AppColors.background,
+                              ),
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => _login(),
+                            ),
+                            if (_error != null) ...[
+                              SizedBox(height: Spacing.sm.h),
+                              Text(
+                                _error!,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.error,
+                                ),
+                              ),
+                            ],
+                            SizedBox(height: Spacing.mid.h),
+                            SizedBox(
+                              width: double.infinity,
+                              height: Spacing.barHeight.h,
+                              child: FilledButton(
+                                onPressed: _loading ? null : _login,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      RadiusTokens.lg.r,
+                                    ),
+                                  ),
+                                ),
+                                child: _loading
+                                    ? SizedBox(
+                                        width: Spacing.mid.w,
+                                        height: Spacing.mid.h,
+                                        child: const CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(
+                                        '登录',
+                                        style: AppTextStyles.labelLarge,
+                                      ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],

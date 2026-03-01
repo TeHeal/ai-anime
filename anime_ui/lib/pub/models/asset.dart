@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'asset.freezed.dart';
 part 'asset.g.dart';
 
@@ -8,8 +10,8 @@ abstract class Asset with _$Asset {
   const Asset._();
 
   const factory Asset({
-    int? id,
-    int? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? projectId,
     @Default('scene') String type,
     @Default('') String name,
     @Default('') String desc,

@@ -17,7 +17,7 @@ class AssetCharactersNotifier extends Notifier<AsyncValue<List<Character>>> {
   AsyncValue<List<Character>> build() => const AsyncValue.data([]);
 
   CharacterService get _svc => ref.read(_characterSvcProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {
     final pid = _projectId;
@@ -89,7 +89,7 @@ class AssetCharactersNotifier extends Notifier<AsyncValue<List<Character>>> {
   }
 
   Future<void> addReferenceImage(
-    int charId, {
+    String charId, {
     required String angle,
     required String url,
     Map<String, dynamic>? genMeta,
@@ -110,7 +110,7 @@ class AssetCharactersNotifier extends Notifier<AsyncValue<List<Character>>> {
     }
   }
 
-  Future<void> remove(int id) async {
+  Future<void> remove(String id) async {
     try {
       await _svc.delete(id);
       final list = state.value ?? [];
@@ -120,7 +120,7 @@ class AssetCharactersNotifier extends Notifier<AsyncValue<List<Character>>> {
     }
   }
 
-  Future<void> confirm(int id) async {
+  Future<void> confirm(String id) async {
     try {
       final updated = await _svc.confirm(id);
       final list = state.value ?? [];
@@ -132,7 +132,7 @@ class AssetCharactersNotifier extends Notifier<AsyncValue<List<Character>>> {
     }
   }
 
-  Future<void> batchConfirm(List<int> ids) async {
+  Future<void> batchConfirm(List<String> ids) async {
     try {
       await _svc.batchConfirm(ids);
       await load();
@@ -174,7 +174,7 @@ class AssetExtractNotifier extends Notifier<ExtractState> {
   ExtractState build() => const ExtractState();
 
   StoryboardService get _svc => ref.read(_storyboardSvcProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> extract({
     String mode = 'script_only',

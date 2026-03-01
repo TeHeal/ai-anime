@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'music.freezed.dart';
 part 'music.g.dart';
 
@@ -8,8 +10,8 @@ abstract class Music with _$Music {
   const Music._();
 
   const factory Music({
-    int? id,
-    int? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId,
     @Default('') String title,
     @Default('') String prompt,
     @Default('') String provider,

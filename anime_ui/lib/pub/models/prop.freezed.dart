@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Prop {
 
-@JsonKey(fromJson: _nullableIdFromJson) String? get id;@JsonKey(fromJson: _nullableIdFromJson, name: 'projectId') String? get projectId; String get name; String get appearance; bool get isKeyProp; String get style; bool get styleOverride; String get referenceImagesJson; String get imageUrl; String get usedByJson; String get scenesJson; String get status; String get source;
+@JsonKey(fromJson: nullableIdFromJson) String? get id;@JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? get projectId; String get name; String get appearance; bool get isKeyProp; String get style; bool get styleOverride; String get referenceImagesJson; String get imageUrl; String get usedByJson; String get scenesJson; String get status; String get source;
 /// Create a copy of Prop
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $PropCopyWith<$Res>  {
   factory $PropCopyWith(Prop value, $Res Function(Prop) _then) = _$PropCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(fromJson: _nullableIdFromJson) String? id,@JsonKey(fromJson: _nullableIdFromJson, name: 'projectId') String? projectId, String name, String appearance, bool isKeyProp, String style, bool styleOverride, String referenceImagesJson, String imageUrl, String usedByJson, String scenesJson, String status, String source
+@JsonKey(fromJson: nullableIdFromJson) String? id,@JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId, String name, String appearance, bool isKeyProp, String style, bool styleOverride, String referenceImagesJson, String imageUrl, String usedByJson, String scenesJson, String status, String source
 });
 
 
@@ -165,7 +165,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: _nullableIdFromJson)  String? id, @JsonKey(fromJson: _nullableIdFromJson, name: 'projectId')  String? projectId,  String name,  String appearance,  bool isKeyProp,  String style,  bool styleOverride,  String referenceImagesJson,  String imageUrl,  String usedByJson,  String scenesJson,  String status,  String source)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: nullableIdFromJson)  String? id, @JsonKey(fromJson: nullableIdFromJson, name: 'projectId')  String? projectId,  String name,  String appearance,  bool isKeyProp,  String style,  bool styleOverride,  String referenceImagesJson,  String imageUrl,  String usedByJson,  String scenesJson,  String status,  String source)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Prop() when $default != null:
 return $default(_that.id,_that.projectId,_that.name,_that.appearance,_that.isKeyProp,_that.style,_that.styleOverride,_that.referenceImagesJson,_that.imageUrl,_that.usedByJson,_that.scenesJson,_that.status,_that.source);case _:
@@ -186,7 +186,7 @@ return $default(_that.id,_that.projectId,_that.name,_that.appearance,_that.isKey
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: _nullableIdFromJson)  String? id, @JsonKey(fromJson: _nullableIdFromJson, name: 'projectId')  String? projectId,  String name,  String appearance,  bool isKeyProp,  String style,  bool styleOverride,  String referenceImagesJson,  String imageUrl,  String usedByJson,  String scenesJson,  String status,  String source)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: nullableIdFromJson)  String? id, @JsonKey(fromJson: nullableIdFromJson, name: 'projectId')  String? projectId,  String name,  String appearance,  bool isKeyProp,  String style,  bool styleOverride,  String referenceImagesJson,  String imageUrl,  String usedByJson,  String scenesJson,  String status,  String source)  $default,) {final _that = this;
 switch (_that) {
 case _Prop():
 return $default(_that.id,_that.projectId,_that.name,_that.appearance,_that.isKeyProp,_that.style,_that.styleOverride,_that.referenceImagesJson,_that.imageUrl,_that.usedByJson,_that.scenesJson,_that.status,_that.source);case _:
@@ -206,7 +206,7 @@ return $default(_that.id,_that.projectId,_that.name,_that.appearance,_that.isKey
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: _nullableIdFromJson)  String? id, @JsonKey(fromJson: _nullableIdFromJson, name: 'projectId')  String? projectId,  String name,  String appearance,  bool isKeyProp,  String style,  bool styleOverride,  String referenceImagesJson,  String imageUrl,  String usedByJson,  String scenesJson,  String status,  String source)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: nullableIdFromJson)  String? id, @JsonKey(fromJson: nullableIdFromJson, name: 'projectId')  String? projectId,  String name,  String appearance,  bool isKeyProp,  String style,  bool styleOverride,  String referenceImagesJson,  String imageUrl,  String usedByJson,  String scenesJson,  String status,  String source)?  $default,) {final _that = this;
 switch (_that) {
 case _Prop() when $default != null:
 return $default(_that.id,_that.projectId,_that.name,_that.appearance,_that.isKeyProp,_that.style,_that.styleOverride,_that.referenceImagesJson,_that.imageUrl,_that.usedByJson,_that.scenesJson,_that.status,_that.source);case _:
@@ -221,11 +221,11 @@ return $default(_that.id,_that.projectId,_that.name,_that.appearance,_that.isKey
 @JsonSerializable()
 
 class _Prop extends Prop {
-  const _Prop({@JsonKey(fromJson: _nullableIdFromJson) this.id, @JsonKey(fromJson: _nullableIdFromJson, name: 'projectId') this.projectId, this.name = '', this.appearance = '', this.isKeyProp = false, this.style = '', this.styleOverride = false, this.referenceImagesJson = '', this.imageUrl = '', this.usedByJson = '', this.scenesJson = '', this.status = 'draft', this.source = 'manual'}): super._();
+  const _Prop({@JsonKey(fromJson: nullableIdFromJson) this.id, @JsonKey(fromJson: nullableIdFromJson, name: 'projectId') this.projectId, this.name = '', this.appearance = '', this.isKeyProp = false, this.style = '', this.styleOverride = false, this.referenceImagesJson = '', this.imageUrl = '', this.usedByJson = '', this.scenesJson = '', this.status = 'draft', this.source = 'manual'}): super._();
   factory _Prop.fromJson(Map<String, dynamic> json) => _$PropFromJson(json);
 
-@override@JsonKey(fromJson: _nullableIdFromJson) final  String? id;
-@override@JsonKey(fromJson: _nullableIdFromJson, name: 'projectId') final  String? projectId;
+@override@JsonKey(fromJson: nullableIdFromJson) final  String? id;
+@override@JsonKey(fromJson: nullableIdFromJson, name: 'projectId') final  String? projectId;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String appearance;
 @override@JsonKey() final  bool isKeyProp;
@@ -271,7 +271,7 @@ abstract mixin class _$PropCopyWith<$Res> implements $PropCopyWith<$Res> {
   factory _$PropCopyWith(_Prop value, $Res Function(_Prop) _then) = __$PropCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(fromJson: _nullableIdFromJson) String? id,@JsonKey(fromJson: _nullableIdFromJson, name: 'projectId') String? projectId, String name, String appearance, bool isKeyProp, String style, bool styleOverride, String referenceImagesJson, String imageUrl, String usedByJson, String scenesJson, String status, String source
+@JsonKey(fromJson: nullableIdFromJson) String? id,@JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId, String name, String appearance, bool isKeyProp, String style, bool styleOverride, String referenceImagesJson, String imageUrl, String usedByJson, String scenesJson, String status, String source
 });
 
 

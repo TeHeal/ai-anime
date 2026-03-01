@@ -7,8 +7,8 @@ part of 'episode.dart';
 // **************************************************************************
 
 _Episode _$EpisodeFromJson(Map<String, dynamic> json) => _Episode(
-  id: (json['id'] as num?)?.toInt(),
-  projectId: (json['projectId'] as num?)?.toInt(),
+  id: nullableIdFromJson(json['id']),
+  projectId: nullableIdFromJson(json['projectId']),
   title: json['title'] as String? ?? '',
   sortIndex: (json['sortIndex'] as num?)?.toInt() ?? 0,
   summary: json['summary'] as String? ?? '',

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import 'api_svc.dart';
+import 'package:anime_ui/pub/utils/json_id.dart';
 import 'package:anime_ui/pub/models/task.dart';
 
 /// 提取结果 - 角色
@@ -121,7 +122,7 @@ class ExtractProp {
 
 /// 确认导入的单镜头（与后端 ConfirmShotInput 对应）
 class ConfirmShotInput {
-  final int sceneId;
+  final String sceneId;
   final String prompt;
   final String stylePrompt;
   final String cameraType;
@@ -131,7 +132,7 @@ class ConfirmShotInput {
   final int duration;
   final int sortIndex;
   final String characterName;
-  final int? characterId;
+  final String? characterId;
   final String emotion;
   final String transition;
   final String negativePrompt;
@@ -172,7 +173,7 @@ class ConfirmShotInput {
 
   factory ConfirmShotInput.fromJson(Map<String, dynamic> json) =>
       ConfirmShotInput(
-        sceneId: (json['scene_id'] as num).toInt(),
+        sceneId: nullableIdFromJson(json['scene_id']) ?? '',
         prompt: json['prompt'] as String? ?? '',
         stylePrompt: json['style_prompt'] as String? ?? '',
         cameraType: json['camera_type'] as String? ?? '',
@@ -182,7 +183,7 @@ class ConfirmShotInput {
         duration: (json['duration'] as num?)?.toInt() ?? 3,
         sortIndex: (json['sort_index'] as num?)?.toInt() ?? 0,
         characterName: json['character_name'] as String? ?? '',
-        characterId: (json['character_id'] as num?)?.toInt(),
+        characterId: nullableIdFromJson(json['character_id']),
         emotion: json['emotion'] as String? ?? '',
         transition: json['transition'] as String? ?? '',
         negativePrompt: json['negative_prompt'] as String? ?? '',
@@ -192,7 +193,7 @@ class ConfirmShotInput {
 class StoryboardService {
   /// AI 资产提取
   Future<ExtractResult> extract(
-    int projectId, {
+    String projectId, {
     String mode = 'script_only',
     String characterProfileContent = '',
     Map<String, int> characterMappings = const {},
@@ -205,8 +206,8 @@ class StoryboardService {
         'mode': mode,
         if (characterProfileContent.isNotEmpty) 'character_profile_content': characterProfileContent,
         if (characterMappings.isNotEmpty) 'character_mappings': characterMappings,
-        'provider': ?provider,
-        'model': ?model,
+        'provider': provider,
+        'model': model,
       },
       options: Options(receiveTimeout: const Duration(seconds: 180)),
     );
@@ -214,7 +215,7 @@ class StoryboardService {
   }
 
   /// 确认提取结果
-  Future<void> confirmExtract(int projectId, ExtractResult result) async {
+  Future<void> confirmExtract(String projectId, ExtractResult result) async {
     await dio.post(
       '/projects/$projectId/storyboard/extract/confirm',
       data: result.toJson(),
@@ -223,8 +224,8 @@ class StoryboardService {
 
   /// 异步拆镜（整集），返回 Task，需轮询完成后从 result.shots 取结果
   Future<Task> generate(
-    int projectId, {
-    required int episodeId,
+    String projectId, {
+    required String episodeId,
     String? provider,
     String? model,
   }) async {
@@ -241,8 +242,8 @@ class StoryboardService {
 
   /// 同步拆镜（整集），Redis 未配置时使用
   Future<({List<ConfirmShotInput> shots, String? episodeTitle})> generateSync(
-    int projectId, {
-    required int episodeId,
+    String projectId, {
+    required String episodeId,
     String? provider,
     String? model,
   }) async {
@@ -264,8 +265,8 @@ class StoryboardService {
 
   /// 预览单场景拆镜
   Future<List<ConfirmShotInput>> preview(
-    int projectId, {
-    required int sceneId,
+    String projectId, {
+    required String sceneId,
     String? provider,
     String? model,
   }) async {
@@ -286,7 +287,7 @@ class StoryboardService {
 
   /// 确认导入
   Future<List<Map<String, dynamic>>> confirm(
-    int projectId,
+    String projectId,
     List<ConfirmShotInput> shots,
   ) async {
     final resp = await dio.post(

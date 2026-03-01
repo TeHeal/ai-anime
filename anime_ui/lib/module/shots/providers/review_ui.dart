@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 镜头审核编辑 UI 状态
 class ShotsReviewUiState {
-  final int? selectedEpisodeId;
-  final int? selectedShotId;
+  final String? selectedEpisodeId;
+  final String? selectedShotId;
   final String filterStatus;
   final String playbackMode;
 
@@ -15,8 +15,8 @@ class ShotsReviewUiState {
   });
 
   ShotsReviewUiState copyWith({
-    int? selectedEpisodeId,
-    int? selectedShotId,
+    String? selectedEpisodeId,
+    String? selectedShotId,
     String? filterStatus,
     String? playbackMode,
     bool clearSelectedShot = false,
@@ -36,11 +36,11 @@ class ShotsReviewUiNotifier extends Notifier<ShotsReviewUiState> {
   @override
   ShotsReviewUiState build() => const ShotsReviewUiState();
 
-  void setSelectedEpisodeId(int? id) {
+  void setSelectedEpisodeId(String? id) {
     state = state.copyWith(selectedEpisodeId: id, clearSelectedShot: true);
   }
 
-  void setSelectedShotId(int? id) {
+  void setSelectedShotId(String? id) {
     state = state.copyWith(selectedShotId: id);
   }
 

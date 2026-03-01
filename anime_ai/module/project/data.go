@@ -4,11 +4,31 @@ import (
 	"errors"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
+
+// normalizeIDForMem 将 UUID 格式（00000000-0000-0000-0000-000000000001）转为短 ID "1"，供 MemData 查找
+func normalizeIDForMem(id string) string {
+	if id == "" {
+		return id
+	}
+	if !strings.HasPrefix(id, "00000000-0000-0000-0000-") {
+		return id
+	}
+	hexPart := id[24:]
+	if len(hexPart) != 12 {
+		return id
+	}
+	v, err := strconv.ParseUint(hexPart, 16, 64)
+	if err != nil {
+		return id
+	}
+	return strconv.FormatUint(v, 10)
+}
 
 // Data 数据访问层接口，使用 string ID 以兼容 PostgreSQL UUID
 type Data interface {
@@ -75,11 +95,13 @@ func (d *MemData) FindByID(id, userID string) (*Project, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	p, ok := d.projects[id]
+	key := normalizeIDForMem(id)
+	userKey := normalizeIDForMem(userID)
+	p, ok := d.projects[key]
 	if !ok {
 		return nil, pkg.ErrNotFound
 	}
-	if p.UserIDStr != userID && !d.isMember(id, userID) {
+	if p.UserIDStr != userKey && p.UserIDStr != userID && !d.isMember(key, userKey) && !d.isMember(key, userID) {
 		return nil, pkg.ErrNotFound
 	}
 	return cloneProject(p), nil
@@ -89,7 +111,8 @@ func (d *MemData) FindByIDOnly(id string) (*Project, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	p, ok := d.projects[id]
+	key := normalizeIDForMem(id)
+	p, ok := d.projects[key]
 	if !ok {
 		return nil, pkg.ErrNotFound
 	}

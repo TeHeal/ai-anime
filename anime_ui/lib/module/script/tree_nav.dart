@@ -23,7 +23,7 @@ class ScriptTreeNode {
   final String id;
   final String label;
   final bool isEpisode;
-  final int? episodeId;
+  final String? episodeId;
   final int? sceneDbId;
   final List<ScriptTreeNode> children;
 }
@@ -46,13 +46,13 @@ class ScriptTreeNav extends StatefulWidget {
   });
 
   final List<Episode> episodes;
-  final int? selectedEpisodeId;
+  final String? selectedEpisodeId;
   final int? selectedSceneId;
-  final void Function(int episodeId, int sceneDbId) onSceneSelected;
+  final void Function(String episodeId, int sceneDbId) onSceneSelected;
   final VoidCallback? onAddEpisode;
-  final void Function(int episodeId)? onAddScene;
-  final void Function(int episodeId)? onDeleteEpisode;
-  final void Function(int episodeId, int sceneDbId)? onDeleteScene;
+  final void Function(String episodeId)? onAddScene;
+  final void Function(String episodeId)? onDeleteEpisode;
+  final void Function(String episodeId, int sceneDbId)? onDeleteScene;
 
   @override
   State<ScriptTreeNav> createState() => _ScriptTreeNavState();
@@ -106,7 +106,7 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
             ? '${sc.sceneId} ${sc.location}'
             : sc.location;
         return ScriptTreeNode(
-          id: 'scene_${sc.id}',
+          id: 'scene_${sc.id ?? ""}',
           label: label.isEmpty ? '未命名场景' : label,
           isEpisode: false,
           episodeId: ep.id,
@@ -115,7 +115,7 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
       }).toList();
 
       return ScriptTreeNode(
-        id: 'ep_${ep.id}',
+        id: 'ep_${ep.id ?? ""}',
         label: ep.title.isEmpty ? '未命名集' : ep.title,
         isEpisode: true,
         episodeId: ep.id,

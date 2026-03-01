@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'components/voice_gen_footer.dart';
 import 'components/voice_gen_header.dart';
 import 'components/voice_gen_input_panel.dart';
@@ -106,11 +106,11 @@ class _VoiceGenViewState extends State<VoiceGenView>
             required onProgress,
             required onResult,
           }) async {
-            final notifier = widget.ref.read(resourceListProvider.notifier);
+            final port = widget.ref.read(resourceListPortProvider);
             final tagsJson = tags.isEmpty ? '' : jsonEncode(tags);
 
             if (mode == VoiceGenMode.clone) {
-              await notifier.generateVoice(
+              await port.generateVoice(
                 name: name,
                 sampleUrl: sampleUrl,
                 tagsJson: tagsJson,
@@ -118,7 +118,7 @@ class _VoiceGenViewState extends State<VoiceGenView>
                 onProgress: onProgress,
               );
             } else {
-              final resource = await notifier.generateVoiceDesign(
+              final resource = await port.generateVoiceDesign(
                 name: name,
                 prompt: designPrompt,
                 previewText: previewText,
@@ -141,8 +141,8 @@ class _VoiceGenViewState extends State<VoiceGenView>
     if (_promptCtrl.text.trim().isEmpty) return;
     setState(() => _isGeneratingPreviewText = true);
     try {
-      final notifier = widget.ref.read(resourceListProvider.notifier);
-      final text = await notifier.generatePreviewText(
+      final port = widget.ref.read(resourceListPortProvider);
+      final text = await port.generatePreviewText(
         voicePrompt: _promptCtrl.text,
       );
       if (mounted && text.isNotEmpty) {
@@ -222,7 +222,10 @@ class _VoiceGenViewState extends State<VoiceGenView>
                           onGeneratePreviewText: _generatePreviewText,
                         ),
                       ),
-                      Container(width: 1.w, color: AppColors.surfaceMutedDarker),
+                      Container(
+                        width: 1.w,
+                        color: AppColors.surfaceMutedDarker,
+                      ),
                       Expanded(
                         child: VoiceGenResultPanel(
                           ctrl: _ctrl,

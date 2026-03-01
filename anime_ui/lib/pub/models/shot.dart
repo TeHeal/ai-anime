@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'shot.freezed.dart';
 part 'shot.g.dart';
 
@@ -8,10 +10,10 @@ abstract class StoryboardShot with _$StoryboardShot {
   const StoryboardShot._();
 
   const factory StoryboardShot({
-    int? id,
-    int? projectId,
-    int? segmentId,
-    int? sceneId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? segmentId,
+    @JsonKey(fromJson: nullableIdFromJson) String? sceneId,
     @Default(0) int sortIndex,
     @Default('') String prompt,
     @Default('') String stylePrompt,
@@ -26,7 +28,7 @@ abstract class StoryboardShot with _$StoryboardShot {
     String? voice,
     @Default('口型同步') String lipSync,
     String? characterName,
-    int? characterId,
+    @JsonKey(fromJson: nullableIdFromJson) String? characterId,
     String? emotion,
     String? voiceName,
     String? transition,

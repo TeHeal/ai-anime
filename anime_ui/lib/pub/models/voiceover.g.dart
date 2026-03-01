@@ -7,9 +7,9 @@ part of 'voiceover.dart';
 // **************************************************************************
 
 _Voiceover _$VoiceoverFromJson(Map<String, dynamic> json) => _Voiceover(
-  id: (json['id'] as num?)?.toInt(),
-  projectId: (json['projectId'] as num?)?.toInt(),
-  shotId: (json['shotId'] as num?)?.toInt(),
+  id: nullableIdFromJson(json['id']),
+  projectId: nullableIdFromJson(json['projectId']),
+  shotId: nullableIdFromJson(json['shotId']),
   text: json['text'] as String? ?? '',
   voiceId: json['voiceId'] as String? ?? '',
   voiceName: json['voiceName'] as String? ?? '',

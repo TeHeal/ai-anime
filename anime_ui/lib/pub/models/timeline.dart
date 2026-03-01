@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'timeline.freezed.dart';
 part 'timeline.g.dart';
 
@@ -7,7 +9,7 @@ part 'timeline.g.dart';
 abstract class TrackItem with _$TrackItem {
   const factory TrackItem({
     required String id,
-    int? sourceId,
+    @JsonKey(fromJson: nullableIdFromJson) String? sourceId,
     @Default('') String sourceUrl,
     @Default('') String label,
     @Default(0) double startAt,
@@ -36,8 +38,8 @@ abstract class Track with _$Track {
 @freezed
 abstract class ProjectTimeline with _$ProjectTimeline {
   const factory ProjectTimeline({
-    int? id,
-    int? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId,
     @Default(0) double duration,
     @Default([]) List<Track> tracks,
   }) = _ProjectTimeline;

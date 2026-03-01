@@ -54,7 +54,7 @@ class ParseStateNotifier extends Notifier<ParseState> {
 
   final _svc = ScriptParseService();
 
-  Future<void> parseSync(int projectId, String content, int formatHint) async {
+  Future<void> parseSync(String projectId, String content, int formatHint) async {
     state = const ParseState(
       phase: ParsePhase.parsing,
       progress: 10,
@@ -97,7 +97,7 @@ class ParseStateNotifier extends Notifier<ParseState> {
     }
   }
 
-  Future<void> confirm(int projectId) async {
+  Future<void> confirm(String projectId) async {
     final episodes = state.result?.script.episodes;
     if (episodes == null || episodes.isEmpty) return;
 

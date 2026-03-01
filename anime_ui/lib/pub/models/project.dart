@@ -22,7 +22,7 @@ abstract class ProjectConfig with _$ProjectConfig {
 @freezed
 abstract class Project with _$Project {
   const factory Project({
-    int? id,
+    String? id,
     @Default('Untitled') String name,
     @Default('') String story,
     @Default('full_script') String storyMode,

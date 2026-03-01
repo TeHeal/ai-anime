@@ -67,16 +67,16 @@ class AiService {
     int? width,
     int? height,
     int count = 1,
-    int? projectId,
+    String? projectId,
   }) async {
     final resp = await dio.post('/ai/generate/image', data: {
       'prompt': prompt,
       if (provider.isNotEmpty) 'provider': provider,
       if (model.isNotEmpty) 'model': model,
-      'width': ?width,
-      'height': ?height,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
       if (count > 1) 'count': count,
-      'project_id': ?projectId,
+      if (projectId != null) 'project_id': projectId,
     });
     return extractDataObject(resp, Task.fromJson);
   }
@@ -87,15 +87,15 @@ class AiService {
     String provider = '',
     String model = '',
     int? duration,
-    int? projectId,
+    String? projectId,
   }) async {
     final resp = await dio.post('/ai/generate/video', data: {
       'image_url': imageUrl,
       if (prompt.isNotEmpty) 'prompt': prompt,
       if (provider.isNotEmpty) 'provider': provider,
       if (model.isNotEmpty) 'model': model,
-      'duration': ?duration,
-      'project_id': ?projectId,
+      if (duration != null) 'duration': duration,
+      if (projectId != null) 'project_id': projectId,
     });
     return extractDataObject(resp, Task.fromJson);
   }

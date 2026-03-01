@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'asset_version.freezed.dart';
 part 'asset_version.g.dart';
 
@@ -8,8 +10,8 @@ abstract class AssetVersion with _$AssetVersion {
   const AssetVersion._();
 
   const factory AssetVersion({
-    int? id,
-    int? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? projectId,
     @Default(0) int version,
     @Default('') String action,
     @Default('') String statsJson,

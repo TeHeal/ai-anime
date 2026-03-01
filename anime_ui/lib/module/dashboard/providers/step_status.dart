@@ -1,22 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:anime_ui/pub/domain/step_status.dart';
+import 'package:anime_ui/module/script/providers/script.dart';
 import 'package:anime_ui/module/script/providers/shots.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
-import 'package:anime_ui/module/script/providers/script.dart';
-
-/// 对象状态枚举
-enum StepStatus { notStarted, inProgress, completed }
-
-/// 各对象的状态集合 (6 个核心对象: 剧本/资产/脚本/镜图/镜头/成片)
-class StepStatuses {
-  final List<StepStatus> statuses;
-  const StepStatuses(this.statuses);
-
-  StepStatus operator [](int i) =>
-      i >= 0 && i < statuses.length ? statuses[i] : StepStatus.notStarted;
-}
 
 /// 对象状态提供者 — 计算 6 个核心对象的完成状态
+///
+/// 归属 dashboard 模块，可依赖 script、assets 等同级模块
 final stepStatusProvider = Provider<StepStatuses>((ref) {
   final episodes = ref.watch(episodesProvider).value ?? [];
   final chars = ref.watch(assetCharactersProvider).value ?? [];
@@ -48,14 +39,14 @@ final stepStatusProvider = Provider<StepStatuses>((ref) {
             : StepStatus.inProgress)
       : StepStatus.notStarted;
 
-  // ④ 镜图 Shot Images (replaces storyboard)
+  // ④ 镜图 Shot Images
   final shotImages = allShotsHaveImages
       ? StepStatus.completed
       : (shots.any((s) => s.imageUrl.isNotEmpty)
             ? StepStatus.inProgress
             : StepStatus.notStarted);
 
-  // ⑤ 镜头 Shots (composite: video + audio + lip sync)
+  // ⑤ 镜头 Shots
   final shotsStatus = allShotsHaveVideos
       ? StepStatus.completed
       : (shots.any((s) => s.videoUrl.isNotEmpty)

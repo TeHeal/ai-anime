@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'prompt_record.freezed.dart';
 part 'prompt_record.g.dart';
 
@@ -8,14 +10,14 @@ abstract class PromptRecord with _$PromptRecord {
   const PromptRecord._();
 
   const factory PromptRecord({
-    int? id,
-    required int projectId,
-    required int userId,
-    int? episodeId,
-    int? sceneId,
-    int? shotId,
-    int? characterId,
-    int? locationId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'userId') String? userId,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'episodeId') String? episodeId,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'sceneId') String? sceneId,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'shotId') String? shotId,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'characterId') String? characterId,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'locationId') String? locationId,
     @Default('') String type,
     @Default('') String inputText,
     @Default('') String fullPrompt,

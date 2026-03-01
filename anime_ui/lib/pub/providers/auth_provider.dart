@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/user.dart';
-import 'package:anime_ui/pub/services/api_svc.dart' show setAuthToken, authToken;
+import 'package:anime_ui/pub/providers/storage_provider.dart';
+import 'package:anime_ui/pub/services/api_svc.dart'
+    show setAuthToken, authToken;
 import 'package:anime_ui/pub/services/auth_svc.dart';
 
 class AuthState {
@@ -31,11 +32,13 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
     setAuthToken(null);
-    storageService.clearToken();
+    await ref.read(storageServiceProvider).clearToken();
     state = AuthState();
   }
 }
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

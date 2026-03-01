@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'voiceover.freezed.dart';
 part 'voiceover.g.dart';
 
@@ -8,9 +10,9 @@ abstract class Voiceover with _$Voiceover {
   const Voiceover._();
 
   const factory Voiceover({
-    int? id,
-    int? projectId,
-    int? shotId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'projectId') String? projectId,
+    @JsonKey(fromJson: nullableIdFromJson, name: 'shotId') String? shotId,
     @Default('') String text,
     @Default('') String voiceId,
     @Default('') String voiceName,

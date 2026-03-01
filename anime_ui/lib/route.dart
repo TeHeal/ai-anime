@@ -2,10 +2,11 @@
 /// 连接后端需使用: --dart-define=API_BASE_URL=http://localhost:3737/api/v1
 library;
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:anime_ui/main.dart' show storageService;
 import 'package:anime_ui/pub/const/routes.dart';
+import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/services/api_svc.dart' show authToken;
 import 'package:anime_ui/pub/widgets/page_transitions.dart';
 
@@ -52,7 +53,11 @@ final goRouter = GoRouter(
     final isWorkspacePath = Routes.objectPaths.any(
       (objectPath) => path == objectPath || path.startsWith('$objectPath/'),
     );
-    final hasCurrentProject = storageService.currentProjectId != null;
+    final hasCurrentProject =
+        ProviderScope.containerOf(
+          context,
+        ).read(storageServiceProvider).currentProjectId !=
+        null;
     if (loggedIn &&
         !hasCurrentProject &&
         !isStoryImportPath &&

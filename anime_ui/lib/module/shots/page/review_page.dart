@@ -94,7 +94,7 @@ class _ShotsReviewPageState extends ConsumerState<ShotsReviewPage> {
       final first = episodes.where((e) => e.id != null).firstOrNull;
       if (first != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          uiNotifier.setSelectedEpisodeId(first.id);
+          uiNotifier.setSelectedEpisodeId(first.id.toString());
         });
       }
     }
@@ -126,7 +126,7 @@ class _ShotsReviewPageState extends ConsumerState<ShotsReviewPage> {
           shots: allShots
               .map(
                 (s) => ShotNavItem(
-                  id: s.id ?? 0,
+                  id: s.id ?? '',
                   shotNumber: (s.sortIndex ?? 0) + 1,
                   label: s.cameraType ?? '',
                   thumbnailUrl: s.imageUrl,

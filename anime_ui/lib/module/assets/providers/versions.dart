@@ -12,7 +12,7 @@ class AssetVersionsNotifier extends Notifier<AsyncValue<List<AssetVersion>>> {
   AsyncValue<List<AssetVersion>> build() => const AsyncValue.data([]);
 
   AssetVersionService get _svc => ref.read(_versionSvcProvider);
-  int? get _projectId => ref.read(currentProjectProvider).value?.id;
+  String? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {
     final pid = _projectId;

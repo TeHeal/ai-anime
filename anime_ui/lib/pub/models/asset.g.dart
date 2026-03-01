@@ -7,8 +7,8 @@ part of 'asset.dart';
 // **************************************************************************
 
 _Asset _$AssetFromJson(Map<String, dynamic> json) => _Asset(
-  id: (json['id'] as num?)?.toInt(),
-  projectId: (json['projectId'] as num?)?.toInt(),
+  id: nullableIdFromJson(json['id']),
+  projectId: nullableIdFromJson(json['projectId']),
   type: json['type'] as String? ?? 'scene',
   name: json['name'] as String? ?? '',
   desc: json['desc'] as String? ?? '',

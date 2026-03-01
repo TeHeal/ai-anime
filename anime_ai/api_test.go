@@ -178,3 +178,192 @@ func TestAPI_Projects_CreateAndList(t *testing.T) {
 		t.Errorf("项目列表应至少有 1 项, 得 %d", len(listResp.Data))
 	}
 }
+
+// TestAPI_Login_Fail 登录失败：错误密码
+func TestAPI_Login_Fail(t *testing.T) {
+	r := buildTestRouter()
+	body := map[string]string{"username": "admin", "password": "wrong"}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("错误密码应返回 401, 得 %d", w.Code)
+	}
+}
+
+// TestAPI_Projects_Get 获取项目详情
+func TestAPI_Projects_Get(t *testing.T) {
+	r := buildTestRouter()
+	token := mustLogin(t, r)
+
+	// 先创建项目
+	createBody := map[string]interface{}{"name": "测试项目", "story": "", "config": map[string]string{}}
+	cb, _ := json.Marshal(createBody)
+	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects", bytes.NewReader(cb))
+	createReq.Header.Set("Content-Type", "application/json")
+	createReq.Header.Set("Authorization", "Bearer "+token)
+	createW := httptest.NewRecorder()
+	r.ServeHTTP(createW, createReq)
+	if createW.Code != http.StatusOK && createW.Code != http.StatusCreated {
+		t.Fatalf("创建项目失败: %d %s", createW.Code, createW.Body.String())
+	}
+
+	var createResp struct {
+		Data struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(createW.Body.Bytes(), &createResp); err != nil {
+		t.Fatalf("解析创建响应失败: %v", err)
+	}
+	projectID := createResp.Data.ID
+	if projectID == "" {
+		t.Fatal("创建响应应包含 id")
+	}
+
+	// 获取项目详情
+	getReq := httptest.NewRequest(http.MethodGet, "/api/v1/projects/"+projectID, nil)
+	getReq.Header.Set("Authorization", "Bearer "+token)
+	getW := httptest.NewRecorder()
+	r.ServeHTTP(getW, getReq)
+	if getW.Code != http.StatusOK {
+		t.Errorf("获取项目应返回 200, 得 %d body=%s", getW.Code, getW.Body.String())
+	}
+}
+
+// TestAPI_Script_ParseSync 剧本同步解析
+func TestAPI_Script_ParseSync(t *testing.T) {
+	r := buildTestRouter()
+	token := mustLogin(t, r)
+	projectID := mustCreateProject(t, r, token)
+
+	parseBody := map[string]interface{}{
+		"content":     "第一集\n场景1 内景 客厅\n张三：你好。",
+		"format_hint": "standard",
+	}
+	pb, _ := json.Marshal(parseBody)
+	parseReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/script/parse-sync", bytes.NewReader(pb))
+	parseReq.Header.Set("Content-Type", "application/json")
+	parseReq.Header.Set("Authorization", "Bearer "+token)
+	parseW := httptest.NewRecorder()
+	r.ServeHTTP(parseW, parseReq)
+
+	if parseW.Code != http.StatusOK {
+		t.Errorf("解析应返回 200, 得 %d body=%s", parseW.Code, parseW.Body.String())
+	}
+	var parseResp struct {
+		Data struct {
+			Script interface{} `json:"script"`
+			Issues []string    `json:"issues"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(parseW.Body.Bytes(), &parseResp); err != nil {
+		t.Fatalf("解析响应失败: %v", err)
+	}
+	// 占位实现返回 script: null，结构正确即可
+	if parseResp.Data.Issues == nil {
+		t.Error("issues 字段应存在")
+	}
+}
+
+// TestAPI_Script_ParseSync_RequireAuth 解析需鉴权
+func TestAPI_Script_ParseSync_RequireAuth(t *testing.T) {
+	r := buildTestRouter()
+	token := mustLogin(t, r)
+	projectID := mustCreateProject(t, r, token)
+
+	parseBody := map[string]interface{}{"content": "test", "format_hint": "standard"}
+	pb, _ := json.Marshal(parseBody)
+	parseReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/script/parse-sync", bytes.NewReader(pb))
+	parseReq.Header.Set("Content-Type", "application/json")
+	// 故意不设置 Authorization
+	parseW := httptest.NewRecorder()
+	r.ServeHTTP(parseW, parseReq)
+
+	if parseW.Code != http.StatusUnauthorized {
+		t.Errorf("未鉴权应返回 401, 得 %d", parseW.Code)
+	}
+}
+
+// TestAPI_Flow_Login_Project_Parse 全流程：登录 → 创建项目 → 剧本解析
+func TestAPI_Flow_Login_Project_Parse(t *testing.T) {
+	r := buildTestRouter()
+
+	// 1. 登录
+	token := mustLogin(t, r)
+	if token == "" {
+		t.Fatal("登录失败")
+	}
+
+	// 2. 创建项目
+	projectID := mustCreateProject(t, r, token)
+	if projectID == "" {
+		t.Fatal("创建项目失败")
+	}
+
+	// 3. 剧本解析
+	parseBody := map[string]interface{}{
+		"content":     "第一集\n场景1 内景 客厅 日\n张三：你好，李四。\n李四：你好。",
+		"format_hint": "standard",
+	}
+	pb, _ := json.Marshal(parseBody)
+	parseReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/script/parse-sync", bytes.NewReader(pb))
+	parseReq.Header.Set("Content-Type", "application/json")
+	parseReq.Header.Set("Authorization", "Bearer "+token)
+	parseW := httptest.NewRecorder()
+	r.ServeHTTP(parseW, parseReq)
+
+	if parseW.Code != http.StatusOK {
+		t.Fatalf("剧本解析应返回 200, 得 %d body=%s", parseW.Code, parseW.Body.String())
+	}
+}
+
+// mustLogin 登录并返回 token，失败则 t.Fatal
+func mustLogin(t *testing.T, r *gin.Engine) string {
+	t.Helper()
+	body := map[string]string{"username": "admin", "password": "admin123"}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("登录失败: %d %s", w.Code, w.Body.String())
+	}
+	var resp struct {
+		Data struct {
+			Token string `json:"token"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("解析登录响应: %v", err)
+	}
+	return resp.Data.Token
+}
+
+// mustCreateProject 创建项目并返回 ID，失败则 t.Fatal
+func mustCreateProject(t *testing.T, r *gin.Engine, token string) string {
+	t.Helper()
+	body := map[string]interface{}{"name": "API测试项目", "story": "", "config": map[string]string{}}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/projects", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK && w.Code != http.StatusCreated {
+		t.Fatalf("创建项目失败: %d %s", w.Code, w.Body.String())
+	}
+	var resp struct {
+		Data struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("解析创建响应: %v", err)
+	}
+	return resp.Data.ID
+}

@@ -12,8 +12,8 @@ import 'package:anime_ui/pub/widgets/glow_card.dart';
 import 'package:anime_ui/pub/widgets/gradient_app_bar_bottom.dart';
 import 'package:anime_ui/pub/widgets/pulse.dart';
 import 'package:anime_ui/pub/widgets/starfield_background.dart';
-import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/project.dart';
+import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/project_svc.dart';
@@ -145,7 +145,7 @@ class ProjectsPage extends ConsumerWidget {
   Future<void> _createProject(BuildContext context, WidgetRef ref) async {
     ref.read(currentProjectProvider.notifier).clear();
     ref.read(lockProvider.notifier).clear();
-    await storageService.clearCurrentProjectId();
+    await ref.read(storageServiceProvider).clearCurrentProjectId();
     if (context.mounted) context.go(Routes.storyImport);
   }
 
@@ -154,7 +154,7 @@ class ProjectsPage extends ConsumerWidget {
     WidgetRef ref,
     Project project,
   ) async {
-    storageService.setCurrentProjectId(project.id!);
+    await ref.read(storageServiceProvider).setCurrentProjectId(project.id!);
     await ref.read(currentProjectProvider.notifier).load(project.id!);
     if (context.mounted) context.go(Routes.dashboard);
   }

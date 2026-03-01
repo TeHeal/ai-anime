@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
+import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/widgets/model_selector/model_selector.dart';
 import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 import '../image_gen_config.dart';
@@ -79,7 +79,7 @@ class ImageGenInputPanel extends StatelessWidget {
       negOnLibraryTap: (setText) => onPromptLibraryTap(setText),
       onSaveToLibrary: (text, name, {required bool isNegative}) async {
         await ref
-            .read(resourceListProvider.notifier)
+            .read(resourceListPortProvider)
             .addResource(
               Resource(
                 name: name,
@@ -105,7 +105,9 @@ class ImageGenInputPanel extends StatelessWidget {
           SizedBox(width: Spacing.inputGapSm.w),
           Text(
             '高级选项（比例 / 模型）',
-            style: AppTextStyles.labelMedium.copyWith(color: AppColors.mutedDark),
+            style: AppTextStyles.labelMedium.copyWith(
+              color: AppColors.mutedDark,
+            ),
           ),
         ],
       ),

@@ -8,9 +8,9 @@ part of 'episode_progress.dart';
 
 _EpisodeProgress _$EpisodeProgressFromJson(Map<String, dynamic> json) =>
     _EpisodeProgress(
-      id: (json['id'] as num?)?.toInt(),
-      episodeId: (json['episodeId'] as num?)?.toInt() ?? 0,
-      projectId: (json['projectId'] as num?)?.toInt() ?? 0,
+      id: nullableIdFromJson(json['id']),
+      episodeId: nullableIdFromJson(json['episodeId']),
+      projectId: nullableIdFromJson(json['projectId']),
       storyDone: json['storyDone'] as bool? ?? false,
       assetsDone: json['assetsDone'] as bool? ?? false,
       scriptDone: json['scriptDone'] as bool? ?? false,

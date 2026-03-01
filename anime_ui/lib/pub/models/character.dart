@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'character.freezed.dart';
 part 'character.g.dart';
 
@@ -10,8 +12,8 @@ abstract class Character with _$Character {
   const Character._();
 
   const factory Character({
-    int? id,
-    int? projectId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? projectId,
     @Default('') String name,
     @Default('') String aliasJson,
     @Default('') String appearance,

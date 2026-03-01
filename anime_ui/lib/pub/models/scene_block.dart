@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:anime_ui/pub/utils/json_id.dart';
+
 part 'scene_block.freezed.dart';
 part 'scene_block.g.dart';
 
@@ -19,8 +21,8 @@ enum BlockType {
 @freezed
 abstract class SceneBlock with _$SceneBlock {
   const factory SceneBlock({
-    int? id,
-    int? sceneId,
+    @JsonKey(fromJson: nullableIdFromJson) String? id,
+    @JsonKey(fromJson: nullableIdFromJson) String? sceneId,
     @Default('action') String type,
     @Default('') String character,
     @Default('') String emotion,

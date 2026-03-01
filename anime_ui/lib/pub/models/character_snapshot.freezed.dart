@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CharacterSnapshot {
 
- int? get id; int get characterId; int get projectId; String get startSceneId; String get endSceneId; String get triggerEvent; String get costume; String get hairstyle; String get physicalMarks; String get accessories; String get mentalState; String get demeanor; String get relationshipsJson; String get composedAppearance; int get sortIndex; String get source; DateTime? get createdAt; DateTime? get updatedAt;
+@JsonKey(fromJson: nullableIdFromJson) String? get id;@JsonKey(fromJson: nullableIdFromJson) String? get characterId;@JsonKey(fromJson: nullableIdFromJson) String? get projectId; String get startSceneId; String get endSceneId; String get triggerEvent; String get costume; String get hairstyle; String get physicalMarks; String get accessories; String get mentalState; String get demeanor; String get relationshipsJson; String get composedAppearance; int get sortIndex; String get source; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of CharacterSnapshot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $CharacterSnapshotCopyWith<$Res>  {
   factory $CharacterSnapshotCopyWith(CharacterSnapshot value, $Res Function(CharacterSnapshot) _then) = _$CharacterSnapshotCopyWithImpl;
 @useResult
 $Res call({
- int? id, int characterId, int projectId, String startSceneId, String endSceneId, String triggerEvent, String costume, String hairstyle, String physicalMarks, String accessories, String mentalState, String demeanor, String relationshipsJson, String composedAppearance, int sortIndex, String source, DateTime? createdAt, DateTime? updatedAt
+@JsonKey(fromJson: nullableIdFromJson) String? id,@JsonKey(fromJson: nullableIdFromJson) String? characterId,@JsonKey(fromJson: nullableIdFromJson) String? projectId, String startSceneId, String endSceneId, String triggerEvent, String costume, String hairstyle, String physicalMarks, String accessories, String mentalState, String demeanor, String relationshipsJson, String composedAppearance, int sortIndex, String source, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,12 +65,12 @@ class _$CharacterSnapshotCopyWithImpl<$Res>
 
 /// Create a copy of CharacterSnapshot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? characterId = null,Object? projectId = null,Object? startSceneId = null,Object? endSceneId = null,Object? triggerEvent = null,Object? costume = null,Object? hairstyle = null,Object? physicalMarks = null,Object? accessories = null,Object? mentalState = null,Object? demeanor = null,Object? relationshipsJson = null,Object? composedAppearance = null,Object? sortIndex = null,Object? source = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? characterId = freezed,Object? projectId = freezed,Object? startSceneId = null,Object? endSceneId = null,Object? triggerEvent = null,Object? costume = null,Object? hairstyle = null,Object? physicalMarks = null,Object? accessories = null,Object? mentalState = null,Object? demeanor = null,Object? relationshipsJson = null,Object? composedAppearance = null,Object? sortIndex = null,Object? source = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,characterId: null == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,startSceneId: null == startSceneId ? _self.startSceneId : startSceneId // ignore: cast_nullable_to_non_nullable
+as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,startSceneId: null == startSceneId ? _self.startSceneId : startSceneId // ignore: cast_nullable_to_non_nullable
 as String,endSceneId: null == endSceneId ? _self.endSceneId : endSceneId // ignore: cast_nullable_to_non_nullable
 as String,triggerEvent: null == triggerEvent ? _self.triggerEvent : triggerEvent // ignore: cast_nullable_to_non_nullable
 as String,costume: null == costume ? _self.costume : costume // ignore: cast_nullable_to_non_nullable
@@ -170,7 +170,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int characterId,  int projectId,  String startSceneId,  String endSceneId,  String triggerEvent,  String costume,  String hairstyle,  String physicalMarks,  String accessories,  String mentalState,  String demeanor,  String relationshipsJson,  String composedAppearance,  int sortIndex,  String source,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: nullableIdFromJson)  String? id, @JsonKey(fromJson: nullableIdFromJson)  String? characterId, @JsonKey(fromJson: nullableIdFromJson)  String? projectId,  String startSceneId,  String endSceneId,  String triggerEvent,  String costume,  String hairstyle,  String physicalMarks,  String accessories,  String mentalState,  String demeanor,  String relationshipsJson,  String composedAppearance,  int sortIndex,  String source,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CharacterSnapshot() when $default != null:
 return $default(_that.id,_that.characterId,_that.projectId,_that.startSceneId,_that.endSceneId,_that.triggerEvent,_that.costume,_that.hairstyle,_that.physicalMarks,_that.accessories,_that.mentalState,_that.demeanor,_that.relationshipsJson,_that.composedAppearance,_that.sortIndex,_that.source,_that.createdAt,_that.updatedAt);case _:
@@ -191,7 +191,7 @@ return $default(_that.id,_that.characterId,_that.projectId,_that.startSceneId,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int characterId,  int projectId,  String startSceneId,  String endSceneId,  String triggerEvent,  String costume,  String hairstyle,  String physicalMarks,  String accessories,  String mentalState,  String demeanor,  String relationshipsJson,  String composedAppearance,  int sortIndex,  String source,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: nullableIdFromJson)  String? id, @JsonKey(fromJson: nullableIdFromJson)  String? characterId, @JsonKey(fromJson: nullableIdFromJson)  String? projectId,  String startSceneId,  String endSceneId,  String triggerEvent,  String costume,  String hairstyle,  String physicalMarks,  String accessories,  String mentalState,  String demeanor,  String relationshipsJson,  String composedAppearance,  int sortIndex,  String source,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CharacterSnapshot():
 return $default(_that.id,_that.characterId,_that.projectId,_that.startSceneId,_that.endSceneId,_that.triggerEvent,_that.costume,_that.hairstyle,_that.physicalMarks,_that.accessories,_that.mentalState,_that.demeanor,_that.relationshipsJson,_that.composedAppearance,_that.sortIndex,_that.source,_that.createdAt,_that.updatedAt);case _:
@@ -211,7 +211,7 @@ return $default(_that.id,_that.characterId,_that.projectId,_that.startSceneId,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int characterId,  int projectId,  String startSceneId,  String endSceneId,  String triggerEvent,  String costume,  String hairstyle,  String physicalMarks,  String accessories,  String mentalState,  String demeanor,  String relationshipsJson,  String composedAppearance,  int sortIndex,  String source,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: nullableIdFromJson)  String? id, @JsonKey(fromJson: nullableIdFromJson)  String? characterId, @JsonKey(fromJson: nullableIdFromJson)  String? projectId,  String startSceneId,  String endSceneId,  String triggerEvent,  String costume,  String hairstyle,  String physicalMarks,  String accessories,  String mentalState,  String demeanor,  String relationshipsJson,  String composedAppearance,  int sortIndex,  String source,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CharacterSnapshot() when $default != null:
 return $default(_that.id,_that.characterId,_that.projectId,_that.startSceneId,_that.endSceneId,_that.triggerEvent,_that.costume,_that.hairstyle,_that.physicalMarks,_that.accessories,_that.mentalState,_that.demeanor,_that.relationshipsJson,_that.composedAppearance,_that.sortIndex,_that.source,_that.createdAt,_that.updatedAt);case _:
@@ -226,12 +226,12 @@ return $default(_that.id,_that.characterId,_that.projectId,_that.startSceneId,_t
 @JsonSerializable()
 
 class _CharacterSnapshot extends CharacterSnapshot {
-  const _CharacterSnapshot({this.id, required this.characterId, required this.projectId, this.startSceneId = '', this.endSceneId = '', this.triggerEvent = '', this.costume = '', this.hairstyle = '', this.physicalMarks = '', this.accessories = '', this.mentalState = '', this.demeanor = '', this.relationshipsJson = '', this.composedAppearance = '', this.sortIndex = 0, this.source = 'ai', this.createdAt, this.updatedAt}): super._();
+  const _CharacterSnapshot({@JsonKey(fromJson: nullableIdFromJson) this.id, @JsonKey(fromJson: nullableIdFromJson) this.characterId, @JsonKey(fromJson: nullableIdFromJson) this.projectId, this.startSceneId = '', this.endSceneId = '', this.triggerEvent = '', this.costume = '', this.hairstyle = '', this.physicalMarks = '', this.accessories = '', this.mentalState = '', this.demeanor = '', this.relationshipsJson = '', this.composedAppearance = '', this.sortIndex = 0, this.source = 'ai', this.createdAt, this.updatedAt}): super._();
   factory _CharacterSnapshot.fromJson(Map<String, dynamic> json) => _$CharacterSnapshotFromJson(json);
 
-@override final  int? id;
-@override final  int characterId;
-@override final  int projectId;
+@override@JsonKey(fromJson: nullableIdFromJson) final  String? id;
+@override@JsonKey(fromJson: nullableIdFromJson) final  String? characterId;
+@override@JsonKey(fromJson: nullableIdFromJson) final  String? projectId;
 @override@JsonKey() final  String startSceneId;
 @override@JsonKey() final  String endSceneId;
 @override@JsonKey() final  String triggerEvent;
@@ -281,7 +281,7 @@ abstract mixin class _$CharacterSnapshotCopyWith<$Res> implements $CharacterSnap
   factory _$CharacterSnapshotCopyWith(_CharacterSnapshot value, $Res Function(_CharacterSnapshot) _then) = __$CharacterSnapshotCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int characterId, int projectId, String startSceneId, String endSceneId, String triggerEvent, String costume, String hairstyle, String physicalMarks, String accessories, String mentalState, String demeanor, String relationshipsJson, String composedAppearance, int sortIndex, String source, DateTime? createdAt, DateTime? updatedAt
+@JsonKey(fromJson: nullableIdFromJson) String? id,@JsonKey(fromJson: nullableIdFromJson) String? characterId,@JsonKey(fromJson: nullableIdFromJson) String? projectId, String startSceneId, String endSceneId, String triggerEvent, String costume, String hairstyle, String physicalMarks, String accessories, String mentalState, String demeanor, String relationshipsJson, String composedAppearance, int sortIndex, String source, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -298,12 +298,12 @@ class __$CharacterSnapshotCopyWithImpl<$Res>
 
 /// Create a copy of CharacterSnapshot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? characterId = null,Object? projectId = null,Object? startSceneId = null,Object? endSceneId = null,Object? triggerEvent = null,Object? costume = null,Object? hairstyle = null,Object? physicalMarks = null,Object? accessories = null,Object? mentalState = null,Object? demeanor = null,Object? relationshipsJson = null,Object? composedAppearance = null,Object? sortIndex = null,Object? source = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? characterId = freezed,Object? projectId = freezed,Object? startSceneId = null,Object? endSceneId = null,Object? triggerEvent = null,Object? costume = null,Object? hairstyle = null,Object? physicalMarks = null,Object? accessories = null,Object? mentalState = null,Object? demeanor = null,Object? relationshipsJson = null,Object? composedAppearance = null,Object? sortIndex = null,Object? source = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_CharacterSnapshot(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,characterId: null == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
-as int,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
-as int,startSceneId: null == startSceneId ? _self.startSceneId : startSceneId // ignore: cast_nullable_to_non_nullable
+as String?,characterId: freezed == characterId ? _self.characterId : characterId // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,startSceneId: null == startSceneId ? _self.startSceneId : startSceneId // ignore: cast_nullable_to_non_nullable
 as String,endSceneId: null == endSceneId ? _self.endSceneId : endSceneId // ignore: cast_nullable_to_non_nullable
 as String,triggerEvent: null == triggerEvent ? _self.triggerEvent : triggerEvent // ignore: cast_nullable_to_non_nullable
 as String,costume: null == costume ? _self.costume : costume // ignore: cast_nullable_to_non_nullable
