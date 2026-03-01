@@ -27,6 +27,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_video"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"github.com/TeHeal/ai-anime/anime_ai/module/task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
@@ -308,6 +309,15 @@ func main() {
 		log.Println("通知模块已启用")
 	}
 
+	// 统一任务模块（README §2.1 任务编排，前端任务中心 /api/v1/tasks）
+	var taskHandler *task.Handler
+	if pool != nil {
+		taskData := task.NewDBData(db.New(pool))
+		taskSvc := task.NewService(taskData, projectVerifier)
+		taskHandler = task.NewHandler(taskSvc)
+		log.Println("统一任务模块已启用")
+	}
+
 	// 成片模块（README 成片阶段，状态机 editing→exporting→done）
 	var compositeStore composite.Store
 	var compositeSvc *composite.Service
@@ -507,6 +517,7 @@ func main() {
 	routeCfg := &RouteConfig{
 		AuthHandler:         authHandler,
 		NotificationHandler: notificationHandler,
+		TaskHandler:         taskHandler,
 		ProjectHandler:      projectHandler,
 		EpisodeHandler:      episodeHandler,
 		SceneHandler:        sceneHandler,

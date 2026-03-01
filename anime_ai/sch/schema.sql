@@ -518,6 +518,31 @@ CREATE INDEX idx_provider_usages_project_id ON provider_usages (project_id);
 CREATE INDEX idx_provider_usages_user_id ON provider_usages (user_id);
 CREATE INDEX idx_provider_usages_created_at ON provider_usages (created_at);
 
+-- 统一任务表（README §2.1 任务编排，前端任务中心）
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    type VARCHAR(32) NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'pending',
+    progress INT NOT NULL DEFAULT 0,
+    title VARCHAR(256) DEFAULT '',
+    description TEXT DEFAULT '',
+    config_json JSONB DEFAULT '{}'::jsonb,
+    result_json JSONB DEFAULT '{}'::jsonb,
+    error_msg TEXT DEFAULT '',
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    locked_by UUID REFERENCES users(id),
+    locked_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_tasks_project_id ON tasks (project_id);
+CREATE INDEX idx_tasks_user_id ON tasks (user_id);
+CREATE INDEX idx_tasks_status ON tasks (status);
+
 -- 更新 updated_at 的触发器函数
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -569,4 +594,6 @@ CREATE TRIGGER update_composite_tasks_updated_at BEFORE UPDATE ON composite_task
 CREATE TRIGGER update_package_tasks_updated_at BEFORE UPDATE ON package_tasks
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_asset_versions_updated_at BEFORE UPDATE ON asset_versions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON tasks
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

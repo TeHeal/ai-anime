@@ -11,11 +11,14 @@ import (
 )
 
 type Querier interface {
+	BatchCancelTasks(ctx context.Context, ids []pgtype.UUID) error
 	BulkCreateSegments(ctx context.Context, arg []BulkCreateSegmentsParams) (int64, error)
+	CancelTask(ctx context.Context, id pgtype.UUID) (Task, error)
 	CountEpisodesByProject(ctx context.Context, projectID pgtype.UUID) (int32, error)
 	CountSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) (int32, error)
 	CountScenesByEpisode(ctx context.Context, episodeID pgtype.UUID) (int32, error)
 	CountShotsByProject(ctx context.Context, projectID pgtype.UUID) (int32, error)
+	CountTasksByProject(ctx context.Context, projectID pgtype.UUID) (int64, error)
 	CountUnreadByUser(ctx context.Context, userID pgtype.UUID) (int64, error)
 	// 角色 CRUD（项目级）
 	CreateCharacter(ctx context.Context, arg CreateCharacterParams) (Character, error)
@@ -46,6 +49,8 @@ type Querier interface {
 	CreateShotImage(ctx context.Context, arg CreateShotImageParams) (ShotImage, error)
 	// 镜头视频 CRUD（每个镜头的视频片段）
 	CreateShotVideo(ctx context.Context, arg CreateShotVideoParams) (ShotVideo, error)
+	// 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
+	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteSchedule(ctx context.Context, id pgtype.UUID) error
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
@@ -69,6 +74,7 @@ type Querier interface {
 	GetShotImageByID(ctx context.Context, id pgtype.UUID) (ShotImage, error)
 	GetShotVideoByID(ctx context.Context, id pgtype.UUID) (ShotVideo, error)
 	GetShotVideoByShotPrimary(ctx context.Context, shotID pgtype.UUID) (ShotVideo, error)
+	GetTaskByID(ctx context.Context, id pgtype.UUID) (Task, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	ListCharactersByProject(ctx context.Context, projectID pgtype.UUID) ([]Character, error)
@@ -99,6 +105,12 @@ type Querier interface {
 	ListShotsByProject(ctx context.Context, projectID pgtype.UUID) ([]Shot, error)
 	ListShotsByScene(ctx context.Context, sceneID pgtype.UUID) ([]Shot, error)
 	ListShotsBySegment(ctx context.Context, segmentID pgtype.UUID) ([]Shot, error)
+	ListTasksByIDs(ctx context.Context, ids []pgtype.UUID) ([]Task, error)
+	ListTasksByProject(ctx context.Context, arg ListTasksByProjectParams) ([]Task, error)
+	ListTasksByProjectAndStatus(ctx context.Context, arg ListTasksByProjectAndStatusParams) ([]Task, error)
+	ListTasksByProjectAndType(ctx context.Context, arg ListTasksByProjectAndTypeParams) ([]Task, error)
+	ListTasksByProjectTypeAndStatus(ctx context.Context, arg ListTasksByProjectTypeAndStatusParams) ([]Task, error)
+	ListTasksByUser(ctx context.Context, arg ListTasksByUserParams) ([]Task, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	MarkAllAsReadByUser(ctx context.Context, userID pgtype.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
@@ -160,6 +172,9 @@ type Querier interface {
 	UpdateShotVideoResult(ctx context.Context, arg UpdateShotVideoResultParams) (Shot, error)
 	UpdateShotVideoReview(ctx context.Context, arg UpdateShotVideoReviewParams) (ShotVideo, error)
 	UpdateShotVideoStatus(ctx context.Context, arg UpdateShotVideoStatusParams) (ShotVideo, error)
+	UpdateTaskProgress(ctx context.Context, arg UpdateTaskProgressParams) (Task, error)
+	UpdateTaskResult(ctx context.Context, arg UpdateTaskResultParams) (Task, error)
+	UpdateTaskStatus(ctx context.Context, arg UpdateTaskStatusParams) (Task, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

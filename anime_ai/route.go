@@ -19,6 +19,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_video"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"github.com/TeHeal/ai-anime/anime_ai/module/task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
@@ -62,6 +63,15 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 			protected.GET("/notifications/unread-count", cfg.NotificationHandler.CountUnread)
 			protected.PUT("/notifications/:id/read", cfg.NotificationHandler.MarkAsRead)
 			protected.PUT("/notifications/read-all", cfg.NotificationHandler.MarkAllAsRead)
+		}
+
+		// 统一任务中心（README §2.1 任务编排，前端 /tasks）
+		if cfg.TaskHandler != nil {
+			protected.POST("/tasks", cfg.TaskHandler.Create)
+			protected.GET("/tasks", cfg.TaskHandler.List)
+			protected.POST("/tasks/batch", cfg.TaskHandler.Batch)
+			protected.GET("/tasks/:taskId", cfg.TaskHandler.Get)
+			protected.PUT("/tasks/:taskId/cancel", cfg.TaskHandler.Cancel)
 		}
 
 		// 项目管理
@@ -295,6 +305,7 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 type RouteConfig struct {
 	AuthHandler         *modauth.Handler
 	NotificationHandler *notification.Handler
+	TaskHandler         *task.Handler
 	ProjectHandler      *project.Handler
 	EpisodeHandler      *episode.Handler
 	SceneHandler        *scene.Handler
