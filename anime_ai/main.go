@@ -42,6 +42,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/video"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/review_ai"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/review_record"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/scheduler"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
@@ -113,6 +114,7 @@ func main() {
 	projectSvc := project.NewService(projectData)
 	projectHandler := project.NewHandler(projectSvc)
 	projectVerifier := project.NewProjectVerifier(projectData)
+	scriptLockChecker := project.NewScriptLockChecker(projectData)
 
 	// 集、场模块：DB 可用时用 DB 存储，否则 Mem
 	var episodeStore episode.EpisodeStore
@@ -277,10 +279,16 @@ func main() {
 	}
 	// 审核流程配置（README §2.2 双线 AI）
 	reviewConfigReader := project.NewReviewConfigReader(projectData)
+	var aiReviewer shot_image.AIReviewer
+	if llmSvc.Available() {
+		aiReviewer = review_ai.NewLLMReviewer(llmSvc)
+		log.Println("AI 审核器已启用（基于 LLM）")
+	}
 	shotImageSvc.SetReviewFlowConfig(&shot_image.ReviewFlowConfig{
 		ReviewConfigReader: reviewConfigReader,
-		AIReviewer:         nil, // AI 审核器待接入 LLM provider
+		AIReviewer:         aiReviewer,
 	})
+	shotImageSvc.SetScriptLockChecker(scriptLockChecker)
 	shotImageHandler := shot_image.NewHandler(shotImageSvc)
 
 	// 镜头视频模块（README 镜头阶段）
@@ -294,6 +302,7 @@ func main() {
 		} else {
 			shotVideoSvc = shot_video.NewService(shotVideoStore, projectVerifier)
 		}
+		shotVideoSvc.SetScriptLockChecker(scriptLockChecker)
 		shotVideoHandler = shot_video.NewHandler(shotVideoSvc)
 		log.Println("镜头视频模块已启用")
 	}
@@ -443,11 +452,17 @@ func main() {
 	if redisAddr != "" && worker.PingRedis(redisAddr, cfg.Redis.Password, cfg.Redis.DB) {
 		asynqClient = worker.NewClient(redisAddr, cfg.Redis.Password, cfg.Redis.DB)
 		asynqServer = worker.NewServer(redisAddr, cfg.Redis.Password, cfg.Redis.DB, logger)
+		pipelineHandler := worker.NewPipelineTaskHandler(logger, worker.PipelineTaskDeps{
+			ScriptLockChecker: scriptLockChecker,
+			AsynqClient:       asynqClient,
+			RealtimeHub:       realtimeHub,
+		})
 		muxDeps := &worker.MuxDeps{
-			ImageHandler:   imageHandler,
-			VideoHandler:   videoHandler,
-			ExportHandler:  exportHandler,
-			PackageHandler: packageWorkerHandler,
+			ImageHandler:    imageHandler,
+			VideoHandler:    videoHandler,
+			ExportHandler:   exportHandler,
+			PackageHandler:  packageWorkerHandler,
+			PipelineHandler: pipelineHandler,
 		}
 		mux := worker.SetupMuxWithDeps(logger, muxDeps)
 		go func() {
