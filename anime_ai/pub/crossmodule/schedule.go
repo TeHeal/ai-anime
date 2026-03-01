@@ -9,8 +9,10 @@ import (
 type ScheduleInfo struct {
 	ID        string     `json:"id"`
 	ProjectID string     `json:"project_id"`
+	UserID    string     `json:"user_id"`
 	CronExpr  string     `json:"cron_expr"`
 	Action    string     `json:"action"`
+	Config    []byte     `json:"config,omitempty"`
 	NextRunAt *time.Time `json:"next_run_at,omitempty"`
 }
 

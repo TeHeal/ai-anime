@@ -415,9 +415,17 @@ func main() {
 		scheduleData := schedule.NewDBData(db.New(pool))
 		scheduleSvc := schedule.NewService(scheduleData, projectVerifier)
 		scheduleHandler = schedule.NewHandler(scheduleSvc)
-		// 启动调度器（占位触发器，后续可接入批量镜图等）
+		// 启动调度器：Redis 可用时使用 AsynqTrigger 入队真实任务，否则使用占位触发器
 		scheduleDataAdapter := schedule.NewScheduleDataAdapter(scheduleData)
-		sched := scheduler.NewScheduler(scheduleDataAdapter, scheduler.NewNoopTrigger(logger), logger)
+		var trigger scheduler.TaskTrigger
+		if asynqClient != nil {
+			trigger = scheduler.NewAsynqTrigger(asynqClient, logger)
+			logger.Info("定时任务调度器使用 AsynqTrigger")
+		} else {
+			trigger = scheduler.NewNoopTrigger(logger)
+			logger.Info("定时任务调度器使用 NoopTrigger（Redis 不可用）")
+		}
+		sched := scheduler.NewScheduler(scheduleDataAdapter, trigger, logger)
 		go sched.Start()
 		logger.Info("定时任务调度器已启动")
 	}

@@ -28,8 +28,10 @@ func (a *ScheduleDataAdapter) ListDue(ctx context.Context) ([]*crossmodule.Sched
 		out[i] = &crossmodule.ScheduleInfo{
 			ID:        s.ID,
 			ProjectID: s.ProjectID,
+			UserID:    s.UserID,
 			CronExpr:  s.CronExpr,
 			Action:    s.Action,
+			Config:    s.Config,
 			NextRunAt: s.NextRunAt,
 		}
 	}
