@@ -244,6 +244,12 @@ func main() {
 	} else {
 		shotImageSvc = shot_image.NewService(shotImageStore, shotReader, shotLocker, projectVerifier, reviewRecorder)
 	}
+	// 审核流程配置（README §2.2 双线 AI）
+	reviewConfigReader := project.NewReviewConfigReader(projectData)
+	shotImageSvc.SetReviewFlowConfig(&shot_image.ReviewFlowConfig{
+		ReviewConfigReader: reviewConfigReader,
+		AIReviewer:         nil, // AI 审核器待接入 LLM provider
+	})
 	shotImageHandler := shot_image.NewHandler(shotImageSvc)
 
 	// 镜头视频模块（README 镜头阶段）
@@ -458,6 +464,11 @@ func main() {
 		logger.Info("定时任务调度器已启动")
 	}
 
+	// RBAC 中间件适配器（ProjectContext 所需）
+	projectMwReader := project.ProjectReaderAdapter(projectData)
+	projectMemberMwReader := project.ProjectMemberReaderAdapter(projectData)
+	teamMemberMwReader := &project.NoopTeamMemberReader{}
+
 	routeCfg := &RouteConfig{
 		AuthHandler:         authHandler,
 		NotificationHandler: notificationHandler,
@@ -480,6 +491,9 @@ func main() {
 		WSHandler:           wsHandler,
 		AsynqClient:         asynqClient,
 		JWTSecret:           cfg.App.Secret,
+		ProjectReader:       projectMwReader,
+		ProjectMemberReader: projectMemberMwReader,
+		TeamMemberReader:    teamMemberMwReader,
 	}
 
 	port := os.Getenv("APP_APP_PORT")
