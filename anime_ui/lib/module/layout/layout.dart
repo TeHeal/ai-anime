@@ -35,8 +35,15 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   @override
   void initState() {
     super.initState();
-    _sideNavCollapsed = Breakpoints.isNarrowContext(context);
     WidgetsBinding.instance.addPostFrameCallback((_) => _restoreProject());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_restored) {
+      _sideNavCollapsed = Breakpoints.isNarrowContext(context);
+    }
   }
 
   /// 恢复上次选中的项目
