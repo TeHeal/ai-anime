@@ -88,6 +88,7 @@ See README § 开发与部署（启动命令）and `anime_ai/Makefile` for full 
 - Backend config is in `anime_ai/config.yaml` (gitignored). A template is at `config.yaml.example`. Environment variable overrides use `APP_*` prefix (e.g., `APP_DB_PASSWORD`).
 - Entity IDs (Episode, Scene, etc.) are **UUID strings** (`String?` in Dart, `string`/`uuid.UUID` in Go). Never use `int` for entity IDs in UI code.
 - `go vet` has a pre-existing self-assignment warning in `module/episode/data.go:48` — not a new issue.
+- **Flutter `initState` rule**: Never call `MediaQuery.of(context)`, `Theme.of(context)`, `Breakpoints.isNarrowContext(context)`, or any `InheritedWidget` accessor inside `initState()` or field initializers. Use `didChangeDependencies()` or `build()` instead.
 - After modifying freezed/json_serializable models: `cd anime_ui && dart run build_runner build --delete-conflicting-outputs`.
 - sqlc queries use `COALESCE(..., '{}'::jsonb)` for JSONB defaults. Always include `::jsonb` cast when adding new COALESCE defaults for JSONB columns.
 - Database schema: `anime_ai/sch/schema.sql` (full) + `anime_ai/migration/` (incremental). Apply schema first, then migrations in date order.
