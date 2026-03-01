@@ -33,6 +33,7 @@ func SetupMux(log *zap.Logger) *asynq.ServeMux {
 // MuxDeps 可选依赖，用于注册真实 handler；nil 字段使用占位
 type MuxDeps struct {
 	ImageHandler   *ImageTaskHandler
+	VideoHandler   *VideoTaskHandler
 	ExportHandler  *ExportTaskHandler
 	PackageHandler *PackageTaskHandler
 }
@@ -60,7 +61,11 @@ func SetupMuxWithDeps(log *zap.Logger, deps *MuxDeps) *asynq.ServeMux {
 		mux.HandleFunc(tasktypes.TypePackage, placeholderHandler(l, tasktypes.TypePackage))
 	}
 
-	mux.HandleFunc(tasktypes.TypeVideoGeneration, placeholderHandler(l, tasktypes.TypeVideoGeneration))
+	if deps != nil && deps.VideoHandler != nil {
+		RegisterVideoHandler(mux, deps.VideoHandler)
+	} else {
+		mux.HandleFunc(tasktypes.TypeVideoGeneration, placeholderHandler(l, tasktypes.TypeVideoGeneration))
+	}
 	mux.HandleFunc(tasktypes.TypeCharacterGeneration, placeholderHandler(l, tasktypes.TypeCharacterGeneration))
 	mux.HandleFunc(tasktypes.TypeTTS, placeholderHandler(l, tasktypes.TypeTTS))
 	mux.HandleFunc(tasktypes.TypeVoiceClone, placeholderHandler(l, tasktypes.TypeVoiceClone))

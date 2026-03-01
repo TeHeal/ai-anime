@@ -36,6 +36,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/music"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/video"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/review_record"
@@ -247,8 +248,9 @@ func main() {
 
 	// 镜头视频模块（README 镜头阶段）
 	var shotVideoHandler *shot_video.Handler
+	var shotVideoStore *shot_video.DBShotVideoStore
 	if pool != nil {
-		shotVideoStore := shot_video.NewDBShotVideoStore(db.New(pool))
+		shotVideoStore = shot_video.NewDBShotVideoStore(db.New(pool))
 		var shotVideoSvc *shot_video.Service
 		if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
 			shotVideoSvc = shot_video.NewServiceWithResolver(shotVideoStore, projectVerifier, resolver)
@@ -316,6 +318,14 @@ func main() {
 		musicRouter.RegisterProvider(music.NewSunoProvider(cfg.Music.SunoKey, cfg.Music.SunoBaseURL))
 	}
 
+	// 文生视频路由（供 Worker 使用）
+	videoPolicy := mesh.DefaultPolicy()
+	videoBreaker := mesh.NewBreaker(3)
+	videoRouter := mesh.NewVideoRouter(videoPolicy, videoBreaker)
+	if cfg.Video.SeedanceKey != "" {
+		videoRouter.RegisterProvider(video.NewSeedanceProvider(cfg.Video.SeedanceKey))
+	}
+
 	var store storage.Storage
 	if s, storeErr := storage.NewFromConfig(&cfg.Storage); storeErr != nil {
 		log.Printf("Storage 初始化失败，使用 nil: %v", storeErr)
@@ -342,6 +352,23 @@ func main() {
 		imageTaskDeps.UsageRecorder = provider_usage.NewDBRecorder(db.New(pool))
 	}
 	imageHandler := worker.NewImageTaskHandler(logger, imageTaskDeps)
+
+	// 镜头视频 Worker Handler
+	videoTaskDeps := worker.VideoTaskDeps{
+		VideoRouter:      videoRouter,
+		Storage:          store,
+		ShotLocker:       shotLocker,
+		RealtimeHub:      realtimeHub,
+		TaskNotifier:     taskNotifier,
+		UsageRecorder:    nil,
+	}
+	if shotVideoStore != nil {
+		videoTaskDeps.ShotVideoUpdater = shotVideoStore
+	}
+	if pool != nil {
+		videoTaskDeps.UsageRecorder = provider_usage.NewDBRecorder(db.New(pool))
+	}
+	videoHandler := worker.NewVideoTaskHandler(logger, videoTaskDeps)
 
 	var exportHandler *worker.ExportTaskHandler
 	if compositeSvc != nil {
@@ -372,6 +399,7 @@ func main() {
 		asynqServer = worker.NewServer(redisAddr, cfg.Redis.Password, cfg.Redis.DB, logger)
 		muxDeps := &worker.MuxDeps{
 			ImageHandler:   imageHandler,
+			VideoHandler:   videoHandler,
 			ExportHandler:  exportHandler,
 			PackageHandler: packageWorkerHandler,
 		}
