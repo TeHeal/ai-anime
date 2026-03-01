@@ -2,18 +2,35 @@ package storyboard
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
 )
 
 // Service 分镜业务逻辑层
 type Service struct {
-	data            Data
-	projectVerifier crossmodule.ProjectVerifier
-	memberResolver  crossmodule.ProjectMemberResolver
+	data             Data
+	projectVerifier  crossmodule.ProjectVerifier
+	memberResolver   crossmodule.ProjectMemberResolver
+	llmSvc           *llm.LLMService
+	episodeStore     EpisodeReader
+	sceneBlockReader crossmodule.SceneBlockReader
+}
+
+// EpisodeReader 集数据读取接口（只需用到的方法，避免引入 episode 包循环依赖）
+type EpisodeReader interface {
+	FindByID(id string) (EpisodeInfo, error)
+}
+
+// EpisodeInfo 集摘要信息
+type EpisodeInfo struct {
+	ID    string
+	Title string
 }
 
 // NewService 创建分镜服务
@@ -30,6 +47,21 @@ func NewServiceWithResolver(data Data, projectVerifier crossmodule.ProjectVerifi
 	}
 }
 
+// SetLLMService 注入 LLM 服务
+func (s *Service) SetLLMService(svc *llm.LLMService) {
+	s.llmSvc = svc
+}
+
+// SetEpisodeReader 注入集数据读取器
+func (s *Service) SetEpisodeReader(reader EpisodeReader) {
+	s.episodeStore = reader
+}
+
+// SetSceneBlockReader 注入场景/块数据读取器
+func (s *Service) SetSceneBlockReader(reader crossmodule.SceneBlockReader) {
+	s.sceneBlockReader = reader
+}
+
 // List 获取项目分镜列表
 func (s *Service) List(projectID, userID string) ([]ShotItem, error) {
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
@@ -38,7 +70,7 @@ func (s *Service) List(projectID, userID string) ([]ShotItem, error) {
 	return s.data.List(projectID, userID)
 }
 
-// Preview 同步预览单场景拆镜（占位：返回空列表，后续接 pub/mesh LLM）
+// Preview 同步预览单场景拆镜
 func (s *Service) Preview(ctx context.Context, projectID, userID string, req PreviewRequest) ([]ShotItem, error) {
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
 		return nil, err
@@ -46,9 +78,37 @@ func (s *Service) Preview(ctx context.Context, projectID, userID string, req Pre
 	if err := s.checkAction(projectID, userID, auth.ActionGenerate); err != nil {
 		return nil, err
 	}
-	// 占位：后续调用 pub/mesh Chat 能力生成分镜
-	_ = req
-	return []ShotItem{}, nil
+	if s.llmSvc == nil || !s.llmSvc.Available() {
+		return nil, fmt.Errorf("LLM 未配置：请在 config.yaml 中设置 llm.deepseek_key 等 API Key")
+	}
+	if s.sceneBlockReader == nil {
+		return nil, fmt.Errorf("场景数据读取器未配置")
+	}
+
+	sceneID := strconv.FormatUint(uint64(req.SceneID), 10)
+	blocks, err := s.sceneBlockReader.ListBlocksByScene(sceneID)
+	if err != nil {
+		return nil, fmt.Errorf("读取场景内容块失败: %w", err)
+	}
+	scene := llm.SceneForPrompt{
+		ID: req.SceneID,
+		Blocks: make([]llm.BlockForPrompt, len(blocks)),
+	}
+	for i, b := range blocks {
+		scene.Blocks[i] = llm.BlockForPrompt{Type: b.Type, Character: b.Character, Content: b.Content}
+	}
+
+	userPrompt := llm.BuildStoryboardUserPrompt("预览", []llm.SceneForPrompt{scene})
+	result, err := s.llmSvc.ChatWithJSON(ctx, llm.GetStoryboardSystemPrompt(), userPrompt)
+	if err != nil {
+		return nil, fmt.Errorf("LLM 调用失败: %w", err)
+	}
+
+	shots, err := parseStoryboardJSON(result)
+	if err != nil {
+		return nil, fmt.Errorf("解析分镜结果失败: %w", err)
+	}
+	return shots, nil
 }
 
 // Generate 异步拆镜（占位：返回占位任务，后续接 Worker）
@@ -67,7 +127,7 @@ func (s *Service) Generate(projectID, userID string, req GenerateRequest) (*Gene
 	}, nil
 }
 
-// GenerateSync 同步拆镜整集（占位：返回空列表，后续接 pub/mesh）
+// GenerateSync 同步拆镜整集，调用 LLM 生成结构化分镜列表
 func (s *Service) GenerateSync(ctx context.Context, projectID, userID string, req GenerateRequest) ([]ShotItem, error) {
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
 		return nil, err
@@ -75,9 +135,114 @@ func (s *Service) GenerateSync(ctx context.Context, projectID, userID string, re
 	if err := s.checkAction(projectID, userID, auth.ActionGenerate); err != nil {
 		return nil, err
 	}
-	// 占位：后续调用 LLM 生成
-	_ = req
-	return []ShotItem{}, nil
+	if s.llmSvc == nil || !s.llmSvc.Available() {
+		return nil, fmt.Errorf("LLM 未配置：请在 config.yaml 中设置 llm.deepseek_key 等 API Key")
+	}
+	if s.sceneBlockReader == nil {
+		return nil, fmt.Errorf("场景数据读取器未配置")
+	}
+
+	// 获取集标题
+	episodeTitle := fmt.Sprintf("第 %d 集", req.EpisodeID)
+	if s.episodeStore != nil {
+		epID := strconv.FormatUint(uint64(req.EpisodeID), 10)
+		if ep, err := s.episodeStore.FindByID(epID); err == nil && ep.Title != "" {
+			episodeTitle = ep.Title
+		}
+	}
+
+	// 获取该集所有场景及内容块
+	epID := strconv.FormatUint(uint64(req.EpisodeID), 10)
+	sceneInfos, err := s.sceneBlockReader.ListScenesByEpisode(epID)
+	if err != nil {
+		return nil, fmt.Errorf("读取场景列表失败: %w", err)
+	}
+	if len(sceneInfos) == 0 {
+		return nil, pkg.NewBizError("该集没有场景数据，请先创建场景和内容块")
+	}
+
+	scenes := make([]llm.SceneForPrompt, 0, len(sceneInfos))
+	for _, si := range sceneInfos {
+		blocks, err := s.sceneBlockReader.ListBlocksByScene(si.ID)
+		if err != nil {
+			return nil, fmt.Errorf("读取场景 %s 内容块失败: %w", si.ID, err)
+		}
+		promptBlocks := make([]llm.BlockForPrompt, len(blocks))
+		for j, b := range blocks {
+			promptBlocks[j] = llm.BlockForPrompt{
+				Type:      b.Type,
+				Character: b.Character,
+				Content:   b.Content,
+			}
+		}
+		// 将 string ID 转为 uint（场景在 ShotItem 中用 uint scene_id）
+		sceneIDUint := uint(0)
+		if v, err := strconv.ParseUint(si.ID, 10, 64); err == nil {
+			sceneIDUint = uint(v)
+		}
+		scenes = append(scenes, llm.SceneForPrompt{
+			ID:               sceneIDUint,
+			Location:         si.Location,
+			Time:             si.Time,
+			InteriorExterior: si.InteriorExterior,
+			Characters:       si.Characters,
+			Blocks:           promptBlocks,
+		})
+	}
+
+	userPrompt := llm.BuildStoryboardUserPrompt(episodeTitle, scenes)
+	result, err := s.llmSvc.ChatWithJSON(ctx, llm.GetStoryboardSystemPrompt(), userPrompt)
+	if err != nil {
+		return nil, fmt.Errorf("LLM 调用失败: %w", err)
+	}
+
+	shots, err := parseStoryboardJSON(result)
+	if err != nil {
+		return nil, fmt.Errorf("解析分镜结果失败: %w", err)
+	}
+	return shots, nil
+}
+
+// parseStoryboardJSON 解析 LLM 返回的 JSON 分镜数据，兼容 markdown 代码块包裹
+func parseStoryboardJSON(raw string) ([]ShotItem, error) {
+	cleaned := cleanJSONResponse(raw)
+	var shots []ShotItem
+	if err := json.Unmarshal([]byte(cleaned), &shots); err != nil {
+		return nil, fmt.Errorf("JSON 解析失败（原始长度=%d）: %w", len(raw), err)
+	}
+	return shots, nil
+}
+
+// cleanJSONResponse 清理 LLM 返回的 JSON，去除 markdown 代码块标记等
+func cleanJSONResponse(s string) string {
+	s = trimMarkdownCodeBlock(s)
+	// 去除首尾空白
+	for len(s) > 0 && (s[0] == ' ' || s[0] == '\n' || s[0] == '\r' || s[0] == '\t') {
+		s = s[1:]
+	}
+	for len(s) > 0 && (s[len(s)-1] == ' ' || s[len(s)-1] == '\n' || s[len(s)-1] == '\r' || s[len(s)-1] == '\t') {
+		s = s[:len(s)-1]
+	}
+	return s
+}
+
+func trimMarkdownCodeBlock(s string) string {
+	// 常见格式：```json\n...\n``` 或 ```\n...\n```
+	if len(s) > 6 && s[:3] == "```" {
+		// 找到第一个换行
+		idx := 3
+		for idx < len(s) && s[idx] != '\n' {
+			idx++
+		}
+		if idx < len(s) {
+			s = s[idx+1:]
+		}
+		// 去除结尾 ```
+		if len(s) >= 3 && s[len(s)-3:] == "```" {
+			s = s[:len(s)-3]
+		}
+	}
+	return s
 }
 
 // Confirm 确认导入，保存分镜到 project.storyboard_json
