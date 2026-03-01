@@ -119,7 +119,7 @@ func (s *Service) Generate(projectID, userID string, req GenerateRequest) (*Gene
 		return nil, err
 	}
 	// 占位：后续入队 Asynq 任务，由 Worker 执行
-	taskID := fmt.Sprintf("storyboard_gen_%s_%d_%s", projectID, req.EpisodeID, userID)
+	taskID := fmt.Sprintf("storyboard_gen_%s_%s_%s", projectID, req.EpisodeID, userID)
 	return &GenerateTaskResponse{
 		TaskID: taskID,
 		Status: "pending",
