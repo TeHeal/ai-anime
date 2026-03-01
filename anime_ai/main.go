@@ -33,8 +33,10 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/mesh"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/music"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/video"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
@@ -138,6 +140,30 @@ func main() {
 	sceneSvc := scene.NewService(sceneStore, sceneBlockStore, episodeReader, projectVerifier)
 	sceneHandler := scene.NewHandler(sceneSvc)
 
+	// LLM 服务（按优先级注册可用的 Provider）
+	var llmProviders []provider.LLMProvider
+	if cfg.LLM.DeepSeekKey != "" {
+		llmProviders = append(llmProviders, llm.NewDeepSeekProvider(cfg.LLM.DeepSeekKey))
+		log.Println("LLM Provider 已注册: deepseek")
+	}
+	if cfg.LLM.KimiKey != "" {
+		llmProviders = append(llmProviders, llm.NewKimiProvider(cfg.LLM.KimiKey))
+		log.Println("LLM Provider 已注册: kimi")
+	}
+	if cfg.LLM.DoubaoKey != "" {
+		llmProviders = append(llmProviders, llm.NewDoubaoProvider(cfg.LLM.DoubaoKey))
+		log.Println("LLM Provider 已注册: doubao")
+	}
+	llmSvc := llm.NewLLMService(llmProviders...)
+	if llmSvc.Available() {
+		log.Printf("LLM 服务就绪，可用 Provider: %v", llmSvc.ProviderNames())
+	} else {
+		log.Println("LLM 服务未配置 API Key，AI 辅助功能将不可用")
+	}
+
+	// 跨模块场景/块读取器
+	sceneBlockReader := scene.NewSceneBlockReaderAdapter(sceneStore, sceneBlockStore)
+
 	// 分镜模块
 	storyboardAccess := project.NewStoryboardAccess(projectData)
 	storyboardData := storyboard.NewMemData(storyboardAccess)
@@ -147,6 +173,9 @@ func main() {
 	} else {
 		storyboardSvc = storyboard.NewService(storyboardData, projectVerifier)
 	}
+	storyboardSvc.SetLLMService(llmSvc)
+	storyboardSvc.SetSceneBlockReader(sceneBlockReader)
+	storyboardSvc.SetEpisodeReader(episode.NewStoryboardEpisodeReaderAdapter(episodeStore))
 	storyboardHandler := storyboard.NewHandler(storyboardSvc)
 
 	// 脚本模块：DB 可用时用 DBSegmentStore，否则 Mem
@@ -163,6 +192,7 @@ func main() {
 	} else {
 		scriptSvc = script.NewService(segmentStore, projectVerifier)
 	}
+	scriptSvc.SetLLMService(llmSvc)
 	scriptHandler := script.NewHandler(scriptSvc)
 
 	// 角色模块：DB 可用时用 DBData，否则 Mem
