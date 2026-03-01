@@ -11,6 +11,7 @@ import 'package:anime_ui/pub/services/api_svc.dart' show authToken;
 import 'package:anime_ui/pub/widgets/page_transitions.dart';
 
 import 'package:anime_ui/module/login/index.dart';
+import 'package:anime_ui/module/register/index.dart';
 import 'package:anime_ui/module/project/index.dart';
 import 'package:anime_ui/module/dashboard/index.dart';
 import 'package:anime_ui/module/layout/layout.dart';
@@ -43,9 +44,10 @@ final goRouter = GoRouter(
   redirect: (context, state) {
     final loggedIn = authToken != null && authToken!.isNotEmpty;
     final isLoginRoute = state.uri.path == Routes.login;
+    final isRegisterRoute = state.uri.path == Routes.register;
     final path = state.uri.path;
-    if (!loggedIn && !isLoginRoute) return Routes.login;
-    if (loggedIn && isLoginRoute) return Routes.projects;
+    if (!loggedIn && !isLoginRoute && !isRegisterRoute) return Routes.login;
+    if (loggedIn && (isLoginRoute || isRegisterRoute)) return Routes.projects;
 
     // 工作区页面要求必须存在当前项目上下文。
     // 例外：剧本导入页 /story/import 是「新建项目」入口，无项目时也应允许进入。
@@ -76,6 +78,11 @@ final goRouter = GoRouter(
       path: Routes.login,
       pageBuilder: (context, state) =>
           const NoTransitionPage(child: LoginPage()),
+    ),
+    GoRoute(
+      path: Routes.register,
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: RegisterPage()),
     ),
     GoRoute(
       path: Routes.projects,

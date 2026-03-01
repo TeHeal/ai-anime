@@ -1,6 +1,7 @@
 /// 路由路径常量 — 对象驱动导航体系
 abstract final class Routes {
   static const String login = '/login';
+  static const String register = '/register';
   static const String projects = '/projects';
   static const String dashboard = '/dashboard';
   static const String tasks = '/tasks';
