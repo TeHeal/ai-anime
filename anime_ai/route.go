@@ -45,6 +45,7 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 	authGroup := api.Group("/auth")
 	{
 		authGroup.POST("/login", cfg.AuthHandler.Login)
+		authGroup.POST("/register", cfg.AuthHandler.Register)
 	}
 
 	// 需 JWT 鉴权的接口

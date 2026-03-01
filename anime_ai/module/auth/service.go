@@ -31,6 +31,57 @@ type LoginResponse struct {
 	User  *User  `json:"user"`
 }
 
+// RegisterRequest 注册请求
+type RegisterRequest struct {
+	Username    string `json:"username" binding:"required,min=3,max=32"`
+	Password    string `json:"password" binding:"required,min=6"`
+	DisplayName string `json:"displayName"`
+}
+
+// Register 注册新用户，校验用户名唯一性后创建并返回 JWT
+func (s *AuthService) Register(req RegisterRequest) (*LoginResponse, error) {
+	exists, err := s.userStore.ExistsByUsername(req.Username)
+	if err != nil {
+		return nil, errors.New("注册服务异常")
+	}
+	if exists {
+		return nil, errors.New("用户名已被注册")
+	}
+
+	hash, err := pkg.HashPassword(req.Password)
+	if err != nil {
+		return nil, errors.New("密码加密失败")
+	}
+
+	displayName := req.DisplayName
+	if displayName == "" {
+		displayName = req.Username
+	}
+
+	newUser := &User{
+		Username:     req.Username,
+		PasswordHash: hash,
+		DisplayName:  displayName,
+		Role:         "member",
+	}
+
+	user, err := s.userStore.Create(newUser)
+	if err != nil {
+		return nil, errors.New("创建用户失败")
+	}
+
+	userID := user.IDStr
+	if userID == "" {
+		userID = strconv.FormatUint(uint64(user.ID), 10)
+	}
+	token, err := pkg.GenerateToken(s.jwtSecret, userID, user.Username, user.Role, 7*24*time.Hour)
+	if err != nil {
+		return nil, errors.New("生成 Token 失败")
+	}
+
+	return &LoginResponse{Token: token, User: user}, nil
+}
+
 // Login 登录，校验密码并返回 JWT
 func (s *AuthService) Login(req LoginRequest) (*LoginResponse, error) {
 	user, err := s.userStore.FindByUsername(req.Username)

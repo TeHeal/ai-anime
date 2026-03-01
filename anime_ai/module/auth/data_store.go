@@ -56,6 +56,30 @@ func (s *DBUserStore) Update(user *User) error {
 	return err
 }
 
+func (s *DBUserStore) ExistsByUsername(username string) (bool, error) {
+	ctx := context.Background()
+	exists, err := s.q.ExistsUserByUsername(ctx, username)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (s *DBUserStore) Create(user *User) (*User, error) {
+	ctx := context.Background()
+	arg := db.CreateUserParams{
+		Username:     user.Username,
+		PasswordHash: user.PasswordHash,
+		DisplayName:  pgtype.Text{String: user.DisplayName, Valid: user.DisplayName != ""},
+		Role:         user.Role,
+	}
+	row, err := s.q.CreateUser(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+	return dbUserToUser(&row), nil
+}
+
 func dbUserToUser(row *db.User) *User {
 	u := &User{
 		IDStr:        pkg.UUIDToStr(row.ID),

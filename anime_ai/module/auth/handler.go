@@ -15,6 +15,27 @@ func NewHandler(authSvc *AuthService) *Handler {
 	return &Handler{authSvc: authSvc}
 }
 
+// Register 注册接口
+func (h *Handler) Register(c *gin.Context) {
+	var req RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.BadRequest(c, "请提供有效的注册信息（用户名3-32位，密码至少6位）")
+		return
+	}
+
+	resp, err := h.authSvc.Register(req)
+	if err != nil {
+		if err.Error() == "用户名已被注册" {
+			pkg.Fail(c, 409, "用户名已被注册")
+			return
+		}
+		pkg.InternalError(c, err.Error())
+		return
+	}
+
+	pkg.Created(c, resp)
+}
+
 // Login 登录接口
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest

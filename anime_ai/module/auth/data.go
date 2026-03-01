@@ -11,6 +11,8 @@ type UserStore interface {
 	FindByUsername(username string) (*User, error)
 	FindByID(id string) (*User, error)
 	Update(user *User) error
+	ExistsByUsername(username string) (bool, error)
+	Create(user *User) (*User, error)
 }
 
 // BootstrapUserStore 基于配置的引导用户存储，用于无 DB 时的开发/演示
@@ -73,4 +75,27 @@ func (s *BootstrapUserStore) Update(user *User) error {
 	s.user.DisplayName = user.DisplayName
 	s.user.Role = user.Role
 	return nil
+}
+
+func (s *BootstrapUserStore) ExistsByUsername(username string) (bool, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.user != nil && s.user.Username == username {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (s *BootstrapUserStore) Create(user *User) (*User, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.user != nil && s.user.Username == user.Username {
+		return nil, pkg.ErrAlreadyExists
+	}
+	u := *user
+	u.ID = 2
+	u.IDStr = "2"
+	s.user = &u
+	created := *s.user
+	return &created, nil
 }
