@@ -37,7 +37,7 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
     await ref.read(episodesProvider.notifier).load();
   }
 
-  Future<void> _onSceneSelected(String episodeId, int sceneDbId) async {
+  Future<void> _onSceneSelected(String episodeId, String sceneDbId) async {
     if (!_loadedEpisodeScenes.contains(episodeId)) {
       _loadedEpisodeScenes.add(episodeId);
       await ref.read(scenesProvider.notifier).loadForEpisode(episodeId);
@@ -153,7 +153,7 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
     }
   }
 
-  Future<void> _onDeleteScene(String episodeId, int sceneDbId) async {
+  Future<void> _onDeleteScene(String episodeId, String sceneDbId) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -281,7 +281,7 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
 
   Widget _buildEditor(
     List<Episode> episodes,
-    ({String? episodeId, int? sceneId}) scriptSelection,
+    ({String? episodeId, String? sceneId}) scriptSelection,
   ) {
     final isLocked = ref.watch(lockProvider).storyLocked;
 

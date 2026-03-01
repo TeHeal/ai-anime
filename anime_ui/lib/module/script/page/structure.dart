@@ -39,7 +39,7 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
 
   final _loadedEpisodeScenes = <String>{};
 
-  Future<void> _onSceneSelected(String episodeId, int sceneDbId) async {
+  Future<void> _onSceneSelected(String episodeId, String sceneDbId) async {
     if (!_loadedEpisodeScenes.contains(episodeId)) {
       _loadedEpisodeScenes.add(episodeId);
       await ref.read(scenesProvider.notifier).loadForEpisode(episodeId);
@@ -156,7 +156,7 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
     }
   }
 
-  Future<void> _onDeleteScene(String episodeId, int sceneDbId) async {
+  Future<void> _onDeleteScene(String episodeId, String sceneDbId) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -269,7 +269,7 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
 
   Widget _buildEditor(
     List<Episode> episodes,
-    ({String? episodeId, int? sceneId}) scriptSelection,
+    ({String? episodeId, String? sceneId}) scriptSelection,
   ) {
     return Row(
       children: [

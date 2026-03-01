@@ -41,7 +41,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   List<String> _characters = [];
   List<SceneBlock> _blocks = [];
 
-  int? _boundSceneDbId;
+  String? _boundSceneDbId;
   bool _saving = false;
   bool _dirty = false;
   Timer? _autoSaveTimer;
