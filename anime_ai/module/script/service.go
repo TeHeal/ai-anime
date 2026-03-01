@@ -7,6 +7,8 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
 )
 
 // DummyProjectVerifier 占位实现，始终通过验证
@@ -19,6 +21,7 @@ type Service struct {
 	store          SegmentStore
 	verifier       crossmodule.ProjectVerifier
 	memberResolver crossmodule.ProjectMemberResolver
+	llmSvc         *llm.LLMService
 }
 
 // NewService 创建脚本服务
@@ -32,6 +35,11 @@ func NewServiceWithResolver(store SegmentStore, verifier crossmodule.ProjectVeri
 		verifier = DummyProjectVerifier{}
 	}
 	return &Service{store: store, verifier: verifier, memberResolver: memberResolver}
+}
+
+// SetLLMService 注入 LLM 服务
+func (s *Service) SetLLMService(svc *llm.LLMService) {
+	s.llmSvc = svc
 }
 
 // checkScriptEdit 校验脚本编辑权限（projectID/userID 为 uint）
@@ -271,14 +279,48 @@ type ChatChunk struct {
 	Done    bool
 }
 
-// StreamAssist AI 流式辅助（占位：返回立即关闭的空 channel）
+// StreamAssist AI 流式辅助，调用 LLM 进行扩写/润色/续写
 func (s *Service) StreamAssist(ctx context.Context, req ScriptAiRequest) (<-chan ChatChunk, error) {
-	_ = s
 	if req.Action == "" {
 		return nil, fmt.Errorf("未知的 AI 操作")
 	}
-	ch := make(chan ChatChunk, 1)
-	ch <- ChatChunk{Done: true}
-	close(ch)
+	if s.llmSvc == nil || !s.llmSvc.Available() {
+		return nil, fmt.Errorf("LLM 未配置：请在 config.yaml 中设置 llm.deepseek_key 等 API Key")
+	}
+
+	systemPrompt := llm.GetScriptAssistSystemPrompt()
+	userPrompt := llm.BuildScriptAssistUserPrompt(
+		req.Action, req.BlockType, req.BlockContent, req.SceneMeta, req.ContextBlocks,
+	)
+
+	providerCh, err := s.llmSvc.ChatStream(ctx, req.Provider, req.Model, systemPrompt, userPrompt)
+	if err != nil {
+		return nil, fmt.Errorf("调用 LLM 失败: %w", err)
+	}
+
+	// 将 provider.ChatChunk 转为 script.ChatChunk
+	ch := make(chan ChatChunk, 32)
+	go func() {
+		defer close(ch)
+		for chunk := range providerCh {
+			select {
+			case <-ctx.Done():
+				ch <- ChatChunk{Error: "请求已取消"}
+				return
+			default:
+			}
+			ch <- convertProviderChunk(chunk)
+		}
+	}()
 	return ch, nil
+}
+
+func convertProviderChunk(c provider.ChatChunk) ChatChunk {
+	if c.Error != "" {
+		return ChatChunk{Error: c.Error}
+	}
+	if c.Done {
+		return ChatChunk{Done: true}
+	}
+	return ChatChunk{Content: c.Content}
 }
