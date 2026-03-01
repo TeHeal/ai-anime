@@ -92,3 +92,11 @@ See README § 开发与部署（启动命令）and `anime_ai/Makefile` for full 
 - sqlc queries use `COALESCE(..., '{}'::jsonb)` for JSONB defaults. Always include `::jsonb` cast when adding new COALESCE defaults for JSONB columns.
 - Database schema: `anime_ai/sch/schema.sql` (full) + `anime_ai/migration/` (incremental). Apply schema first, then migrations in date order.
 
+### LLM integration
+
+- **LLMService** (`pub/provider/llm/service.go`): unified entry point for all LLM calls. Auto-routes to first available provider by priority: DeepSeek → Kimi → Doubao. Supports `Chat` (sync), `ChatStream` (SSE), and `ChatWithJSON` (sync, JSON response format).
+- **Script AI Assist** (`module/script/service.go` → `StreamAssist`): calls LLM via streaming SSE for expand/refine/continueWrite actions. Requires `llm.deepseek_key` (or another key) in config to function; returns clear "LLM 未配置" error otherwise.
+- **Storyboard GenerateSync** (`module/storyboard/service.go`): reads episode scenes/blocks via `crossmodule.SceneBlockReader`, sends prompt to LLM, parses structured JSON shot list. Also handles markdown code block cleanup.
+- **Prompt templates** in `pub/provider/llm/prompts.go`: `GetScriptAssistSystemPrompt()`, `BuildScriptAssistUserPrompt()`, `GetStoryboardSystemPrompt()`, `BuildStoryboardUserPrompt()`.
+- LLM providers use `pub/provider/llm/openai_compat.go` (raw HTTP SSE) — NOT the `pub/adapters/openai/chat.go` (openai-go SDK). Both exist for different use cases (provider layer vs. capability/mesh layer).
+
