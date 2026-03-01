@@ -235,6 +235,28 @@ func (h *Handler) GetAllowedActions(c *gin.Context) {
 	pkg.OK(c, gin.H{"allowed_actions": actions})
 }
 
+// SubmitForReview 提交镜图审核（触发审核流程：根据项目配置走人工/AI/混合）
+func (h *Handler) SubmitForReview(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	projectID, ok := h.getProjectID(c)
+	if !ok {
+		return
+	}
+	shotID, ok := h.getShotID(c)
+	if !ok {
+		return
+	}
+	if err := h.svc.SubmitForReview(shotID, projectID, userID); err != nil {
+		if errors.Is(err, pkg.ErrNotFound) {
+			pkg.NotFound(c, "镜头不存在")
+			return
+		}
+		pkg.HandleError(c, err)
+		return
+	}
+	pkg.OK(c, gin.H{"message": "ok"})
+}
+
 // Get 获取镜图
 func (h *Handler) Get(c *gin.Context) {
 	userID := pkg.GetUserIDStr(c)

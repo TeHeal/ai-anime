@@ -18,6 +18,7 @@ type Service struct {
 	projectVerifier crossmodule.ProjectVerifier
 	memberResolver  crossmodule.ProjectMemberResolver
 	reviewRecorder  crossmodule.ReviewRecorder
+	reviewFlowCfg   *ReviewFlowConfig
 }
 
 // NewService 创建镜图服务
@@ -48,6 +49,11 @@ func NewServiceWithResolver(
 		memberResolver:  memberResolver,
 		reviewRecorder:  reviewRecorder,
 	}
+}
+
+// SetReviewFlowConfig 配置审核流程（AI 审核等），在 Service 创建后调用
+func (s *Service) SetReviewFlowConfig(cfg *ReviewFlowConfig) {
+	s.reviewFlowCfg = cfg
 }
 
 func (s *Service) verifyProject(projectID, userID string) error {
