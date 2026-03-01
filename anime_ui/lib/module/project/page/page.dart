@@ -18,6 +18,7 @@ import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/project_svc.dart';
 import 'package:anime_ui/pub/widgets/user_menu.dart';
+import 'dialogs.dart';
 
 /// 项目列表页 — 新建、打开、编辑、删除项目，仪表盘入口
 class ProjectsPage extends ConsumerWidget {
@@ -29,116 +30,191 @@ class ProjectsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        leadingWidth: 280.w,
-        leading: Padding(
-          padding: EdgeInsets.only(left: Spacing.lg.w),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(AppIcons.movieFilter, color: AppColors.primary, size: 24.r),
-              SizedBox(width: Spacing.sm.w),
-              Text(
-                projectsBrand,
-                style: AppTextStyles.h4.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-        title: Text(
-          '我的项目',
-          style: AppTextStyles.h2.copyWith(color: AppColors.onSurface),
-        ),
-        centerTitle: true,
-        bottom: const GradientAppBarBottom(),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: Spacing.md.w),
-            child: const UserMenu(),
-          ),
-        ],
-      ),
       body: Stack(
         children: [
           StarfieldBackground(
-            particleCount: 55,
+            particleCount: 60,
             overlayGradient: RadialGradient(
-              center: const Alignment(0, -0.3),
-              radius: 1.2,
+              center: const Alignment(0, -0.5),
+              radius: 1.3,
               colors: [
-                AppColors.primary.withValues(alpha: 0.08),
+                AppColors.primary.withValues(alpha: 0.1),
                 Colors.transparent,
               ],
             ),
           ),
-          listAsync.when(
-            data: (projects) {
-              final totalItems = projects.length + 1;
-              final cards = List<Widget>.generate(totalItems, (i) {
-                if (i == 0) {
-                  return _NewProjectCard(
-                    onTap: () => _createProject(context, ref),
-                  );
-                }
-                final index = i - 1;
-                return TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: Duration(milliseconds: 350 + index * 80),
-                  curve: Curves.easeOutCubic,
-                  builder: (_, value, child) => Opacity(
-                    opacity: value,
-                    child: Transform.translate(
-                      offset: Offset(0, 16.h * (1 - value)),
-                      child: child,
+          CustomScrollView(
+            slivers: [
+              _buildHeroAppBar(context, ref),
+              SliverPadding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Spacing.xxl.w,
+                  vertical: Spacing.xl.h,
+                ),
+                sliver: listAsync.when(
+                  data: (projects) => _buildGrid(context, ref, projects),
+                  loading: () => const SliverToBoxAdapter(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (e, _) => SliverToBoxAdapter(
+                    child: Center(
+                      child: Text(
+                        '加载失败: $e',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.muted,
+                        ),
+                      ),
                     ),
                   ),
-                  child: _ProjectCard(
-                    project: projects[index],
-                    onTap: () => _openProject(context, ref, projects[index]),
-                    onEdit: () => _editProject(context, ref, projects[index]),
-                    onDelete: () =>
-                        _deleteProject(context, ref, projects[index]),
-                  ),
-                );
-              });
-
-              return Center(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(Spacing.xxl.r),
-                  child: Wrap(
-                    spacing: Spacing.mid.w,
-                    runSpacing: Spacing.mid.h,
-                    alignment: WrapAlignment.center,
-                    children: cards
-                        .map(
-                          (card) => SizedBox(
-                            width: 280.w,
-                            height: 267.h,
-                            child: card,
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Text(
-                '加载失败: $e',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.muted,
                 ),
               ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  SliverAppBar _buildHeroAppBar(BuildContext context, WidgetRef ref) {
+    return SliverAppBar(
+      backgroundColor: Colors.transparent,
+      expandedHeight: 180.h,
+      pinned: true,
+      toolbarHeight: 56.h,
+      leadingWidth: 0,
+      leading: const SizedBox.shrink(),
+      title: Row(
+        children: [
+          SizedBox(width: Spacing.lg.w),
+          Icon(AppIcons.movieFilter, color: AppColors.primary, size: 24.r),
+          SizedBox(width: Spacing.sm.w),
+          Text(
+            projectsBrand,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
             ),
           ),
         ],
       ),
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(right: Spacing.md.w),
+          child: const UserMenu(),
+        ),
+      ],
+      bottom: const GradientAppBarBottom(),
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.surface.withValues(alpha: 0.95),
+                AppColors.primary.withValues(alpha: 0.08),
+                AppColors.surface.withValues(alpha: 0.9),
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                Spacing.xxl.w * 2,
+                56.h + Spacing.xl.h,
+                Spacing.xxl.w,
+                Spacing.xl.h,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [
+                        AppColors.onSurface,
+                        AppColors.primary.withValues(alpha: 0.9),
+                      ],
+                    ).createShader(bounds),
+                    child: Text(
+                      '我的项目',
+                      style: AppTextStyles.displayLarge.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: Spacing.sm.h),
+                  Text(
+                    '选择一个项目继续创作，或创建新项目开始你的故事',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.onSurface.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGrid(
+    BuildContext context,
+    WidgetRef ref,
+    List<Project> projects,
+  ) {
+    final totalItems = projects.length + 1;
+
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount =
+            Breakpoints.columnCountForWidth(
+              constraints.crossAxisExtent, maxCols: 4,
+            );
+
+        return SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: Spacing.mid.h,
+            crossAxisSpacing: Spacing.mid.w,
+            childAspectRatio: 1.05,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, i) {
+              if (i == 0) {
+                return _NewProjectCard(
+                  onTap: () => _createProject(context, ref),
+                );
+              }
+              final index = i - 1;
+              return TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: Duration(milliseconds: 350 + index * 80),
+                curve: Curves.easeOutCubic,
+                builder: (_, value, child) => Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 20.h * (1 - value)),
+                    child: child,
+                  ),
+                ),
+                child: _ProjectCard(
+                  project: projects[index],
+                  onTap: () => _openProject(context, ref, projects[index]),
+                  onEdit: () => _editProject(context, ref, projects[index]),
+                  onDelete: () =>
+                      _deleteProject(context, ref, projects[index]),
+                ),
+              );
+            },
+            childCount: totalItems,
+          ),
+        );
+      },
     );
   }
 
@@ -150,9 +226,7 @@ class ProjectsPage extends ConsumerWidget {
   }
 
   Future<void> _openProject(
-    BuildContext context,
-    WidgetRef ref,
-    Project project,
+    BuildContext context, WidgetRef ref, Project project,
   ) async {
     await ref.read(storageServiceProvider).setCurrentProjectId(project.id!);
     await ref.read(currentProjectProvider.notifier).load(project.id!);
@@ -160,115 +234,161 @@ class ProjectsPage extends ConsumerWidget {
   }
 
   Future<void> _editProject(
-    BuildContext context,
-    WidgetRef ref,
-    Project project,
+    BuildContext context, WidgetRef ref, Project project,
   ) async {
     final name = await showDialog<String>(
       context: context,
-      builder: (ctx) => _EditProjectDialog(initialName: project.name),
+      builder: (ctx) => EditProjectDialog(initialName: project.name),
     );
     if (name != null && name.trim().isNotEmpty && context.mounted) {
       try {
         await ProjectService().update(project.id!, name: name.trim());
         ref.invalidate(projectListProvider);
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('项目名称已更新')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('项目名称已更新')));
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('更新失败: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('更新失败: $e')));
         }
       }
     }
   }
 
   Future<void> _deleteProject(
-    BuildContext context,
-    WidgetRef ref,
-    Project project,
+    BuildContext context, WidgetRef ref, Project project,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => _DeleteConfirmDialog(projectName: project.name),
+      builder: (ctx) => DeleteConfirmDialog(projectName: project.name),
     );
     if (confirmed == true) {
       try {
         await ProjectService().delete(project.id!);
         ref.invalidate(projectListProvider);
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('项目「${project.name}」已删除')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('项目「${project.name}」已删除')),
+          );
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('删除失败: $e')));
         }
       }
     }
   }
 }
 
-/// 新建项目卡片 — 虚线边框 + 脉冲动画
-class _NewProjectCard extends StatelessWidget {
+/// 新建项目卡片 — 渐变虚线边框 + 脉冲动画 + 悬浮发光
+class _NewProjectCard extends StatefulWidget {
   const _NewProjectCard({required this.onTap});
-
   final VoidCallback onTap;
 
   @override
+  State<_NewProjectCard> createState() => _NewProjectCardState();
+}
+
+class _NewProjectCardState extends State<_NewProjectCard> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: CustomPaint(
-          painter: DashedBorderPainter(
-            color: AppColors.mutedDarker,
-            borderRadius: RadiusTokens.xxxl,
-            dashLength: 8,
-            gapLength: 5,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
-              color: AppColors.surface.withValues(alpha: 0.3),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.translationValues(0, _hovered ? -4 : 0, 0),
+          child: CustomPaint(
+            painter: DashedBorderPainter(
+              color: _hovered ? AppColors.primary : AppColors.mutedDarker,
+              borderRadius: RadiusTokens.xxxl,
+              dashLength: 8,
+              gapLength: 5,
+              strokeWidth: _hovered ? 2.0 : 1.5,
             ),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PulseWidget(
-                    pulseColor: AppColors.primary,
-                    ringPadding: 16.r,
-                    child: Container(
-                      width: 48.w,
-                      height: 48.h,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                      ),
-                      child: Icon(
-                        AppIcons.add,
-                        size: 28.r,
-                        color: AppColors.onSurface.withValues(alpha: 0.7),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    _hovered
+                        ? AppColors.primary.withValues(alpha: 0.06)
+                        : AppColors.surface.withValues(alpha: 0.2),
+                    _hovered
+                        ? AppColors.primary.withValues(alpha: 0.03)
+                        : AppColors.surface.withValues(alpha: 0.15),
+                  ],
+                ),
+                boxShadow: _hovered
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          blurRadius: 24.r,
+                          spreadRadius: 2.r,
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PulseWidget(
+                      pulseColor: AppColors.primary,
+                      ringPadding: 16.r,
+                      child: Container(
+                        width: 52.w,
+                        height: 52.h,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primary.withValues(alpha: 0.15),
+                              AppColors.info.withValues(alpha: 0.08),
+                            ],
+                          ),
+                        ),
+                        child: Icon(
+                          AppIcons.add,
+                          size: 28.r,
+                          color: _hovered
+                              ? AppColors.primary
+                              : AppColors.onSurface.withValues(alpha: 0.7),
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: Spacing.lg.h),
-                  Text(
-                    '新建项目',
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: AppColors.onSurface.withValues(alpha: 0.7),
+                    SizedBox(height: Spacing.lg.h),
+                    Text(
+                      '新建项目',
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: _hovered
+                            ? AppColors.primary
+                            : AppColors.onSurface.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: Spacing.xs.h),
+                    Text(
+                      '开始全新创作',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.mutedDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -278,7 +398,7 @@ class _NewProjectCard extends StatelessWidget {
   }
 }
 
-/// 项目卡片 — GlowCard 包裹
+/// 项目卡片 — GlowCard 包裹，渐变边框 + 状态指示 + 日期显示
 class _ProjectCard extends StatelessWidget {
   const _ProjectCard({
     required this.project,
@@ -294,7 +414,13 @@ class _ProjectCard extends StatelessWidget {
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return '';
-    return '${dt.year}/${dt.month}/${dt.day} 更新';
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return '刚刚更新';
+    if (diff.inHours < 1) return '${diff.inMinutes} 分钟前';
+    if (diff.inDays < 1) return '${diff.inHours} 小时前';
+    if (diff.inDays < 7) return '${diff.inDays} 天前';
+    return '${dt.month}月${dt.day}日';
   }
 
   @override
@@ -304,75 +430,7 @@ class _ProjectCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(Spacing.sm.r),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-                ),
-                child: Icon(
-                  AppIcons.movieFilter,
-                  color: AppColors.primary.withValues(alpha: 0.7),
-                  size: 20.r,
-                ),
-              ),
-              const Spacer(),
-              PopupMenuButton<String>(
-                icon: Icon(
-                  AppIcons.moreVert,
-                  color: AppColors.mutedDark,
-                  size: 20.r,
-                ),
-                color: AppColors.surface,
-                onSelected: (v) {
-                  if (v == 'edit') onEdit();
-                  if (v == 'delete') onDelete();
-                },
-                itemBuilder: (_) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          AppIcons.editOutline,
-                          size: 18.r,
-                          color: AppColors.muted,
-                        ),
-                        SizedBox(width: Spacing.sm.w),
-                        Text(
-                          '编辑名称',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.mutedLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(
-                          AppIcons.delete,
-                          size: 18.r,
-                          color: AppColors.error,
-                        ),
-                        SizedBox(width: Spacing.sm.w),
-                        Text(
-                          '删除',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          _buildHeader(),
           const Spacer(),
           Center(
             child: Text(
@@ -380,195 +438,92 @@ class _ProjectCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: AppTextStyles.h4.copyWith(
+              style: AppTextStyles.h3.copyWith(
                 color: AppColors.onSurface,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
               ),
             ),
           ),
           const Spacer(),
-          Text(
-            _formatDate(project.updatedAt),
-            style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.mutedDark,
-            ),
-          ),
+          _buildFooter(),
         ],
       ),
     );
   }
-}
 
-/// 编辑项目名称对话框
-class _EditProjectDialog extends StatefulWidget {
-  const _EditProjectDialog({required this.initialName});
-
-  final String initialName;
-
-  @override
-  State<_EditProjectDialog> createState() => _EditProjectDialogState();
-}
-
-class _EditProjectDialogState extends State<_EditProjectDialog> {
-  late TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialName);
-    _controller.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: widget.initialName.length,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppColors.surface,
-      title: Text(
-        '编辑项目名称',
-        style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
-      ),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
-        decoration: InputDecoration(
-          hintText: '输入项目名称',
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.mutedDark,
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(Spacing.sm.r),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primary.withValues(alpha: 0.2),
+                AppColors.info.withValues(alpha: 0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
           ),
-          filled: true,
-          fillColor: AppColors.surfaceMutedDarker,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-            borderSide: const BorderSide(color: AppColors.primary),
+          child: Icon(
+            AppIcons.movieFilter,
+            color: AppColors.primary.withValues(alpha: 0.85),
+            size: 20.r,
           ),
         ),
-        onSubmitted: (v) {
-          if (v.trim().isNotEmpty) Navigator.pop(context, v.trim());
-        },
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            '取消',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-          ),
-        ),
-        FilledButton(
-          onPressed: () {
-            final name = _controller.text.trim();
-            if (name.isNotEmpty) Navigator.pop(context, name);
+        const Spacer(),
+        PopupMenuButton<String>(
+          icon: Icon(AppIcons.moreVert, color: AppColors.mutedDark, size: 20.r),
+          color: AppColors.surface,
+          onSelected: (v) {
+            if (v == 'edit') onEdit();
+            if (v == 'delete') onDelete();
           },
-          style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-          child: const Text('保存'),
+          itemBuilder: (_) => [
+            PopupMenuItem(
+              value: 'edit',
+              child: Row(
+                children: [
+                  Icon(AppIcons.editOutline, size: 18.r, color: AppColors.muted),
+                  SizedBox(width: Spacing.sm.w),
+                  Text('编辑名称',
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.mutedLight)),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(AppIcons.delete, size: 18.r, color: AppColors.error),
+                  SizedBox(width: Spacing.sm.w),
+                  Text('删除',
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.error)),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
-}
 
-/// 删除确认对话框（需输入确认文字）
-class _DeleteConfirmDialog extends StatefulWidget {
-  const _DeleteConfirmDialog({required this.projectName});
-
-  final String projectName;
-
-  @override
-  State<_DeleteConfirmDialog> createState() => _DeleteConfirmDialogState();
-}
-
-class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
-  final _controller = TextEditingController();
-  static const _confirmText = '确认';
-
-  bool get _canConfirm => _controller.text.trim() == _confirmText;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppColors.surface,
-      title: Text(
-        '确认删除',
-        style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '确定要删除项目「${widget.projectName}」吗？此操作不可撤销。',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.mutedLight,
-              height: 1.5,
-            ),
-          ),
-          SizedBox(height: Spacing.mid.h),
-          Text(
-            '请输入「$_confirmText」以确认删除：',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
-          ),
-          SizedBox(height: Spacing.sm.h),
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.onSurface,
-            ),
-            decoration: InputDecoration(
-              hintText: _confirmText,
-              hintStyle: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.mutedDarker,
-              ),
-              filled: true,
-              fillColor: AppColors.surfaceMutedDarker,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-                borderSide: const BorderSide(color: AppColors.error),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-                borderSide: const BorderSide(color: AppColors.error),
-              ),
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text(
-            '取消',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-          ),
+  Widget _buildFooter() {
+    return Row(
+      children: [
+        Icon(AppIcons.inProgress, size: 12.r, color: AppColors.mutedDarker),
+        SizedBox(width: Spacing.xs.w),
+        Text(
+          _formatDate(project.updatedAt),
+          style: AppTextStyles.caption.copyWith(color: AppColors.mutedDark),
         ),
-        FilledButton(
-          onPressed: _canConfirm ? () => Navigator.pop(context, true) : null,
-          style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-          child: const Text('删除'),
-        ),
+        const Spacer(),
+        Icon(AppIcons.chevronRight, size: 14.r, color: AppColors.mutedDarker),
       ],
     );
   }

@@ -8,11 +8,13 @@ class SideNavItem {
   final String key;
   final String label;
   final IconData icon;
+  final String? section;
 
   const SideNavItem({
     required this.key,
     required this.label,
     required this.icon,
+    this.section,
   });
 }
 
@@ -43,13 +45,13 @@ class SideNav extends StatefulWidget {
   final ValueChanged<bool>? onCollapsedChanged;
 
   static const items = [
-    SideNavItem(key: '/story', label: '剧本', icon: AppIcons.book),
-    SideNavItem(key: '/assets', label: '资产', icon: AppIcons.people),
+    SideNavItem(key: '/story', label: '剧本', icon: AppIcons.book, section: '创作'),
+    SideNavItem(key: '/assets', label: '资产', icon: AppIcons.people, section: '创作'),
     SideNavItem(key: '/script', label: '脚本', icon: AppIcons.storyboard),
-    SideNavItem(key: '/shot-images', label: '镜图', icon: AppIcons.gallery),
+    SideNavItem(key: '/shot-images', label: '镜图', icon: AppIcons.gallery, section: '生产'),
     SideNavItem(key: '/shots', label: '镜头', icon: AppIcons.generate),
     SideNavItem(key: '/episode', label: '成片', icon: AppIcons.clipEdit),
-    SideNavItem(key: '/tasks', label: '任务', icon: AppIcons.bolt),
+    SideNavItem(key: '/tasks', label: '任务', icon: AppIcons.bolt, section: '管理'),
   ];
 
   @override
@@ -83,14 +85,30 @@ class _SideNavState extends State<SideNav> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
       width: _collapsed ? 64.w : 180.w,
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceContainer,
-        border: Border(right: BorderSide(color: AppColors.divider)),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.surfaceContainer,
+            AppColors.background,
+          ],
+          stops: [0.0, 1.0],
+        ),
+        border: Border(
+          right: BorderSide(
+            color: AppColors.primary.withValues(alpha: 0.08),
+          ),
+        ),
       ),
       child: Column(
         children: [
           SizedBox(height: Spacing.sm.h),
-          for (final item in SideNav.items) _buildNavItem(item),
+          for (int i = 0; i < SideNav.items.length; i++) ...[
+            if (!_collapsed && _shouldShowSection(i))
+              _buildSectionLabel(SideNav.items[i].section!),
+            _buildNavItem(SideNav.items[i]),
+          ],
           const Spacer(),
           _buildCollapseButton(),
           Padding(
@@ -98,11 +116,51 @@ class _SideNavState extends State<SideNav> {
               horizontal: Spacing.lg.w,
               vertical: Spacing.sm.h,
             ),
-            child: const Divider(height: 1, color: AppColors.divider),
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    AppColors.primary.withValues(alpha: 0.15),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
           ),
           _buildAiButton(),
           SizedBox(height: Spacing.md.h),
         ],
+      ),
+    );
+  }
+
+  bool _shouldShowSection(int index) {
+    final item = SideNav.items[index];
+    if (item.section == null) return false;
+    if (index == 0) return true;
+    return SideNav.items[index - 1].section != item.section;
+  }
+
+  Widget _buildSectionLabel(String label) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        (Spacing.sm + Spacing.md).w,
+        Spacing.md.h,
+        Spacing.sm.w,
+        Spacing.xs.h,
+      ),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          label,
+          style: AppTextStyles.labelTinySmall.copyWith(
+            color: AppColors.mutedDarker,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.5,
+          ),
+        ),
       ),
     );
   }
@@ -123,6 +181,7 @@ class _SideNavState extends State<SideNav> {
         child: InkWell(
           onTap: () => widget.onObjectTap(item.key),
           borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+          hoverColor: AppColors.primary.withValues(alpha: 0.06),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: EdgeInsets.symmetric(
@@ -130,13 +189,20 @@ class _SideNavState extends State<SideNav> {
               vertical: Spacing.buttonPaddingV.h,
             ),
             decoration: BoxDecoration(
-              color: isActive
-                  ? AppColors.primary.withValues(alpha: 0.15)
-                  : Colors.transparent,
+              gradient: isActive
+                  ? LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.18),
+                        AppColors.primary.withValues(alpha: 0.06),
+                      ],
+                    )
+                  : null,
               borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
               border: isActive
                   ? Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3),
+                      color: AppColors.primary.withValues(alpha: 0.25),
                       width: 1,
                     )
                   : null,
@@ -159,7 +225,7 @@ class _SideNavState extends State<SideNav> {
                                             : AppTextStyles.labelLarge)
                                         .copyWith(
                                           fontWeight: isActive
-                                              ? FontWeight.w600
+                                              ? FontWeight.w700
                                               : FontWeight.w500,
                                           color: isActive
                                               ? AppColors.primary
@@ -199,12 +265,30 @@ class _SideNavState extends State<SideNav> {
   }
 
   Widget _buildIcon(SideNavItem item, bool isActive) {
+    if (isActive) {
+      return Container(
+        padding: EdgeInsets.all(2.r),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 8.r,
+            ),
+          ],
+        ),
+        child: Icon(
+          item.icon,
+          size: 20.r,
+          color: AppColors.primary,
+        ),
+      );
+    }
+
     return Icon(
       item.icon,
       size: 20.r,
-      color: isActive
-          ? AppColors.primary
-          : AppColors.onSurface.withValues(alpha: 0.5),
+      color: AppColors.onSurface.withValues(alpha: 0.5),
     );
   }
 
@@ -245,9 +329,14 @@ class _SideNavState extends State<SideNav> {
               vertical: Spacing.buttonPaddingV.h,
             ),
             decoration: BoxDecoration(
-              color: widget.aiActive
-                  ? AppColors.primary.withValues(alpha: 0.15)
-                  : Colors.transparent,
+              gradient: widget.aiActive
+                  ? LinearGradient(
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.2),
+                        AppColors.info.withValues(alpha: 0.1),
+                      ],
+                    )
+                  : null,
               borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
               border: widget.aiActive
                   ? Border.all(color: AppColors.primary.withValues(alpha: 0.3))
@@ -255,18 +344,28 @@ class _SideNavState extends State<SideNav> {
             ),
             child: _collapsed
                 ? Center(
-                    child: Icon(
-                      AppIcons.autoAwesome,
-                      size: Spacing.xl.r,
-                      color: AppColors.primary,
+                    child: ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [AppColors.primary, AppColors.info],
+                      ).createShader(bounds),
+                      child: Icon(
+                        AppIcons.autoAwesome,
+                        size: Spacing.xl.r,
+                        color: Colors.white,
+                      ),
                     ),
                   )
                 : Row(
                     children: [
-                      Icon(
-                        AppIcons.autoAwesome,
-                        size: Spacing.xl.r,
-                        color: AppColors.primary,
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [AppColors.primary, AppColors.info],
+                        ).createShader(bounds),
+                        child: Icon(
+                          AppIcons.autoAwesome,
+                          size: Spacing.xl.r,
+                          color: Colors.white,
+                        ),
                       ),
                       SizedBox(width: Spacing.iconGapMd.w),
                       Text(
@@ -275,6 +374,9 @@ class _SideNavState extends State<SideNav> {
                           color: widget.aiActive
                               ? AppColors.primary
                               : AppColors.onSurface.withValues(alpha: 0.6),
+                          fontWeight: widget.aiActive
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                         ),
                       ),
                     ],

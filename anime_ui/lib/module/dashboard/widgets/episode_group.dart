@@ -6,7 +6,7 @@ import 'package:anime_ui/pub/models/dashboard.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'episode_card.dart';
 
-/// 集分组：可折叠的集卡片网格
+/// 集分组：渐变区段头 + 可折叠集卡片网格
 class EpisodeGroup extends StatefulWidget {
   const EpisodeGroup({
     super.key,
@@ -110,7 +110,14 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
               width: Spacing.tinyGap.w,
               height: Spacing.menuIconSize.h,
               decoration: BoxDecoration(
-                color: widget.titleColor,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    widget.titleColor,
+                    widget.titleColor.withValues(alpha: 0.4),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
               ),
             ),
@@ -125,7 +132,7 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
               widget.title,
               style: AppTextStyles.labelLarge.copyWith(
                 color: AppColors.onSurface,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
             SizedBox(width: Spacing.sm.w),
@@ -135,14 +142,19 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
                 vertical: Spacing.xxs.h,
               ),
               decoration: BoxDecoration(
-                color: widget.titleColor.withValues(alpha: 0.12),
+                gradient: LinearGradient(
+                  colors: [
+                    widget.titleColor.withValues(alpha: 0.15),
+                    widget.titleColor.withValues(alpha: 0.08),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
               ),
               child: Text(
                 '${widget.episodes.length}',
                 style: AppTextStyles.tiny.copyWith(
                   color: widget.titleColor,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -158,59 +170,69 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
     bool isExpanded,
     int groupIndex,
   ) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (isExpanded) {
-            _expandedGroups.remove(groupIndex);
-          } else {
-            _expandedGroups.add(groupIndex);
-          }
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.gridGap.w,
-          vertical: RadiusTokens.lg.h,
-        ),
-        decoration: BoxDecoration(
-          color: isExpanded
-              ? widget.titleColor.withValues(alpha: 0.06)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(
-            color: isExpanded
-                ? widget.titleColor.withValues(alpha: 0.15)
-                : AppColors.border.withValues(alpha: 0.3),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            if (isExpanded) {
+              _expandedGroups.remove(groupIndex);
+            } else {
+              _expandedGroups.add(groupIndex);
+            }
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.gridGap.w,
+            vertical: RadiusTokens.lg.h,
           ),
-        ),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.onSurface.withValues(alpha: 0.75),
-                fontWeight: FontWeight.w500,
-              ),
+          decoration: BoxDecoration(
+            gradient: isExpanded
+                ? LinearGradient(
+                    colors: [
+                      widget.titleColor.withValues(alpha: 0.08),
+                      widget.titleColor.withValues(alpha: 0.02),
+                    ],
+                  )
+                : null,
+            color: isExpanded ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(
+              color: isExpanded
+                  ? widget.titleColor.withValues(alpha: 0.2)
+                  : AppColors.border.withValues(alpha: 0.3),
             ),
-            SizedBox(width: Spacing.sm.w),
-            Text(
-              '($count 集)',
-              style: AppTextStyles.tiny.copyWith(
-                color: AppColors.onSurface.withValues(alpha: 0.5),
+          ),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.onSurface.withValues(alpha: 0.75),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            const Spacer(),
-            AnimatedRotation(
-              turns: isExpanded ? 0.5 : 0,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                AppIcons.expandMore,
-                size: 16.r,
-                color: AppColors.onSurface.withValues(alpha: 0.55),
+              SizedBox(width: Spacing.sm.w),
+              Text(
+                '($count 集)',
+                style: AppTextStyles.tiny.copyWith(
+                  color: AppColors.onSurface.withValues(alpha: 0.5),
+                ),
               ),
-            ),
-          ],
+              const Spacer(),
+              AnimatedRotation(
+                turns: isExpanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  AppIcons.expandMore,
+                  size: 16.r,
+                  color: AppColors.onSurface.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

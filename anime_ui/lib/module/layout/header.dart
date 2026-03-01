@@ -33,6 +33,23 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       titleSpacing: Spacing.xl.w,
       leadingWidth: 0,
       leading: const SizedBox.shrink(),
+      bottom: PreferredSize(
+        preferredSize: Size.fromHeight(1.h),
+        child: Container(
+          height: 1.h,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.transparent,
+                AppColors.primary.withValues(alpha: 0.15),
+                AppColors.primary.withValues(alpha: 0.3),
+                AppColors.primary.withValues(alpha: 0.15),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+      ),
       title: InkWell(
         onTap: isDashboard
             ? () => ref.read(dashboardProvider.notifier).load()
@@ -58,10 +75,15 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                       pulseColor: AppColors.primary,
                       ringPadding: 6.r,
                       maxScale: 1.08,
-                      child: Icon(
-                        AppIcons.movieFilter,
-                        color: AppColors.primary,
-                        size: 28.r,
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [AppColors.primary, AppColors.info],
+                        ).createShader(bounds),
+                        child: Icon(
+                          AppIcons.movieFilter,
+                          color: Colors.white,
+                          size: 28.r,
+                        ),
                       ),
                     )
                   : Icon(
@@ -71,12 +93,20 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                     ),
               SizedBox(width: Spacing.sm.w),
               if (isDashboard)
-                Text(
-                  headerBrand,
-                  style: AppTextStyles.bodyXLarge.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
-                    letterSpacing: 0.5,
+                ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [
+                      AppColors.onSurface,
+                      AppColors.primary.withValues(alpha: 0.8),
+                    ],
+                  ).createShader(bounds),
+                  child: Text(
+                    headerBrand,
+                    style: AppTextStyles.bodyXLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 )
               else
@@ -107,21 +137,71 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        IconButton(
-          icon: Icon(AppIcons.folderOpen, size: 18.r),
-          iconSize: 18.r,
+        _HeaderActionButton(
+          icon: AppIcons.folderOpen,
           tooltip: '项目列表',
-          onPressed: () => context.go(Routes.projects),
+          onTap: () => context.go(Routes.projects),
         ),
-        SizedBox(width: Spacing.lg.w),
+        SizedBox(width: Spacing.md.w),
         const _NotificationBadge(),
-        SizedBox(width: Spacing.xxl.w),
+        SizedBox(width: Spacing.lg.w),
         Padding(
           padding: EdgeInsets.only(right: Spacing.sm.w),
           child: const UserMenu(),
         ),
         SizedBox(width: Spacing.xl.w),
       ],
+    );
+  }
+}
+
+/// 头部操作按钮 — 悬浮高亮效果
+class _HeaderActionButton extends StatefulWidget {
+  const _HeaderActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  State<_HeaderActionButton> createState() => _HeaderActionButtonState();
+}
+
+class _HeaderActionButtonState extends State<_HeaderActionButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: Tooltip(
+        message: widget.tooltip,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: EdgeInsets.all(Spacing.sm.r),
+            decoration: BoxDecoration(
+              color: _hovered
+                  ? AppColors.primary.withValues(alpha: 0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            ),
+            child: Icon(
+              widget.icon,
+              size: 18.r,
+              color: _hovered
+                  ? AppColors.primary
+                  : AppColors.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -139,28 +219,26 @@ class _NotificationBadge extends ConsumerWidget {
         builder: (ctx) => Badge(
           isLabelVisible: count > 0,
           label: Text('$count', style: AppTextStyles.tiny),
-          child: IconButton(
-            icon: Icon(AppIcons.notification, size: 18.r),
-            iconSize: 18.r,
+          backgroundColor: AppColors.primary,
+          child: _HeaderActionButton(
+            icon: AppIcons.notification,
             tooltip: '站内通知',
-            onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+            onTap: () => Scaffold.of(ctx).openEndDrawer(),
           ),
         ),
       ),
       loading: () => Builder(
-        builder: (ctx) => IconButton(
-          icon: Icon(AppIcons.notification, size: 18.r),
-          iconSize: 18.r,
+        builder: (ctx) => _HeaderActionButton(
+          icon: AppIcons.notification,
           tooltip: '站内通知',
-          onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+          onTap: () => Scaffold.of(ctx).openEndDrawer(),
         ),
       ),
       error: (e, st) => Builder(
-        builder: (ctx) => IconButton(
-          icon: Icon(AppIcons.notification, size: 18.r),
-          iconSize: 18.r,
+        builder: (ctx) => _HeaderActionButton(
+          icon: AppIcons.notification,
           tooltip: '站内通知',
-          onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+          onTap: () => Scaffold.of(ctx).openEndDrawer(),
         ),
       ),
     );

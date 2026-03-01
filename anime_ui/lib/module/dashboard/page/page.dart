@@ -15,6 +15,7 @@ import 'package:anime_ui/pub/widgets/pulse.dart';
 import 'package:anime_ui/pub/widgets/starfield_background.dart';
 import 'package:anime_ui/module/dashboard/providers/provider.dart';
 import 'package:anime_ui/module/dashboard/widgets/asset_overview.dart';
+import 'package:anime_ui/module/dashboard/widgets/dashboard_helpers.dart';
 import 'package:anime_ui/module/dashboard/widgets/episode_group.dart';
 import 'package:anime_ui/module/dashboard/widgets/progress_overview.dart';
 
@@ -120,45 +121,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     return CustomScrollView(
       slivers: [
         _buildAppBar(projectName, dash),
-        SliverPadding(padding: EdgeInsets.only(top: Spacing.md.h)),
-        SliverPadding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Spacing.xxl.w,
-            vertical: Spacing.sm.h,
-          ),
-          sliver: SliverToBoxAdapter(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 1000.w),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (Breakpoints.isNarrow(constraints.maxWidth)) {
-                      return Column(
-                        children: [
-                          ProgressOverview(dash: dash),
-                          SizedBox(height: Spacing.md.h),
-                          AssetOverview(summary: dash.assetSummary),
-                        ],
-                      );
-                    }
-                    return IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(child: ProgressOverview(dash: dash)),
-                          SizedBox(width: Spacing.lg.w),
-                          Expanded(
-                            child: AssetOverview(summary: dash.assetSummary),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
+        SliverPadding(padding: EdgeInsets.only(top: Spacing.sm.h)),
+        _buildStatsBar(dash),
+        _buildOverviewRow(dash),
         if (inProgress.isNotEmpty)
           EpisodeGroup(
             title: '进行中',
@@ -191,6 +156,104 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           padding: EdgeInsets.only(bottom: (Spacing.xl + Spacing.lg).h),
         ),
       ],
+    );
+  }
+
+  Widget _buildOverviewRow(Dashboard dash) {
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.xxl.w,
+        vertical: Spacing.sm.h,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 1000.w),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (Breakpoints.isNarrow(constraints.maxWidth)) {
+                  return Column(
+                    children: [
+                      ProgressOverview(dash: dash),
+                      SizedBox(height: Spacing.md.h),
+                      AssetOverview(summary: dash.assetSummary),
+                    ],
+                  );
+                }
+                return IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: ProgressOverview(dash: dash)),
+                      SizedBox(width: Spacing.lg.w),
+                      Expanded(
+                        child: AssetOverview(summary: dash.assetSummary),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsBar(Dashboard dash) {
+    final done = dash.statusCounts['completed'] ?? 0;
+    final inProg = dash.statusCounts['in_progress'] ?? 0;
+    final total = dash.totalEpisodes;
+
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.xxl.w,
+        vertical: Spacing.sm.h,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 1000.w),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (_, value, child) => Opacity(
+                opacity: value,
+                child: Transform.translate(
+                  offset: Offset(0, 8.h * (1 - value)),
+                  child: child,
+                ),
+              ),
+              child: Row(
+                children: [
+                  StatChip(
+                    icon: AppIcons.movie,
+                    label: '总集数',
+                    value: '$total',
+                    color: AppColors.primary,
+                  ),
+                  SizedBox(width: Spacing.md.w),
+                  StatChip(
+                    icon: AppIcons.inProgress,
+                    label: '进行中',
+                    value: '$inProg',
+                    color: AppColors.info,
+                  ),
+                  SizedBox(width: Spacing.md.w),
+                  StatChip(
+                    icon: AppIcons.check,
+                    label: '已完成',
+                    value: '$done',
+                    color: AppColors.success,
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -232,9 +295,20 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ),
               ),
               SizedBox(height: (Spacing.xxl + Spacing.xs).h),
-              Text(
-                projectName.isNotEmpty ? projectName : '项目驾驶舱',
-                style: AppTextStyles.h2.copyWith(color: AppColors.onSurface),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: [
+                    AppColors.onSurface,
+                    AppColors.primary.withValues(alpha: 0.8),
+                  ],
+                ).createShader(bounds),
+                child: Text(
+                  projectName.isNotEmpty ? projectName : '项目驾驶舱',
+                  style: AppTextStyles.h2.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               SizedBox(height: Spacing.sm.h),
               Text(
@@ -244,22 +318,53 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ),
               ),
               SizedBox(height: Spacing.xl.h),
-              FilledButton.icon(
-                onPressed: () => context.go(Routes.storyImport),
-                icon: Icon(AppIcons.book, size: 18.r),
-                label: const Text('去导入剧本'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.xl.w,
-                    vertical: Spacing.gridGap.h,
-                  ),
-                ),
+              GradientActionButton(
+                onTap: () => context.go(Routes.storyImport),
+                icon: AppIcons.book,
+                label: '去导入剧本',
               ),
+              SizedBox(height: Spacing.lg.h),
+              _buildQuickStartHints(),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildQuickStartHints() {
+    final steps = [
+      ('导入剧本', AppIcons.book, '上传或编写你的故事'),
+      ('生成资产', AppIcons.people, '角色、场景自动生成'),
+      ('制作成片', AppIcons.movie, '一键生成动漫短片'),
+    ];
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutCubic,
+      builder: (_, value, child) => Opacity(opacity: value, child: child),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (int i = 0; i < steps.length; i++) ...[
+            if (i > 0)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
+                child: Icon(
+                  AppIcons.chevronRight,
+                  size: 14.r,
+                  color: AppColors.mutedDarker,
+                ),
+              ),
+            QuickStepChip(
+              icon: steps[i].$2,
+              label: steps[i].$1,
+              subtitle: steps[i].$3,
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -288,7 +393,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             child: Text(
               projectName,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.h3.copyWith(color: AppColors.onSurface),
+              style: AppTextStyles.h3.copyWith(
+                color: AppColors.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           SizedBox(width: RadiusTokens.lg.w),
@@ -298,12 +406,20 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               vertical: Spacing.progressBarHeight.h,
             ),
             decoration: BoxDecoration(
-              color: AppColors.surfaceMutedDark.withValues(alpha: 0.6),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.15),
+                  AppColors.info.withValues(alpha: 0.1),
+                ],
+              ),
               borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
             ),
             child: Text(
               '${dash.totalEpisodes}集',
-              style: AppTextStyles.labelMedium.copyWith(color: AppColors.muted),
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

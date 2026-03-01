@@ -6,7 +6,7 @@ import 'package:anime_ui/pub/models/dashboard.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'step_progress_bar.dart';
 
-/// 集卡片：状态、标题、进度条
+/// 集卡片：状态渐变指示、标题、进度条、悬浮发光
 class EpisodeCard extends StatefulWidget {
   const EpisodeCard({
     super.key,
@@ -43,25 +43,36 @@ class _EpisodeCardState extends State<EpisodeCard> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.translationValues(0, _hovered ? -3 : 0, 0),
           padding: EdgeInsets.all(Spacing.mid.r),
           decoration: BoxDecoration(
-            color: _hovered
-                ? AppColors.surface.withValues(alpha: 0.9)
-                : AppColors.surface,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: _hovered
+                  ? [
+                      AppColors.surface,
+                      statusInfo.color.withValues(alpha: 0.04),
+                    ]
+                  : [
+                      AppColors.surface,
+                      AppColors.surface.withValues(alpha: 0.9),
+                    ],
+            ),
             borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
             border: Border.all(
               color: _hovered
-                  ? AppColors.primary.withValues(alpha: 0.5)
+                  ? statusInfo.color.withValues(alpha: 0.4)
                   : AppColors.surfaceMutedDark.withValues(alpha: 0.5),
               width: _hovered ? 1.5 : 1,
             ),
             boxShadow: _hovered
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.08),
-                      blurRadius: 20.r,
+                      color: statusInfo.color.withValues(alpha: 0.1),
+                      blurRadius: 24.r,
                       offset: Offset(0, 4.h),
                     ),
                   ]
@@ -164,7 +175,12 @@ class _EpisodeCardState extends State<EpisodeCard> {
             vertical: Spacing.xs.h,
           ),
           decoration: BoxDecoration(
-            color: info.color.withValues(alpha: 0.15),
+            gradient: LinearGradient(
+              colors: [
+                info.color.withValues(alpha: 0.18),
+                info.color.withValues(alpha: 0.08),
+              ],
+            ),
             borderRadius: BorderRadius.circular(Spacing.mid.r),
           ),
           child: Row(
@@ -176,6 +192,7 @@ class _EpisodeCardState extends State<EpisodeCard> {
                 info.label,
                 style: AppTextStyles.labelMedium.copyWith(
                   color: info.color,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -197,7 +214,10 @@ class _EpisodeCardState extends State<EpisodeCard> {
       ep.title.isNotEmpty ? ep.title : '第${ep.sortIndex + 1}集',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+      style: AppTextStyles.h4.copyWith(
+        color: AppColors.onSurface,
+        fontWeight: FontWeight.w700,
+      ),
     );
   }
 
@@ -260,23 +280,35 @@ class _EpisodeCardState extends State<EpisodeCard> {
           ),
         ],
         if (ep.characterNames.isEmpty) const Spacer(),
-        if (_hovered)
-          Container(
+        AnimatedOpacity(
+          opacity: _hovered ? 1 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: RadiusTokens.lg.w,
               vertical: Spacing.xs.h,
             ),
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, AppColors.info],
+              ),
               borderRadius: BorderRadius.circular(Spacing.mid.r),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 8.r,
+                ),
+              ],
             ),
             child: Text(
               '进入',
               style: AppTextStyles.labelMedium.copyWith(
                 color: AppColors.onPrimary,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
+        ),
       ],
     );
   }

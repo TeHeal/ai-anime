@@ -71,13 +71,19 @@ class _GlowCardState extends State<GlowCard> {
             borderRadius: BorderRadius.circular(widget.borderRadius.r),
             gradient:
                 widget.background ??
-                const LinearGradient(
+                LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.surfaceContainerHigh,
-                    AppColors.surfaceContainerHighest,
-                  ],
+                  colors: _hovered
+                      ? [
+                          AppColors.surfaceContainerHigh,
+                          glow.withValues(alpha: 0.04),
+                          AppColors.surfaceContainerHighest,
+                        ]
+                      : [
+                          AppColors.surfaceContainerHigh,
+                          AppColors.surfaceContainerHighest,
+                        ],
                 ),
             border: Border.all(
               color: _hovered
@@ -91,8 +97,8 @@ class _GlowCardState extends State<GlowCard> {
                       ? widget.hoverGlowIntensity
                       : widget.glowIntensity,
                 ),
-                blurRadius: _hovered ? 24.r : 10.r,
-                spreadRadius: _hovered ? 2.r : 0.r,
+                blurRadius: _hovered ? 28.r : 10.r,
+                spreadRadius: _hovered ? 3.r : 0.r,
               ),
             ],
           ),
@@ -109,6 +115,15 @@ class _GlowCardState extends State<GlowCard> {
                         : widget.topAccentHeight.h,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(colors: accentColors),
+                      boxShadow: _hovered
+                          ? [
+                              BoxShadow(
+                                color: glow.withValues(alpha: 0.3),
+                                blurRadius: 8.r,
+                                offset: Offset(0, 2.h),
+                              ),
+                            ]
+                          : [],
                     ),
                   ),
                 Expanded(

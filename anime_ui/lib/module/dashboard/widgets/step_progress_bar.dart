@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 
-/// 步进显示：圆形节点 + 连接线 + 箭头，done/current/pending 三态区分
+/// 步进显示：圆形节点 + 渐变连接线 + 箭头，done/current/pending 三态区分
 class StepProgressBar extends StatelessWidget {
   const StepProgressBar({
     super.key,
@@ -28,30 +28,43 @@ class StepProgressBar extends StatelessWidget {
       children: List.generate(steps.length * 2 - 1, (idx) {
         if (idx.isOdd) {
           final prevDone = currentStep > (idx ~/ 2);
-          final color = prevDone
-              ? AppColors.primary.withValues(alpha: 0.8)
-              : AppColors.surfaceMuted;
           return Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(
                   child: Container(
-                    height: 1.h,
+                    height: 1.5.h,
                     margin: EdgeInsets.only(right: Spacing.xxs.w),
                     decoration: BoxDecoration(
-                      color: color,
+                      gradient: prevDone
+                          ? const LinearGradient(
+                              colors: [AppColors.primary, AppColors.info],
+                            )
+                          : null,
+                      color: prevDone ? null : AppColors.surfaceMuted,
                       borderRadius: BorderRadius.circular(Spacing.xxs.r),
                     ),
                   ),
                 ),
-                Icon(AppIcons.chevronRight, size: 8.r, color: color),
+                Icon(
+                  AppIcons.chevronRight,
+                  size: 8.r,
+                  color: prevDone
+                      ? AppColors.primary.withValues(alpha: 0.8)
+                      : AppColors.surfaceMuted,
+                ),
                 Expanded(
                   child: Container(
-                    height: 1.h,
+                    height: 1.5.h,
                     margin: EdgeInsets.only(left: Spacing.xxs.w),
                     decoration: BoxDecoration(
-                      color: color,
+                      gradient: prevDone
+                          ? const LinearGradient(
+                              colors: [AppColors.info, AppColors.primary],
+                            )
+                          : null,
+                      color: prevDone ? null : AppColors.surfaceMuted,
                       borderRadius: BorderRadius.circular(Spacing.xxs.r),
                     ),
                   ),
@@ -80,9 +93,11 @@ class StepProgressBar extends StatelessWidget {
                     color: done
                         ? AppColors.primary.withValues(alpha: 0.9)
                         : current
-                            ? AppColors.mutedLight
+                            ? AppColors.onSurface
                             : AppColors.mutedDarker,
-                    fontWeight: current ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: current || done
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
               ],
@@ -102,21 +117,55 @@ class _StepNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = done
-        ? AppColors.primary
-        : current
-            ? AppColors.primary.withValues(alpha: 0.9)
-            : AppColors.border;
+    if (done) {
+      return Container(
+        width: 8.w,
+        height: 8.h,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [AppColors.primary, AppColors.info],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.4),
+              blurRadius: 4.r,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (current) {
+      return Container(
+        width: 10.w,
+        height: 10.h,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.transparent,
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.9),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.2),
+              blurRadius: 6.r,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
-      width: current ? 8.w : 6.w,
-      height: current ? 8.h : 6.h,
+      width: 6.w,
+      height: 6.h,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: done ? color : Colors.transparent,
+        color: Colors.transparent,
         border: Border.all(
-          color: color,
-          width: current ? 1.5 : 1,
+          color: AppColors.border,
+          width: 1,
         ),
       ),
     );
