@@ -32,10 +32,11 @@ func SetupMux(log *zap.Logger) *asynq.ServeMux {
 
 // MuxDeps 可选依赖，用于注册真实 handler；nil 字段使用占位
 type MuxDeps struct {
-	ImageHandler   *ImageTaskHandler
-	VideoHandler   *VideoTaskHandler
-	ExportHandler  *ExportTaskHandler
-	PackageHandler *PackageTaskHandler
+	ImageHandler    *ImageTaskHandler
+	VideoHandler    *VideoTaskHandler
+	ExportHandler   *ExportTaskHandler
+	PackageHandler  *PackageTaskHandler
+	PipelineHandler *PipelineTaskHandler
 }
 
 // SetupMuxWithDeps 注册任务 handler，deps 非空时注入真实实现
@@ -71,7 +72,12 @@ func SetupMuxWithDeps(log *zap.Logger, deps *MuxDeps) *asynq.ServeMux {
 	mux.HandleFunc(tasktypes.TypeVoiceClone, placeholderHandler(l, tasktypes.TypeVoiceClone))
 	mux.HandleFunc(tasktypes.TypeMusicGeneration, placeholderHandler(l, tasktypes.TypeMusicGeneration))
 	mux.HandleFunc(tasktypes.TypeScriptParse, placeholderHandler(l, tasktypes.TypeScriptParse))
-	mux.HandleFunc(tasktypes.TypeStoryboardGenerate, placeholderHandler(l, tasktypes.TypeStoryboardGenerate))
+
+	if deps != nil && deps.PipelineHandler != nil {
+		RegisterPipelineHandler(mux, deps.PipelineHandler)
+	} else {
+		mux.HandleFunc(tasktypes.TypeStoryboardGenerate, placeholderHandler(l, tasktypes.TypeStoryboardGenerate))
+	}
 
 	return mux
 }
