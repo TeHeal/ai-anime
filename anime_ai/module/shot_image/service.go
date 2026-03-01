@@ -2,12 +2,16 @@ package shot_image
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
+	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 )
 
 // Service 镜图业务逻辑层
@@ -19,7 +23,11 @@ type Service struct {
 	memberResolver  crossmodule.ProjectMemberResolver
 	reviewRecorder  crossmodule.ReviewRecorder
 	reviewFlowCfg   *ReviewFlowConfig
+	asynqClient     *asynq.Client
 }
+
+// SetAsynqClient 设置 Asynq 客户端（供 main.go 注入）
+func (s *Service) SetAsynqClient(c *asynq.Client) { s.asynqClient = c }
 
 // NewService 创建镜图服务
 func NewService(
@@ -237,8 +245,7 @@ func (s *Service) BatchReview(shotIDs []string, status string, userID string) er
 	return nil
 }
 
-// BatchGenerate 批量生成镜图（占位，后续接 Worker）
-// 执行前对每个 shot 加锁，被他人锁定时返回 ErrLocked（README 2.3）
+// BatchGenerate 批量生成镜图，加锁并入队 Asynq 任务（README 2.3 任务锁）
 func (s *Service) BatchGenerate(projectID, userID string, req BatchGenerateRequest) ([]BatchGenerateResult, error) {
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return nil, err
@@ -258,7 +265,36 @@ func (s *Service) BatchGenerate(projectID, userID string, req BatchGenerateReque
 				continue
 			}
 		}
-		results[i] = BatchGenerateResult{ShotID: shotID, Status: "queued", TaskIDs: []string{}}
+
+		// 使用全局提示词或默认值
+		fullPrompt := req.Config.GlobalPrompt
+		if fullPrompt == "" {
+			fullPrompt = "anime style illustration, high quality"
+		}
+		negPrompt := req.Config.NegativePrompt
+
+		// 入队 Asynq 任务
+		taskIDs := []string{}
+		if s.asynqClient != nil {
+			taskID := uuid.New().String()
+			payload := map[string]interface{}{
+				"task_id":         taskID,
+				"shot_image_id":   "",
+				"provider":        req.Config.Provider,
+				"model":           req.Config.Model,
+				"prompt":          fullPrompt,
+				"negative_prompt": negPrompt,
+				"project_id":      projectID,
+				"user_id":         userID,
+				"shot_id":         shotID,
+			}
+			payloadBytes, _ := json.Marshal(payload)
+			task := asynq.NewTask(tasktypes.TypeImageGeneration, payloadBytes)
+			if _, err := s.asynqClient.Enqueue(task); err == nil {
+				taskIDs = append(taskIDs, taskID)
+			}
+		}
+		results[i] = BatchGenerateResult{ShotID: shotID, Status: "queued", TaskIDs: taskIDs}
 	}
 	return results, nil
 }

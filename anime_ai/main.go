@@ -454,6 +454,11 @@ func main() {
 		}
 	}
 
+	// 注入 Asynq 客户端到需要入队任务的 Service
+	if asynqClient != nil {
+		shotImageSvc.SetAsynqClient(asynqClient)
+	}
+
 	var compositeHandler *composite.Handler
 	if compositeSvc != nil {
 		compositeHandler = composite.NewHandler(compositeSvc, asynqClient)

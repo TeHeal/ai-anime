@@ -85,13 +85,12 @@ func (s *Service) Preview(ctx context.Context, projectID, userID string, req Pre
 		return nil, fmt.Errorf("场景数据读取器未配置")
 	}
 
-	sceneID := strconv.FormatUint(uint64(req.SceneID), 10)
-	blocks, err := s.sceneBlockReader.ListBlocksByScene(sceneID)
+	blocks, err := s.sceneBlockReader.ListBlocksByScene(req.SceneID)
 	if err != nil {
 		return nil, fmt.Errorf("读取场景内容块失败: %w", err)
 	}
 	scene := llm.SceneForPrompt{
-		ID: req.SceneID,
+		ID: 0,
 		Blocks: make([]llm.BlockForPrompt, len(blocks)),
 	}
 	for i, b := range blocks {
@@ -143,17 +142,15 @@ func (s *Service) GenerateSync(ctx context.Context, projectID, userID string, re
 	}
 
 	// 获取集标题
-	episodeTitle := fmt.Sprintf("第 %d 集", req.EpisodeID)
+	episodeTitle := "未命名集"
 	if s.episodeStore != nil {
-		epID := strconv.FormatUint(uint64(req.EpisodeID), 10)
-		if ep, err := s.episodeStore.FindByID(epID); err == nil && ep.Title != "" {
+		if ep, err := s.episodeStore.FindByID(req.EpisodeID); err == nil && ep.Title != "" {
 			episodeTitle = ep.Title
 		}
 	}
 
 	// 获取该集所有场景及内容块
-	epID := strconv.FormatUint(uint64(req.EpisodeID), 10)
-	sceneInfos, err := s.sceneBlockReader.ListScenesByEpisode(epID)
+	sceneInfos, err := s.sceneBlockReader.ListScenesByEpisode(req.EpisodeID)
 	if err != nil {
 		return nil, fmt.Errorf("读取场景列表失败: %w", err)
 	}
