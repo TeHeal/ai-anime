@@ -1,6 +1,6 @@
 import 'package:anime_ui/pub/models/team.dart';
 import 'package:anime_ui/pub/models/team_member.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class TeamService {
   Future<List<Team>> listByOrg(int orgId) async {

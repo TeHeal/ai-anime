@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
-import 'package:anime_ui/pub/theme/colors.dart';
 
 class OptionChips<T> extends StatelessWidget {
   const OptionChips({
@@ -8,41 +9,46 @@ class OptionChips<T> extends StatelessWidget {
     required this.options,
     required this.selected,
     required this.onSelected,
-    this.chipPadding = const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    this.chipPadding,
     this.fontSize = 13.0,
   });
 
   final Map<T, String> options;
   final T selected;
   final ValueChanged<T> onSelected;
-  final EdgeInsets chipPadding;
+  final EdgeInsets? chipPadding;
   final double fontSize;
 
   @override
   Widget build(BuildContext context) {
+    final padding = chipPadding ??
+        EdgeInsets.symmetric(
+          horizontal: Spacing.gridGap.w,
+          vertical: Spacing.sm.h,
+        );
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: Spacing.sm.w,
+      runSpacing: Spacing.sm.h,
       children: options.entries.map((e) {
         final isSelected = e.key == selected;
         return GestureDetector(
           onTap: () => onSelected(e.key),
           child: Container(
-            padding: chipPadding,
+            padding: padding,
             decoration: BoxDecoration(
               color: isSelected
                   ? AppColors.primary.withValues(alpha: 0.2)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
               border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.grey[700]!,
+                color: isSelected ? AppColors.primary : AppColors.surfaceMuted,
               ),
             ),
             child: Text(
               e.value,
-              style: TextStyle(
+              style: AppTextStyles.bodySmall.copyWith(
                 fontSize: fontSize,
-                color: isSelected ? AppColors.primary : Colors.grey[400],
+                color: isSelected ? AppColors.primary : AppColors.muted,
               ),
             ),
           ),

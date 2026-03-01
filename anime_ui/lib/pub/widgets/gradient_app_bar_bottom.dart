@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 class GradientAppBarBottom extends StatelessWidget
     implements PreferredSizeWidget {
@@ -13,7 +14,7 @@ class GradientAppBarBottom extends StatelessWidget
   final List<Color>? colors;
 
   @override
-  Size get preferredSize => Size.fromHeight(height);
+  Size get preferredSize => Size.fromHeight(height.h);
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,7 @@ class GradientAppBarBottom extends StatelessWidget
         ];
 
     return Container(
-      height: height,
+      height: height.h,
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: gradientColors),
       ),

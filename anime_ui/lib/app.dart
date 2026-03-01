@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/const/app_const.dart';
 import 'package:anime_ui/pub/theme/app_theme.dart';
-import 'package:anime_ui/pub/router/router.dart';
+import 'package:anime_ui/route.dart';
 
 /// 应用根组件
 class App extends StatelessWidget {

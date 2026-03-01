@@ -49,7 +49,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 	var req CreateSegmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	seg, err := h.svc.Create(projectID, userID, req)
@@ -58,7 +58,7 @@ func (h *Handler) Create(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, seg.ToResponse())
@@ -73,7 +73,7 @@ func (h *Handler) BulkCreate(c *gin.Context) {
 	}
 	var req BulkCreateSegmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	segments, err := h.svc.BulkCreate(projectID, userID, req)
@@ -82,7 +82,7 @@ func (h *Handler) BulkCreate(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	resp := make([]SegmentResponse, len(segments))
@@ -105,7 +105,7 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	resp := make([]SegmentResponse, len(segments))
@@ -128,7 +128,7 @@ func (h *Handler) Update(c *gin.Context) {
 	}
 	var req UpdateSegmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	seg, err := h.svc.Update(segID, projectID, userID, req)
@@ -137,7 +137,7 @@ func (h *Handler) Update(c *gin.Context) {
 			pkg.NotFound(c, "段落不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, seg.ToResponse())
@@ -159,7 +159,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			pkg.NotFound(c, "段落不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -174,10 +174,11 @@ func (h *Handler) Reorder(c *gin.Context) {
 	}
 	var req ReorderSegmentsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.Reorder(projectID, userID, req); err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "排序失败")
 		return
 	}
@@ -193,12 +194,13 @@ func (h *Handler) Parse(c *gin.Context) {
 	}
 	var req ScriptParseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	task, err := h.svc.SubmitParse(projectID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, "提交解析任务失败: "+err.Error())
+		c.Error(err)
+		pkg.InternalError(c, "提交解析任务失败")
 		return
 	}
 	pkg.OK(c, gin.H{
@@ -216,12 +218,13 @@ func (h *Handler) ParseSync(c *gin.Context) {
 	}
 	var req ScriptParseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	result, err := h.svc.ParseSync(c.Request.Context(), projectID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, "解析失败: "+err.Error())
+		c.Error(err)
+		pkg.InternalError(c, "解析失败")
 		return
 	}
 	pkg.OK(c, result)
@@ -251,11 +254,12 @@ func (h *Handler) Confirm(c *gin.Context) {
 	}
 	var req ScriptConfirmRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.Confirm(projectID, userID, req); err != nil {
-		pkg.InternalError(c, "导入失败: "+err.Error())
+		c.Error(err)
+		pkg.InternalError(c, "导入失败")
 		return
 	}
 	pkg.OK(c, gin.H{"message": "剧本导入成功"})
@@ -265,12 +269,12 @@ func (h *Handler) Confirm(c *gin.Context) {
 func (h *Handler) Assist(c *gin.Context) {
 	var req ScriptAiRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	ch, err := h.svc.StreamAssist(c.Request.Context(), req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	c.Writer.Header().Set("Content-Type", "text/event-stream")

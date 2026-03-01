@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
-import 'package:anime_ui/pub/theme/text.dart';
 
 class RoleBadge extends StatelessWidget {
   final String role;
@@ -9,41 +10,40 @@ class RoleBadge extends StatelessWidget {
 
   static const _roleStyles = <String, ({Color bg, Color fg, String label})>{
     'owner': (
-      bg: Color(0xFF7C3AED),
-      fg: Color(0xFFEDE9FE),
+      bg: AppColors.roleOwnerBg,
+      fg: AppColors.roleOwnerFg,
       label: '所有者',
     ),
     'director': (
-      bg: Color(0xFF2563EB),
-      fg: Color(0xFFDBEAFE),
+      bg: AppColors.roleDirectorBg,
+      fg: AppColors.roleDirectorFg,
       label: '总监',
     ),
     'editor': (
-      bg: Color(0xFF16A34A),
-      fg: Color(0xFFDCFCE7),
+      bg: AppColors.roleEditorBg,
+      fg: AppColors.roleEditorFg,
       label: '编辑',
     ),
     'viewer': (
-      bg: Color(0xFF6B7280),
-      fg: Color(0xFFF3F4F6),
+      bg: AppColors.roleViewerBg,
+      fg: AppColors.roleViewerFg,
       label: '查看者',
     ),
   };
 
   @override
   Widget build(BuildContext context) {
-    final style = _roleStyles[role] ??
-        _roleStyles['viewer']!;
+    final style = _roleStyles[role] ?? _roleStyles['viewer']!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.sm.w,
+        vertical: Spacing.xs.h,
+      ),
       decoration: BoxDecoration(
         color: style.bg.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: style.bg.withValues(alpha: 0.4),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+        border: Border.all(color: style.bg.withValues(alpha: 0.4), width: 1.r),
       ),
       child: Text(
         style.label,

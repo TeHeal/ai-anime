@@ -49,6 +49,9 @@ func (s *Service) CreateSnapshot(userID uint, req CreateSnapshotRequest) (*Chara
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
+	if err := s.checkAssetEditForProject(req.ProjectID, userID); err != nil {
+		return nil, err
+	}
 	snap := &CharacterSnapshot{
 		CharacterID:        req.CharacterID,
 		ProjectID:          req.ProjectID,
@@ -78,9 +81,12 @@ func (s *Service) GetSnapshot(id uint) (*CharacterSnapshot, error) {
 }
 
 // UpdateSnapshot 更新快照
-func (s *Service) UpdateSnapshot(id uint, req UpdateSnapshotRequest) (*CharacterSnapshot, error) {
+func (s *Service) UpdateSnapshot(id uint, userID uint, req UpdateSnapshotRequest) (*CharacterSnapshot, error) {
 	snap, err := s.data.FindSnapshotByID(id)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.checkAssetEditForProject(snap.ProjectID, userID); err != nil {
 		return nil, err
 	}
 	applySnapshotUpdate(snap, req)
@@ -131,7 +137,14 @@ func applySnapshotUpdate(s *CharacterSnapshot, req UpdateSnapshotRequest) {
 }
 
 // DeleteSnapshot 删除快照
-func (s *Service) DeleteSnapshot(id uint) error {
+func (s *Service) DeleteSnapshot(id uint, userID uint) error {
+	snap, err := s.data.FindSnapshotByID(id)
+	if err != nil {
+		return err
+	}
+	if err := s.checkAssetEditForProject(snap.ProjectID, userID); err != nil {
+		return err
+	}
 	return s.data.DeleteSnapshot(id)
 }
 

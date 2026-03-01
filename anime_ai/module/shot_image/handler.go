@@ -44,7 +44,7 @@ func (h *Handler) BatchGenerate(c *gin.Context) {
 	}
 	var req BatchGenerateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	results, err := h.svc.BatchGenerate(projectID, userID, req)
@@ -53,7 +53,7 @@ func (h *Handler) BatchGenerate(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, results)
@@ -72,7 +72,7 @@ func (h *Handler) GetStatus(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, status)
@@ -91,7 +91,7 @@ func (h *Handler) GetCandidates(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, candidates)
@@ -105,7 +105,7 @@ func (h *Handler) SelectCandidate(c *gin.Context) {
 		AssetID string `json:"asset_id" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.SelectCandidate(req.ShotID, req.AssetID, userID); err != nil {
@@ -113,7 +113,7 @@ func (h *Handler) SelectCandidate(c *gin.Context) {
 			pkg.NotFound(c, "镜头或镜图不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"message": "ok"})
@@ -131,7 +131,7 @@ func (h *Handler) UpdateImageReview(c *gin.Context) {
 		Comment string `json:"comment"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.UpdateImageReview(shotID, userID, req.Status, req.Comment); err != nil {
@@ -139,7 +139,7 @@ func (h *Handler) UpdateImageReview(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"message": "ok"})
@@ -153,7 +153,7 @@ func (h *Handler) BatchReview(c *gin.Context) {
 		Status  string   `json:"status" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.BatchReview(req.ShotIDs, req.Status, userID); err != nil {
@@ -161,7 +161,7 @@ func (h *Handler) BatchReview(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"message": "ok"})
@@ -182,7 +182,7 @@ func (h *Handler) Create(c *gin.Context) {
 		ImageURL string `json:"image_url" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	img, err := h.svc.Create(shotID, projectID, userID, req.ImageURL)
@@ -191,7 +191,7 @@ func (h *Handler) Create(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, img)
@@ -210,10 +210,29 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, list)
+}
+
+// GetAllowedActions 获取当前用户在镜头镜图上的可执行操作（供前端按权限渲染按钮）
+func (h *Handler) GetAllowedActions(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	shotID, ok := h.getShotID(c)
+	if !ok {
+		return
+	}
+	actions, err := h.svc.GetAllowedActionsForShot(shotID, userID)
+	if err != nil {
+		if errors.Is(err, pkg.ErrNotFound) {
+			pkg.NotFound(c, "镜头不存在")
+			return
+		}
+		pkg.HandleError(c, err)
+		return
+	}
+	pkg.OK(c, gin.H{"allowed_actions": actions})
 }
 
 // Get 获取镜图
@@ -230,7 +249,7 @@ func (h *Handler) Get(c *gin.Context) {
 			pkg.NotFound(c, "镜图不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, img)
@@ -249,7 +268,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			pkg.NotFound(c, "镜图不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)

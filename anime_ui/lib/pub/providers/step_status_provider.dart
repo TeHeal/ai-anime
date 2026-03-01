@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/board/provider.dart';
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
-import 'package:anime_ui/module/script/provider.dart';
+import 'package:anime_ui/module/script/providers/shots.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
+import 'package:anime_ui/module/script/providers/script.dart';
 
 /// 对象状态枚举
 enum StepStatus { notStarted, inProgress, completed }
@@ -35,8 +35,8 @@ final stepStatusProvider = Provider<StepStatuses>((ref) {
   final story = hasScenes
       ? StepStatus.completed
       : hasEpisodes
-          ? StepStatus.inProgress
-          : StepStatus.notStarted;
+      ? StepStatus.inProgress
+      : StepStatus.notStarted;
 
   // ② 资产 Assets
   final assets = hasChars ? StepStatus.completed : StepStatus.notStarted;
@@ -44,26 +44,33 @@ final stepStatusProvider = Provider<StepStatuses>((ref) {
   // ③ 脚本 Script
   final script = hasShots
       ? (shots.every((s) => s.prompt.isNotEmpty)
-          ? StepStatus.completed
-          : StepStatus.inProgress)
+            ? StepStatus.completed
+            : StepStatus.inProgress)
       : StepStatus.notStarted;
 
   // ④ 镜图 Shot Images (replaces storyboard)
   final shotImages = allShotsHaveImages
       ? StepStatus.completed
       : (shots.any((s) => s.imageUrl.isNotEmpty)
-          ? StepStatus.inProgress
-          : StepStatus.notStarted);
+            ? StepStatus.inProgress
+            : StepStatus.notStarted);
 
   // ⑤ 镜头 Shots (composite: video + audio + lip sync)
   final shotsStatus = allShotsHaveVideos
       ? StepStatus.completed
       : (shots.any((s) => s.videoUrl.isNotEmpty)
-          ? StepStatus.inProgress
-          : StepStatus.notStarted);
+            ? StepStatus.inProgress
+            : StepStatus.notStarted);
 
   // ⑥ 成片 Episode
   const episode = StepStatus.notStarted;
 
-  return StepStatuses([story, assets, script, shotImages, shotsStatus, episode]);
+  return StepStatuses([
+    story,
+    assets,
+    script,
+    shotImages,
+    shotsStatus,
+    episode,
+  ]);
 });

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// 角色变体编辑对话框
 class VariantEditorDialog extends StatefulWidget {
@@ -25,7 +26,8 @@ class VariantEditorDialog extends StatefulWidget {
     String? appearance,
     int? episodeId,
     String? sceneId,
-  }) onSave;
+  })
+  onSave;
 
   @override
   State<VariantEditorDialog> createState() => _VariantEditorDialogState();
@@ -41,9 +43,12 @@ class _VariantEditorDialogState extends State<VariantEditorDialog> {
   void initState() {
     super.initState();
     _labelCtrl = TextEditingController(text: widget.initialLabel ?? '');
-    _appearanceCtrl = TextEditingController(text: widget.initialAppearance ?? '');
+    _appearanceCtrl = TextEditingController(
+      text: widget.initialAppearance ?? '',
+    );
     _episodeCtrl = TextEditingController(
-        text: widget.initialEpisodeId != null ? '${widget.initialEpisodeId}' : '');
+      text: widget.initialEpisodeId != null ? '${widget.initialEpisodeId}' : '',
+    );
     _sceneCtrl = TextEditingController(text: widget.initialSceneId ?? '');
   }
 
@@ -59,15 +64,20 @@ class _VariantEditorDialogState extends State<VariantEditorDialog> {
   InputDecoration _inputDecor(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[600]),
+      hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDarker),
       filled: true,
-      fillColor: Colors.grey[900],
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      fillColor: AppColors.surfaceMutedDarker,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+      ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
         borderSide: const BorderSide(color: AppColors.primary),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: Spacing.md.w,
+        vertical: Spacing.md.h,
+      ),
     );
   }
 
@@ -75,40 +85,47 @@ class _VariantEditorDialogState extends State<VariantEditorDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.surface,
-      title: Text(widget.title, style: const TextStyle(color: Colors.white, fontSize: 16)),
+      title: Text(
+        widget.title,
+        style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+      ),
       content: SizedBox(
-        width: 420,
+        width: 420.w,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _labelCtrl,
-              style: const TextStyle(color: Colors.white),
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
               decoration: _inputDecor('变体名称，如"白袍形态"'),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: Spacing.md.h),
             TextField(
               controller: _appearanceCtrl,
-              style: const TextStyle(color: Colors.white),
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
               maxLines: 3,
               decoration: _inputDecor('变体外貌描述'),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: Spacing.md.h),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _episodeCtrl,
-                    style: const TextStyle(color: Colors.white),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.onSurface,
+                    ),
                     keyboardType: TextInputType.number,
                     decoration: _inputDecor('首次出现集数'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: Spacing.md.w),
                 Expanded(
                   child: TextField(
                     controller: _sceneCtrl,
-                    style: const TextStyle(color: Colors.white),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.onSurface,
+                    ),
                     decoration: _inputDecor('场景编号，如 5-3'),
                   ),
                 ),
@@ -120,7 +137,10 @@ class _VariantEditorDialogState extends State<VariantEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('取消', style: TextStyle(color: Colors.grey[400])),
+          child: Text(
+            '取消',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+          ),
         ),
         FilledButton.icon(
           onPressed: _labelCtrl.text.trim().isEmpty
@@ -138,7 +158,7 @@ class _VariantEditorDialogState extends State<VariantEditorDialog> {
                   );
                   Navigator.pop(context);
                 },
-          icon: const Icon(AppIcons.check, size: 16),
+          icon: Icon(AppIcons.check, size: 16.r),
           label: const Text('保存'),
           style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
         ),

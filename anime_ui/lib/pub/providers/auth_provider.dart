@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/models/user.dart';
-import 'package:anime_ui/pub/services/api.dart' show setAuthToken, authToken;
+import 'package:anime_ui/pub/services/api_svc.dart' show setAuthToken, authToken;
 import 'package:anime_ui/pub/services/auth_svc.dart';
 
 class AuthState {

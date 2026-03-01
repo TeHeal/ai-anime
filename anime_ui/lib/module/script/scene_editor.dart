@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/models/ai_action.dart';
 import 'package:anime_ui/pub/models/episode.dart';
@@ -10,12 +11,12 @@ import 'package:anime_ui/pub/models/scene_block.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/script_ai_svc.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/widgets/insert_handle.dart';
 import 'package:anime_ui/module/script/block_item.dart';
-import 'package:anime_ui/module/script/provider.dart';
-
-const _timeOptions = ['日', '夜', '黄昏', '凌晨'];
-const _ieOptions = ['内', '外'];
+import 'package:anime_ui/module/script/providers/script.dart';
+import 'package:anime_ui/module/script/widgets/scene_editor_metadata.dart';
+import 'package:anime_ui/module/script/widgets/scene_editor_nav_bar.dart';
 
 /// 场景编辑器：场景元信息 + 内容块列表
 class SceneEditor extends ConsumerStatefulWidget {
@@ -189,9 +190,9 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
     } catch (e) {
       if (mounted) {
         setState(() => _saveStatus = _SaveStatus.error);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('保存失败: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -199,7 +200,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   }
 
   ({Episode? episode, Scene? scene, int sceneIndex, List<Scene> allScenes})
-      _currentNavInfo() {
+  _currentNavInfo() {
     final sel = ref.read(scriptSelectionProvider);
     final episodes = ref.read(episodesProvider).value ?? [];
     final ep = episodes.where((e) => e.id == sel.episodeId).firstOrNull;
@@ -257,22 +258,25 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   void _onAiAction(AiAction action, int blockIndex) {
     final block = _blocks[blockIndex];
     if (block.content.trim().isEmpty && action != AiAction.continueWrite) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('当前块内容为空，请先输入内容')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('当前块内容为空，请先输入内容')));
       return;
     }
 
     final contextBlocks = <String>[];
-    for (var i = (blockIndex - 3).clamp(0, _blocks.length);
-        i < (blockIndex + 2).clamp(0, _blocks.length);
-        i++) {
+    for (
+      var i = (blockIndex - 3).clamp(0, _blocks.length);
+      i < (blockIndex + 2).clamp(0, _blocks.length);
+      i++
+    ) {
       if (i == blockIndex) continue;
       final b = _blocks[i];
       contextBlocks.add('[${b.type}] ${b.content}');
     }
 
-    final sceneMeta = '地点: ${_locationCtrl.text}, '
+    final sceneMeta =
+        '地点: ${_locationCtrl.text}, '
         '时间: $_time, 内外: $_ie, '
         '角色: ${_characters.join("、")}';
 
@@ -298,10 +302,12 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
     final scenesState = ref.watch(scenesProvider);
 
     if (sel.episodeId == null || sel.sceneId == null) {
-      return const Center(
+      return Center(
         child: Text(
           '请从左侧选择一场进行编辑',
-          style: TextStyle(color: Color(0xFF6B7280), fontSize: 15),
+          style: AppTextStyles.bodyXLarge.copyWith(
+            color: AppColors.mutedDarkest,
+          ),
         ),
       );
     }
@@ -311,16 +317,18 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
       error: (e, _) => Center(
         child: Text(
           '加载失败: $e',
-          style: const TextStyle(color: Color(0xFFEF4444)),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
         ),
       ),
       data: (scenes) {
         final scene = scenes.where((s) => s.id == sel.sceneId).firstOrNull;
         if (scene == null) {
-          return const Center(
+          return Center(
             child: Text(
               '场景不存在',
-              style: TextStyle(color: Color(0xFF6B7280)),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.mutedDarkest,
+              ),
             ),
           );
         }
@@ -330,301 +338,81 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
     );
   }
 
+  bool _hasPrevScene() {
+    final nav = _currentNavInfo();
+    if (nav.episode == null || nav.sceneIndex < 0) return false;
+    final episodes = ref.read(episodesProvider).value ?? [];
+    final epIdx = episodes.indexWhere((e) => e.id == nav.episode!.id);
+    if (epIdx < 0) return false;
+    if (nav.sceneIndex > 0) return true;
+    if (epIdx > 0 && episodes[epIdx - 1].scenes.isNotEmpty) return true;
+    return false;
+  }
+
+  bool _hasNextScene() {
+    final nav = _currentNavInfo();
+    if (nav.episode == null || nav.sceneIndex < 0) return false;
+    final episodes = ref.read(episodesProvider).value ?? [];
+    final epIdx = episodes.indexWhere((e) => e.id == nav.episode!.id);
+    if (epIdx < 0) return false;
+    if (nav.sceneIndex < nav.allScenes.length - 1) return true;
+    if (epIdx < episodes.length - 1 && episodes[epIdx + 1].scenes.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
+
   Widget _buildEditor() {
+    final nav = _currentNavInfo();
     return Column(
       children: [
-        _buildSceneNavBar(),
+        SceneEditorNavBar(
+          episode: nav.episode,
+          scene: nav.scene,
+          hasPrev: _hasPrevScene(),
+          hasNext: _hasNextScene(),
+          onNavigatePrev: () => _navigateScene(-1),
+          onNavigateNext: () => _navigateScene(1),
+        ),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.mid),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMetadataSection(),
-                const SizedBox(height: 24),
+                SceneEditorMetadata(
+                  sceneIdCtrl: _sceneIdCtrl,
+                  locationCtrl: _locationCtrl,
+                  time: _time,
+                  ie: _ie,
+                  characters: _characters,
+                  characterCtrl: _characterCtrl,
+                  onTimeChanged: (v) => setState(() => _time = v),
+                  onIeChanged: (v) => setState(() => _ie = v),
+                  onAddCharacter: _addCharacter,
+                  onRemoveCharacter: _removeCharacter,
+                  onMarkDirty: _markDirty,
+                ),
+                const SizedBox(height: Spacing.xl),
                 Container(
                   height: 1,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
                         Colors.transparent,
-                        const Color(0xFF2A2A3C).withValues(alpha: 0.8),
+                        AppColors.divider.withValues(alpha: 0.8),
                         Colors.transparent,
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: Spacing.mid),
                 _buildBlocksSection(),
               ],
             ),
           ),
         ),
         _buildActionBar(),
-      ],
-    );
-  }
-
-  Widget _buildSceneNavBar() {
-    final nav = _currentNavInfo();
-    final epTitle = nav.episode?.title ?? '';
-    final scLabel = nav.scene != null
-        ? '${nav.scene!.sceneId} ${nav.scene!.location}'.trim()
-        : '';
-    final hasPrev = nav.sceneIndex > 0 ||
-        (ref.read(episodesProvider).value ?? [])
-                .indexWhere((e) => e.id == nav.episode?.id) >
-            0;
-    final hasNext = nav.sceneIndex < nav.allScenes.length - 1 ||
-        (ref.read(episodesProvider).value ?? [])
-                .indexWhere((e) => e.id == nav.episode?.id) <
-            (ref.read(episodesProvider).value?.length ?? 0) - 1;
-
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF141420),
-        border: const Border(bottom: BorderSide(color: Color(0xFF232336))),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _navArrowButton(
-            icon: AppIcons.chevronLeft,
-            enabled: hasPrev,
-            tooltip: '上一场',
-            onPressed: () => _navigateScene(-1),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '$epTitle  ›  $scLabel',
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFFE4E4E7),
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          _navArrowButton(
-            icon: AppIcons.chevronRight,
-            enabled: hasNext,
-            tooltip: '下一场',
-            onPressed: () => _navigateScene(1),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _navArrowButton({
-    required IconData icon,
-    required bool enabled,
-    required String tooltip,
-    required VoidCallback onPressed,
-  }) {
-    return IconButton(
-      onPressed: enabled ? onPressed : null,
-      icon: Icon(icon, size: 18),
-      color: const Color(0xFF8B5CF6),
-      disabledColor: const Color(0xFF2A2A3C),
-      tooltip: tooltip,
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      style: IconButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  Widget _buildMetadataSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 3,
-              height: 18,
-              decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              '场景信息',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFE4E4E7),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            SizedBox(width: 100, child: _field('场景编号', _sceneIdCtrl)),
-            const SizedBox(width: 12),
-            Expanded(child: _field('地点', _locationCtrl)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _dropdown('时间', _time, _timeOptions, (v) {
-              setState(() => _time = v);
-              _markDirty();
-            }),
-            const SizedBox(width: 12),
-            _dropdown('内/外', _ie, _ieOptions, (v) {
-              setState(() => _ie = v);
-              _markDirty();
-            }),
-          ],
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          '角色',
-          style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final c in _characters)
-              Chip(
-                label: Text(
-                  c,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFFE4E4E7)),
-                ),
-                backgroundColor: const Color(0xFF2A2A3C),
-                deleteIconColor: const Color(0xFF6B7280),
-                onDeleted: () => _removeCharacter(c),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            SizedBox(
-              width: 120,
-              height: 32,
-              child: TextField(
-                controller: _characterCtrl,
-                onSubmitted: (_) => _addCharacter(),
-                style: const TextStyle(fontSize: 13, color: Color(0xFFE4E4E7)),
-                decoration: InputDecoration(
-                  hintText: '添加角色…',
-                  hintStyle:
-                      const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  filled: true,
-                  fillColor: const Color(0xFF0F0F17),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide.none,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: const Icon(AppIcons.add, size: 16),
-                    color: const Color(0xFF8B5CF6),
-                    onPressed: _addCharacter,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 24, minHeight: 24),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _field(String label, TextEditingController ctrl) {
-    return TextField(
-      controller: ctrl,
-      onChanged: (_) => _markDirty(),
-      style: const TextStyle(fontSize: 14, color: Color(0xFFE4E4E7)),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-        filled: true,
-        fillColor: const Color(0xFF0F0F17),
-        isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF232336), width: 1),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF232336), width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1),
-        ),
-      ),
-    );
-  }
-
-  Widget _dropdown(
-    String label,
-    String value,
-    List<String> options,
-    ValueChanged<String> onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F0F17),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFF232336)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: options.contains(value) ? value : null,
-              hint: Text(
-                '选择$label',
-                style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-              ),
-              isDense: true,
-              dropdownColor: const Color(0xFF1E1E2E),
-              style: const TextStyle(fontSize: 13, color: Color(0xFFE4E4E7)),
-              items: options
-                  .map((o) => DropdownMenuItem(value: o, child: Text(o)))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) onChanged(v);
-              },
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -639,38 +427,37 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
               width: 3,
               height: 18,
               decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6),
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
               ),
             ),
-            const SizedBox(width: 8),
-            const Text(
+            const SizedBox(width: Spacing.sm),
+            Text(
               '内容块',
-              style: TextStyle(
-                fontSize: 15,
+              style: AppTextStyles.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFE4E4E7),
+                color: AppColors.onSurface,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: Spacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.sm, vertical: Spacing.xxs),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
               ),
               child: Text(
                 '${_blocks.length}',
-                style: const TextStyle(
-                  fontSize: 11,
+                style: AppTextStyles.tiny.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8B5CF6),
+                  color: AppColors.primary,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: Spacing.lg),
         ReorderableListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -681,8 +468,8 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
             return Material(
               color: Colors.transparent,
               elevation: 8,
-              shadowColor: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              shadowColor: AppColors.primary.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
               child: child,
             );
           },
@@ -713,9 +500,10 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
 
   Widget _buildActionBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.mid, vertical: Spacing.sm),
       decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFF232336))),
+        border: Border(top: BorderSide(color: AppColors.inputBorder)),
       ),
       child: Row(
         children: [
@@ -729,19 +517,22 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
                     height: 14,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                     ),
                   )
-                : const Icon(AppIcons.save, size: 15),
+                : Icon(AppIcons.save, size: 15.r),
             label: Text(_saving ? '保存中…' : '保存'),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF8B5CF6),
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.cardPadding, vertical: Spacing.sm),
+              textStyle: AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           const Spacer(),
@@ -759,26 +550,26 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
       case _SaveStatus.saved:
         icon = AppIcons.checkCircleOutline;
         text = '已保存';
-        color = const Color(0xFF22C55E);
+        color = AppColors.success;
       case _SaveStatus.unsaved:
         icon = AppIcons.circleOutline;
         text = '未保存';
-        color = const Color(0xFFF59E0B);
+        color = AppColors.tagAmber;
       case _SaveStatus.saving:
         icon = AppIcons.sync;
         text = '自动保存中…';
-        color = const Color(0xFF3B82F6);
+        color = AppColors.info;
       case _SaveStatus.error:
         icon = AppIcons.errorOutline;
         text = '保存失败';
-        color = const Color(0xFFEF4444);
+        color = AppColors.error;
     }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 6),
-        Text(text, style: TextStyle(fontSize: 12, color: color)),
+        Icon(icon, size: 14.r, color: color),
+        const SizedBox(width: Spacing.sm),
+        Text(text, style: AppTextStyles.caption.copyWith(color: color)),
       ],
     );
   }

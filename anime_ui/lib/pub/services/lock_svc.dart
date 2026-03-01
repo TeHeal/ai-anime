@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/lock_status.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class LockService {
   Future<LockStatus> lock(int projectId, String phase) async {

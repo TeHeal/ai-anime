@@ -3,7 +3,7 @@ package scheduler
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +18,7 @@ func NewNoopTrigger(logger *zap.Logger) *NoopTrigger {
 }
 
 // Trigger 实现 TaskTrigger
-func (t *NoopTrigger) Trigger(ctx context.Context, sch *schedule.Schedule) error {
+func (t *NoopTrigger) Trigger(ctx context.Context, sch *crossmodule.ScheduleInfo) error {
 	t.logger.Info("定时任务触发（占位）",
 		zap.String("schedule_id", sch.ID),
 		zap.String("project_id", sch.ProjectID),

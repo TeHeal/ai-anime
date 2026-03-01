@@ -138,6 +138,7 @@ type Querier interface {
 	UpdatePackageTaskID(ctx context.Context, arg UpdatePackageTaskIDParams) error
 	UpdatePackageTaskStatus(ctx context.Context, arg UpdatePackageTaskStatusParams) (PackageTask, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
+	UpdateProjectMemberJobRoles(ctx context.Context, arg UpdateProjectMemberJobRolesParams) (ProjectMember, error)
 	UpdateProjectMemberRole(ctx context.Context, arg UpdateProjectMemberRoleParams) (ProjectMember, error)
 	UpdateProp(ctx context.Context, arg UpdatePropParams) (Prop, error)
 	UpdateScene(ctx context.Context, arg UpdateSceneParams) (Scene, error)

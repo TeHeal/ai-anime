@@ -1,6 +1,6 @@
 import 'package:anime_ui/pub/models/media_asset.dart';
 import 'package:anime_ui/pub/models/prompt_record.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class MediaAssetService {
   // ── Project-scoped queries ──

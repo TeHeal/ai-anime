@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/prop.dart';
 
 /// 道具编辑对话框
@@ -54,21 +55,32 @@ class _PropEditDialogState extends State<PropEditDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.grey[900],
-      title: Text(widget.title, style: const TextStyle(color: Colors.white)),
+      backgroundColor: AppColors.surfaceMutedDarker,
+      title: Text(
+        widget.title,
+        style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+      ),
       content: SizedBox(
-        width: 400,
+        width: 400.w,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _field('道具名称', _name, required: true),
             _field('外观描述', _appearance, maxLines: 3),
-            const SizedBox(height: 4),
+            SizedBox(height: Spacing.xs.h),
             SwitchListTile(
-              title: Text('关键道具',
-                  style: TextStyle(color: Colors.grey[300], fontSize: 13)),
-              subtitle: Text('标记为关键道具会在总览中优先提示',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+              title: Text(
+                '关键道具',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.mutedLight,
+                ),
+              ),
+              subtitle: Text(
+                '标记为关键道具会在总览中优先提示',
+                style: AppTextStyles.tiny.copyWith(
+                  color: AppColors.mutedDarker,
+                ),
+              ),
               value: _isKeyProp,
               onChanged: (v) => setState(() => _isKeyProp = v),
               activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
@@ -80,7 +92,10 @@ class _PropEditDialogState extends State<PropEditDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('取消', style: TextStyle(color: Colors.grey[400])),
+          child: Text(
+            '取消',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+          ),
         ),
         FilledButton(
           onPressed: _submit,
@@ -91,30 +106,42 @@ class _PropEditDialogState extends State<PropEditDialog> {
     );
   }
 
-  Widget _field(String label, TextEditingController controller,
-      {String? hint, int maxLines = 1, bool required = false}) {
+  Widget _field(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    int maxLines = 1,
+    bool required = false,
+  }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: Spacing.md.h),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
-        style: const TextStyle(fontSize: 13, color: Colors.white),
+        style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
         decoration: InputDecoration(
           labelText: required ? '$label *' : label,
-          labelStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
+          labelStyle: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.mutedDark,
+          ),
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey[700], fontSize: 13),
+          hintStyle: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.surfaceMuted,
+          ),
           filled: true,
-          fillColor: Colors.grey[850],
+          fillColor: AppColors.surfaceMutedDarker,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[700]!),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            borderSide: const BorderSide(color: AppColors.border),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[700]!),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            borderSide: const BorderSide(color: AppColors.border),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: Spacing.md.w,
+            vertical: Spacing.md.h,
+          ),
         ),
       ),
     );

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/models/dashboard.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// 资产概况卡片
 class AssetOverview extends StatelessWidget {
@@ -18,11 +19,11 @@ class AssetOverview extends StatelessWidget {
     final s = summary!;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(Spacing.mid.r),
       decoration: BoxDecoration(
         color: AppColors.surface.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[800]!.withValues(alpha: 0.4)),
+        borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,15 +32,14 @@ class AssetOverview extends StatelessWidget {
             children: [
               Icon(
                 AppIcons.category,
-                size: 16,
+                size: 16.r,
                 color: AppColors.primary.withValues(alpha: 0.7),
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: Spacing.sm.w),
+              Text(
                 '资产概况',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -49,39 +49,49 @@ class AssetOverview extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: BorderSide(
-                      color: AppColors.primary.withValues(alpha: 0.6)),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 8),
-                  minimumSize: const Size(0, 36),
+                    color: AppColors.primary.withValues(alpha: 0.6),
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.gridGap.w,
+                    vertical: Spacing.sm.h,
+                  ),
+                  minimumSize: Size(0, 36.h),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       '管理资产',
-                      style: TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w600),
+                      style: AppTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(AppIcons.chevronRight, size: 14),
+                    SizedBox(width: Spacing.xs.w),
+                    Icon(AppIcons.chevronRight, size: 14.r),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: Spacing.lg.h),
           Row(
             children: [
               Expanded(
                 child: _assetItem(
-                    AppIcons.person, '角色',
-                    s.charactersConfirmed, s.charactersTotal),
+                  AppIcons.person,
+                  '角色',
+                  s.charactersConfirmed,
+                  s.charactersTotal,
+                ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: Spacing.lg.w),
               Expanded(
                 child: _assetItem(
-                    AppIcons.landscape, '场景',
-                    s.locationsConfirmed, s.locationsTotal),
+                  AppIcons.landscape,
+                  '场景',
+                  s.locationsConfirmed,
+                  s.locationsTotal,
+                ),
               ),
             ],
           ),
@@ -90,30 +100,34 @@ class AssetOverview extends StatelessWidget {
     );
   }
 
-  Widget _assetItem(
-      IconData icon, String label, int confirmed, int total) {
+  Widget _assetItem(IconData icon, String label, int confirmed, int total) {
     final allDone = confirmed == total && total > 0;
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[500]),
-        const SizedBox(width: 6),
+        Icon(
+          icon,
+          size: 16.r,
+          color: AppColors.onSurface.withValues(alpha: 0.55),
+        ),
+        SizedBox(width: Spacing.sm.w),
         Text(
           '$label ',
-          style: TextStyle(color: Colors.grey[400], fontSize: 13),
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.onSurface.withValues(alpha: 0.6),
+          ),
         ),
         Text(
           '$confirmed',
-          style: TextStyle(
-            color: allDone
-                ? const Color(0xFF22C55E)
-                : AppColors.primary,
-            fontSize: 14,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: allDone ? AppColors.success : AppColors.primary,
             fontWeight: FontWeight.w600,
           ),
         ),
         Text(
           '/$total',
-          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.onSurface.withValues(alpha: 0.5),
+          ),
         ),
       ],
     );

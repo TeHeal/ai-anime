@@ -62,6 +62,11 @@ func (s *Service) GenerateCandidates(charID string, userID uint, req GenerateCan
 	if !userIDMatches(c.UserID, userID) {
 		return nil, pkg.NewBizError("无权操作此角色")
 	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
+	}
 	if c.Appearance == "" {
 		return nil, pkg.NewBizError("请先填写角色外观描述")
 	}
@@ -104,6 +109,11 @@ func (s *Service) SelectCandidate(charID string, userID uint, req SelectCandidat
 	}
 	if !userIDMatches(c.UserID, userID) {
 		return nil, pkg.NewBizError("无权操作此角色")
+	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
 	}
 	_ = req
 	return c, nil

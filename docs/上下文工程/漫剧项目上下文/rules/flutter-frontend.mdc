@@ -1,0 +1,30 @@
+---
+description: Flutter UI 与 Riverpod 状态管理的开发规范
+globs: "anime_ui/lib/**/*.dart"
+alwaysApply: true
+---
+
+# Flutter 前端 Agent 规范
+
+## 1. UI 与组件逻辑
+
+- **组合优于继承**：优先拆分小型 `StatelessWidget`。
+- **响应式设计**：使用 `LayoutBuilder` 或适配工具处理屏幕适配，支持 Web 多尺寸。
+- **Const 优化**：构造函数中尽可能使用 `const` 以提升性能。
+
+## 2. 状态管理 (Riverpod)
+
+- **模式一致性**：本项目使用 **Riverpod**，严禁混用 Provider/Bloc 等。
+- **逻辑分离**：UI 代码不包含复杂业务逻辑或直接 API 调用；API 调用封装在 `providers/` 或 `repository` 层。
+- **目录约定**：Provider 放 `providers/`，页面放 `page/`，组件放 `widgets/`（详见 README 目录设计）。
+
+## 3. 数据与模型
+
+- **freezed + json_serializable**：模型使用 freezed 不可变类，修改后需运行 `dart run build_runner build --delete-conflicting-outputs`。
+- **JSON 标签**：与 Go 端统一使用小驼峰（lowerCamelCase）。
+
+## 4. Agent 执行时机
+
+- **资源检查**：新增图片或字体后，提醒在 `pubspec.yaml` 中注册。
+- **异步处理**：网络请求用 `try-catch` 包裹，正确处理 `mounted` 状态。
+- **构建检查**：修改 freezed/json_serializable 模型后，提示运行 `dart run build_runner build --delete-conflicting-outputs`。

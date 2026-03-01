@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/const/routes.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/widgets/ai_chat_panel.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
@@ -14,11 +14,7 @@ import 'package:anime_ui/pub/widgets/side_nav.dart';
 
 /// 主布局 — 侧边栏导航、项目选择、仪表盘入口、AI 助手面板
 class MainLayout extends ConsumerStatefulWidget {
-  const MainLayout({
-    super.key,
-    required this.child,
-    required this.currentPath,
-  });
+  const MainLayout({super.key, required this.child, required this.currentPath});
 
   final Widget child;
   final String currentPath;
@@ -30,12 +26,14 @@ class MainLayout extends ConsumerStatefulWidget {
 class _MainLayoutState extends ConsumerState<MainLayout> {
   bool _restored = false;
   bool _showChat = false;
+  bool _sideNavCollapsed = false;
   String? _lastGateMessage;
   String? _lastAutoRedirectFromPath;
 
   @override
   void initState() {
     super.initState();
+    _sideNavCollapsed = Breakpoints.isNarrowContext(context);
     WidgetsBinding.instance.addPostFrameCallback((_) => _restoreProject());
   }
 
@@ -81,7 +79,8 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   }
 
   ({bool enabled, String? redirectRoute, String? message}) _objectGate(
-      String objectPath) {
+    String objectPath,
+  ) {
     return (enabled: true, redirectRoute: null, message: null);
   }
 
@@ -90,9 +89,9 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     if (!gate.enabled) {
       if (gate.message != null && gate.message != _lastGateMessage) {
         _lastGateMessage = gate.message;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(gate.message!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(gate.message!)));
       }
       if (gate.redirectRoute != null) {
         context.go(gate.redirectRoute!);
@@ -121,9 +120,9 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     try {
       final episodes = await EpisodeService().list(pid);
       if (mounted) {
-        context.go(episodes.isNotEmpty
-            ? Routes.storyConfirm
-            : Routes.storyImport);
+        context.go(
+          episodes.isNotEmpty ? Routes.storyConfirm : Routes.storyImport,
+        );
       }
     } catch (_) {
       if (mounted) context.go(Routes.storyImport);
@@ -157,9 +156,9 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
       if (livePath != path) return;
       if (gate.message != null && gate.message != _lastGateMessage) {
         _lastGateMessage = gate.message;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(gate.message!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(gate.message!)));
       }
       context.go(redirectRoute);
     });
@@ -186,14 +185,21 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
                 disabledHints: disabledHints,
                 onAiTap: () => setState(() => _showChat = !_showChat),
                 aiActive: _showChat,
+                initialCollapsed: Breakpoints.isNarrowContext(context),
+                onCollapsedChanged: (v) =>
+                    setState(() => _sideNavCollapsed = v),
               ),
               Expanded(child: widget.child),
             ],
           ),
           if (_showChat)
             Positioned(
-              left: 188,
-              bottom: 16,
+              left:
+                  (_sideNavCollapsed
+                      ? Spacing.sideNavCollapsedWidth
+                      : Spacing.sideNavExpandedWidth) +
+                  Spacing.sm,
+              bottom: Spacing.lg,
               child: AiChatPanel(
                 onClose: () => setState(() => _showChat = false),
               ),

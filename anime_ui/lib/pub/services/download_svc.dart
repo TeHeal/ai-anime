@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-import 'api.dart';
+import 'api_svc.dart';
 import 'download_svc_stub.dart' if (dart.library.html) 'download_svc_web.dart' as platform;
 
 /// 单文件下载服务（README 2.7 生成物下载）

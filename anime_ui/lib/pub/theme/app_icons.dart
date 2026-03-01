@@ -1,6 +1,7 @@
 /// 统一图标入口 - 使用 Solar Icons 圆润风格
 /// 替换 Material Icons，提供更可爱、圆润的视觉体验
 library;
+
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -134,4 +135,10 @@ abstract final class AppIcons {
 
   // 引用 & 文本
   static const IconData formatQuote = SolarIconsBold.chatRound;
+
+  // 复制、发送、停止、对比
+  static const IconData copy = SolarIconsBold.copy;
+  static const IconData send = SolarIconsBold.sendSquare;
+  static const IconData stop = SolarIconsBold.stop;
+  static const IconData compareArrows = SolarIconsBold.transferHorizontal;
 }

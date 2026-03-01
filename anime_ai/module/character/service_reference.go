@@ -3,6 +3,8 @@ package character
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
 // ReferenceImage 参考图结构
@@ -48,6 +50,11 @@ func (s *Service) AddReferenceImage(charID string, userID uint, req AddReference
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
+	}
 	imgs := s.getReferenceImages(c)
 	imgs = append(imgs, ReferenceImage{
 		Angle:   req.Angle,
@@ -69,6 +76,11 @@ func (s *Service) DeleteReferenceImage(charID string, userID uint, idx int) (*Ch
 	}
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
+	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
 	}
 	imgs := s.getReferenceImages(c)
 	if idx < 0 || idx >= len(imgs) {

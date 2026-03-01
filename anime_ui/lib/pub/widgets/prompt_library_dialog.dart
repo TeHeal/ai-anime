@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'app_search_field.dart';
 
@@ -37,9 +39,11 @@ class _PromptLibraryDialogState extends State<PromptLibraryDialog> {
     if (_search.isEmpty) return widget.prompts;
     final q = _search.toLowerCase();
     return widget.prompts
-        .where((r) =>
-            (r.name as String).toLowerCase().contains(q) ||
-            (r.description as String).toLowerCase().contains(q))
+        .where(
+          (r) =>
+              (r.name as String).toLowerCase().contains(q) ||
+              (r.description as String).toLowerCase().contains(q),
+        )
         .toList();
   }
 
@@ -47,38 +51,51 @@ class _PromptLibraryDialogState extends State<PromptLibraryDialog> {
   Widget build(BuildContext context) {
     final items = _filtered;
     return Dialog(
-      backgroundColor: const Color(0xFF1A1A2E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.card.r),
+      ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 520),
+        constraints: BoxConstraints(maxWidth: 480.w, maxHeight: 520.h),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+              padding: EdgeInsets.fromLTRB(
+                Spacing.mid.w,
+                Spacing.lg.h,
+                Spacing.md.w,
+                Spacing.sm.h,
+              ),
               child: Row(
                 children: [
-                  Icon(AppIcons.document, size: 18, color: widget.accent),
-                  const SizedBox(width: 8),
-                  const Text(
+                  Icon(
+                    AppIcons.document,
+                    size: Spacing.menuIconSize.r,
+                    color: widget.accent,
+                  ),
+                  SizedBox(width: Spacing.sm.w),
+                  Text(
                     '选择提示词模板',
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: AppTextStyles.bodyXLarge.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon:
-                        Icon(AppIcons.close, size: 16, color: Colors.grey[500]),
+                    icon: const Icon(
+                      AppIcons.close,
+                      size: Spacing.lg,
+                      color: AppColors.mutedDark,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: Spacing.lg.w),
               child: AppSearchField(
                 controller: _searchCtrl,
                 hintText: '搜索提示词…',
@@ -87,41 +104,45 @@ class _PromptLibraryDialogState extends State<PromptLibraryDialog> {
                 onChanged: (v) => setState(() => _search = v),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: Spacing.sm.h),
             Flexible(
               child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: EdgeInsets.fromLTRB(
+                  Spacing.lg.w,
+                  0,
+                  Spacing.lg.w,
+                  Spacing.lg.h,
+                ),
                 itemCount: items.length,
                 itemBuilder: (_, i) {
                   final r = items[i];
                   return Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () =>
-                          widget.onSelected(r.description as String),
+                      borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+                      onTap: () => widget.onSelected(r.description as String),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Spacing.md.w,
+                          vertical: Spacing.buttonPaddingV.h,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               r.name as String,
-                              style: const TextStyle(
-                                fontSize: 13,
+                              style: AppTextStyles.bodySmall.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: AppColors.onSurface,
                               ),
                             ),
-                            const SizedBox(height: 3),
+                            SizedBox(height: Spacing.progressBarHeight.h),
                             Text(
                               r.description as String,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[500],
+                              style: AppTextStyles.labelMedium.copyWith(
+                                color: AppColors.mutedDark,
                               ),
                             ),
                           ],

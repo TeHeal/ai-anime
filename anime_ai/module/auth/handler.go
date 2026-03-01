@@ -25,7 +25,8 @@ func (h *Handler) Login(c *gin.Context) {
 
 	resp, err := h.authSvc.Login(req)
 	if err != nil {
-		pkg.Unauthorized(c, err.Error())
+		c.Error(err)
+		pkg.Unauthorized(c, "用户名或密码错误")
 		return
 	}
 
@@ -37,11 +38,11 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 	userID := pkg.GetUserIDStr(c)
 	var req ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.authSvc.ChangePassword(userID, req); err != nil {
-		pkg.BadRequest(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"message": "密码修改成功"})

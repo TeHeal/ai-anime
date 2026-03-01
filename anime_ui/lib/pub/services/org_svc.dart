@@ -1,6 +1,6 @@
 import 'package:anime_ui/pub/models/organization.dart';
 import 'package:anime_ui/pub/models/user.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class OrgService {
   Future<List<Organization>> list() async {

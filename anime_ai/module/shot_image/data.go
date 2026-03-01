@@ -6,21 +6,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
-// ShotImageStore 镜图数据访问接口，sch 就绪后可切换为 sqlc 实现
-// ID 使用 string（UUID），与 sch/db pgtype.UUID 互转
-type ShotImageStore interface {
-	Create(s *ShotImage) error
-	BulkCreate(images []ShotImage) error
-	FindByID(id string) (*ShotImage, error)
-	ListByShot(shotID string) ([]ShotImage, error)
-	ListByProject(projectID string) ([]ShotImage, error)
-	Update(s *ShotImage) error
-	Delete(id string) error
-	DeleteByShot(shotID string) error
-}
+var _ crossmodule.ShotImageStore = (*MemShotImageStore)(nil)
 
 // MemShotImageStore 内存占位实现，ID 使用 string
 type MemShotImageStore struct {

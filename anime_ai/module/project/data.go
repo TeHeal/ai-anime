@@ -23,6 +23,7 @@ type Data interface {
 	FindMemberByProjectAndUser(projectID, userID string) (*ProjectMember, error)
 	ListMembersByProject(projectID string) ([]ProjectMember, error)
 	UpdateMemberRole(projectID, userID string, role string) error
+	UpdateMemberJobRoles(projectID, userID string, jobRoles []string) error
 	DeleteMember(projectID, userID string) error
 }
 
@@ -217,6 +218,19 @@ func (d *MemData) UpdateMemberRole(projectID, userID string, role string) error 
 		return pkg.ErrNotFound
 	}
 	m.Role = role
+	m.UpdatedAt = time.Now()
+	return nil
+}
+
+func (d *MemData) UpdateMemberJobRoles(projectID, userID string, jobRoles []string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	m := d.findMemberUnlocked(projectID, userID)
+	if m == nil {
+		return pkg.ErrNotFound
+	}
+	m.JobRoles = jobRoles
 	m.UpdatedAt = time.Now()
 	return nil
 }

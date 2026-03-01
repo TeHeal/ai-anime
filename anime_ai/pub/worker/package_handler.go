@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
 	"github.com/hibiken/asynq"
@@ -32,8 +32,8 @@ type PackageTaskPayload struct {
 
 // PackageTaskDeps 按集打包 Handler 依赖
 type PackageTaskDeps struct {
-	PackageStore package_task.Store
-	Storage      storage.Storage
+	PackageUpdater crossmodule.PackageStoreUpdater
+	Storage        storage.Storage
 }
 
 // PackageTaskHandler 按集打包任务 Handler
@@ -62,12 +62,12 @@ func (h *PackageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 		zap.String("episode_id", payload.EpisodeID),
 	)
 
-	if h.deps.PackageStore == nil {
-		h.log.Warn("PackageStore 未配置，跳过")
+	if h.deps.PackageUpdater == nil {
+		h.log.Warn("PackageUpdater 未配置，跳过")
 		return nil
 	}
 
-	_ = h.deps.PackageStore.UpdateStatus(ctx, payload.PackageTaskID, package_task.StatusPackaging, "", "")
+	_ = h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusPackaging, "", "")
 
 	// 占位：实际需根据 Config 收集镜图/镜头/成片，打包 ZIP
 	// 当前创建空 ZIP 占位
@@ -88,11 +88,11 @@ func (h *PackageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 	select {
 	case <-time.After(1 * time.Second):
 	case <-ctx.Done():
-		_ = h.deps.PackageStore.UpdateStatus(ctx, payload.PackageTaskID, package_task.StatusFailed, "", "任务取消")
+		_ = h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusFailed, "", "任务取消")
 		return ctx.Err()
 	}
 
-	_ = h.deps.PackageStore.UpdateStatus(ctx, payload.PackageTaskID, package_task.StatusDone, outputURL, "")
+	_ = h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusDone, outputURL, "")
 
 	h.log.Info("按集打包任务完成",
 		zap.String("package_task_id", payload.PackageTaskID),

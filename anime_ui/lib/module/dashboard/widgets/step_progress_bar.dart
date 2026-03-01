@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// 步进显示：圆形节点 + 连接线 + 箭头，done/current/pending 三态区分
 class StepProgressBar extends StatelessWidget {
@@ -29,29 +30,29 @@ class StepProgressBar extends StatelessWidget {
           final prevDone = currentStep > (idx ~/ 2);
           final color = prevDone
               ? AppColors.primary.withValues(alpha: 0.8)
-              : Colors.grey[700];
+              : AppColors.surfaceMuted;
           return Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(
                   child: Container(
-                    height: 1,
-                    margin: const EdgeInsets.only(right: 1),
+                    height: 1.h,
+                    margin: EdgeInsets.only(right: Spacing.xxs.w),
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(1),
+                      borderRadius: BorderRadius.circular(Spacing.xxs.r),
                     ),
                   ),
                 ),
-                Icon(AppIcons.chevronRight, size: 8, color: color),
+                Icon(AppIcons.chevronRight, size: 8.r, color: color),
                 Expanded(
                   child: Container(
-                    height: 1,
-                    margin: const EdgeInsets.only(left: 1),
+                    height: 1.h,
+                    margin: EdgeInsets.only(left: Spacing.xxs.w),
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(1),
+                      borderRadius: BorderRadius.circular(Spacing.xxs.r),
                     ),
                   ),
                 ),
@@ -69,19 +70,18 @@ class StepProgressBar extends StatelessWidget {
             children: [
               _StepNode(done: done, current: current),
               if (!compact) ...[
-                const SizedBox(height: 3),
+                SizedBox(height: Spacing.progressBarHeight.h),
                 Text(
                   steps[i],
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: AppTextStyles.tiny.copyWith(
                     color: done
                         ? AppColors.primary.withValues(alpha: 0.9)
                         : current
-                            ? Colors.grey[300]
-                            : Colors.grey[600],
-                    fontSize: 9,
+                            ? AppColors.mutedLight
+                            : AppColors.mutedDarker,
                     fontWeight: current ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
@@ -106,11 +106,11 @@ class _StepNode extends StatelessWidget {
         ? AppColors.primary
         : current
             ? AppColors.primary.withValues(alpha: 0.9)
-            : Colors.grey[700]!;
+            : AppColors.border;
 
     return Container(
-      width: current ? 8 : 6,
-      height: current ? 8 : 6,
+      width: current ? 8.w : 6.w,
+      height: current ? 8.h : 6.h,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: done ? color : Colors.transparent,

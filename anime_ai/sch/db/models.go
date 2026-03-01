@@ -194,6 +194,7 @@ type ProjectMember struct {
 	ProjectID pgtype.UUID        `json:"project_id"`
 	UserID    pgtype.UUID        `json:"user_id"`
 	Role      string             `json:"role"`
+	JobRoles  []byte             `json:"job_roles"`
 	JoinedAt  pgtype.Timestamptz `json:"joined_at"`
 }
 

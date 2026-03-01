@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/services/ai_svc.dart';
 
 class AiChatPanel extends ConsumerStatefulWidget {
@@ -76,10 +77,7 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _messages.last = _ChatMsg(
-            role: 'assistant',
-            content: '出错了: $e',
-          );
+          _messages.last = _ChatMsg(role: 'assistant', content: '出错了: $e');
         });
       }
     } finally {
@@ -90,14 +88,18 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 360,
-      height: 480,
+      width: 360.w,
+      height: 480.h,
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[700]!),
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, -4)),
+          BoxShadow(
+            color: AppColors.shadowOverlay.withValues(alpha: 0.4),
+            blurRadius: 16.r,
+            offset: Offset(0, -4.h),
+          ),
         ],
       ),
       child: Column(
@@ -112,21 +114,30 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[800]!)),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.lg.w,
+        vertical: Spacing.md.h,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Row(
         children: [
-          Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
-          const SizedBox(width: 8),
-          const Text('AI 助手', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+          Icon(AppIcons.autoAwesome, color: AppColors.primary, size: 20.r),
+          SizedBox(width: Spacing.sm.w),
+          Text(
+            'AI 助手',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const Spacer(),
           IconButton(
-            icon: Icon(Icons.close, color: Colors.grey[400], size: 18),
+            icon: Icon(AppIcons.close, color: AppColors.muted, size: 18.r),
             onPressed: widget.onClose,
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            constraints: BoxConstraints(minWidth: 28.w, minHeight: 28.h),
           ),
         ],
       ),
@@ -139,9 +150,18 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.auto_awesome, size: 48, color: Colors.grey[700]),
-            const SizedBox(height: 12),
-            Text('有什么可以帮助你的？', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
+            Icon(
+              AppIcons.autoAwesome,
+              size: 48.r,
+              color: AppColors.surfaceMuted,
+            ),
+            SizedBox(height: Spacing.md.h),
+            Text(
+              '有什么可以帮助你的？',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.mutedDark,
+              ),
+            ),
           ],
         ),
       );
@@ -149,7 +169,7 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
 
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(Spacing.md.r),
       itemCount: _messages.length,
       itemBuilder: (_, i) {
         final msg = _messages[i];
@@ -157,22 +177,33 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
         return Align(
           alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            constraints: const BoxConstraints(maxWidth: 280),
+            margin: EdgeInsets.only(bottom: Spacing.sm.h),
+            padding: EdgeInsets.symmetric(
+              horizontal: Spacing.md.w,
+              vertical: Spacing.sm.h,
+            ),
+            constraints: BoxConstraints(maxWidth: 280.w),
             decoration: BoxDecoration(
-              color: isUser ? AppColors.primary.withValues(alpha: 0.2) : Colors.grey[850],
-              borderRadius: BorderRadius.circular(10),
+              color: isUser
+                  ? AppColors.primary.withValues(alpha: 0.2)
+                  : AppColors.surfaceMutedDarker,
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
             ),
             child: msg.content.isEmpty && _loading
                 ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey[400]),
+                    width: Spacing.mid.w,
+                    height: Spacing.mid.h,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.r,
+                      color: AppColors.muted,
+                    ),
                   )
                 : SelectableText(
                     msg.content,
-                    style: TextStyle(color: Colors.grey[200], fontSize: 13, height: 1.5),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.onSurface,
+                      height: 1.5,
+                    ),
                   ),
           ),
         );
@@ -182,9 +213,9 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
 
   Widget _buildInput() {
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey[800]!)),
+      padding: EdgeInsets.all(Spacing.md.r),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.divider)),
       ),
       child: Row(
         children: [
@@ -192,23 +223,33 @@ class _AiChatPanelState extends ConsumerState<AiChatPanel> {
             child: TextField(
               controller: _controller,
               onSubmitted: (_) => _send(),
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.onSurface,
+              ),
               decoration: InputDecoration(
                 hintText: '输入消息...',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[850],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[700]!),
+                hintStyle: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.mutedDark,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                filled: true,
+                fillColor: AppColors.surfaceMutedDarker,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: Spacing.md.w,
+                  vertical: Spacing.lg.h,
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: Spacing.sm.w),
           IconButton(
-            icon: Icon(Icons.send, color: _loading ? Colors.grey[600] : AppColors.primary),
+            icon: Icon(
+              AppIcons.send,
+              color: _loading ? AppColors.mutedDarker : AppColors.primary,
+            ),
             onPressed: _loading ? null : _send,
           ),
         ],

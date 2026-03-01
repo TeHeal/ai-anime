@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 
 /// 创作助理药丸按钮：紫色渐变样式，点击展开下拉菜单。
@@ -12,8 +13,8 @@ class CreationAssistantPillButton<T> extends StatelessWidget {
     required this.itemBuilder,
     required this.onSelected,
     this.tooltip = '创作助理',
-    this.offset = const Offset(0, 36),
-    this.menuColor = const Color(0xFF1A1A2E),
+    this.offset,
+    this.menuColor = AppColors.surface,
   });
 
   /// 构建弹出菜单项
@@ -25,8 +26,8 @@ class CreationAssistantPillButton<T> extends StatelessWidget {
   /// 悬停提示
   final String tooltip;
 
-  /// 弹出菜单位置偏移
-  final Offset offset;
+  /// 弹出菜单位置偏移，默认 (0, 36.h)
+  final Offset? offset;
 
   /// 菜单背景色
   final Color menuColor;
@@ -36,9 +37,11 @@ class CreationAssistantPillButton<T> extends StatelessWidget {
     return PopupMenuButton<T>(
       onSelected: onSelected,
       tooltip: tooltip,
-      offset: offset,
+      offset: offset ?? Offset(0, 36.h),
       color: menuColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+      ),
       itemBuilder: itemBuilder,
       child: _PillChild(),
     );
@@ -50,32 +53,31 @@ class _PillChild extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 26,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: 26.h,
+      padding: EdgeInsets.symmetric(horizontal: Spacing.lg.w),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+          colors: [AppColors.primary, AppColors.info],
         ),
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withValues(alpha: 0.25),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(AppIcons.autoAwesome, size: 12, color: Colors.white),
-          SizedBox(width: 4),
+          Icon(AppIcons.autoAwesome, size: 12.r, color: AppColors.onPrimary),
+          SizedBox(width: Spacing.xs.w),
           Text(
             '创作助理',
-            style: TextStyle(
-              fontSize: 11,
+            style: AppTextStyles.tiny.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: AppColors.onPrimary,
             ),
           ),
         ],

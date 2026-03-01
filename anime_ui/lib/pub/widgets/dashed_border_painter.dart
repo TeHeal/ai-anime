@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 class DashedBorderPainter extends CustomPainter {
   DashedBorderPainter({
-    this.color = Colors.grey,
+    this.color = AppColors.muted,
     this.strokeWidth = 1.5,
     this.dashLength = 6.0,
     this.gapLength = 4.0,

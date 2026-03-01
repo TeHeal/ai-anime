@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:anime_ui/pub/models/asset_version.dart';
-import 'package:anime_ui/pub/models/character.dart';
-import 'package:anime_ui/pub/models/location.dart';
-import 'package:anime_ui/pub/models/prop.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
-import 'characters/providers/characters_provider.dart';
-import 'locations/providers/locations_provider.dart';
-import 'props/providers/props_provider.dart';
-import 'versions_provider.dart';
+import 'characters/providers/characters.dart';
+import 'locations/providers/list.dart';
+import 'props/providers/list.dart';
+import 'providers/versions.dart';
+import 'widgets/versions_header.dart';
+import 'widgets/versions_history_list.dart';
+import 'widgets/versions_pending_changes.dart';
+import 'widgets/versions_readiness_check.dart';
+import 'widgets/versions_unfreeze_warning.dart';
 
 /// 资产版本管理页：冻结、解冻、版本历史、待发布变更
 class AssetsVersionsPage extends ConsumerStatefulWidget {
@@ -25,8 +27,6 @@ class AssetsVersionsPage extends ConsumerStatefulWidget {
 class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
   bool _freezing = false;
   bool _showUnfreezeWarning = false;
-  List<Map<String, dynamic>> _impactItems = [];
-  bool _loadingImpact = false;
 
   @override
   void initState() {
@@ -52,9 +52,7 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
           .map((c) => c.id!)
           .toList();
       if (draftIds.isNotEmpty) {
-        await ref
-            .read(assetCharactersProvider.notifier)
-            .batchConfirm(draftIds);
+        await ref.read(assetCharactersProvider.notifier).batchConfirm(draftIds);
       }
       for (final loc in locs) {
         if (loc.status != 'confirmed' && loc.id != null) {
@@ -71,15 +69,15 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('资产已冻结 — 版本 v${version.version}'),
-            backgroundColor: const Color(0xFF22C55E),
+            backgroundColor: AppColors.success,
           ),
         );
         ref.read(assetVersionsProvider.notifier).load();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('冻结失败，请重试'),
-            backgroundColor: Colors.red[700],
+          const SnackBar(
+            content: Text('冻结失败，请重试'),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -101,526 +99,61 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
     final pendingLocs = locs.where((l) => l.status != 'confirmed').toList();
     final pendingProps = props.where((p) => !p.isConfirmed).toList();
     final hasPendingChanges =
-        pendingChars.isNotEmpty || pendingLocs.isNotEmpty || pendingProps.isNotEmpty;
+        pendingChars.isNotEmpty ||
+        pendingLocs.isNotEmpty ||
+        pendingProps.isNotEmpty;
 
     final confirmedChars = chars.where((c) => c.isConfirmed).length;
     final confirmedLocs = locs.where((l) => l.status == 'confirmed').length;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+      padding: EdgeInsets.symmetric(
+        vertical: Spacing.xl.h,
+        horizontal: Spacing.xl.w,
+      ),
       child: Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 720),
+          constraints: BoxConstraints(maxWidth: 720.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildStatusHeader(isLocked, lock.assetsLockedAt, versions),
-              const SizedBox(height: 24),
+              VersionsHeader(
+                isLocked: isLocked,
+                lockedAt: lock.assetsLockedAt,
+                versions: versions,
+              ),
+              SizedBox(height: Spacing.xl.h),
               if (hasPendingChanges) ...[
-                _buildPendingChanges(pendingChars, pendingLocs, pendingProps),
-                const SizedBox(height: 24),
+                VersionsPendingChanges(
+                  pendingChars: pendingChars,
+                  pendingLocs: pendingLocs,
+                  pendingProps: pendingProps,
+                ),
+                SizedBox(height: Spacing.xl.h),
               ],
-              _buildFreezeCheck(
-                chars.length,
-                confirmedChars,
-                locs.length,
-                confirmedLocs,
-                props.length,
-                isLocked,
+              VersionsReadinessCheck(
+                charTotal: chars.length,
+                charConfirmed: confirmedChars,
+                locTotal: locs.length,
+                locConfirmed: confirmedLocs,
+                propCount: props.length,
+                isLocked: isLocked,
               ),
               if (_showUnfreezeWarning) ...[
-                const SizedBox(height: 16),
-                _buildUnfreezeWarning(),
+                SizedBox(height: Spacing.lg.h),
+                VersionsUnfreezeWarning(
+                  onDismiss: () => setState(() => _showUnfreezeWarning = false),
+                ),
               ],
-              const SizedBox(height: 24),
+              SizedBox(height: Spacing.xl.h),
               _buildActions(isLocked, chars.isEmpty && locs.isEmpty),
               if (versions.isNotEmpty) ...[
-                const SizedBox(height: 32),
-                _buildVersionHistory(versions),
+                SizedBox(height: Spacing.xxl.h),
+                VersionsHistoryList(versions: versions),
               ],
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatusHeader(
-      bool isLocked, DateTime? lockedAt, List<AssetVersion> versions) {
-    final latestVersion =
-        versions.isNotEmpty ? 'v${versions.first.version}' : '—';
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isLocked
-            ? const Color(0xFF22C55E).withValues(alpha: 0.08)
-            : AppColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isLocked
-              ? const Color(0xFF22C55E).withValues(alpha: 0.3)
-              : AppColors.primary.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isLocked
-                  ? const Color(0xFF22C55E).withValues(alpha: 0.15)
-                  : AppColors.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              isLocked ? AppIcons.lock : AppIcons.history,
-              size: 24,
-              color: isLocked ? const Color(0xFF22C55E) : AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      isLocked ? '已冻结' : '未冻结',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: isLocked
-                            ? const Color(0xFF22C55E)
-                            : Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        latestVersion,
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isLocked
-                      ? '冻结于 ${_formatTime(lockedAt)}，资产已锁定为生产基线'
-                      : '确认资产后冻结，创建生产基线版本',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPendingChanges(
-    List<Character> pendingChars,
-    List<Location> pendingLocs,
-    List<Prop> pendingProps,
-  ) {
-    final totalPending =
-        pendingChars.length + pendingLocs.length + pendingProps.length;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(AppIcons.edit, size: 20, color: Colors.orange),
-              const SizedBox(width: 8),
-              const Text(
-                '待发布变更',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text('$totalPending',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w600)),
-              ),
-              const Spacer(),
-              Text(
-                '以下资产尚未确认，冻结时将自动确认',
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (pendingChars.isNotEmpty) ...[
-            _pendingSection(
-              AppIcons.person,
-              const Color(0xFF8B5CF6),
-              '角色',
-              pendingChars.map((c) => _PendingItem(
-                    name: c.name,
-                    status: c.status,
-                    statusLabel: c.status == 'skeleton' ? '骨架' : '待确认',
-                  )),
-            ),
-          ],
-          if (pendingLocs.isNotEmpty) ...[
-            if (pendingChars.isNotEmpty)
-              Divider(color: Colors.grey[800], height: 20),
-            _pendingSection(
-              AppIcons.landscape,
-              const Color(0xFF3B82F6),
-              '场景',
-              pendingLocs.map((l) => _PendingItem(
-                    name: l.name,
-                    status: l.status,
-                    statusLabel: l.status == 'skeleton' ? '骨架' : '待确认',
-                  )),
-            ),
-          ],
-          if (pendingProps.isNotEmpty) ...[
-            if (pendingChars.isNotEmpty || pendingLocs.isNotEmpty)
-              Divider(color: Colors.grey[800], height: 20),
-            _pendingSection(
-              AppIcons.category,
-              const Color(0xFFF97316),
-              '道具',
-              pendingProps.map((p) => _PendingItem(
-                    name: p.name,
-                    status: p.status,
-                    statusLabel: p.status == 'skeleton' ? '骨架' : '待确认',
-                  )),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _pendingSection(
-    IconData icon,
-    Color color,
-    String label,
-    Iterable<_PendingItem> items,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
-            Text('$label (${items.length})',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: color)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: items.map((item) => _pendingChip(item, color)).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _pendingChip(_PendingItem item, Color color) {
-    final isSkeleton = item.status == 'skeleton';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            item.name.isEmpty ? '未命名' : item.name,
-            style: TextStyle(fontSize: 12, color: Colors.grey[300]),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-            decoration: BoxDecoration(
-              color: isSkeleton
-                  ? Colors.red.withValues(alpha: 0.15)
-                  : Colors.orange.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              item.statusLabel,
-              style: TextStyle(
-                fontSize: 10,
-                color: isSkeleton ? Colors.red[300] : Colors.orange[300],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFreezeCheck(
-    int charTotal,
-    int charConfirmed,
-    int locTotal,
-    int locConfirmed,
-    int propCount,
-    bool isLocked,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey[800]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(AppIcons.checkOutline, size: 18, color: Colors.grey[400]),
-              const SizedBox(width: 8),
-              Text(
-                isLocked ? '冻结时资产状态' : '冻结前检查',
-                style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _checkRow(
-            AppIcons.person,
-            '角色',
-            '$charConfirmed / $charTotal 已确认',
-            charTotal > 0 && charConfirmed == charTotal,
-            charTotal > 0 && charConfirmed < charTotal
-                ? '${charTotal - charConfirmed} 个待确认'
-                : null,
-          ),
-          Divider(color: Colors.grey[800], height: 20),
-          _checkRow(
-            AppIcons.landscape,
-            '场景',
-            '$locConfirmed / $locTotal 已确认',
-            locTotal > 0 && locConfirmed == locTotal,
-            locTotal > 0 && locConfirmed < locTotal
-                ? '${locTotal - locConfirmed} 个待确认'
-                : null,
-          ),
-          Divider(color: Colors.grey[800], height: 20),
-          _checkRow(
-            AppIcons.category,
-            '道具',
-            '$propCount 个',
-            propCount > 0,
-            null,
-          ),
-          Divider(color: Colors.grey[800], height: 20),
-          _checkRow(
-            AppIcons.brush,
-            '风格',
-            '已设定',
-            true,
-            null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _checkRow(
-    IconData icon,
-    String label,
-    String value,
-    bool ok,
-    String? warning,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Icon(
-            ok ? AppIcons.check : AppIcons.warning,
-            size: 16,
-            color: ok ? const Color(0xFF22C55E) : Colors.orange,
-          ),
-          const SizedBox(width: 10),
-          Icon(icon, size: 16, color: Colors.grey[500]),
-          const SizedBox(width: 8),
-          Text(label,
-              style: TextStyle(fontSize: 14, color: Colors.grey[400])),
-          const Spacer(),
-          if (warning != null) ...[
-            Text(warning,
-                style: TextStyle(fontSize: 12, color: Colors.orange[300])),
-            const SizedBox(width: 10),
-          ],
-          Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _loadImpact() async {
-    setState(() => _loadingImpact = true);
-    try {
-      final data = await ref.read(assetVersionsProvider.notifier).impact();
-      final impacts =
-          (data['impacts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-      if (mounted) setState(() => _impactItems = impacts);
-    } finally {
-      if (mounted) setState(() => _loadingImpact = false);
-    }
-  }
-
-  Widget _buildUnfreezeWarning() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(AppIcons.warning, size: 18, color: Colors.orange),
-              const SizedBox(width: 8),
-              const Text(
-                '解冻影响分析',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.orange),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '解冻将允许修改当前版本基线资产，以下下游内容可能受影响：',
-            style: TextStyle(fontSize: 13, color: Colors.grey[400]),
-          ),
-          const SizedBox(height: 8),
-          if (_loadingImpact)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            )
-          else if (_impactItems.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 8, bottom: 4),
-              child: Text('暂无下游内容引用当前版本',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[500])),
-            )
-          else
-            ..._impactItems.map((item) => _impactRow(
-                  item['module'] as String? ?? '',
-                  item['detail'] as String? ?? '',
-                )),
-          const SizedBox(height: 12),
-          Text(
-            '受影响内容不会被自动删除，但可能与修改后的资产不一致。修改完成后建议重新冻结。',
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => setState(() {
-                  _showUnfreezeWarning = false;
-                  _impactItems = [];
-                }),
-                child: Text('取消', style: TextStyle(color: Colors.grey[400])),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: () async {
-                  await ref.read(assetVersionsProvider.notifier).unfreeze();
-                  await ref.read(lockProvider.notifier).unlockPhase('assets');
-                  if (mounted) {
-                    setState(() {
-                      _showUnfreezeWarning = false;
-                      _impactItems = [];
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('已解冻，资产可编辑'),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                  }
-                },
-                style: FilledButton.styleFrom(backgroundColor: Colors.orange),
-                child: const Text('确认解冻'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _impactRow(String module, String desc) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 4),
-      child: Row(
-        children: [
-          const Text('• ', style: TextStyle(color: Colors.orange)),
-          Text(module,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(desc,
-                style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-          ),
-        ],
       ),
     );
   }
@@ -633,131 +166,38 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
             onPressed: (isEmpty || _freezing)
                 ? null
                 : isLocked
-                    ? () {
-                        setState(() => _showUnfreezeWarning = true);
-                        _loadImpact();
-                      }
-                    : _freezeAssets,
+                ? () => setState(() => _showUnfreezeWarning = true)
+                : _freezeAssets,
             icon: _freezing
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                ? SizedBox(
+                    width: 18.r,
+                    height: 18.r,
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.onSurface,
+                    ),
                   )
                 : Icon(
                     isLocked ? AppIcons.lockUnlocked : AppIcons.lock,
-                    size: 18,
+                    size: 18.r,
                   ),
             label: Text(
               _freezing
                   ? '冻结中...'
                   : isLocked
-                      ? '解冻当前版本'
-                      : '创建冻结版本',
+                  ? '解冻当前版本'
+                  : '创建冻结版本',
             ),
             style: FilledButton.styleFrom(
-              backgroundColor: isLocked ? Colors.orange : AppColors.primary,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              textStyle: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w600),
+              backgroundColor: isLocked ? AppColors.warning : AppColors.primary,
+              padding: EdgeInsets.symmetric(vertical: Spacing.gridGap.h),
+              textStyle: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ),
       ],
     );
   }
-
-  Widget _buildVersionHistory(List<AssetVersion> versions) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(AppIcons.history, size: 18, color: Colors.grey[500]),
-            const SizedBox(width: 8),
-            const Text('版本历史',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...versions.map((v) => _versionTile(v)),
-      ],
-    );
-  }
-
-  Widget _versionTile(AssetVersion v) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey[800]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'v${v.version}',
-              style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  v.actionLabel,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500),
-                ),
-                if (v.note.isNotEmpty)
-                  Text(v.note,
-                      style:
-                          TextStyle(color: Colors.grey[500], fontSize: 12)),
-              ],
-            ),
-          ),
-          if (v.createdAt != null)
-            Text(
-              _formatTime(v.createdAt),
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTime(DateTime? t) {
-    if (t == null) return '';
-    return '${t.month}/${t.day} ${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-  }
-}
-
-/// 待发布变更项
-class _PendingItem {
-  final String name;
-  final String status;
-  final String statusLabel;
-
-  const _PendingItem({
-    required this.name,
-    required this.status,
-    required this.statusLabel,
-  });
 }

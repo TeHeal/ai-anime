@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
-
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 InputDecoration darkInputDecoration(String hint) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: Colors.grey[600]),
+    hintStyle: AppTextStyles.caption.copyWith(color: AppColors.mutedDarker),
     filled: true,
-    fillColor: Colors.grey[850],
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    fillColor: AppColors.surfaceMutedDarker,
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: Spacing.md.w,
+      vertical: Spacing.lg.h,
+    ),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: Colors.grey[700]!),
+      borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+      borderSide: const BorderSide(color: AppColors.border),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: Colors.grey[700]!),
+      borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+      borderSide: const BorderSide(color: AppColors.border),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: AppColors.primary),
+      borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+      borderSide: const BorderSide(color: AppColors.primary),
     ),
   );
 }
@@ -40,12 +43,21 @@ class DarkFieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(text, style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+        Text(
+          text,
+          style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
+        ),
         if (required)
-          const Text(' *', style: TextStyle(fontSize: 13, color: Colors.red)),
+          Text(
+            ' *',
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+          ),
         if (hint != null) ...[
-          const SizedBox(width: 6),
-          Text(hint!, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+          SizedBox(width: Spacing.sm.w),
+          Text(
+            hint!,
+            style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDarker),
+          ),
         ],
       ],
     );

@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-import 'api.dart';
+import 'api_svc.dart';
 
 class FileService {
   /// Upload a file and return its URL.

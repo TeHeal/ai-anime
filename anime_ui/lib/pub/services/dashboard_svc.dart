@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/dashboard.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class DashboardService {
   Future<Dashboard> get(int projectId) async {

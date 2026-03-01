@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+
 
 /// Generation mode for voice creation.
 enum VoiceGenMode {
@@ -40,45 +42,52 @@ class VoiceGenConfig {
   /// From resource library voice page.
   static VoiceGenConfig voiceLibrary({
     required Future<void> Function(VoiceGenMode mode) onSaved,
-    Color accentColor = const Color(0xFF3B82F6),
-  }) =>
-      VoiceGenConfig(
-        title: '创建音色',
-        accentColor: accentColor,
-        onSaved: onSaved,
-        quickPrompts: const [
-          '温柔少女', '热血少年', '沉稳大叔', '活泼萝莉',
-          '冷酷男声', '知性女声', '可爱童声',
-        ],
-      );
+    Color accentColor = AppColors.info,
+  }) => VoiceGenConfig(
+    title: '创建音色',
+    accentColor: accentColor,
+    onSaved: onSaved,
+    quickPrompts: const [
+      '温柔少女',
+      '热血少年',
+      '沉稳大叔',
+      '活泼萝莉',
+      '冷酷男声',
+      '知性女声',
+      '可爱童声',
+    ],
+  );
 
   /// From config page — voice clone only.
   static VoiceGenConfig cloneOnly({
     required Future<void> Function(VoiceGenMode mode) onSaved,
-    Color accentColor = const Color(0xFF3B82F6),
-  }) =>
-      VoiceGenConfig(
-        title: '语音克隆',
-        accentColor: accentColor,
-        allowedModes: const [VoiceGenMode.clone],
-        defaultMode: VoiceGenMode.clone,
-        onSaved: onSaved,
-      );
+    Color accentColor = AppColors.info,
+  }) => VoiceGenConfig(
+    title: '语音克隆',
+    accentColor: accentColor,
+    allowedModes: const [VoiceGenMode.clone],
+    defaultMode: VoiceGenMode.clone,
+    onSaved: onSaved,
+  );
 
   /// From config page — voice design only.
   static VoiceGenConfig designOnly({
     required Future<void> Function(VoiceGenMode mode) onSaved,
-    Color accentColor = const Color(0xFF3B82F6),
-  }) =>
-      VoiceGenConfig(
-        title: '音色设计',
-        accentColor: accentColor,
-        allowedModes: const [VoiceGenMode.design],
-        defaultMode: VoiceGenMode.design,
-        onSaved: onSaved,
-        quickPrompts: const [
-          '温柔少女', '热血少年', '沉稳大叔', '活泼萝莉',
-          '冷酷男声', '知性女声', '可爱童声',
-        ],
-      );
+    Color accentColor = AppColors.info,
+  }) => VoiceGenConfig(
+    title: '音色设计',
+    accentColor: accentColor,
+    allowedModes: const [VoiceGenMode.design],
+    defaultMode: VoiceGenMode.design,
+    onSaved: onSaved,
+    quickPrompts: const [
+      '温柔少女',
+      '热血少年',
+      '沉稳大叔',
+      '活泼萝莉',
+      '冷酷男声',
+      '知性女声',
+      '可爱童声',
+    ],
+  );
 }

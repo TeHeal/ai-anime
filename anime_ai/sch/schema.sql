@@ -114,6 +114,7 @@ CREATE TABLE project_members (
     project_id UUID NOT NULL REFERENCES projects(id),
     user_id UUID NOT NULL REFERENCES users(id),
     role VARCHAR(16) NOT NULL DEFAULT 'viewer',
+    job_roles JSONB NOT NULL DEFAULT '[]',
     joined_at TIMESTAMPTZ
 );
 

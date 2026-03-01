@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 
 class ErrorPlaceholder extends StatelessWidget {
-  const ErrorPlaceholder({
-    super.key,
-    this.message = 'Failed to load',
-  });
+  const ErrorPlaceholder({super.key, this.message = 'Failed to load'});
 
   final String message;
 
@@ -13,9 +13,16 @@ class ErrorPlaceholder extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
-        const SizedBox(height: 8),
-        Text(message, style: TextStyle(color: Colors.grey[400])),
+        Icon(
+          AppIcons.errorOutline,
+          size: (Spacing.xl * 2).r,
+          color: AppColors.muted,
+        ),
+        SizedBox(height: Spacing.sm.h),
+        Text(
+          message,
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+        ),
       ],
     );
   }

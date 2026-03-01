@@ -3,19 +3,30 @@ package character
 import (
 	"fmt"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
 // Service 角色业务逻辑层
 type Service struct {
-	data           Data
+	data            Data
 	projectVerifier crossmodule.ProjectVerifier
+	memberResolver  crossmodule.ProjectMemberResolver
 }
 
 // NewService 创建 Service 实例
 func NewService(data Data, projectVerifier crossmodule.ProjectVerifier) *Service {
-	return &Service{data: data, projectVerifier: projectVerifier}
+	return NewServiceWithResolver(data, projectVerifier, nil)
+}
+
+// NewServiceWithResolver 创建 Service 实例（含成员解析器，用于工种权限校验）
+func NewServiceWithResolver(data Data, projectVerifier crossmodule.ProjectVerifier, memberResolver crossmodule.ProjectMemberResolver) *Service {
+	return &Service{
+		data:            data,
+		projectVerifier: projectVerifier,
+		memberResolver:  memberResolver,
+	}
 }
 
 // CreateCharacterRequest 创建角色请求
@@ -82,8 +93,11 @@ func (s *Service) Create(userID uint, req CreateCharacterRequest) (*Character, e
 	uidStr := pkg.UUIDString(pkg.UintToUUID(userID))
 	var projectIDStr *string
 	if req.ProjectID != nil {
-		s := pkg.UUIDString(pkg.UintToUUID(*req.ProjectID))
-		projectIDStr = &s
+		pidStr := pkg.UUIDString(pkg.UintToUUID(*req.ProjectID))
+		projectIDStr = &pidStr
+		if err := s.checkAssetEditForProject(*req.ProjectID, userID); err != nil {
+			return nil, err
+		}
 	}
 	c := &Character{
 		UserID:               uidStr,
@@ -141,6 +155,33 @@ func (s *Service) ListByProject(projectID, userID uint) ([]Character, error) {
 	return s.data.ListCharactersByProject(projectID)
 }
 
+// checkAssetEditForProject 校验项目内资产编辑权限（projectID/userID 为 uint，用于 /projects/:id/characters 路由）
+func (s *Service) checkAssetEditForProject(projectID, userID uint) error {
+	if s.memberResolver == nil {
+		return nil
+	}
+	projectIDStr := pkg.UUIDString(pkg.UintToUUID(projectID))
+	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+	return s.checkAssetEdit(projectIDStr, userIDStr)
+}
+
+func (s *Service) checkAssetEdit(projectIDStr, userIDStr string) error {
+	if s.memberResolver == nil {
+		return nil
+	}
+	info, err := s.memberResolver.Resolve(projectIDStr, userIDStr)
+	if err != nil {
+		return err
+	}
+	if info.IsOwner {
+		return nil
+	}
+	if !auth.CanDo(info.JobRoles, auth.ActionAssetEdit) {
+		return fmt.Errorf("%w: 当前工种不允许编辑资产", pkg.ErrForbidden)
+	}
+	return nil
+}
+
 // ListLibrary 列出用户角色库（含共享）
 func (s *Service) ListLibrary(userID uint) ([]Character, error) {
 	return s.data.ListCharactersByUser(userID, true)
@@ -154,6 +195,11 @@ func (s *Service) Update(id string, userID uint, req UpdateCharacterRequest) (*C
 	}
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权修改此角色")
+	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
 	}
 
 	applyUpdate(c, req)
@@ -256,6 +302,11 @@ func (s *Service) Confirm(id string, userID uint) (*Character, error) {
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
+	}
 	c.Status = CharacterStatusConfirmed
 	if err := s.data.UpdateCharacter(c); err != nil {
 		return nil, err
@@ -265,6 +316,7 @@ func (s *Service) Confirm(id string, userID uint) (*Character, error) {
 
 // BatchConfirm 批量确认
 func (s *Service) BatchConfirm(ids []string, userID uint) error {
+	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
 	for _, id := range ids {
 		c, err := s.data.FindCharacterByID(id)
 		if err != nil {
@@ -272,6 +324,11 @@ func (s *Service) BatchConfirm(ids []string, userID uint) error {
 		}
 		if !userIDMatches(c.UserID, userID) {
 			continue
+		}
+		if c.ProjectID != nil && *c.ProjectID != "" {
+			if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
+				continue
+			}
 		}
 		c.Status = CharacterStatusConfirmed
 		_ = s.data.UpdateCharacter(c)
@@ -287,6 +344,7 @@ func userIDMatches(userIDStr string, userID uint) bool {
 
 // BatchSetStyle 批量设置风格
 func (s *Service) BatchSetStyle(ids []string, userID uint, style string) (int, error) {
+	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
 	count := 0
 	for _, id := range ids {
 		c, err := s.data.FindCharacterByID(id)
@@ -295,6 +353,11 @@ func (s *Service) BatchSetStyle(ids []string, userID uint, style string) (int, e
 		}
 		if !userIDMatches(c.UserID, userID) {
 			continue
+		}
+		if c.ProjectID != nil && *c.ProjectID != "" {
+			if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
+				continue
+			}
 		}
 		c.Style = style
 		c.StyleOverride = false
@@ -307,6 +370,7 @@ func (s *Service) BatchSetStyle(ids []string, userID uint, style string) (int, e
 
 // BatchAIComplete 批量 AI 补全（骨架/草稿 → 草稿）
 func (s *Service) BatchAIComplete(ids []string, userID uint) (int, error) {
+	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
 	count := 0
 	for _, id := range ids {
 		c, err := s.data.FindCharacterByID(id)
@@ -315,6 +379,11 @@ func (s *Service) BatchAIComplete(ids []string, userID uint) (int, error) {
 		}
 		if !userIDMatches(c.UserID, userID) {
 			continue
+		}
+		if c.ProjectID != nil && *c.ProjectID != "" {
+			if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
+				continue
+			}
 		}
 		if c.Status != CharacterStatusSkeleton && c.Status != CharacterStatusDraft {
 			continue
@@ -338,6 +407,11 @@ func (s *Service) Delete(id string, userID uint) error {
 	if !userIDMatches(c.UserID, userID) {
 		return fmt.Errorf("无权删除此角色")
 	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return err
+		}
+	}
 	return s.data.DeleteCharacter(id)
 }
 
@@ -349,6 +423,11 @@ func (s *Service) GenerateImage(id string, userID uint, providerName, modelName 
 	}
 	if !userIDMatches(c.UserID, userID) {
 		return nil, pkg.NewBizError("无权操作此角色")
+	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
 	}
 	if c.Appearance == "" {
 		return nil, pkg.NewBizError("请先填写角色外观描述")

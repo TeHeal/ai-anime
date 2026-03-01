@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/dashboard.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'episode_card.dart';
@@ -62,29 +64,32 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
       slivers: [
         _buildSectionHeader(),
         SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, groupIndex) {
-              final group = groups[groupIndex];
-              final firstEp = group.first;
-              final lastEp = group.last;
-              final isExpanded = _expandedGroups.contains(groupIndex);
-              final rangeLabel =
-                  '第 ${firstEp.sortIndex + 1}-${lastEp.sortIndex + 1} 集';
+          delegate: SliverChildBuilderDelegate((context, groupIndex) {
+            final group = groups[groupIndex];
+            final firstEp = group.first;
+            final lastEp = group.last;
+            final isExpanded = _expandedGroups.contains(groupIndex);
+            final rangeLabel =
+                '第 ${firstEp.sortIndex + 1}-${lastEp.sortIndex + 1} 集';
 
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 4),
-                child: Column(
-                  children: [
-                    _buildGroupHeader(
-                        rangeLabel, group.length, isExpanded, groupIndex),
-                    if (isExpanded) _buildGroupGrid(group),
-                  ],
-                ),
-              );
-            },
-            childCount: groups.length,
-          ),
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Spacing.xxl.w,
+                vertical: Spacing.xs.h,
+              ),
+              child: Column(
+                children: [
+                  _buildGroupHeader(
+                    rangeLabel,
+                    group.length,
+                    isExpanded,
+                    groupIndex,
+                  ),
+                  if (isExpanded) _buildGroupGrid(group),
+                ],
+              ),
+            );
+          }, childCount: groups.length),
         ),
       ],
     );
@@ -92,41 +97,51 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
 
   Widget _buildSectionHeader() {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 6),
+      padding: EdgeInsets.fromLTRB(
+        Spacing.xxl.w,
+        Spacing.xl.h,
+        Spacing.xxl.w,
+        Spacing.sm.h,
+      ),
       sliver: SliverToBoxAdapter(
         child: Row(
           children: [
             Container(
-              width: 3,
-              height: 18,
+              width: Spacing.tinyGap.w,
+              height: Spacing.menuIconSize.h,
               decoration: BoxDecoration(
                 color: widget.titleColor,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
               ),
             ),
-            const SizedBox(width: 10),
-            Icon(widget.titleIcon, size: 16, color: widget.titleColor),
-            const SizedBox(width: 8),
+            SizedBox(width: RadiusTokens.lg.w),
+            Icon(
+              widget.titleIcon,
+              size: Spacing.lg.r,
+              color: widget.titleColor,
+            ),
+            SizedBox(width: Spacing.sm.w),
             Text(
               widget.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: Spacing.sm.w),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              padding: EdgeInsets.symmetric(
+                horizontal: (RadiusTokens.md - 1).w,
+                vertical: Spacing.xxs.h,
+              ),
               decoration: BoxDecoration(
                 color: widget.titleColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
               ),
               child: Text(
                 '${widget.episodes.length}',
-                style: TextStyle(
+                style: AppTextStyles.tiny.copyWith(
                   color: widget.titleColor,
-                  fontSize: 11,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -138,7 +153,11 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
   }
 
   Widget _buildGroupHeader(
-      String label, int count, bool isExpanded, int groupIndex) {
+    String label,
+    int count,
+    bool isExpanded,
+    int groupIndex,
+  ) {
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -150,39 +169,46 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.gridGap.w,
+          vertical: RadiusTokens.lg.h,
+        ),
         decoration: BoxDecoration(
           color: isExpanded
               ? widget.titleColor.withValues(alpha: 0.06)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
           border: Border.all(
             color: isExpanded
                 ? widget.titleColor.withValues(alpha: 0.15)
-                : Colors.grey[800]!.withValues(alpha: 0.3),
+                : AppColors.border.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
           children: [
             Text(
               label,
-              style: TextStyle(
-                color: Colors.grey[300],
-                fontSize: 13,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.onSurface.withValues(alpha: 0.75),
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: Spacing.sm.w),
             Text(
               '($count 集)',
-              style: TextStyle(color: Colors.grey[600], fontSize: 11),
+              style: AppTextStyles.tiny.copyWith(
+                color: AppColors.onSurface.withValues(alpha: 0.5),
+              ),
             ),
             const Spacer(),
             AnimatedRotation(
               turns: isExpanded ? 0.5 : 0,
               duration: const Duration(milliseconds: 200),
-              child:
-                  Icon(AppIcons.expandMore, size: 16, color: Colors.grey[500]),
+              child: Icon(
+                AppIcons.expandMore,
+                size: 16.r,
+                color: AppColors.onSurface.withValues(alpha: 0.55),
+              ),
             ),
           ],
         ),
@@ -192,7 +218,7 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
 
   Widget _buildGroupGrid(List<DashboardEpisode> group) {
     return Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 6),
+      padding: EdgeInsets.only(top: RadiusTokens.lg.r, bottom: Spacing.sm.h),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final crossAxisCount = widget.compact
@@ -205,8 +231,8 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
-              mainAxisSpacing: widget.compact ? 10 : 14,
-              crossAxisSpacing: widget.compact ? 10 : 14,
+              mainAxisSpacing: widget.compact ? Spacing.md : Spacing.gridGap,
+              crossAxisSpacing: widget.compact ? Spacing.md : Spacing.gridGap,
               childAspectRatio: aspectRatio,
             ),
             itemCount: group.length,
@@ -218,7 +244,7 @@ class _EpisodeGroupState extends State<EpisodeGroup> {
                 builder: (_, value, child) => Opacity(
                   opacity: value,
                   child: Transform.translate(
-                    offset: Offset(0, 10 * (1 - value)),
+                    offset: Offset(0, 10.h * (1 - value)),
                     child: child,
                   ),
                 ),

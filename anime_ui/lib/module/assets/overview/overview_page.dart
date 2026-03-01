@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/const/routes.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/module/assets/characters/providers/characters_provider.dart';
-import 'package:anime_ui/module/assets/locations/providers/locations_provider.dart';
-import 'package:anime_ui/module/assets/props/providers/props_provider.dart';
-import 'package:anime_ui/module/assets/overview/providers/overview_provider.dart';
-import 'package:anime_ui/module/assets/overview/providers/styles_provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
+import 'package:anime_ui/module/assets/locations/providers/list.dart';
+import 'package:anime_ui/module/assets/props/providers/list.dart';
+import 'package:anime_ui/module/assets/overview/providers/overview.dart';
+import 'package:anime_ui/module/assets/overview/providers/styles.dart';
 import 'package:anime_ui/module/assets/resources/providers/provider.dart';
 import 'package:anime_ui/module/assets/overview/widgets/asset_category_card.dart';
 import 'package:anime_ui/module/assets/overview/widgets/key_issues_list.dart';
@@ -40,12 +42,12 @@ class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
     final data = ref.watch(assetOverviewProvider);
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(Spacing.xl.r),
       children: [
         ReadinessBar(data: data),
-        const SizedBox(height: 20),
+        SizedBox(height: Spacing.lg.h),
         _buildCategoryGrid(data),
-        const SizedBox(height: 24),
+        SizedBox(height: Spacing.xl.h),
         KeyIssuesList(issues: data.keyIssues),
       ],
     );
@@ -55,7 +57,7 @@ class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
     final cards = [
       AssetCategoryCard(
         icon: AppIcons.person,
-        iconColor: const Color(0xFF8B5CF6),
+        iconColor: AppColors.categoryCharacter,
         label: '角色',
         confirmed: data.charConfirmed,
         total: data.charTotal,
@@ -68,20 +70,18 @@ class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
       ),
       AssetCategoryCard(
         icon: AppIcons.landscape,
-        iconColor: const Color(0xFF3B82F6),
+        iconColor: AppColors.categoryLocation,
         label: '场景',
         confirmed: data.locConfirmed,
         total: data.locTotal,
         pending: data.locSkeleton,
         isLoading: data.isLoading,
-        nextAction: data.locSkeleton > 0
-            ? '${data.locSkeleton} 个骨架待补充'
-            : null,
+        nextAction: data.locSkeleton > 0 ? '${data.locSkeleton} 个骨架待补充' : null,
         onTap: () => context.go(Routes.assetsEnvironments),
       ),
       AssetCategoryCard(
         icon: AppIcons.category,
-        iconColor: const Color(0xFFF97316),
+        iconColor: AppColors.categoryProp,
         label: '道具',
         confirmed: data.propConfirmed,
         total: data.propTotal,
@@ -90,18 +90,17 @@ class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
       ),
       AssetCategoryCard(
         icon: AppIcons.brush,
-        iconColor: const Color(0xFFEC4899),
+        iconColor: AppColors.categoryStyle,
         label: '风格',
         confirmed: data.hasDefaultStyle ? 1 : 0,
         total: data.styleTotal > 0 ? data.styleTotal : 1,
         isLoading: data.isLoading,
-        nextAction:
-            !data.hasDefaultStyle ? '设定默认风格' : null,
+        nextAction: !data.hasDefaultStyle ? '设定默认风格' : null,
         onTap: () => context.go(Routes.assetsResources),
       ),
       AssetCategoryCard(
         icon: AppIcons.gallery,
-        iconColor: const Color(0xFF14B8A6),
+        iconColor: AppColors.categoryResource,
         label: '素材库',
         confirmed: data.resourceTotal,
         total: data.resourceTotal,
@@ -112,18 +111,17 @@ class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 900
-            ? 3
-            : constraints.maxWidth > 500
-                ? 2
-                : 1;
+        final crossAxisCount = Breakpoints.columnCountForWidth(
+          constraints.maxWidth,
+          maxCols: 3,
+        );
 
         return GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
+          crossAxisSpacing: Spacing.gridGap.w,
+          mainAxisSpacing: Spacing.gridGap.h,
           childAspectRatio: 2.6,
           children: cards,
         );

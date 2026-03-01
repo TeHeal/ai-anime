@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
@@ -20,16 +19,16 @@ import (
 
 // ImageTaskPayload 镜图生成任务载荷，ID 使用 string（UUID）
 type ImageTaskPayload struct {
-	TaskID      string   `json:"task_id"`       // 任务追踪 ID，用于进度推送
-	ShotImageID string   `json:"shot_image_id"` // 镜图 ID，完成后更新
-	Provider    string   `json:"provider"`
-	Model       string   `json:"model"`
-	Prompt      string   `json:"prompt"`
-	Width       int      `json:"width,omitempty"`
-	Height      int      `json:"height,omitempty"`
-	Count       int      `json:"count,omitempty"`
-	ProjectID   string   `json:"project_id"`
-	UserID      string   `json:"user_id"`
+	TaskID             string   `json:"task_id"`       // 任务追踪 ID，用于进度推送
+	ShotImageID        string   `json:"shot_image_id"` // 镜图 ID，完成后更新
+	Provider           string   `json:"provider"`
+	Model              string   `json:"model"`
+	Prompt             string   `json:"prompt"`
+	Width              int      `json:"width,omitempty"`
+	Height             int      `json:"height,omitempty"`
+	Count              int      `json:"count,omitempty"`
+	ProjectID          string   `json:"project_id"`
+	UserID             string   `json:"user_id"`
 	NegativePrompt     string   `json:"negative_prompt,omitempty"`
 	ReferenceImageURLs []string `json:"reference_image_urls,omitempty"`
 	Size               string   `json:"size,omitempty"`
@@ -46,10 +45,10 @@ type TaskNotifier interface {
 type ImageTaskDeps struct {
 	ImageRouter    ImageRouter
 	Storage        storage.Storage
-	ShotImageStore shot_image.ShotImageStore
+	ShotImageStore crossmodule.ShotImageStore
 	ShotLocker     crossmodule.ShotLocker // 可选，任务完成/失败时释放锁（README 2.3）
 	RealtimeHub    *realtime.Hub
-	TaskNotifier   TaskNotifier // 可选，任务完成时写入通知表
+	TaskNotifier   TaskNotifier            // 可选，任务完成时写入通知表
 	UsageRecorder  provider_usage.Recorder // 可选，AI 用量记录（README 8.3）
 }
 
@@ -199,8 +198,8 @@ func (h *ImageTaskHandler) broadcastProgress(payload ImageTaskPayload, progress 
 		projectID = &payload.ProjectID
 	}
 	h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, map[string]interface{}{
-		"progress": progress,
-		"status":   status,
+		"progress":      progress,
+		"status":        status,
 		"shot_image_id": payload.ShotImageID,
 	})
 }

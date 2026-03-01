@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/widgets/app_dialog.dart';
 
 /// 确认删除对话框
 Future<bool?> showConfirmDeleteDialog(
@@ -12,15 +13,16 @@ Future<bool?> showConfirmDeleteDialog(
 }) {
   return showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: AppColors.surface,
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      content: Text(content,
-          style: TextStyle(color: Colors.grey[400], height: 1.5)),
+    builder: (ctx) => AppDialog.alert(
+      title: title,
+      content: Text(content),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: Text(cancelText, style: TextStyle(color: Colors.grey[400])),
+          child: Text(
+            cancelText,
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+          ),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, true),

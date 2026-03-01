@@ -1,0 +1,130 @@
+
+根据 README §6「验收标准」和代码库检查，逐项评估如下：
+
+---
+
+# 项目验收评估报告
+
+依据 README 第 6 节「验收标准（实现完成后的检查清单）」逐项评估。
+
+---
+
+## 1. 目标达成：生产效率提升、资产可沉淀复用
+
+| 评估 | 说明 |
+|------|------|
+| **部分达成** | 剧本→资产→脚本→镜图→镜头→成片流程已打通；资产模块（角色/场景/道具/资源/风格）有 CRUD、版本、小传等；资产以 ID 引用，支持跨项目复用。生产效率提升需结合实际使用验证。 |
+
+---
+
+## 2. 原则落地：AI 驱动、任务编排、定时任务、双线 AI、核心环节审核、审核可人工/AI、团队防冲突
+
+| 子项 | 状态 | 依据 |
+|------|------|------|
+| **AI 驱动** | ✅ | 脚本/镜图/镜头生成由 AI 完成，Asynq 异步任务 |
+| **任务编排** | ✅ | `pub/scheduler`、`pub/worker`、Asynq 任务链 |
+| **定时任务** | ✅ | `module/schedule`、`pub/scheduler/trigger.go`、`sch/queries/schedules.sql` |
+| **双线 AI** | ⚠️ 部分 | 生产 AI 已实现；审核 AI 线（脚本 QA、镜图 QA、镜头 QA）未见独立实现 |
+| **核心环节审核** | ✅ | `shot_images`、`shots`、`shot_videos` 有 `review_status`、`review_comment`、`reviewed_at`；`pub/review_record`、`sch/review_records` |
+| **审核可人工/AI** | ⚠️ 待确认 | 人工审核流程存在；AI 审核配置与实现未明确 |
+| **团队防冲突** | ✅ | `pub/crossmodule/shot_locker.go`、`locked_by`/`locked_at`、`releaseShotLock` |
+
+---
+
+## 3. 完整流程：导入剧本 → 资产 → 脚本(审核) → 镜图(审核) → 镜头(审核) → 成片 → 导出
+
+| 阶段 | 状态 | 依据 |
+|------|------|------|
+| 剧本导入 | ✅ | `module/draft`、`module/story`、`module/script` |
+| 资产 | ✅ | `module/assets`（characters、locations、props、resources、overview） |
+| 脚本(审核) | ✅ | `module/script`、`module/storyboard`、`script_locked` |
+| 镜图(审核) | ✅ | `module/shot_image`、`review_status` |
+| 镜头(审核) | ✅ | `module/shot`、`module/shot_video`、`review_status` |
+| 成片 | ✅ | `module/composite`、`composite_tasks` |
+| 导出 | ✅ | `module/composite`、`module/package_task`、`pub/worker/export_handler.go` |
+
+---
+
+## 4. 任务锁：同一任务不同人不可同时执行
+
+| 评估 | 说明 |
+|------|------|
+| **✅ 已实现** | `pub/crossmodule/shot_locker.go` 定义 `ShotLocker`；`shot_image`、`shot` 使用；`image_handler.go` 有 `releaseShotLock`；shots 表有 `locked_by`、`locked_at`。 |
+
+---
+
+## 5. 任务通知：WebSocket 实时 + 站内通知中心 + 红点；增强支持浏览器 Push、声音提醒
+
+| 子项 | 状态 | 依据 |
+|------|------|------|
+| **WebSocket 实时** | ✅ | `pub/realtime`（hub、ws、client、room）、`realtime_svc.dart` |
+| **站内通知中心** | ✅ | `module/notification`、`notification_drawer.dart`、`/notifications` API |
+| **红点/角标** | ✅ | `header.dart` 中 `_NotificationBadge`、`unreadNotificationCountProvider` |
+| **浏览器 Push** | ❌ 未发现 | 未找到相关实现 |
+| **声音/桌面提醒** | ❌ 未发现 | 未找到相关实现 |
+
+---
+
+## 6. 生成物下载：单文件可下载；支持按集打包下载（ZIP）
+
+| 子项 | 状态 | 依据 |
+|------|------|------|
+| **单文件下载** | ✅ | `module/download/handler.go`、`GET /projects/:id/download?path=xxx` |
+| **按集打包下载** | ⚠️ 占位 | `package_handler.go` 创建空 ZIP 占位，注释写明「后续接入镜图/镜头/成片收集逻辑」 |
+
+---
+
+## 7. 布局自动适配：Web 端在不同屏幕尺寸下正常显示
+
+| 评估 | 说明 |
+|------|------|
+| **✅ 已实现** | `pub/const/breakpoints.dart`（sm/md/lg/xl）、`LayoutBuilder`、`flutter_screenutil` 的 `.w`/`.h`/`.r` 在多处使用。 |
+
+---
+
+## 8. 测试：核心 Service/API 有单元/集成测试；E2E 覆盖主流程
+
+| 子项 | 状态 | 依据 |
+|------|------|------|
+| **单元测试** | ✅ 部分 | 10 个 `*_test.go`：auth、project、episode、script、scene、location、prop、notification、health、api_test |
+| **集成测试** | ✅ 部分 | `api_test.go` 存在 |
+| **E2E 测试** | ❌ 未发现 | 无 `*e2e*`、`*integration*test*` 等文件 |
+
+---
+
+## 9. 可观测性：Prometheus 指标、OpenTelemetry 追踪、Grafana 仪表盘
+
+| 子项 | 状态 | 依据 |
+|------|------|------|
+| **Prometheus 指标** | ✅ | `pub/metrics`、`/metrics`、HTTP 请求延迟与错误率、mesh 中 AI 调用指标 |
+| **OpenTelemetry 追踪** | ❌ 未发现 | 未找到 otel、tracer 相关实现 |
+| **Grafana 仪表盘** | ⚠️ 待配置 | 无项目内 Grafana 配置；需自行配置数据源与仪表盘 |
+
+---
+
+## 10. AI 成本：用量统计、预算控制或告警
+
+| 子项 | 状态 | 依据 |
+|------|------|------|
+| **用量统计** | ✅ | `ProviderUsage`、`module/usage`、`provider_usage_recorder`、RecordImage/RecordVideo/RecordChat |
+| **预算控制** | ❌ 未发现 | 未找到项目级/组织级预算上限或超限拒绝逻辑 |
+| **告警** | ❌ 未发现 | 未找到日/周用量超阈值、单次调用高成本告警 |
+
+---
+
+## 汇总与建议
+
+| 优先级 | 缺失/待完善项 | 建议 |
+|--------|----------------|------|
+| **高** | 按集打包下载 | 在 `package_handler.go` 中接入镜图/镜头/成片收集逻辑，生成真实 ZIP |
+| **高** | AI 预算控制/告警 | 上线前完成项目级预算上限与超限告警 |
+| **中** | 双线 AI（审核 AI） | 实现脚本/镜图/镜头 QA 的审核 AI 线 |
+| **中** | 审核方式可配置 | 支持人工/AI/人工+AI 的配置 |
+| **中** | E2E 测试 | 用 Flutter 集成测试或 Playwright 覆盖主流程 |
+| **中** | OpenTelemetry 追踪 | 接入 otel 实现跨 Provider 调用链追踪 |
+| **低** | 浏览器 Push | 实现通知增强 |
+| **低** | 声音/桌面提醒 | 实现通知增强 |
+
+---
+
+**结论**：核心流程、任务锁、通知、单文件下载、布局适配、Prometheus 指标、AI 用量统计已实现。按集打包、AI 预算、E2E、OpenTelemetry、审核 AI 线等仍需补齐。

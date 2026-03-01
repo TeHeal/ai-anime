@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/music.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class MusicService {
   Future<Music> generate({

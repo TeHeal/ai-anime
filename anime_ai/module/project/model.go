@@ -20,14 +20,14 @@ type ProjectConfig struct {
 // Project 项目实体
 // 使用 string ID 以兼容 PostgreSQL UUID；MemData 使用 "1","2" 等数字串
 type Project struct {
-	ID        uint      `json:"id"`         // 兼容旧 API，MemData 时使用
-	IDStr     string    `json:"-"`          // DB 时使用 UUID 串
+	ID        uint      `json:"id"` // 兼容旧 API，MemData 时使用
+	IDStr     string    `json:"-"`  // DB 时使用 UUID 串
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	UserID     uint   `json:"user_id"`     // 兼容旧 API
-	UserIDStr  string `json:"-"`           // DB 时使用
-	Name       string `json:"name"`
+	UserID         uint   `json:"user_id"` // 兼容旧 API
+	UserIDStr      string `json:"-"`       // DB 时使用
+	Name           string `json:"name"`
 	Story          string `json:"story"`
 	StoryMode      string `json:"story_mode"` // full_script, creative
 	ConfigJSON     string `json:"-"`
@@ -115,14 +115,15 @@ func (p *Project) ToResponse() ProjectResponse {
 
 // ProjectMember 项目成员
 type ProjectMember struct {
-	ID          uint       `json:"id"`
-	IDStr       string     `json:"-"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	ProjectID   uint       `json:"project_id"`
-	ProjectIDStr string    `json:"-"`
-	UserID      uint       `json:"user_id"`
-	UserIDStr   string     `json:"-"`
-	Role        string     `json:"role"` // owner, editor, viewer
-	JoinedAt    *time.Time `json:"joined_at"`
+	ID           uint       `json:"id"`
+	IDStr        string     `json:"-"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+	ProjectID    uint       `json:"project_id"`
+	ProjectIDStr string     `json:"-"`
+	UserID       uint       `json:"user_id"`
+	UserIDStr    string     `json:"-"`
+	Role         string     `json:"role"`      // owner, editor, viewer
+	JobRoles     []string   `json:"job_roles"` // 工种：director, storyboarder, designer 等
+	JoinedAt     *time.Time `json:"joined_at"`
 }

@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/model_catalog.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 /// Fetches and caches model catalog from the backend.
 class ModelCatalogService {

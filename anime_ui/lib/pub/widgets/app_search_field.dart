@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// Reusable search text field with consistent dark-theme styling.
 class AppSearchField extends StatelessWidget {
@@ -27,25 +28,30 @@ class AppSearchField extends StatelessWidget {
     final accent = accentColor ?? AppColors.primary;
 
     return SizedBox(
-      width: width,
-      height: height,
+      width: width.w,
+      height: height.h,
       child: TextField(
         controller: controller,
-        style: const TextStyle(fontSize: 13, color: Colors.white),
+        style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(fontSize: 13, color: Colors.grey[600]),
-          prefixIcon:
-              Icon(AppIcons.search, size: 16, color: Colors.grey[500]),
+          hintStyle: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.mutedDarker,
+          ),
+          prefixIcon: Icon(
+            AppIcons.search,
+            size: Spacing.lg.r,
+            color: AppColors.mutedDark,
+          ),
           filled: true,
-          fillColor: Colors.grey[900],
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+          fillColor: AppColors.surfaceMutedDarker,
+          contentPadding: EdgeInsets.symmetric(vertical: 0.h),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[800]!),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            borderSide: const BorderSide(color: AppColors.surfaceMutedDark),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
             borderSide: BorderSide(color: accent),
           ),
         ),

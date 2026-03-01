@@ -44,7 +44,7 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, map[string]interface{}{"items": items})

@@ -2,15 +2,14 @@ package main
 
 import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/auth"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/module/character"
 	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
 	"github.com/TeHeal/ai-anime/anime_ai/module/download"
 	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
-	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/health"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
@@ -18,8 +17,10 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
+	"github.com/TeHeal/ai-anime/anime_ai/module/shot_video"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
 	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
 	"github.com/gin-gonic/gin"
@@ -76,6 +77,7 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 				projects.GET("/:id/members", cfg.ProjectHandler.ListMembers)
 				projects.POST("/:id/members", cfg.ProjectHandler.AddMember)
 				projects.PUT("/:id/members/:userId", cfg.ProjectHandler.UpdateMemberRole)
+				projects.PUT("/:id/members/:userId/job-roles", cfg.ProjectHandler.UpdateMemberJobRoles)
 				projects.DELETE("/:id/members/:userId", cfg.ProjectHandler.RemoveMember)
 
 				// 集 CRUD
@@ -220,11 +222,18 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projects.POST("/:id/shot-images/select-candidate", cfg.ShotImageHandler.SelectCandidate)
 					projects.POST("/:id/shot-images/batch-review", cfg.ShotImageHandler.BatchReview)
 					projects.GET("/:id/shots/:shotId/candidates", cfg.ShotImageHandler.GetCandidates)
+					projects.GET("/:id/shots/:shotId/allowed-actions", cfg.ShotImageHandler.GetAllowedActions)
 					projects.POST("/:id/shots/:shotId/images", cfg.ShotImageHandler.Create)
 					projects.GET("/:id/shots/:shotId/images", cfg.ShotImageHandler.List)
 					projects.GET("/:id/shots/:shotId/images/:imageId", cfg.ShotImageHandler.Get)
 					projects.DELETE("/:id/shots/:shotId/images/:imageId", cfg.ShotImageHandler.Delete)
 					projects.PUT("/:id/shots/:shotId/image-review", cfg.ShotImageHandler.UpdateImageReview)
+				}
+				// 镜头视频（README 镜头阶段）
+				if cfg.ShotVideoHandler != nil {
+					projects.GET("/:id/shots/:shotId/videos", cfg.ShotVideoHandler.List)
+					projects.POST("/:id/shots/:shotId/videos", cfg.ShotVideoHandler.Create)
+					projects.PUT("/:id/shots/:shotId/videos/:videoId/review", cfg.ShotVideoHandler.UpdateReview)
 				}
 			}
 		}
@@ -281,6 +290,7 @@ type RouteConfig struct {
 	StoryboardHandler   *storyboard.Handler
 	ShotHandler         *shot.Handler
 	ShotImageHandler    *shot_image.Handler
+	ShotVideoHandler    *shot_video.Handler
 	CompositeHandler    *composite.Handler
 	DownloadHandler     *download.Handler
 	PackageHandler      *package_task.Handler

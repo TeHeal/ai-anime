@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/prop.dart';
-import 'package:anime_ui/pub/services/api.dart';
+import 'package:anime_ui/pub/services/api_svc.dart';
 import 'package:anime_ui/module/assets/shared/asset_detail_shell.dart';
 
 /// 道具详情面板
@@ -27,7 +29,7 @@ class PropDetailPanel extends StatelessWidget {
       bottomBar: _buildBottomBar(),
       children: [
         _buildImageCard(),
-        const SizedBox(height: 16),
+        SizedBox(height: Spacing.lg.h),
         _buildInfoCard(),
       ],
     );
@@ -36,13 +38,15 @@ class PropDetailPanel extends StatelessWidget {
   Widget _buildImageCard() {
     return Container(
       width: double.infinity,
-      height: 200,
+      height: 200.h,
       decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
         image: prop.imageUrl.isNotEmpty
             ? DecorationImage(
-                image: NetworkImage(resolveFileUrl(prop.imageUrl)),
+                image: CachedNetworkImageProvider(
+                  resolveFileUrl(prop.imageUrl),
+                ),
                 fit: BoxFit.cover,
               )
             : null,
@@ -52,9 +56,18 @@ class PropDetailPanel extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(AppIcons.category, size: 48, color: Colors.grey[600]),
-                  const SizedBox(height: 8),
-                  Text('暂无参考图', style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+                  Icon(
+                    AppIcons.category,
+                    size: 48.r,
+                    color: AppColors.onSurface.withValues(alpha: 0.5),
+                  ),
+                  SizedBox(height: Spacing.sm.h),
+                  Text(
+                    '暂无参考图',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.onSurface.withValues(alpha: 0.55),
+                    ),
+                  ),
                 ],
               ),
             )
@@ -64,11 +77,11 @@ class PropDetailPanel extends StatelessWidget {
 
   Widget _buildInfoCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(Spacing.lg.r),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[800]!),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,34 +90,50 @@ class PropDetailPanel extends StatelessWidget {
             children: [
               Text(
                 prop.name,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: Spacing.sm.w),
               _statusChip(prop.status),
               if (prop.isKeyProp) ...[
-                const SizedBox(width: 8),
+                SizedBox(width: Spacing.sm.w),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.sm.w,
+                    vertical: Spacing.xxs.h,
                   ),
-                  child: Text('关键', style: TextStyle(color: Colors.orange[300], fontSize: 11)),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+                  ),
+                  child: Text(
+                    '关键',
+                    style: AppTextStyles.tiny.copyWith(
+                      color: AppColors.warning.withValues(alpha: 0.9),
+                    ),
+                  ),
                 ),
               ],
               const Spacer(),
               IconButton(
                 onPressed: onEdit,
-                icon: const Icon(AppIcons.edit, size: 16),
+                icon: Icon(AppIcons.edit, size: 16.r),
                 tooltip: '编辑',
               ),
             ],
           ),
           if (prop.appearance.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text('外观描述', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-            const SizedBox(height: 4),
-            Text(prop.appearance, style: const TextStyle(color: Colors.white, fontSize: 13)),
+            SizedBox(height: Spacing.md.h),
+            Text(
+              '外观描述',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.onSurface.withValues(alpha: 0.55),
+              ),
+            ),
+            SizedBox(height: Spacing.xs.h),
+            Text(
+              prop.appearance,
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+            ),
           ],
         ],
       ),
@@ -113,17 +142,23 @@ class PropDetailPanel extends StatelessWidget {
 
   Widget _statusChip(String status) {
     final (String label, Color color) = switch (status) {
-      'confirmed' => ('已确认', const Color(0xFF22C55E)),
-      'skeleton' => ('骨架', Colors.grey),
+      'confirmed' => ('已确认', AppColors.success),
+      'skeleton' => ('骨架', AppColors.onSurface),
       _ => ('待确认', AppColors.newTag),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.sm.w,
+        vertical: Spacing.xxs.h,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11)),
+      child: Text(
+        label,
+        style: AppTextStyles.tiny.copyWith(color: color),
+      ),
     );
   }
 
@@ -133,17 +168,17 @@ class PropDetailPanel extends StatelessWidget {
       children: [
         TextButton.icon(
           onPressed: onDelete,
-          icon: const Icon(AppIcons.delete, size: 14),
+          icon: Icon(AppIcons.delete, size: 14.r),
           label: const Text('删除'),
           style: TextButton.styleFrom(foregroundColor: AppColors.error),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: Spacing.sm.w),
         if (onConfirm != null && !prop.isConfirmed)
           FilledButton.icon(
             onPressed: onConfirm,
-            icon: const Icon(AppIcons.check, size: 14),
+            icon: Icon(AppIcons.check, size: 14.r),
             label: const Text('确认'),
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF22C55E)),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.success),
           ),
       ],
     );

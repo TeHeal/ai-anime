@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/module/assets/overview/providers/overview_provider.dart';
+import 'package:anime_ui/module/assets/overview/providers/overview.dart';
 
 /// 资产就绪度进度条
 class ReadinessBar extends StatelessWidget {
@@ -13,7 +14,10 @@ class ReadinessBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.mid.w,
+        vertical: Spacing.lg.h,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -23,59 +27,85 @@ class ReadinessBar extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
           Row(
             children: [
-              Text('资产就绪度',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[300])),
-              const SizedBox(width: 12),
+              Text(
+                '资产就绪度',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.onSurface.withValues(alpha: 0.75),
+                ),
+              ),
+              SizedBox(width: Spacing.md.w),
               if (!data.isLoading)
-                Text('${data.totalConfirmed} / ${data.totalAssets}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                Text(
+                  '${data.totalConfirmed} / ${data.totalAssets}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
               const Spacer(),
               if (!data.isLoading)
-                Text('${data.readinessPct}%',
-                    style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: data.readinessPct >= 100
-                            ? const Color(0xFF22C55E)
-                            : AppColors.primary)),
+                Text(
+                  '${data.readinessPct}%',
+                  style: AppTextStyles.displayLarge.copyWith(
+                    color: data.readinessPct >= 100
+                        ? AppColors.success
+                        : AppColors.primary,
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: Spacing.md.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
             child: LinearProgressIndicator(
               value: data.isLoading ? null : data.readinessPct / 100,
-              minHeight: 6,
-              backgroundColor: Colors.grey[800],
+              minHeight: 6.h,
+              backgroundColor: AppColors.surfaceContainerHighest,
               color: data.readinessPct >= 100
-                  ? const Color(0xFF22C55E)
+                  ? AppColors.success
                   : AppColors.primary,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: Spacing.md.h),
           Row(
             children: [
-              _chip(AppIcons.person, '角色', data.charConfirmed, data.charTotal,
-                  const Color(0xFF8B5CF6)),
-              const SizedBox(width: 16),
-              _chip(AppIcons.landscape, '场景', data.locConfirmed, data.locTotal,
-                  const Color(0xFF3B82F6)),
-              const SizedBox(width: 16),
-              _chip(AppIcons.category, '道具', data.propConfirmed, data.propTotal,
-                  const Color(0xFFF97316)),
-              const SizedBox(width: 16),
-              _chip(AppIcons.mic, '音色', data.voiceConfigured, data.voiceNeeded,
-                  const Color(0xFF06B6D4)),
+              _chip(
+                AppIcons.person,
+                '角色',
+                data.charConfirmed,
+                data.charTotal,
+                AppColors.categoryCharacter,
+              ),
+              SizedBox(width: Spacing.lg.w),
+              _chip(
+                AppIcons.landscape,
+                '场景',
+                data.locConfirmed,
+                data.locTotal,
+                AppColors.categoryLocation,
+              ),
+              SizedBox(width: Spacing.lg.w),
+              _chip(
+                AppIcons.category,
+                '道具',
+                data.propConfirmed,
+                data.propTotal,
+                AppColors.categoryProp,
+              ),
+              SizedBox(width: Spacing.lg.w),
+              _chip(
+                AppIcons.mic,
+                '音色',
+                data.voiceConfigured,
+                data.voiceNeeded,
+                AppColors.categoryVoice,
+              ),
             ],
           ),
         ],
@@ -83,24 +113,31 @@ class ReadinessBar extends StatelessWidget {
     );
   }
 
-  Widget _chip(
-      IconData icon, String label, int done, int total, Color color) {
+  Widget _chip(IconData icon, String label, int done, int total, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12, color: color.withValues(alpha: 0.7)),
-        const SizedBox(width: 4),
-        Text('$label ',
-            style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-        Text('$done',
-            style: TextStyle(
-                color: done == total && total > 0
-                    ? const Color(0xFF22C55E)
-                    : color,
-                fontSize: 12,
-                fontWeight: FontWeight.w600)),
-        Text('/$total',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+        Icon(icon, size: 12.r, color: color.withValues(alpha: 0.7)),
+        SizedBox(width: Spacing.xs.w),
+        Text(
+          '$label ',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.onSurface.withValues(alpha: 0.55),
+          ),
+        ),
+        Text(
+          '$done',
+          style: AppTextStyles.caption.copyWith(
+            color: done == total && total > 0 ? AppColors.success : color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          '/$total',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.onSurface.withValues(alpha: 0.5),
+          ),
+        ),
       ],
     );
   }

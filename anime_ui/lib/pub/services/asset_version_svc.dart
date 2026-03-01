@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/asset_version.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class AssetVersionService {
   Future<List<AssetVersion>> list(int projectId) async {

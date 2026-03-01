@@ -1,20 +1,31 @@
 package prop
 
 import (
+	"fmt"
+
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
 // Service 道具资产业务逻辑层
 type Service struct {
 	store           Store
 	projectVerifier crossmodule.ProjectVerifier
+	memberResolver  crossmodule.ProjectMemberResolver
 }
 
 // NewService 创建 Service 实例
 func NewService(store Store, projectVerifier crossmodule.ProjectVerifier) *Service {
+	return NewServiceWithResolver(store, projectVerifier, nil)
+}
+
+// NewServiceWithResolver 创建 Service 实例（含成员解析器，用于工种权限校验）
+func NewServiceWithResolver(store Store, projectVerifier crossmodule.ProjectVerifier, memberResolver crossmodule.ProjectMemberResolver) *Service {
 	return &Service{
 		store:           store,
 		projectVerifier: projectVerifier,
+		memberResolver:  memberResolver,
 	}
 }
 
@@ -45,6 +56,9 @@ type UpdateRequest struct {
 // Create 创建道具
 func (s *Service) Create(projectID, userID string, req CreateRequest) (*Prop, error) {
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
+		return nil, err
+	}
+	if err := s.checkAssetEdit(projectID, userID); err != nil {
 		return nil, err
 	}
 	p := &Prop{
@@ -79,6 +93,9 @@ func (s *Service) Get(propID, projectID, userID string) (*Prop, error) {
 
 // Update 更新道具
 func (s *Service) Update(propID, projectID, userID string, req UpdateRequest) (*Prop, error) {
+	if err := s.checkAssetEdit(projectID, userID); err != nil {
+		return nil, err
+	}
 	p, err := s.Get(propID, projectID, userID)
 	if err != nil {
 		return nil, err
@@ -124,6 +141,9 @@ func (s *Service) Update(propID, projectID, userID string, req UpdateRequest) (*
 
 // Confirm 确认道具
 func (s *Service) Confirm(propID, projectID, userID string) (*Prop, error) {
+	if err := s.checkAssetEdit(projectID, userID); err != nil {
+		return nil, err
+	}
 	p, err := s.Get(propID, projectID, userID)
 	if err != nil {
 		return nil, err
@@ -137,8 +157,28 @@ func (s *Service) Confirm(propID, projectID, userID string) (*Prop, error) {
 
 // Delete 删除道具
 func (s *Service) Delete(propID, projectID, userID string) error {
+	if err := s.checkAssetEdit(projectID, userID); err != nil {
+		return err
+	}
 	if _, err := s.Get(propID, projectID, userID); err != nil {
 		return err
 	}
 	return s.store.Delete(propID, projectID)
+}
+
+func (s *Service) checkAssetEdit(projectID, userID string) error {
+	if s.memberResolver == nil {
+		return nil
+	}
+	info, err := s.memberResolver.Resolve(projectID, userID)
+	if err != nil {
+		return err
+	}
+	if info.IsOwner {
+		return nil
+	}
+	if !auth.CanDo(info.JobRoles, auth.ActionAssetEdit) {
+		return fmt.Errorf("%w: 当前工种不允许编辑资产", pkg.ErrForbidden)
+	}
+	return nil
 }

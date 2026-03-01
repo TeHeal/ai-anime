@@ -114,5 +114,6 @@ func HandleError(c *gin.Context, err error) {
 		Fail(c, http.StatusConflict, "资源已存在")
 		return
 	}
+	c.Error(err) // 写入 Gin 上下文，Logger 中间件会记录（含 request_id、path 等）
 	InternalError(c, "服务器内部错误")
 }

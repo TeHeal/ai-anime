@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/prop.dart';
-import 'package:anime_ui/pub/services/api.dart';
-import 'package:anime_ui/module/assets/props/providers/props_providers.dart';
+import 'package:anime_ui/pub/services/api_svc.dart';
+import 'package:anime_ui/module/assets/shared/asset_list_item.dart';
+import 'package:anime_ui/module/assets/shared/asset_list_panel.dart';
+import 'package:anime_ui/module/assets/shared/asset_status_chip.dart';
+import 'package:anime_ui/module/assets/props/providers/selection.dart';
 
 /// 道具列表面板
 class PropListPanel extends ConsumerWidget {
@@ -18,148 +23,66 @@ class PropListPanel extends ConsumerWidget {
     final selectedId = ref.watch(selectedPropIdProvider);
     final confirmed = props.where((p) => p.isConfirmed).length;
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-          child: Row(
+    return AssetListPanel(
+      totalCount: props.length,
+      confirmedCount: confirmed,
+      countLabel: '个道具',
+      itemCount: props.length,
+      itemBuilder: (context, index) {
+        final prop = props[index];
+        final isSelected = prop.id == selectedId;
+        return AssetListItem(
+          name: prop.name,
+          isSelected: isSelected,
+          onTap: () => ref.read(selectedPropIdProvider.notifier).set(prop.id),
+          leading: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: Spacing.tinyGap.w,
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+            ),
+          ),
+          thumbnail: _buildThumb(prop),
+          subtitleWidget: Row(
             children: [
-              Text(
-                '${props.length} 个道具',
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
-              ),
-              const SizedBox(width: 6),
-              const Icon(AppIcons.check, size: 12, color: Color(0xFF22C55E)),
-              Text(' $confirmed', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+              AssetStatusChip.fromStatus(prop.status),
+              if (prop.isKeyProp) ...[
+                SizedBox(width: Spacing.sm.w),
+                Icon(
+                  AppIcons.bolt,
+                  size: 10.r,
+                  color: AppColors.warning.withValues(alpha: 0.9),
+                ),
+              ],
             ],
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: props.length,
-            itemBuilder: (context, index) {
-              final prop = props[index];
-              final isSelected = prop.id == selectedId;
-              return _PropListItem(
-                prop: prop,
-                isSelected: isSelected,
-                onTap: () => ref.read(selectedPropIdProvider.notifier).set(prop.id),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PropListItem extends StatelessWidget {
-  const _PropListItem({
-    required this.prop,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final Prop prop;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        margin: const EdgeInsets.only(bottom: 4),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                width: 3,
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.08)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildThumb(),
-                      const SizedBox(width: 10),
-                      Expanded(child: _buildInfo()),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildThumb() {
+  Widget _buildThumb(Prop prop) {
     return Container(
-      width: 44,
-      height: 44,
+      width: Spacing.thumbnailSize.w,
+      height: Spacing.thumbnailSize.h,
       decoration: BoxDecoration(
         color: prop.imageUrl.isNotEmpty
             ? Colors.transparent
-            : const Color(0xFFF97316).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
+            : AppColors.categoryProp.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
         image: prop.imageUrl.isNotEmpty
             ? DecorationImage(
-                image: NetworkImage(resolveFileUrl(prop.imageUrl)),
+                image: CachedNetworkImageProvider(
+                  resolveFileUrl(prop.imageUrl),
+                ),
                 fit: BoxFit.cover,
               )
             : null,
       ),
       child: prop.imageUrl.isEmpty
-          ? const Icon(AppIcons.category, size: 18, color: Color(0xFFF97316))
+          ? Icon(AppIcons.category, size: 18.r, color: AppColors.categoryProp)
           : null,
     );
-  }
-
-  Widget _buildInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          prop.name,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white),
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 3),
-        Row(
-          children: [
-            _statusChip(prop.status),
-            if (prop.isKeyProp) ...[
-              const SizedBox(width: 6),
-              Icon(AppIcons.bolt, size: 10, color: Colors.orange[300]),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _statusChip(String status) {
-    final (String label, Color color) = switch (status) {
-      'confirmed' => ('已确认', const Color(0xFF22C55E)),
-      'skeleton' => ('骨架', Colors.grey),
-      _ => ('待确认', AppColors.newTag),
-    };
-    return Text(label, style: TextStyle(color: color, fontSize: 10));
   }
 }

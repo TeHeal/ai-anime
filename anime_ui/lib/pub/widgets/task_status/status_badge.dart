@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// Unified generation status with color, icon, and label.
 enum GenerationStatus {
   notStarted(
     label: '待生成',
-    color: Colors.grey,
+    color: AppColors.muted,
     icon: AppIcons.circleOutline,
   ),
   generating(
@@ -17,27 +17,27 @@ enum GenerationStatus {
   ),
   completed(
     label: '已完成',
-    color: Colors.green,
+    color: AppColors.success,
     icon: AppIcons.check,
   ),
   failed(
     label: '失败',
-    color: Colors.red,
+    color: AppColors.error,
     icon: AppIcons.error,
   ),
   rejected(
     label: '退回',
-    color: Colors.orange,
+    color: AppColors.warning,
     icon: AppIcons.refresh,
   ),
   waitingDependency(
     label: '等待依赖',
-    color: Colors.amber,
+    color: AppColors.tagAmber,
     icon: AppIcons.hourglassEmpty,
   ),
   partialComplete(
     label: '部分完成',
-    color: Colors.blue,
+    color: AppColors.info,
     icon: AppIcons.inProgress,
   );
 
@@ -64,20 +64,21 @@ class StatusBadge extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(status.icon, size: 13, color: status.color),
-        const SizedBox(width: 5),
+        Icon(status.icon, size: 13.r, color: status.color),
+        SizedBox(width: Spacing.badgeGap.w),
         Text(
           status.label,
-          style: TextStyle(
-            fontSize: 11,
+          style: AppTextStyles.tiny.copyWith(
             color: status.color,
             fontWeight: FontWeight.w600,
           ),
         ),
         if (suffix != null) ...[
-          const SizedBox(width: 4),
-          Text(suffix!,
-              style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+          SizedBox(width: Spacing.xs.w),
+          Text(
+            suffix!,
+            style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
+          ),
         ],
       ],
     );

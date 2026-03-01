@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/widgets/app_dialog.dart';
 import 'package:anime_ui/main.dart';
 import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
-import 'package:anime_ui/pub/services/api.dart';
+import 'package:anime_ui/pub/services/api_svc.dart';
 
 /// 用户头像菜单 — 提供修改密码、账户分配、退出登录。
 /// 在项目列表页和工作区 AppBar 中复用。
@@ -19,11 +20,11 @@ class UserMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
-      offset: const Offset(0, 48),
-      color: const Color(0xFF1E1E30),
+      offset: Offset(0, 48.h),
+      color: AppColors.surfaceContainerHigh,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[800]!),
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+        side: const BorderSide(color: AppColors.border),
       ),
       onSelected: (value) => _onSelected(context, ref, value),
       itemBuilder: (_) => [
@@ -33,41 +34,51 @@ class UserMenu extends ConsumerWidget {
         _buildItem('logout', AppIcons.logout, '退出登录', isDestructive: true),
       ],
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.md.w,
+          vertical: Spacing.chipPaddingVSmall.h,
+        ),
         decoration: BoxDecoration(
-          color: Colors.grey[800]!.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.surfaceContainerHighest.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(Spacing.mid.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 28,
-              height: 28,
+              width: Spacing.avatarSize.w,
+              height: Spacing.avatarSize.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [
                     AppColors.primary.withValues(alpha: 0.7),
-                    const Color(0xFF6366F1),
+                    AppColors.primary,
                   ],
                 ),
               ),
-              child: const Center(
-                child: Icon(AppIcons.person, size: 14, color: Colors.white),
+              child: Center(
+                child: Icon(
+                  AppIcons.person,
+                  size: Spacing.gridGap.r,
+                  color: AppColors.onSurface,
+                ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: Spacing.sm.w),
             Text(
               'admin',
-              style: TextStyle(
-                color: Colors.grey[300],
-                fontSize: 13,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.onSurface.withValues(alpha: 0.75),
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(AppIcons.expandMore, size: 16, color: Colors.grey[500]),
+            SizedBox(width: Spacing.xs.w),
+            Icon(
+              AppIcons.expandMore,
+              size: Spacing.lg.r,
+              color: AppColors.onSurface.withValues(alpha: 0.55),
+            ),
           ],
         ),
       ),
@@ -80,15 +91,20 @@ class UserMenu extends ConsumerWidget {
     String label, {
     bool isDestructive = false,
   }) {
-    final color = isDestructive ? Colors.red[400] : Colors.grey[300];
+    final color = isDestructive
+        ? AppColors.error
+        : AppColors.onSurface.withValues(alpha: 0.75);
     return PopupMenuItem(
       value: value,
-      height: 42,
+      height: 42.h,
       child: Row(
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
-          Text(label, style: TextStyle(color: color, fontSize: 13)),
+          Icon(icon, size: Spacing.menuIconSize.r, color: color),
+          SizedBox(width: Spacing.iconGapMd.w),
+          Text(
+            label,
+            style: AppTextStyles.bodySmall.copyWith(color: color),
+          ),
         ],
       ),
     );
@@ -187,9 +203,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       if (mounted) {
         widget.onClose();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('密码修改成功'),
-            backgroundColor: Colors.green[700],
+          const SnackBar(
+            content: Text('密码修改成功'),
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -204,27 +220,31 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E30),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      title: const Text(
+      backgroundColor: AppColors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+      ),
+      title: Text(
         '修改密码',
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
       ),
       content: SizedBox(
-        width: 360,
+        width: 360.w,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildField(_oldCtrl, '当前密码', obscure: true),
-            const SizedBox(height: 14),
+            SizedBox(height: Spacing.gridGap.h),
             _buildField(_newCtrl, '新密码', obscure: true),
-            const SizedBox(height: 14),
+            SizedBox(height: Spacing.gridGap.h),
             _buildField(_confirmCtrl, '确认新密码', obscure: true),
             if (_error != null) ...[
-              const SizedBox(height: 10),
+              SizedBox(height: Spacing.contentGap.h),
               Text(
                 _error!,
-                style: TextStyle(color: Colors.red[300], fontSize: 12),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.error.withValues(alpha: 0.9),
+                ),
               ),
             ],
           ],
@@ -233,16 +253,21 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       actions: [
         TextButton(
           onPressed: widget.onClose,
-          child: Text('取消', style: TextStyle(color: Colors.grey[400])),
+          child: Text(
+            '取消',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
         ),
         FilledButton(
           onPressed: _loading ? null : _submit,
           style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           child: _loading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+              ? SizedBox(
+                  width: Spacing.lg.w,
+                  height: Spacing.lg.h,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Text('确认修改'),
         ),
@@ -258,22 +283,24 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
     return TextField(
       controller: ctrl,
       obscureText: obscure,
-      style: const TextStyle(color: Colors.white, fontSize: 13),
+      style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey[500], fontSize: 12),
+        labelStyle: AppTextStyles.labelMedium.copyWith(
+          color: AppColors.onSurface.withValues(alpha: 0.55),
+        ),
         filled: true,
-        fillColor: const Color(0xFF141425),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
+        fillColor: AppColors.surface,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: Spacing.gridGap.w,
+          vertical: Spacing.md.h,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[800]!),
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
           borderSide: const BorderSide(color: AppColors.primary),
         ),
       ),
@@ -340,7 +367,7 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('用户 $username 已创建'),
-            backgroundColor: Colors.green[700],
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -350,7 +377,7 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('创建失败: $e'),
-            backgroundColor: Colors.red[700],
+            backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -361,27 +388,31 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E30),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      title: const Text(
+      backgroundColor: AppColors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+      ),
+      title: Text(
         '账户分配',
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
       ),
       content: SizedBox(
-        width: 480,
-        height: 400,
+        width: 480.w,
+        height: 400.h,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildCreateForm(),
-            const SizedBox(height: 16),
-            Divider(color: Colors.grey[800]),
-            const SizedBox(height: 8),
+            SizedBox(height: Spacing.lg.h),
+            const Divider(color: AppColors.divider),
+            SizedBox(height: Spacing.sm.h),
             Text(
               '已有账户',
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.onSurface.withValues(alpha: 0.6),
+              ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: Spacing.sm.h),
             Expanded(child: _buildUserList()),
           ],
         ),
@@ -389,7 +420,9 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
       actions: [
         FilledButton(
           onPressed: widget.onClose,
-          style: FilledButton.styleFrom(backgroundColor: Colors.grey[700]),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.surfaceContainerHighest,
+          ),
           child: const Text('关闭'),
         ),
       ],
@@ -402,68 +435,77 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
         Expanded(
           child: TextField(
             controller: _usernameCtrl,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
             decoration: InputDecoration(
               hintText: '用户名',
-              hintStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
+              hintStyle: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.onSurface.withValues(alpha: 0.5),
+              ),
               isDense: true,
               filled: true,
-              fillColor: const Color(0xFF141425),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
+              fillColor: AppColors.surface,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: Spacing.md.w,
+                vertical: Spacing.buttonPaddingV.h,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
                 borderSide: BorderSide.none,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: Spacing.sm.w),
         Expanded(
           child: TextField(
             controller: _passwordCtrl,
             obscureText: true,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
             decoration: InputDecoration(
               hintText: '密码',
-              hintStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
+              hintStyle: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.onSurface.withValues(alpha: 0.5),
+              ),
               isDense: true,
               filled: true,
-              fillColor: const Color(0xFF141425),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
+              fillColor: AppColors.surface,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: Spacing.md.w,
+                vertical: Spacing.buttonPaddingV.h,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
                 borderSide: BorderSide.none,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: Spacing.sm.w),
         DropdownButton<String>(
           value: _role,
           isDense: true,
-          dropdownColor: const Color(0xFF1E1E30),
+          dropdownColor: AppColors.surfaceContainerHigh,
           underline: const SizedBox(),
-          style: TextStyle(color: Colors.grey[300], fontSize: 12),
+          style: AppTextStyles.labelMedium.copyWith(
+            color: AppColors.onSurface.withValues(alpha: 0.75),
+          ),
           items: const [
             DropdownMenuItem(value: 'member', child: Text('普通用户')),
             DropdownMenuItem(value: 'admin', child: Text('管理员')),
           ],
           onChanged: (v) => setState(() => _role = v ?? 'member'),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: Spacing.sm.w),
         FilledButton.icon(
           onPressed: _createUser,
-          icon: const Icon(AppIcons.add, size: 14),
-          label: const Text('创建', style: TextStyle(fontSize: 12)),
+          icon: Icon(AppIcons.add, size: Spacing.gridGap.r),
+          label: Text('创建', style: AppTextStyles.labelMedium),
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: EdgeInsets.symmetric(
+              horizontal: Spacing.md.w,
+              vertical: Spacing.buttonPaddingV.h,
+            ),
           ),
         ),
       ],
@@ -476,13 +518,18 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
     }
     if (_users.isEmpty) {
       return Center(
-        child: Text('暂无用户', style: TextStyle(color: Colors.grey[600])),
+        child: Text(
+          '暂无用户',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.onSurface.withValues(alpha: 0.5),
+          ),
+        ),
       );
     }
     return ListView.separated(
       itemCount: _users.length,
       separatorBuilder: (context, index) =>
-          Divider(height: 1, color: Colors.grey[800]),
+          const Divider(height: 1, color: AppColors.divider),
       itemBuilder: (_, i) {
         final u = _users[i] as Map<String, dynamic>;
         final role = u['role'] as String? ?? 'member';
@@ -490,40 +537,47 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
         return ListTile(
           dense: true,
           leading: CircleAvatar(
-            radius: 16,
+            radius: Spacing.lg.r,
             backgroundColor: isAdmin
                 ? AppColors.primary.withValues(alpha: 0.2)
-                : Colors.grey[800],
+                : AppColors.surfaceContainerHighest,
             child: Text(
               (u['username'] as String? ?? '?')[0].toUpperCase(),
-              style: TextStyle(
-                color: isAdmin ? AppColors.primary : Colors.grey[400],
-                fontSize: 12,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: isAdmin
+                    ? AppColors.primary
+                    : AppColors.onSurface.withValues(alpha: 0.6),
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
           title: Text(
             u['username'] as String? ?? '',
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
           ),
           subtitle: Text(
             u['display_name'] as String? ?? '',
-            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+            style: AppTextStyles.tiny.copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.55),
+            ),
           ),
           trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: EdgeInsets.symmetric(
+              horizontal: Spacing.sm.w,
+              vertical: Spacing.xs.h,
+            ),
             decoration: BoxDecoration(
               color: isAdmin
                   ? AppColors.primary.withValues(alpha: 0.15)
-                  : Colors.grey[800],
-              borderRadius: BorderRadius.circular(10),
+                  : AppColors.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
             ),
             child: Text(
               isAdmin ? '管理员' : '普通用户',
-              style: TextStyle(
-                color: isAdmin ? AppColors.primary : Colors.grey[400],
-                fontSize: 10,
+              style: AppTextStyles.labelTinySmall.copyWith(
+                color: isAdmin
+                    ? AppColors.primary
+                    : AppColors.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ),

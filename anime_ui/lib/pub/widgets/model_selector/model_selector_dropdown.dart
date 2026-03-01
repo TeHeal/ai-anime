@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/model_catalog.dart';
 
 /// Dropdown-style model selector. Best for config pages and inline forms.
@@ -26,18 +28,18 @@ class ModelSelectorDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.md.w,
+        vertical: Spacing.sm.h,
+      ),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[700]!),
+        color: AppColors.surfaceMutedDarker,
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
-          if (leadingIcon != null) ...[
-            leadingIcon!,
-            const SizedBox(width: 8),
-          ],
+          if (leadingIcon != null) ...[leadingIcon!, SizedBox(width: Spacing.sm.w)],
           Expanded(child: _buildDropdown()),
         ],
       ),
@@ -49,56 +51,61 @@ class ModelSelectorDropdown extends StatelessWidget {
       return Row(
         children: [
           SizedBox(
-            width: 14,
-            height: 14,
-            child: CircularProgressIndicator(strokeWidth: 2, color: accent),
+            width: 14.w,
+            height: 14.h,
+            child: CircularProgressIndicator(strokeWidth: 2.r, color: accent),
           ),
-          const SizedBox(width: 8),
-          Text('加载中…',
-              style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+          SizedBox(width: Spacing.sm.w),
+          Text(
+            '加载中…',
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
+          ),
         ],
       );
     }
 
     if (models.isEmpty) {
-      return Text('暂无可用模型',
-          style: TextStyle(fontSize: 13, color: Colors.grey[500]));
+      return Text(
+        '暂无可用模型',
+        style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
+      );
     }
 
     return DropdownButtonHideUnderline(
       child: DropdownButton<String>(
         value: selected?.modelId,
         isExpanded: true,
-        dropdownColor: Colors.grey[900],
-        style: const TextStyle(color: Colors.white, fontSize: 14),
+        dropdownColor: AppColors.surfaceMutedDarker,
+        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
         items: models.map((m) {
           return DropdownMenuItem<String>(
             value: m.modelId,
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    m.displayName,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(m.displayName, overflow: TextOverflow.ellipsis),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: Spacing.sm.w),
                 Text(
                   m.operatorLabel,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                  style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
                 ),
                 if (m.isRecommended) ...[
-                  const SizedBox(width: 6),
+                  SizedBox(width: Spacing.sm.w),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.xs.w,
+                      vertical: Spacing.xxs.h,
+                    ),
                     decoration: BoxDecoration(
                       color: accent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
                     ),
                     child: Text(
                       '推荐',
-                      style: TextStyle(fontSize: 9, color: accent),
+                      style: AppTextStyles.labelTiny.copyWith(
+                        color: accent,
+                      ),
                     ),
                   ),
                 ],
@@ -143,24 +150,27 @@ class ModelSelectorMini extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-        const SizedBox(height: 4),
+        Text(
+          label,
+          style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
+        ),
+        SizedBox(height: Spacing.xs.h),
         Container(
-          height: 34,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          height: 34.h,
+          padding: EdgeInsets.symmetric(horizontal: Spacing.lg.w),
           decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[800]!),
+            color: AppColors.surfaceMutedDarker,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(color: AppColors.border),
           ),
           child: isLoading
               ? Center(
                   child: SizedBox(
-                    width: 12,
-                    height: 12,
+                    width: 12.w,
+                    height: 12.h,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.grey[500],
+                      strokeWidth: 2.r,
+                      color: AppColors.mutedDark,
                     ),
                   ),
                 )
@@ -168,25 +178,25 @@ class ModelSelectorMini extends StatelessWidget {
                   value: selected?.modelId ?? '',
                   isExpanded: true,
                   underline: const SizedBox.shrink(),
-                  dropdownColor: Colors.grey[900],
-                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                  dropdownColor: AppColors.surfaceMutedDarker,
+                  style: AppTextStyles.caption.copyWith(color: AppColors.onSurface),
                   items: [
                     if (allowEmpty)
-                      DropdownMenuItem(
-                        value: '',
-                        child: Text(emptyLabel),
+                      DropdownMenuItem(value: '', child: Text(emptyLabel)),
+                    ...models.map(
+                      (m) => DropdownMenuItem(
+                        value: m.modelId,
+                        child: Text(m.displayName),
                       ),
-                    ...models.map((m) => DropdownMenuItem(
-                          value: m.modelId,
-                          child: Text(m.displayName),
-                        )),
+                    ),
                   ],
                   onChanged: (v) {
                     if (v == null || v.isEmpty) {
                       onChanged(null);
                     } else {
                       onChanged(
-                          models.where((m) => m.modelId == v).firstOrNull);
+                        models.where((m) => m.modelId == v).firstOrNull,
+                      );
                     }
                   },
                 ),

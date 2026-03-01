@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/providers/step_status_provider.dart';
 
@@ -27,11 +28,17 @@ class StepNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.sm.w,
+        vertical: Spacing.sm.h,
+      ),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06), width: 1),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+        border: Border.all(
+          color: AppColors.onSurface.withValues(alpha: 0.06),
+          width: 1.w,
+        ),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -51,13 +58,13 @@ class StepNav extends StatelessWidget {
   Widget _buildConnector(int nextIndex) {
     final isNextActive = nextIndex == currentStep;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
+      padding: EdgeInsets.symmetric(horizontal: Spacing.xxs.w),
       child: Icon(
         AppIcons.chevronRight,
-        size: 20,
-            color: isNextActive
-            ? Colors.white.withValues(alpha: 0.5)
-            : Colors.grey[600],
+        size: 20.r,
+        color: isNextActive
+            ? AppColors.onSurface.withValues(alpha: 0.5)
+            : AppColors.onSurface.withValues(alpha: 0.5),
       ),
     );
   }
@@ -73,18 +80,21 @@ class StepNav extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.lg.w,
+          vertical: Spacing.lg.h,
+        ),
         decoration: BoxDecoration(
           color: isActive
-              ? Colors.white
-              : const Color(0xFF252525),
-          borderRadius: BorderRadius.circular(10),
+              ? AppColors.onSurface
+              : AppColors.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: AppColors.shadowOverlay.withValues(alpha: 0.2),
+                    blurRadius: 8.r,
+                    offset: Offset(0, 2.h),
                   ),
                 ]
               : null,
@@ -93,13 +103,14 @@ class StepNav extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildStepIcon(index, isActive, status),
-            const SizedBox(width: 8),
+            SizedBox(width: Spacing.sm.w),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 15,
+              style: AppTextStyles.bodyMedium.copyWith(
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive ? const Color(0xFF1A1A1A) : Colors.grey[400],
+                color: isActive
+                    ? AppColors.background
+                    : AppColors.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -112,20 +123,20 @@ class StepNav extends StatelessWidget {
     final (_, iconData) = steps[index];
 
     if (isActive) {
-      return Icon(
-        iconData,
-        size: 20,
-        color: const Color(0xFF1A1A1A),
-      );
+      return Icon(iconData, size: 20.r, color: AppColors.background);
     }
 
     switch (status) {
       case StepStatus.completed:
-        return Icon(AppIcons.check, size: 20, color: Colors.green[400]);
+        return Icon(AppIcons.check, size: 20.r, color: AppColors.success);
       case StepStatus.inProgress:
-        return Icon(AppIcons.inProgress, size: 20, color: Colors.orange[400]);
+        return Icon(AppIcons.inProgress, size: 20.r, color: AppColors.warning);
       case StepStatus.notStarted:
-        return Icon(iconData, size: 20, color: Colors.grey[500]);
+        return Icon(
+          iconData,
+          size: 20.r,
+          color: AppColors.onSurface.withValues(alpha: 0.55),
+        );
     }
   }
 }

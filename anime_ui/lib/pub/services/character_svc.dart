@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/character.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class CharacterService {
   Future<Character> create({

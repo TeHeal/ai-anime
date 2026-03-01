@@ -1,4 +1,4 @@
-import 'api.dart';
+import 'api_svc.dart';
 
 /// 按集打包配置
 class PackageConfig {

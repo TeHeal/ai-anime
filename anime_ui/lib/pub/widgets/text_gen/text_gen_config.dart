@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+
 
 /// 文字生成场景模式
 enum TextGenMode {
@@ -66,110 +68,101 @@ class TextGenConfig {
   /// 图像生成中的「AI 生成提示词」
   static TextGenConfig imagePrompt({
     required Future<void> Function(String result) onComplete,
-    Color accentColor = const Color(0xFF8B5CF6),
+    Color accentColor = AppColors.primary,
     String targetModel = '',
-  }) =>
-      TextGenConfig(
-        title: 'AI 生成提示词',
-        accentColor: accentColor,
-        mode: TextGenMode.imagePrompt,
-        instructionHint: '输入关键词或简短描述，AI 将扩展为完整的图像提示词…',
-        targetModel: targetModel,
-        quickPrompts: const [
-          '角色立绘', '场景氛围', '动作特写', '情绪表达',
-          '赛博朋克', '水彩手绘', '写实风格',
-        ],
-        saveToLibrary: false,
-        onComplete: onComplete,
-      );
+  }) => TextGenConfig(
+    title: 'AI 生成提示词',
+    accentColor: accentColor,
+    mode: TextGenMode.imagePrompt,
+    instructionHint: '输入关键词或简短描述，AI 将扩展为完整的图像提示词…',
+    targetModel: targetModel,
+    quickPrompts: const [
+      '角色立绘',
+      '场景氛围',
+      '动作特写',
+      '情绪表达',
+      '赛博朋克',
+      '水彩手绘',
+      '写实风格',
+    ],
+    saveToLibrary: false,
+    onComplete: onComplete,
+  );
 
   /// 素材库中新建提示词
   static TextGenConfig newPrompt({
     required Future<void> Function(String result) onComplete,
-    Color accentColor = const Color(0xFF22C55E),
+    Color accentColor = AppColors.success,
     String targetModel = '',
     String category = '',
-  }) =>
-      TextGenConfig(
-        title: '生成提示词',
-        accentColor: accentColor,
-        mode: TextGenMode.imagePrompt,
-        instructionHint: '描述想生成的提示词内容，如：一个赛博朋克风格的少女站在霓虹灯下…',
-        targetModel: targetModel,
-        quickPrompts: const [
-          '角色描述', '场景描述', '动作描述', '风格描述', '情绪描述',
-        ],
-        saveToLibrary: true,
-        onComplete: onComplete,
-      );
+  }) => TextGenConfig(
+    title: '生成提示词',
+    accentColor: accentColor,
+    mode: TextGenMode.imagePrompt,
+    instructionHint: '描述想生成的提示词内容，如：一个赛博朋克风格的少女站在霓虹灯下…',
+    targetModel: targetModel,
+    quickPrompts: const ['角色描述', '场景描述', '动作描述', '风格描述', '情绪描述'],
+    saveToLibrary: true,
+    onComplete: onComplete,
+  );
 
   /// 优化已有提示词
   static TextGenConfig optimizePrompt({
     required String original,
     required Future<void> Function(String result) onComplete,
-    Color accentColor = const Color(0xFF22C55E),
+    Color accentColor = AppColors.success,
     String targetModel = '',
-  }) =>
-      TextGenConfig(
-        title: '优化提示词',
-        accentColor: accentColor,
-        mode: TextGenMode.optimize,
-        instructionHint: '描述优化方向，如：增加细节、改为英文、适配Flux模型…',
-        referenceText: original,
-        targetModel: targetModel,
-        quickPrompts: const [
-          '增加细节', '精简描述', '翻译为英文', '增强情绪', '添加构图指令',
-        ],
-        saveToLibrary: false,
-        onComplete: onComplete,
-      );
+  }) => TextGenConfig(
+    title: '优化提示词',
+    accentColor: accentColor,
+    mode: TextGenMode.optimize,
+    instructionHint: '描述优化方向，如：增加细节、改为英文、适配Flux模型…',
+    referenceText: original,
+    targetModel: targetModel,
+    quickPrompts: const ['增加细节', '精简描述', '翻译为英文', '增强情绪', '添加构图指令'],
+    saveToLibrary: false,
+    onComplete: onComplete,
+  );
 
   /// 风格指令生成
   static TextGenConfig styleGuide({
     required Future<void> Function(String result) onComplete,
-    Color accentColor = const Color(0xFF22C55E),
-  }) =>
-      TextGenConfig(
-        title: '生成风格指令',
-        accentColor: accentColor,
-        mode: TextGenMode.styleGuide,
-        instructionHint: '描述想要的画面风格、色调、构图规则…',
-        libraryType: 'styleGuide',
-        quickPrompts: const [
-          '二次元清新', '赛博朋克', '水彩写意', '复古胶片', '极简扁平',
-        ],
-        onComplete: onComplete,
-      );
+    Color accentColor = AppColors.success,
+  }) => TextGenConfig(
+    title: '生成风格指令',
+    accentColor: accentColor,
+    mode: TextGenMode.styleGuide,
+    instructionHint: '描述想要的画面风格、色调、构图规则…',
+    libraryType: 'styleGuide',
+    quickPrompts: const ['二次元清新', '赛博朋克', '水彩写意', '复古胶片', '极简扁平'],
+    onComplete: onComplete,
+  );
 
   /// 台词对白生成
   static TextGenConfig dialogue({
     required Future<void> Function(String result) onComplete,
-    Color accentColor = const Color(0xFF22C55E),
+    Color accentColor = AppColors.success,
     String referenceText = '',
-  }) =>
-      TextGenConfig(
-        title: '生成台词',
-        accentColor: accentColor,
-        mode: TextGenMode.dialogue,
-        instructionHint: '描述场景和角色关系，如：主角向同伴告别的对话，语气坚定但不舍…',
-        referenceText: referenceText,
-        libraryType: 'dialogueTemplate',
-        quickPrompts: const [
-          '日常对话', '战斗宣言', '内心独白', '搞笑段子', '感人告别',
-        ],
-        onComplete: onComplete,
-      );
+  }) => TextGenConfig(
+    title: '生成台词',
+    accentColor: accentColor,
+    mode: TextGenMode.dialogue,
+    instructionHint: '描述场景和角色关系，如：主角向同伴告别的对话，语气坚定但不舍…',
+    referenceText: referenceText,
+    libraryType: 'dialogueTemplate',
+    quickPrompts: const ['日常对话', '战斗宣言', '内心独白', '搞笑段子', '感人告别'],
+    onComplete: onComplete,
+  );
 
   /// 自由文本生成
   static TextGenConfig freeform({
     required Future<void> Function(String result) onComplete,
-    Color accentColor = const Color(0xFF22C55E),
-  }) =>
-      TextGenConfig(
-        title: '文字生成',
-        accentColor: accentColor,
-        mode: TextGenMode.freeform,
-        instructionHint: '输入任何创作指令…',
-        onComplete: onComplete,
-      );
+    Color accentColor = AppColors.success,
+  }) => TextGenConfig(
+    title: '文字生成',
+    accentColor: accentColor,
+    mode: TextGenMode.freeform,
+    instructionHint: '输入任何创作指令…',
+    onComplete: onComplete,
+  );
 }

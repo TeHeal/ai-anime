@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// A filter chip descriptor for the toolbar.
 class FilterChipData {
@@ -48,27 +49,32 @@ class FilterToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.gridGap.w,
+        vertical: Spacing.sm.h,
+      ),
       decoration: BoxDecoration(
-        color: const Color(0xFF16162A),
-        borderRadius: BorderRadius.circular(10),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
       ),
       child: Row(
         children: [
-          Icon(AppIcons.tune, size: 15, color: Colors.grey[500]),
-          const SizedBox(width: 10),
+          Icon(AppIcons.tune, size: 15.r, color: AppColors.mutedDark),
+          SizedBox(width: Spacing.sm.w),
           for (int i = 0; i < filters.length; i++) ...[
             _buildFilterChip(filters[i]),
-            if (i < filters.length - 1) const SizedBox(width: 6),
+            if (i < filters.length - 1) SizedBox(width: Spacing.sm.w),
           ],
           if (groups.isNotEmpty) ...[
             const Spacer(),
-            Text('分组:',
-                style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-            const SizedBox(width: 8),
+            Text(
+              '分组:',
+              style: AppTextStyles.caption.copyWith(color: AppColors.mutedDark),
+            ),
+            SizedBox(width: Spacing.sm.w),
             for (int i = 0; i < groups.length; i++) ...[
               _buildGroupChip(groups[i]),
-              if (i < groups.length - 1) const SizedBox(width: 4),
+              if (i < groups.length - 1) SizedBox(width: Spacing.xs.w),
             ],
           ],
         ],
@@ -86,12 +92,15 @@ class FilterToolbar extends StatelessWidget {
         onTap: () => onFilterChanged(chip.key),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.chipPaddingH.w,
+            vertical: Spacing.chipPaddingV.h,
+          ),
           decoration: BoxDecoration(
             color: isActive
                 ? activeColor.withValues(alpha: 0.15)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
             border: Border.all(
               color: isActive
                   ? activeColor.withValues(alpha: 0.4)
@@ -101,22 +110,23 @@ class FilterToolbar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(chip.label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isActive ? activeColor : Colors.grey[400],
-                    fontWeight:
-                        isActive ? FontWeight.w600 : FontWeight.normal,
-                  )),
+              Text(
+                chip.label,
+                style: AppTextStyles.caption.copyWith(
+                  color: isActive ? activeColor : AppColors.muted,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
               if (chip.count > 0) ...[
-                const SizedBox(width: 4),
-                Text('${chip.count}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isActive
-                          ? activeColor.withValues(alpha: 0.7)
-                          : Colors.grey[600],
-                    )),
+                SizedBox(width: Spacing.xs.w),
+                Text(
+                  '${chip.count}',
+                  style: AppTextStyles.labelTinySmall.copyWith(
+                    color: isActive
+                        ? activeColor.withValues(alpha: 0.7)
+                        : AppColors.mutedDarker,
+                  ),
+                ),
               ],
             ],
           ),
@@ -133,19 +143,23 @@ class FilterToolbar extends StatelessWidget {
       child: GestureDetector(
         onTap: () => onGroupChanged?.call(chip.key),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.sm.w,
+            vertical: Spacing.xs.h,
+          ),
           decoration: BoxDecoration(
             color: isActive
                 ? AppColors.primary.withValues(alpha: 0.15)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
           ),
-          child: Text(chip.label,
-              style: TextStyle(
-                fontSize: 11,
-                color: isActive ? AppColors.primary : Colors.grey[500],
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-              )),
+          child: Text(
+            chip.label,
+            style: AppTextStyles.tiny.copyWith(
+              color: isActive ? AppColors.primary : AppColors.mutedDark,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
         ),
       ),
     );

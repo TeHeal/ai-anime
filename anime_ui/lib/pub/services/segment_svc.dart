@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/segment.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class SegmentService {
   Future<ScriptSegment> create(int projectId, {required String content, int sortIndex = 0}) async {

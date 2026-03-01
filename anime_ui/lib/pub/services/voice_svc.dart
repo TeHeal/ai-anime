@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/voice.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class VoiceService {
   Future<Voice> clone({

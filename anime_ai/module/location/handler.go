@@ -28,7 +28,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	var req CreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
@@ -38,7 +38,7 @@ func (h *Handler) Create(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, loc)
@@ -59,7 +59,7 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, locs)
@@ -81,7 +81,7 @@ func (h *Handler) Get(c *gin.Context) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, loc)
@@ -99,7 +99,7 @@ func (h *Handler) Update(c *gin.Context) {
 
 	var req UpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *Handler) Update(c *gin.Context) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, loc)
@@ -131,7 +131,7 @@ func (h *Handler) Confirm(c *gin.Context) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, loc)
@@ -152,7 +152,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -180,7 +180,7 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 			pkg.NotFound(c, "场景不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, loc)

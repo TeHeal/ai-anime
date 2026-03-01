@@ -1,4 +1,4 @@
-import 'api.dart';
+import 'api_svc.dart';
 
 /// 通知模型（站内通知，README 2.6）
 class NotificationItem {

@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 class ObjectTab {
   final String label;
   final String routePath;
   final IconData? icon;
 
-  const ObjectTab({
-    required this.label,
-    required this.routePath,
-    this.icon,
-  });
+  const ObjectTab({required this.label, required this.routePath, this.icon});
 }
 
 class ObjectTabBar extends StatelessWidget {
@@ -41,12 +38,14 @@ class ObjectTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: Spacing.barHeight.h,
+      padding: EdgeInsets.symmetric(horizontal: Spacing.mid.w),
       decoration: BoxDecoration(
-        color: const Color(0xFF181825),
+        color: AppColors.surfaceContainer,
         border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          bottom: BorderSide(
+            color: AppColors.onSurface.withValues(alpha: 0.06),
+          ),
         ),
       ),
       child: Row(
@@ -54,29 +53,26 @@ class ObjectTabBar extends StatelessWidget {
           if (title != null) ...[
             Text(
               title!,
-              style: const TextStyle(
-                fontSize: 15,
+              style: AppTextStyles.bodyXLarge.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppColors.onSurface,
               ),
             ),
-            const SizedBox(width: 24),
+            SizedBox(width: Spacing.xl.w),
           ],
           for (var i = 0; i < tabs.length; i++) ...[
             _buildTab(tabs[i]),
-            if (i < tabs.length - 1) const SizedBox(width: 4),
+            if (i < tabs.length - 1) SizedBox(width: Spacing.xs.w),
           ],
-          if (trailing != null) ...[
-            const Spacer(),
-            trailing!,
-          ],
+          if (trailing != null) ...[const Spacer(), trailing!],
         ],
       ),
     );
   }
 
   Widget _buildTab(ObjectTab tab) {
-    final isActive = currentRoute == tab.routePath ||
+    final isActive =
+        currentRoute == tab.routePath ||
         currentRoute.startsWith('${tab.routePath}/');
     final isDisabled = disabledRoutes.contains(tab.routePath);
     final displayLabel = labelOverrides[tab.routePath] ?? tab.label;
@@ -88,14 +84,17 @@ class ObjectTabBar extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.gridGap.w,
+            vertical: Spacing.sm.h,
+          ),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
                 color: isActive && !isDisabled
                     ? AppColors.primary
                     : Colors.transparent,
-                width: 2,
+                width: 2.w,
               ),
             ),
           ),
@@ -107,18 +106,20 @@ class ObjectTabBar extends StatelessWidget {
                 if (tab.icon != null) ...[
                   Icon(
                     tab.icon,
-                    size: 16,
-                    color:
-                        isActive ? AppColors.primary : const Color(0xFF6B7280),
+                    size: 16.r,
+                    color: isActive
+                        ? AppColors.primary
+                        : AppColors.onSurface.withValues(alpha: 0.5),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: Spacing.iconGapSm.w),
                 ],
                 Text(
                   displayLabel,
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: AppTextStyles.bodySmall.copyWith(
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: isActive ? Colors.white : const Color(0xFF9CA3AF),
+                    color: isActive
+                        ? AppColors.onSurface
+                        : AppColors.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],

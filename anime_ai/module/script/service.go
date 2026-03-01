@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
@@ -15,16 +16,42 @@ func (DummyProjectVerifier) Verify(projectID, userID string) error { return nil 
 
 // Service 脚本业务逻辑层
 type Service struct {
-	store    SegmentStore
-	verifier crossmodule.ProjectVerifier
+	store          SegmentStore
+	verifier       crossmodule.ProjectVerifier
+	memberResolver crossmodule.ProjectMemberResolver
 }
 
 // NewService 创建脚本服务
 func NewService(store SegmentStore, verifier crossmodule.ProjectVerifier) *Service {
+	return NewServiceWithResolver(store, verifier, nil)
+}
+
+// NewServiceWithResolver 创建脚本服务（含成员解析器，用于工种权限校验）
+func NewServiceWithResolver(store SegmentStore, verifier crossmodule.ProjectVerifier, memberResolver crossmodule.ProjectMemberResolver) *Service {
 	if verifier == nil {
 		verifier = DummyProjectVerifier{}
 	}
-	return &Service{store: store, verifier: verifier}
+	return &Service{store: store, verifier: verifier, memberResolver: memberResolver}
+}
+
+// checkScriptEdit 校验脚本编辑权限（projectID/userID 为 uint）
+func (s *Service) checkScriptEdit(projectID, userID uint) error {
+	if s.memberResolver == nil {
+		return nil
+	}
+	projectIDStr := pkg.UUIDString(pkg.UintToUUID(projectID))
+	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+	info, err := s.memberResolver.Resolve(projectIDStr, userIDStr)
+	if err != nil {
+		return err
+	}
+	if info.IsOwner {
+		return nil
+	}
+	if !auth.CanDo(info.JobRoles, auth.ActionScriptEdit) {
+		return fmt.Errorf("%w: 当前工种不允许编辑脚本", pkg.ErrForbidden)
+	}
+	return nil
 }
 
 // CreateSegmentRequest 创建分段请求
@@ -54,6 +81,9 @@ func (s *Service) Create(projectID, userID uint, req CreateSegmentRequest) (*Seg
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 		return nil, err
 	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
+		return nil, err
+	}
 	seg := &Segment{
 		ProjectID: projectID,
 		SortIndex: req.SortIndex,
@@ -68,6 +98,9 @@ func (s *Service) Create(projectID, userID uint, req CreateSegmentRequest) (*Seg
 // BulkCreate 批量创建分段（先清空项目下已有分段）
 func (s *Service) BulkCreate(projectID, userID uint, req BulkCreateSegmentRequest) ([]Segment, error) {
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		return nil, err
+	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
 		return nil, err
 	}
 	_ = s.store.DeleteByProject(projectID)
@@ -98,6 +131,9 @@ func (s *Service) Update(id string, projectID, userID uint, req UpdateSegmentReq
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 		return nil, err
 	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
+		return nil, err
+	}
 	seg, err := s.store.FindByID(id)
 	if err != nil {
 		return nil, err
@@ -122,6 +158,9 @@ func (s *Service) Delete(id string, projectID, userID uint) error {
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 		return err
 	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
+		return err
+	}
 	seg, err := s.store.FindByID(id)
 	if err != nil {
 		return err
@@ -135,6 +174,9 @@ func (s *Service) Delete(id string, projectID, userID uint) error {
 // Reorder 排序分段
 func (s *Service) Reorder(projectID, userID uint, req ReorderSegmentsRequest) error {
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		return err
+	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
 		return err
 	}
 	return s.store.ReorderByProject(projectID, req.OrderedIDs)
@@ -165,6 +207,9 @@ func (s *Service) SubmitParse(projectID, userID uint, req ScriptParseRequest) (*
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 		return nil, err
 	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
+		return nil, err
+	}
 	taskID := fmt.Sprintf("script_parse_%d_%d", projectID, userID)
 	return &ParseTask{TaskID: taskID, Status: "pending"}, nil
 }
@@ -172,6 +217,9 @@ func (s *Service) SubmitParse(projectID, userID uint, req ScriptParseRequest) (*
 // ParseSync 同步解析（占位：返回空结构）
 func (s *Service) ParseSync(ctx context.Context, projectID, userID uint, req ScriptParseRequest) (*ParseResult, error) {
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		return nil, err
+	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
 		return nil, err
 	}
 	_ = ctx
@@ -194,6 +242,9 @@ type ScriptConfirmRequest struct {
 // Confirm 确认导入解析结果（占位：暂不写入 episode/scene/block）
 func (s *Service) Confirm(projectID, userID uint, req ScriptConfirmRequest) error {
 	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		return err
+	}
+	if err := s.checkScriptEdit(projectID, userID); err != nil {
 		return err
 	}
 	_ = req

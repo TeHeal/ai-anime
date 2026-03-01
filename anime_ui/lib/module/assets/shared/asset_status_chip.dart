@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 /// 资产状态芯片
 class AssetStatusChip extends StatelessWidget {
@@ -13,35 +16,38 @@ class AssetStatusChip extends StatelessWidget {
   final Color color;
   final double fontSize;
 
+  /// 与 locations/props 的 _statusChip 映射一致
   factory AssetStatusChip.fromStatus(String status) {
     switch (status) {
       case 'confirmed':
-        return const AssetStatusChip(
-            label: '已确认', color: Color(0xFF22C55E));
+        return const AssetStatusChip(label: '已确认', color: AppColors.success);
       case 'skeleton':
-        return const AssetStatusChip(
-            label: '骨架', color: Color(0xFFF97316));
+        return const AssetStatusChip(label: '骨架', color: AppColors.onSurface);
       case 'draft':
-        return const AssetStatusChip(
-            label: '草稿', color: Color(0xFF3B82F6));
+        return const AssetStatusChip(label: '待确认', color: AppColors.newTag);
       default:
         return AssetStatusChip(
-            label: status, color: Colors.grey);
+          label: status.isEmpty ? '待确认' : status,
+          color: status.isEmpty ? AppColors.newTag : AppColors.onSurface,
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.sm.w,
+        vertical: Spacing.xxs.h,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: fontSize,
+        style: AppTextStyles.tiny.copyWith(
+          fontSize: fontSize.sp,
           color: color,
           fontWeight: FontWeight.w500,
         ),

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+
 
 class GlowCard extends StatefulWidget {
   const GlowCard({
     super.key,
     required this.child,
     this.onTap,
-    this.borderRadius = 16.0,
+    this.borderRadius = RadiusTokens.xxxl,
     this.glowColor,
     this.glowIntensity = 0.15,
     this.hoverGlowIntensity = 0.35,
@@ -41,18 +43,20 @@ class _GlowCardState extends State<GlowCard> {
   @override
   Widget build(BuildContext context) {
     final glow = widget.glowColor ?? AppColors.primary;
-    final accentColors = widget.topAccentColors ??
+    final accentColors =
+        widget.topAccentColors ??
         [
-          const Color(0xFF8B5CF6),
-          const Color(0xFF6366F1),
-          const Color(0xFF3B82F6),
+          AppColors.primary,
+          AppColors.primary.withValues(alpha: 0.95),
+          AppColors.info,
         ];
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      cursor:
-          widget.onTap != null ? SystemMouseCursors.click : MouseCursor.defer,
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : MouseCursor.defer,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
@@ -64,14 +68,15 @@ class _GlowCardState extends State<GlowCard> {
             0,
           ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            gradient: widget.background ??
+            borderRadius: BorderRadius.circular(widget.borderRadius.r),
+            gradient:
+                widget.background ??
                 const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF1E1E2E),
-                    Color(0xFF252540),
+                    AppColors.surfaceContainerHigh,
+                    AppColors.surfaceContainerHighest,
                   ],
                 ),
             border: Border.all(
@@ -82,16 +87,17 @@ class _GlowCardState extends State<GlowCard> {
             boxShadow: [
               BoxShadow(
                 color: glow.withValues(
-                  alpha:
-                      _hovered ? widget.hoverGlowIntensity : widget.glowIntensity,
+                  alpha: _hovered
+                      ? widget.hoverGlowIntensity
+                      : widget.glowIntensity,
                 ),
-                blurRadius: _hovered ? 24 : 10,
-                spreadRadius: _hovered ? 2 : 0,
+                blurRadius: _hovered ? 24.r : 10.r,
+                spreadRadius: _hovered ? 2.r : 0.r,
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius: BorderRadius.circular(widget.borderRadius.r),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -99,16 +105,15 @@ class _GlowCardState extends State<GlowCard> {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 280),
                     height: _hovered
-                        ? widget.topAccentHeight + 2
-                        : widget.topAccentHeight,
+                        ? (widget.topAccentHeight + 2).h
+                        : widget.topAccentHeight.h,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(colors: accentColors),
                     ),
                   ),
                 Expanded(
                   child: Padding(
-                    padding:
-                        widget.padding ?? const EdgeInsets.all(20),
+                    padding: widget.padding ?? EdgeInsets.all(Spacing.xl.r),
                     child: widget.child,
                   ),
                 ),

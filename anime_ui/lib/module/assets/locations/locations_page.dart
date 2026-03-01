@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/widgets/loading.dart';
 import 'package:anime_ui/pub/models/location.dart';
 import 'package:anime_ui/module/assets/shared/confirm_delete_dialog.dart';
-import 'package:anime_ui/module/assets/locations/providers/locations_provider.dart';
-import 'package:anime_ui/module/assets/locations/providers/locations_providers.dart';
+import 'package:anime_ui/module/assets/locations/providers/list.dart';
+import 'package:anime_ui/module/assets/locations/providers/selection.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_detail_panel.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_edit_dialog.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_list_panel.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_toolbar.dart';
 
-/// 场景/环境页
-class AssetsEnvironmentsPage extends ConsumerStatefulWidget {
-  const AssetsEnvironmentsPage({super.key});
+/// 场景/地点页（locations）
+class AssetsLocationsPage extends ConsumerStatefulWidget {
+  const AssetsLocationsPage({super.key});
 
   @override
-  ConsumerState<AssetsEnvironmentsPage> createState() =>
-      _AssetsEnvironmentsPageState();
+  ConsumerState<AssetsLocationsPage> createState() =>
+      _AssetsLocationsPageState();
 }
 
-class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage> {
+class _AssetsLocationsPageState extends ConsumerState<AssetsLocationsPage> {
   @override
   void initState() {
     super.initState();
@@ -44,7 +47,7 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
       loading: () => Column(
         children: [
           toolbar,
-          const Expanded(child: Center(child: CircularProgressIndicator())),
+          const Expanded(child: Center(child: LoadingSpinner())),
         ],
       ),
       error: (e, _) => Column(
@@ -54,7 +57,9 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
             child: Center(
               child: Text(
                 '加载失败: $e',
-                style: TextStyle(color: Colors.red[400]),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.error,
+                ),
               ),
             ),
           ),
@@ -81,37 +86,49 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
           children: [
             toolbar,
             Expanded(
-              child: Row(
-                children: [
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minWidth: 260,
-                      maxWidth: 400,
-                    ),
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.25,
-                      child: LocationListPanel(locations: locs),
-                    ),
-                  ),
-                  VerticalDivider(width: 1, color: Colors.grey[800]),
-                  Expanded(
-                    child: selected != null
-                        ? LocationDetailPanel(
-                            key: ValueKey(selected.id),
-                            location: selected,
-                            onConfirm: selected.isConfirmed
-                                ? null
-                                : () => _handleConfirm(context, ref, selected),
-                            onDelete: () =>
-                                _confirmDelete(context, ref, selected),
-                            onGenerateImage: () =>
-                                _handleGenerateImage(context, ref, selected),
-                            onEdit: () =>
-                                _showEditLocation(context, ref, selected),
-                          )
-                        : _buildSelectHint(),
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final w = constraints.maxWidth;
+                  final panelW = w < Breakpoints.md
+                      ? (w * 0.4).clamp(Spacing.listPanelMinWidth.w, w * 0.6)
+                      : (w * 0.25).clamp(
+                          Spacing.listPanelMinWidth.w,
+                          Spacing.listPanelMaxWidth.w,
+                        );
+                  return Row(
+                    children: [
+                      SizedBox(
+                        width: panelW,
+                        child: LocationListPanel(locations: locs),
+                      ),
+                      VerticalDivider(width: 1.w, color: AppColors.divider),
+                      Expanded(
+                        child: selected != null
+                            ? LocationDetailPanel(
+                                key: ValueKey(selected.id),
+                                location: selected,
+                                onConfirm: selected.isConfirmed
+                                    ? null
+                                    : () => _handleConfirm(
+                                        context,
+                                        ref,
+                                        selected,
+                                      ),
+                                onDelete: () =>
+                                    _confirmDelete(context, ref, selected),
+                                onGenerateImage: () => _handleGenerateImage(
+                                  context,
+                                  ref,
+                                  selected,
+                                ),
+                                onEdit: () =>
+                                    _showEditLocation(context, ref, selected),
+                              )
+                            : _buildSelectHint(),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -129,21 +146,27 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(AppIcons.landscape, size: 64, color: Colors.grey[700]),
-                const SizedBox(height: 16),
+                Icon(
+                  AppIcons.landscape,
+                  size: 64.r,
+                  color: AppColors.surfaceMuted,
+                ),
+                SizedBox(height: Spacing.lg.h),
                 Text(
                   '暂无场景',
-                  style: TextStyle(fontSize: 18, color: Colors.grey[400]),
+                  style: AppTextStyles.h3.copyWith(color: AppColors.muted),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: Spacing.sm.h),
                 Text(
                   '点击 AI 提取资产，或手动添加场景',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.mutedDarker,
+                  ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: Spacing.mid.h),
                 OutlinedButton.icon(
                   onPressed: () => _showAddLocation(context, ref),
-                  icon: const Icon(Icons.add, size: 18),
+                  icon: Icon(AppIcons.add, size: 18.r),
                   label: const Text('手动添加'),
                 ),
               ],
@@ -159,11 +182,13 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(AppIcons.landscape, size: 48, color: Colors.grey[700]),
-          const SizedBox(height: 12),
+          Icon(AppIcons.landscape, size: 48.r, color: AppColors.surfaceMuted),
+          SizedBox(height: Spacing.md.h),
           Text(
             '选择左侧场景查看详情',
-            style: TextStyle(fontSize: 15, color: Colors.grey[500]),
+            style: AppTextStyles.bodyXLarge.copyWith(
+              color: AppColors.mutedDark,
+            ),
           ),
         ],
       ),
@@ -200,37 +225,45 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
 
     if (warnings.isEmpty) {
       ref.read(assetLocationsProvider.notifier).confirm(loc.id!);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('场景「${loc.name}」已确认')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('场景「${loc.name}」已确认')));
       return;
     }
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('确认场景', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceMutedDarker,
+        title: Text(
+          '确认场景',
+          style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '以下项目尚未完善，确认后仍可补充：',
-              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: Spacing.md.h),
             ...warnings.map(
               (w) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: EdgeInsets.only(bottom: Spacing.sm.h),
                 child: Row(
                   children: [
-                    Icon(AppIcons.warning, size: 14, color: Colors.orange[400]),
-                    const SizedBox(width: 8),
+                    Icon(
+                      AppIcons.warning,
+                      size: 14.r,
+                      color: AppColors.warning,
+                    ),
+                    SizedBox(width: Spacing.sm.w),
                     Text(
                       w,
-                      style:
-                          TextStyle(color: Colors.orange[300], fontSize: 13),
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.warning,
+                      ),
                     ),
                   ],
                 ),
@@ -247,13 +280,11 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
             onPressed: () {
               Navigator.pop(ctx);
               ref.read(assetLocationsProvider.notifier).confirm(loc.id!);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('场景「${loc.name}」已确认')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('场景「${loc.name}」已确认')));
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF22C55E),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.success),
             child: const Text('仍然确认'),
           ),
         ],
@@ -280,8 +311,8 @@ class _AssetsEnvironmentsPageState extends ConsumerState<AssetsEnvironmentsPage>
   ) async {
     if (loc.isGenerating) return;
     // TODO: 接入 ImageGenDialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('场景图生成功能待接入')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('场景图生成功能待接入')));
   }
 }

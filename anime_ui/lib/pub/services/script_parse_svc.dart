@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'api.dart';
+import 'api_svc.dart';
 
 class ScriptParseService {
   /// Submit async parse task. Returns task info with task_id.

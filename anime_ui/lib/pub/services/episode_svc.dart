@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/episode.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class EpisodeService {
   Future<Episode> create(int projectId, {

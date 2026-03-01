@@ -18,7 +18,7 @@ func (h *Handler) ListByCharacter(c *gin.Context) {
 
 	snapshots, err := h.svc.ListSnapshotsByCharacter(charID)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, snapshots)
@@ -39,7 +39,7 @@ func (h *Handler) ListSnapshotsByProject(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, snapshots)
@@ -55,6 +55,7 @@ func (h *Handler) GetSnapshot(c *gin.Context) {
 
 	snap, err := h.svc.GetSnapshot(uint(id))
 	if err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "快照不存在")
 		return
 	}
@@ -67,13 +68,13 @@ func (h *Handler) CreateSnapshot(c *gin.Context) {
 
 	var req CreateSnapshotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	snap, err := h.svc.CreateSnapshot(userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, snap)
@@ -86,16 +87,17 @@ func (h *Handler) UpdateSnapshot(c *gin.Context) {
 		pkg.BadRequest(c, "无效的快照 ID")
 		return
 	}
+	userID := c.GetUint("user_id")
 
 	var req UpdateSnapshotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
-	snap, err := h.svc.UpdateSnapshot(uint(id), req)
+	snap, err := h.svc.UpdateSnapshot(uint(id), userID, req)
 	if err != nil {
-		pkg.InternalError(c, "快照不存在")
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, snap)
@@ -108,9 +110,10 @@ func (h *Handler) DeleteSnapshot(c *gin.Context) {
 		pkg.BadRequest(c, "无效的快照 ID")
 		return
 	}
+	userID := c.GetUint("user_id")
 
-	if err := h.svc.DeleteSnapshot(uint(id)); err != nil {
-		pkg.InternalError(c, err.Error())
+	if err := h.svc.DeleteSnapshot(uint(id), userID); err != nil {
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -130,7 +133,7 @@ func (h *Handler) AnalyzePreview(c *gin.Context) {
 
 	result, err := h.svc.AnalyzePreview(c.Request.Context(), projectID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, result)
@@ -150,7 +153,7 @@ func (h *Handler) AnalyzeConfirm(c *gin.Context) {
 
 	result, err := h.svc.AnalyzeConfirm(c.Request.Context(), projectID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, result)

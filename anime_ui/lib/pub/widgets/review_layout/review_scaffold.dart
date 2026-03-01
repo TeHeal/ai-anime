@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// Three-column review layout: left nav + center editor + right panel.
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+
+/// 三栏审核布局：左侧镜头列表 + 中间编辑器 + 右侧面板
 ///
-/// Accepts builders so each module can supply its own content while sharing
-/// the structural skeleton (dividers, widths, background colours).
+/// 窄屏时左右面板宽度缩小，使用 Breakpoints 响应式
 class ReviewScaffold extends StatelessWidget {
   final Widget leftNav;
   final Widget center;
@@ -18,27 +20,36 @@ class ReviewScaffold extends StatelessWidget {
     required this.center,
     required this.rightPanel,
     this.topBar,
-    this.leftWidth = 240,
-    this.rightWidth = 260,
+    this.leftWidth = Spacing.reviewLeftWidth,
+    this.rightWidth = Spacing.reviewRightWidth,
   });
-
-  static const _dividerColor = Color(0xFF2A2A3C);
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.sizeOf(context).width;
+    final narrow = Breakpoints.isNarrow(w);
+    final lw = narrow ? leftWidth * 0.85 : leftWidth;
+    final rw = narrow ? rightWidth * 0.85 : rightWidth;
+
     return Column(
       children: [
-        if (topBar != null) topBar!,  // ignore: use_null_aware_elements
+        if (topBar case Widget w) w,
         Expanded(
           child: Row(
             children: [
-              SizedBox(width: leftWidth, child: leftNav),
-              const VerticalDivider(
-                  width: 1, thickness: 1, color: _dividerColor),
+              SizedBox(width: lw.w, child: leftNav),
+              VerticalDivider(
+                width: 1.w,
+                thickness: 1.r,
+                color: AppColors.divider,
+              ),
               Expanded(child: center),
-              const VerticalDivider(
-                  width: 1, thickness: 1, color: _dividerColor),
-              SizedBox(width: rightWidth, child: rightPanel),
+              VerticalDivider(
+                width: 1.w,
+                thickness: 1.r,
+                color: AppColors.divider,
+              ),
+              SizedBox(width: rw.w, child: rightPanel),
             ],
           ),
         ),

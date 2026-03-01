@@ -1,6 +1,6 @@
 import 'package:anime_ui/pub/models/project.dart';
 import 'package:anime_ui/pub/models/prop.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class ProjectService {
   Future<Project> create({

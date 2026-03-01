@@ -17,10 +17,10 @@ func NewService(data Data) *Service {
 
 // CreateProjectRequest 创建项目请求
 type CreateProjectRequest struct {
-	Name      string         `json:"name" binding:"required,max=128"`
-	Story     string         `json:"story" binding:"max=6000"`
-	StoryMode string         `json:"story_mode" binding:"omitempty,oneof=full_script creative"`
-	Config    ProjectConfig  `json:"config"`
+	Name      string        `json:"name" binding:"required,max=128"`
+	Story     string        `json:"story" binding:"max=6000"`
+	StoryMode string        `json:"story_mode" binding:"omitempty,oneof=full_script creative"`
+	Config    ProjectConfig `json:"config"`
 }
 
 // UpdateProjectRequest 更新项目请求（字段可选）
@@ -35,10 +35,10 @@ type UpdateProjectRequest struct {
 // Create 创建项目
 func (s *Service) Create(userID string, req CreateProjectRequest) (*Project, error) {
 	p := &Project{
-		UserIDStr: userID,
-		Name:      req.Name,
-		Story:     req.Story,
-		StoryMode: req.StoryMode,
+		UserIDStr:  userID,
+		Name:       req.Name,
+		Story:      req.Story,
+		StoryMode:  req.StoryMode,
 		MirrorMode: true,
 	}
 	p.SetConfig(req.Config)
@@ -122,8 +122,9 @@ func (s *Service) UpdateProps(id, userID string, props []map[string]interface{})
 
 // AddMemberRequest 添加成员请求
 type AddMemberRequest struct {
-	UserID string `json:"user_id" binding:"required"`
-	Role   string `json:"role" binding:"required,oneof=editor viewer"`
+	UserID   string   `json:"user_id" binding:"required"`
+	Role     string   `json:"role" binding:"required,oneof=editor viewer"`
+	JobRoles []string `json:"job_roles"` // 工种：director, storyboarder, designer 等，可选
 }
 
 // UpdateMemberRoleRequest 更新成员角色请求
@@ -152,6 +153,7 @@ func (s *Service) AddMember(projectID, operatorID string, req AddMemberRequest) 
 		ProjectIDStr: projectID,
 		UserIDStr:    req.UserID,
 		Role:         req.Role,
+		JobRoles:     req.JobRoles,
 	}
 	if err := s.data.CreateMember(m); err != nil {
 		return nil, err
@@ -169,6 +171,18 @@ func (s *Service) UpdateMemberRole(projectID, operatorID, memberUserID string, r
 		return errors.New("仅项目创建者可修改成员角色")
 	}
 	return s.data.UpdateMemberRole(projectID, memberUserID, role)
+}
+
+// UpdateMemberJobRoles 更新成员工种（仅项目创建者可操作）
+func (s *Service) UpdateMemberJobRoles(projectID, operatorID, memberUserID string, jobRoles []string) error {
+	p, err := s.data.FindByID(projectID, operatorID)
+	if err != nil {
+		return err
+	}
+	if p.UserIDStr != operatorID {
+		return errors.New("仅项目创建者可修改成员工种")
+	}
+	return s.data.UpdateMemberJobRoles(projectID, memberUserID, jobRoles)
 }
 
 // RemoveMember 移除项目成员（仅项目创建者可操作）

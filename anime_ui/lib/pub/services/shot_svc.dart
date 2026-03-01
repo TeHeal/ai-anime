@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/shot.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class ShotService {
   Future<StoryboardShot> create(int projectId, {

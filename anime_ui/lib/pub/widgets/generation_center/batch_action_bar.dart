@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// Reusable batch action bar with select-all toggle and a primary action button.
 class BatchActionBar extends StatelessWidget {
@@ -31,7 +32,7 @@ class BatchActionBar extends StatelessWidget {
     return Row(
       children: [
         _buildSelectAllChip(),
-        const SizedBox(width: 12),
+        SizedBox(width: Spacing.md.w),
         _buildBatchButton(),
       ],
     );
@@ -43,16 +44,19 @@ class BatchActionBar extends StatelessWidget {
       child: GestureDetector(
         onTap: onToggleSelectAll,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.md.w,
+            vertical: Spacing.chipPaddingVSmall.h,
+          ),
           decoration: BoxDecoration(
             color: allSelected
                 ? AppColors.primary.withValues(alpha: 0.15)
-                : Colors.grey[800]!.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
+                : AppColors.surfaceMutedDark.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
             border: Border.all(
               color: allSelected
                   ? AppColors.primary.withValues(alpha: 0.3)
-                  : Colors.grey[700]!,
+                  : AppColors.surfaceMuted,
             ),
           ),
           child: Row(
@@ -60,16 +64,15 @@ class BatchActionBar extends StatelessWidget {
             children: [
               Icon(
                 allSelected ? AppIcons.checkOutline : AppIcons.circleOutline,
-                size: 14,
-                color: allSelected ? AppColors.primary : Colors.grey[400],
+                size: Spacing.gridGap.r,
+                color: allSelected ? AppColors.primary : AppColors.muted,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: Spacing.iconGapSm.w),
               Text(
                 allSelected ? '取消全选' : '全选',
-                style: TextStyle(
-                    fontSize: 12,
-                    color:
-                        allSelected ? AppColors.primary : Colors.grey[400]),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: allSelected ? AppColors.primary : AppColors.muted,
+                ),
               ),
             ],
           ),
@@ -82,14 +85,21 @@ class BatchActionBar extends StatelessWidget {
     final enabled = selectedCount > 0 && batchEnabled;
     return FilledButton.icon(
       onPressed: enabled ? onBatchAction : null,
-      icon: Icon(batchIcon, size: 15),
+      icon: Icon(batchIcon, size: 15.r),
       label: Text('$batchLabel ($selectedCount)'),
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.primary,
-        disabledBackgroundColor: Colors.grey[800],
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        disabledBackgroundColor: AppColors.surfaceMutedDark,
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.lg.w,
+          vertical: Spacing.buttonPaddingV.h,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+        ),
+        textStyle: AppTextStyles.bodySmall.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

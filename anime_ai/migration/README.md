@@ -65,6 +65,9 @@ psql -U postgres -d ai_anime -f sch/schema.sql
 ```bash
 # 领域模型补充表（Notification、ReviewRecord、Schedule、CompositeTask、AssetVersion、ProviderUsage）
 psql -U "$DB_USER" -d "$DB_NAME" -f migration/20250228_add_domain_tables.sql
+
+# 阶段一权限扩展：project_members 增加 job_roles（工种角色数组）
+psql -U "$DB_USER" -d "$DB_NAME" -f migration/20250301_add_job_roles.sql
 ```
 
 ### 方式二：apply_schema.sh

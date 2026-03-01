@@ -1,4 +1,4 @@
-import 'api.dart';
+import 'api_svc.dart';
 
 class ShotImageService {
   /// Batch generate shot images.

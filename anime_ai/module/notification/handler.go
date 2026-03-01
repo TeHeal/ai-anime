@@ -31,6 +31,7 @@ func (h *Handler) List(c *gin.Context) {
 	}
 	list, err := h.svc.List(c.Request.Context(), userID, int32(limit), int32(offset))
 	if err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "获取通知列表失败")
 		return
 	}
@@ -46,6 +47,7 @@ func (h *Handler) CountUnread(c *gin.Context) {
 	}
 	count, err := h.svc.CountUnread(c.Request.Context(), userID)
 	if err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "获取未读数失败")
 		return
 	}
@@ -61,6 +63,7 @@ func (h *Handler) MarkAsRead(c *gin.Context) {
 		return
 	}
 	if err := h.svc.MarkAsRead(c.Request.Context(), id, userID); err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "标记已读失败")
 		return
 	}
@@ -75,6 +78,7 @@ func (h *Handler) MarkAllAsRead(c *gin.Context) {
 		return
 	}
 	if err := h.svc.MarkAllAsRead(c.Request.Context(), userID); err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "全部已读失败")
 		return
 	}

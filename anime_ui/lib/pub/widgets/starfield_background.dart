@@ -1,6 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+
 
 class StarfieldBackground extends StatefulWidget {
   const StarfieldBackground({
@@ -47,15 +50,14 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     super.dispose();
   }
 
-  void _initParticles(Size size) {
+  void _initParticles(Size size, double minR, double maxR) {
     if (size == _lastSize && _particles.isNotEmpty) return;
     _lastSize = size;
     _particles = List.generate(widget.particleCount, (_) {
       return _Particle(
         x: _random.nextDouble() * size.width,
         y: _random.nextDouble() * size.height,
-        radius: widget.minRadius +
-            _random.nextDouble() * (widget.maxRadius - widget.minRadius),
+        radius: minR + _random.nextDouble() * (maxR - minR),
         opacity: 0.1 + _random.nextDouble() * 0.5,
         speedX: (_random.nextDouble() - 0.5) * widget.speed,
         speedY: (_random.nextDouble() - 0.5) * widget.speed,
@@ -67,12 +69,12 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = widget.particleColor ?? const Color(0xFF8B5CF6);
+    final baseColor = widget.particleColor ?? AppColors.primary;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
-        _initParticles(size);
+        _initParticles(size, widget.minRadius.r, widget.maxRadius.r);
 
         return AnimatedBuilder(
           animation: _controller,
@@ -86,8 +88,9 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
               ),
               child: widget.overlayGradient != null
                   ? Container(
-                      decoration:
-                          BoxDecoration(gradient: widget.overlayGradient),
+                      decoration: BoxDecoration(
+                        gradient: widget.overlayGradient,
+                      ),
                     )
                   : null,
             );
@@ -139,13 +142,13 @@ class _StarfieldPainter extends CustomPainter {
       p.x += p.speedX;
       p.y += p.speedY;
 
-      if (p.x < -5) p.x = bounds.width + 5;
-      if (p.x > bounds.width + 5) p.x = -5;
-      if (p.y < -5) p.y = bounds.height + 5;
-      if (p.y > bounds.height + 5) p.y = -5;
+      final margin = 5.0;
+      if (p.x < -margin) p.x = bounds.width + margin;
+      if (p.x > bounds.width + margin) p.x = -margin;
+      if (p.y < -margin) p.y = bounds.height + margin;
+      if (p.y > bounds.height + margin) p.y = -margin;
 
-      final twinkle =
-          0.5 + 0.5 * sin(now * p.twinkleSpeed + p.twinklePhase);
+      final twinkle = 0.5 + 0.5 * sin(now * p.twinkleSpeed + p.twinklePhase);
       final alpha = (p.opacity * twinkle).clamp(0.0, 1.0);
 
       canvas.drawCircle(

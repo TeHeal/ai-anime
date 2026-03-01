@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/model_catalog.dart';
 import 'model_selector.dart';
@@ -31,34 +32,30 @@ class ModelSelectorDialogTrigger extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
+          style: AppTextStyles.caption.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.grey[400],
+            color: AppColors.onSurface.withValues(alpha: 0.6),
           ),
         ),
-        const SizedBox(height: 6),
-        if (isLoading)
-          _buildLoading()
-        else
-          _buildTrigger(context),
+        SizedBox(height: Spacing.sm.h),
+        if (isLoading) _buildLoading() else _buildTrigger(context),
       ],
     );
   }
 
   Widget _buildLoading() {
     return Container(
-      height: 38,
+      height: 38.h,
       decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[800]!),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+        border: Border.all(color: AppColors.border),
       ),
       child: Center(
         child: SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(strokeWidth: 2, color: accent),
+          width: 14.w,
+          height: 14.h,
+          child: CircularProgressIndicator(strokeWidth: 2.r, color: accent),
         ),
       ),
     );
@@ -68,12 +65,12 @@ class ModelSelectorDialogTrigger extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showPicker(context),
       child: Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        height: 38.h,
+        padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
         decoration: BoxDecoration(
-          color: Colors.grey[900],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[800]!),
+          color: AppColors.surfaceMutedDarker,
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           children: [
@@ -85,10 +82,9 @@ class ModelSelectorDialogTrigger extends StatelessWidget {
                       children: [
                         Text(
                           selected!.displayName,
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: AppTextStyles.caption.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppColors.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -96,7 +92,11 @@ class ModelSelectorDialogTrigger extends StatelessWidget {
                         if (selected!.features.isNotEmpty)
                           Text(
                             translateFeatures(selected!.features),
-                            style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                            style: AppTextStyles.labelTinySmall.copyWith(
+                              color: AppColors.onSurface.withValues(
+                                alpha: 0.55,
+                              ),
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -104,10 +104,16 @@ class ModelSelectorDialogTrigger extends StatelessWidget {
                     )
                   : Text(
                       '选择模型',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.onSurface.withValues(alpha: 0.5),
+                      ),
                     ),
             ),
-            Icon(AppIcons.expandMore, size: 14, color: Colors.grey[500]),
+            Icon(
+              AppIcons.expandMore,
+              size: 14.r,
+              color: AppColors.onSurface.withValues(alpha: 0.55),
+            ),
           ],
         ),
       ),
@@ -148,17 +154,24 @@ class ModelPickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF1A1A2E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+      ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 440, maxHeight: 480),
+        constraints: BoxConstraints(maxWidth: 440.w, maxHeight: 480.h),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildHeader(context),
             Flexible(
               child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                padding: EdgeInsets.fromLTRB(
+                  Spacing.md.w,
+                  0,
+                  Spacing.md.w,
+                  Spacing.md.h,
+                ),
                 itemCount: models.length,
                 itemBuilder: (_, i) => _buildItem(models[i]),
               ),
@@ -171,22 +184,30 @@ class ModelPickerDialog extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+      padding: EdgeInsets.fromLTRB(
+        Spacing.mid.w,
+        Spacing.lg.h,
+        Spacing.md.w,
+        Spacing.sm.h,
+      ),
       child: Row(
         children: [
-          Icon(AppIcons.settings, size: 18, color: accent),
-          const SizedBox(width: 8),
-          const Text(
+          Icon(AppIcons.settings, size: 18.r, color: accent),
+          SizedBox(width: Spacing.sm.w),
+          Text(
             '选择模型',
-            style: TextStyle(
-              fontSize: 15,
+            style: AppTextStyles.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: AppColors.onSurface,
             ),
           ),
           const Spacer(),
           IconButton(
-            icon: Icon(AppIcons.close, size: 16, color: Colors.grey[500]),
+            icon: Icon(
+              AppIcons.close,
+              size: 16.r,
+              color: AppColors.onSurface.withValues(alpha: 0.55),
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -199,15 +220,18 @@ class ModelPickerDialog extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
         onTap: () => onSelected(m),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.md.w,
+            vertical: Spacing.lg.h,
+          ),
           decoration: BoxDecoration(
             color: isSelected
                 ? accent.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
           ),
           child: Row(
             children: [
@@ -220,26 +244,28 @@ class ModelPickerDialog extends StatelessWidget {
                         Flexible(
                           child: Text(
                             m.displayName,
-                            style: TextStyle(
-                              fontSize: 13,
+                            style: AppTextStyles.bodySmall.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: isSelected ? accent : Colors.white,
+                              color: isSelected ? accent : AppColors.onSurface,
                             ),
                           ),
                         ),
                         if (m.isRecommended) ...[
-                          const SizedBox(width: 6),
+                          SizedBox(width: Spacing.iconGapSm.w),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 1),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.badgeGap.w,
+                              vertical: Spacing.xxs.h,
+                            ),
                             decoration: BoxDecoration(
                               color: accent.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(
+                                RadiusTokens.xs.r,
+                              ),
                             ),
                             child: Text(
                               '推荐',
-                              style: TextStyle(
-                                fontSize: 9,
+                              style: AppTextStyles.tiny.copyWith(
                                 color: accent,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -251,17 +277,20 @@ class ModelPickerDialog extends StatelessWidget {
                     if (m.features.isNotEmpty)
                       Text(
                         translateFeatures(m.features),
-                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                        style: AppTextStyles.tiny.copyWith(
+                          color: AppColors.onSurface.withValues(alpha: 0.55),
+                        ),
                       ),
                     Text(
                       m.operatorLabel,
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                      style: AppTextStyles.labelTinySmall.copyWith(
+                        color: AppColors.onSurface.withValues(alpha: 0.5),
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (isSelected)
-                Icon(AppIcons.check, size: 18, color: accent),
+              if (isSelected) Icon(AppIcons.check, size: 18.r, color: accent),
             ],
           ),
         ),

@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/prop.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class PropService {
   /// projectId 支持 int 或 String（UUID）

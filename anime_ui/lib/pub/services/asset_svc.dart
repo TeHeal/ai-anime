@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/asset.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class AssetService {
   Future<Asset> create({

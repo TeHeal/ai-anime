@@ -3,6 +3,8 @@ package character
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
 // Variant 变体结构
@@ -55,6 +57,11 @@ func (s *Service) AddVariant(charID string, userID uint, req AddVariantRequest) 
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
+	}
 	variants := s.getVariants(c)
 	variants = append(variants, Variant{
 		Label:          req.Label,
@@ -78,6 +85,11 @@ func (s *Service) UpdateVariant(charID string, userID uint, idx int, req UpdateV
 	}
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
+	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
 	}
 	variants := s.getVariants(c)
 	if idx < 0 || idx >= len(variants) {
@@ -109,6 +121,11 @@ func (s *Service) DeleteVariant(charID string, userID uint, idx int) (*Character
 	}
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
+	}
+	if c.ProjectID != nil && *c.ProjectID != "" {
+		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+			return nil, err
+		}
 	}
 	variants := s.getVariants(c)
 	if idx < 0 || idx >= len(variants) {

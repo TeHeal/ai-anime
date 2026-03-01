@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
-import 'api.dart';
+import 'api_svc.dart';
 
 class ScriptAiService {
   Stream<String> assistBlock({

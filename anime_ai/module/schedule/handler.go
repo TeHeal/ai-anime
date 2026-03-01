@@ -37,7 +37,7 @@ func (h *Handler) Create(c *gin.Context) {
 	userID := pkg.GetUserIDStr(c)
 	var req CreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	enabled := true
@@ -62,7 +62,7 @@ func (h *Handler) Create(c *gin.Context) {
 			pkg.BadRequest(c, be.Msg)
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, sch)
@@ -82,7 +82,7 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, list)
@@ -102,7 +102,7 @@ func (h *Handler) Get(c *gin.Context) {
 			pkg.NotFound(c, "定时任务不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, sch)
@@ -127,7 +127,7 @@ func (h *Handler) Update(c *gin.Context) {
 	userID := pkg.GetUserIDStr(c)
 	var req UpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	var config []byte
@@ -144,7 +144,7 @@ func (h *Handler) Update(c *gin.Context) {
 			pkg.BadRequest(c, be.Msg)
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, sch)
@@ -163,7 +163,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			pkg.NotFound(c, "定时任务不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)

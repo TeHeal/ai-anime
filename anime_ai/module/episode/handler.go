@@ -47,7 +47,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 	var req CreateEpisodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	ep, err := h.svc.Create(projectID, userID, req)
@@ -56,7 +56,7 @@ func (h *Handler) Create(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, ep.ToResponse())
@@ -75,7 +75,7 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	resp := make([]EpisodeResponse, len(episodes))
@@ -102,7 +102,7 @@ func (h *Handler) Get(c *gin.Context) {
 			pkg.NotFound(c, "集不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, ep.ToResponse())
@@ -121,7 +121,7 @@ func (h *Handler) Update(c *gin.Context) {
 	}
 	var req UpdateEpisodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	ep, err := h.svc.Update(epID, projectID, userID, req)
@@ -130,7 +130,7 @@ func (h *Handler) Update(c *gin.Context) {
 			pkg.NotFound(c, "集不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, ep.ToResponse())
@@ -152,7 +152,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			pkg.NotFound(c, "集不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -194,7 +194,7 @@ func (h *Handler) RequestPackage(c *gin.Context) {
 			pkg.NotFound(c, "集不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	// 占位：后续入队导出任务，返回 task_id
@@ -214,10 +214,11 @@ func (h *Handler) Reorder(c *gin.Context) {
 	}
 	var req ReorderEpisodesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.Reorder(projectID, userID, req); err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "排序失败")
 		return
 	}

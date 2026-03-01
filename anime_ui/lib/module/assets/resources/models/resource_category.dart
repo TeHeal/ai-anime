@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 /// 素材库模态分类
 enum ResourceModality {
-  visual('视觉类', Color(0xFF8B5CF6)),
-  audio('声音类', Color(0xFF3B82F6)),
-  text('文本类', Color(0xFF22C55E));
+  visual('视觉类', AppColors.primary),
+  audio('声音类', AppColors.info),
+  text('文本类', AppColors.success);
 
   const ResourceModality(this.label, this.color);
   final String label;

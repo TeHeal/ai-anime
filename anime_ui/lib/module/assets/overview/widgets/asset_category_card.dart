@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 /// 资产分类卡片
 class AssetCategoryCard extends StatefulWidget {
@@ -49,7 +52,7 @@ class _AssetCategoryCardState extends State<AssetCategoryCard> {
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           transform: Matrix4.translationValues(0, _hovered ? -3 : 0, 0),
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(Spacing.lg.r),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -60,11 +63,11 @@ class _AssetCategoryCardState extends State<AssetCategoryCard> {
                       widget.iconColor.withValues(alpha: 0.03),
                     ]
                   : [
-                      const Color(0xFF1E1E2E),
-                      const Color(0xFF252540),
+                      AppColors.surfaceContainerHigh,
+                      AppColors.surfaceContainerHighest,
                     ],
             ),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
             border: Border.all(
               color: _hovered
                   ? widget.iconColor.withValues(alpha: 0.4)
@@ -74,7 +77,7 @@ class _AssetCategoryCardState extends State<AssetCategoryCard> {
                 ? [
                     BoxShadow(
                       color: widget.iconColor.withValues(alpha: 0.15),
-                      blurRadius: 16,
+                      blurRadius: 16.r,
                       spreadRadius: 0,
                     ),
                   ]
@@ -87,70 +90,77 @@ class _AssetCategoryCardState extends State<AssetCategoryCard> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(7),
+                    padding: EdgeInsets.all(Spacing.sm.r),
                     decoration: BoxDecoration(
                       color: widget.iconColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
                     ),
-                    child:
-                        Icon(widget.icon, size: 16, color: widget.iconColor),
+                    child: Icon(widget.icon, size: 16.r, color: widget.iconColor),
                   ),
-                  const SizedBox(width: 10),
-                  Text(widget.label,
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: _hovered
-                              ? widget.iconColor
-                              : Colors.grey[400],
-                          fontWeight: FontWeight.w500)),
+                  SizedBox(width: Spacing.md.w),
+                  Text(
+                    widget.label,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: _hovered
+                          ? widget.iconColor
+                          : AppColors.onSurface.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const Spacer(),
                   if (!widget.isLoading)
-                    Text('${widget.confirmed}/${widget.total}',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white)),
+                    Text(
+                      '${widget.confirmed}/${widget.total}',
+                      style: AppTextStyles.h3.copyWith(
+                        color: AppColors.onSurface,
+                      ),
+                    ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: Spacing.md.h),
               if (!widget.isLoading && widget.total > 0)
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
                   child: LinearProgressIndicator(
                     value: widget.confirmed / widget.total,
-                    minHeight: 3,
-                    backgroundColor: Colors.grey[800],
-                    color: allDone
-                        ? const Color(0xFF22C55E)
-                        : widget.iconColor,
+                    minHeight: 3.h,
+                    backgroundColor: AppColors.surfaceContainerHighest,
+                    color: allDone ? AppColors.success : widget.iconColor,
                   ),
                 ),
               if (widget.isLoading)
-                const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                SizedBox(
+                  height: 16.r,
+                  width: 16.r,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
                 ),
-              const SizedBox(height: 10),
+              SizedBox(height: Spacing.md.h),
               Row(
                 children: [
                   Expanded(
                     child: widget.nextAction != null
                         ? Text.rich(
-                            TextSpan(children: [
-                              TextSpan(
+                            TextSpan(
+                              children: [
+                                TextSpan(
                                   text: '下一步: ',
-                                  style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 11)),
-                              TextSpan(
+                                  style: AppTextStyles.tiny.copyWith(
+                                    color: AppColors.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                  ),
+                                ),
+                                TextSpan(
                                   text: widget.nextAction,
-                                  style: TextStyle(
-                                      color: widget.iconColor
-                                          .withValues(alpha: 0.9),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500)),
-                            ]),
+                                  style: AppTextStyles.tiny.copyWith(
+                                    color: widget.iconColor.withValues(
+                                      alpha: 0.9,
+                                    ),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           )
@@ -158,28 +168,29 @@ class _AssetCategoryCardState extends State<AssetCategoryCard> {
                             allDone
                                 ? '✓ 全部就绪'
                                 : widget.total == 0
-                                    ? '暂无数据'
-                                    : widget.confirmed == 0 && widget.pending > 0
-                                        ? '已识别 ${widget.pending} 个，待确认'
-                                        : '$pending 个待处理',
-                            style: TextStyle(
-                              fontSize: 11,
+                                ? '暂无数据'
+                                : widget.confirmed == 0 && widget.pending > 0
+                                ? '已识别 ${widget.pending} 个，待确认'
+                                : '$pending 个待处理',
+                            style: AppTextStyles.tiny.copyWith(
                               color: allDone
-                                  ? const Color(0xFF22C55E)
+                                  ? AppColors.success
                                   : pending > 0
-                                      ? Colors.orange[300]
-                                      : Colors.grey[500],
+                                  ? AppColors.warning.withValues(alpha: 0.9)
+                                  : AppColors.onSurface.withValues(alpha: 0.55),
                             ),
                           ),
                   ),
                   if (widget.onTap != null)
-                    Text('前往 →',
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: _hovered
-                                ? widget.iconColor
-                                : Colors.grey[600],
-                            fontWeight: FontWeight.w500)),
+                    Text(
+                      '前往 →',
+                      style: AppTextStyles.tiny.copyWith(
+                        color: _hovered
+                            ? widget.iconColor
+                            : AppColors.onSurface.withValues(alpha: 0.5),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                 ],
               ),
             ],

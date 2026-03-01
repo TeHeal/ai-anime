@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/dashboard.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 import 'step_progress_bar.dart';
 
 /// 集卡片：状态、标题、进度条
@@ -44,24 +45,24 @@ class _EpisodeCardState extends State<EpisodeCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(Spacing.mid.r),
           decoration: BoxDecoration(
             color: _hovered
                 ? AppColors.surface.withValues(alpha: 0.9)
                 : AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
             border: Border.all(
               color: _hovered
                   ? AppColors.primary.withValues(alpha: 0.5)
-                  : Colors.grey[800]!.withValues(alpha: 0.5),
+                  : AppColors.surfaceMutedDark.withValues(alpha: 0.5),
               width: _hovered ? 1.5 : 1,
             ),
             boxShadow: _hovered
                 ? [
                     BoxShadow(
                       color: AppColors.primary.withValues(alpha: 0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
+                      blurRadius: 20.r,
+                      offset: Offset(0, 4.h),
                     ),
                   ]
                 : [],
@@ -70,15 +71,15 @@ class _EpisodeCardState extends State<EpisodeCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(statusInfo),
-              const SizedBox(height: 14),
+              SizedBox(height: Spacing.gridGap.h),
               _buildTitle(),
               if (ep.summary.isNotEmpty) ...[
-                const SizedBox(height: 6),
+                SizedBox(height: Spacing.sm.h),
                 _buildSummary(),
               ],
-              const SizedBox(height: 16),
+              SizedBox(height: Spacing.lg.h),
               _buildStepIndicator(),
-              const SizedBox(height: 14),
+              SizedBox(height: Spacing.gridGap.h),
               _buildFooter(),
             ],
           ),
@@ -97,16 +98,19 @@ class _EpisodeCardState extends State<EpisodeCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.lg.w,
+            vertical: Spacing.md.h,
+          ),
           decoration: BoxDecoration(
             color: _hovered
                 ? AppColors.surface.withValues(alpha: 0.9)
                 : AppColors.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
             border: Border.all(
               color: _hovered
                   ? AppColors.primary.withValues(alpha: 0.4)
-                  : Colors.grey[800]!.withValues(alpha: 0.4),
+                  : AppColors.surfaceMutedDark.withValues(alpha: 0.4),
             ),
           ),
           child: Column(
@@ -117,17 +121,18 @@ class _EpisodeCardState extends State<EpisodeCard> {
                 children: [
                   Text(
                     '第${ep.sortIndex + 1}集',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                    style: AppTextStyles.tiny.copyWith(
+                      color: AppColors.mutedDark,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: Spacing.sm.w),
                   Expanded(
                     child: Text(
                       ep.title.isNotEmpty ? ep.title : '第${ep.sortIndex + 1}集',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.onSurface,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -135,11 +140,13 @@ class _EpisodeCardState extends State<EpisodeCard> {
                   if (ep.sceneCount > 0)
                     Text(
                       '${ep.sceneCount}场',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                      style: AppTextStyles.tiny.copyWith(
+                        color: AppColors.mutedDarker,
+                      ),
                     ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: Spacing.sm.h),
               _buildStepIndicator(),
             ],
           ),
@@ -152,22 +159,23 @@ class _EpisodeCardState extends State<EpisodeCard> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: EdgeInsets.symmetric(
+            horizontal: RadiusTokens.lg.w,
+            vertical: Spacing.xs.h,
+          ),
           decoration: BoxDecoration(
             color: info.color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(Spacing.mid.r),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(info.icon, size: 13, color: info.color),
-              const SizedBox(width: 5),
+              Icon(info.icon, size: 13.r, color: info.color),
+              SizedBox(width: (RadiusTokens.sm + 1).w),
               Text(
                 info.label,
-                style: TextStyle(
+                style: AppTextStyles.labelMedium.copyWith(
                   color: info.color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -176,7 +184,9 @@ class _EpisodeCardState extends State<EpisodeCard> {
         const Spacer(),
         Text(
           '第${ep.sortIndex + 1}集',
-          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+          style: AppTextStyles.labelMedium.copyWith(
+            color: AppColors.mutedDark,
+          ),
         ),
       ],
     );
@@ -187,11 +197,7 @@ class _EpisodeCardState extends State<EpisodeCard> {
       ep.title.isNotEmpty ? ep.title : '第${ep.sortIndex + 1}集',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
+      style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
     );
   }
 
@@ -200,8 +206,10 @@ class _EpisodeCardState extends State<EpisodeCard> {
       ep.summary,
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-          color: Colors.grey[400], fontSize: 13, height: 1.4),
+      style: AppTextStyles.bodySmall.copyWith(
+        color: AppColors.muted,
+        height: 1.4,
+      ),
     );
   }
 
@@ -227,40 +235,46 @@ class _EpisodeCardState extends State<EpisodeCard> {
     return Row(
       children: [
         if (ep.sceneCount > 0) ...[
-          Icon(AppIcons.list, size: 13, color: Colors.grey[500]),
-          const SizedBox(width: 4),
+          Icon(AppIcons.list, size: 13.r, color: AppColors.mutedDark),
+          SizedBox(width: Spacing.xs.w),
           Text(
             '${ep.sceneCount}场',
-            style: TextStyle(color: Colors.grey[500], fontSize: 12),
+            style: AppTextStyles.labelMedium.copyWith(
+            color: AppColors.mutedDark,
           ),
-          const SizedBox(width: 12),
+          ),
+          SizedBox(width: Spacing.md.w),
         ],
         if (ep.characterNames.isNotEmpty) ...[
-          Icon(AppIcons.person, size: 13, color: Colors.grey[500]),
-          const SizedBox(width: 4),
+          Icon(AppIcons.person, size: 13.r, color: AppColors.mutedDark),
+          SizedBox(width: Spacing.xs.w),
           Expanded(
             child: Text(
               ep.characterNames.take(3).join('、'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+              style: AppTextStyles.labelMedium.copyWith(
+            color: AppColors.mutedDark,
+          ),
             ),
           ),
         ],
         if (ep.characterNames.isEmpty) const Spacer(),
         if (_hovered)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: EdgeInsets.symmetric(
+              horizontal: RadiusTokens.lg.w,
+              vertical: Spacing.xs.h,
+            ),
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(Spacing.mid.r),
             ),
-            child: const Text(
+            child: Text(
               '进入',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500),
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.onPrimary,
+              ),
             ),
           ),
       ],
@@ -270,12 +284,11 @@ class _EpisodeCardState extends State<EpisodeCard> {
   static _StatusInfo _statusInfo(String status) {
     switch (status) {
       case 'in_progress':
-        return _StatusInfo(
-            '进行中', AppIcons.inProgress, const Color(0xFF3B82F6));
+        return const _StatusInfo('进行中', AppIcons.inProgress, AppColors.info);
       case 'completed':
-        return _StatusInfo('已完成', AppIcons.check, const Color(0xFF22C55E));
+        return const _StatusInfo('已完成', AppIcons.check, AppColors.success);
       default:
-        return _StatusInfo('未开始', AppIcons.circleOutline, Colors.grey[500]!);
+        return const _StatusInfo('未开始', AppIcons.circleOutline, AppColors.mutedDark);
     }
   }
 }

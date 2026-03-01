@@ -21,12 +21,13 @@ func (h *Handler) Create(c *gin.Context) {
 
 	var req CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	p, err := h.svc.Create(userID, req)
 	if err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "创建项目失败")
 		return
 	}
@@ -58,6 +59,7 @@ func (h *Handler) List(c *gin.Context) {
 
 	projects, err := h.svc.List(userID)
 	if err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "获取项目列表失败")
 		return
 	}
@@ -81,7 +83,7 @@ func (h *Handler) Update(c *gin.Context) {
 
 	var req UpdateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
@@ -122,7 +124,7 @@ func (h *Handler) GetProps(c *gin.Context) {
 
 	props, err := h.svc.GetProps(id, userID)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"props": props})
@@ -141,11 +143,11 @@ func (h *Handler) UpdateProps(c *gin.Context) {
 		Props []map[string]interface{} `json:"props"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.UpdateProps(id, userID, req.Props); err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"message": "ok"})
@@ -180,20 +182,20 @@ func (h *Handler) AddMember(c *gin.Context) {
 
 	var req AddMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	m, err := h.svc.AddMember(projectID, userID, req)
 	if err != nil {
-		pkg.BadRequest(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
 	pkg.Created(c, m)
 }
 
-// UpdateMemberRole 更新成员角色
+// UpdateMemberRole 更新成员层级角色
 func (h *Handler) UpdateMemberRole(c *gin.Context) {
 	userID := pkg.GetUserIDStr(c)
 	projectID := c.Param("id")
@@ -205,12 +207,38 @@ func (h *Handler) UpdateMemberRole(c *gin.Context) {
 
 	var req UpdateMemberRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	if err := h.svc.UpdateMemberRole(projectID, userID, memberUserID, req.Role); err != nil {
-		pkg.BadRequest(c, err.Error())
+		pkg.HandleError(c, err)
+		return
+	}
+
+	pkg.OK(c, gin.H{"message": "ok"})
+}
+
+// UpdateMemberJobRoles 更新成员工种
+func (h *Handler) UpdateMemberJobRoles(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	projectID := c.Param("id")
+	memberUserID := c.Param("userId")
+	if projectID == "" || memberUserID == "" {
+		pkg.BadRequest(c, "无效的 ID")
+		return
+	}
+
+	var req struct {
+		JobRoles []string `json:"job_roles" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	if err := h.svc.UpdateMemberJobRoles(projectID, userID, memberUserID, req.JobRoles); err != nil {
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -228,7 +256,7 @@ func (h *Handler) RemoveMember(c *gin.Context) {
 	}
 
 	if err := h.svc.RemoveMember(projectID, userID, memberUserID); err != nil {
-		pkg.BadRequest(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 

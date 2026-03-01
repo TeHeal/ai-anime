@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/user.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class AuthService {
   Future<({String token, User user})> login(String username, String password) async {

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
@@ -23,7 +23,7 @@ type ExportTaskPayload struct {
 
 // ExportTaskDeps 成片导出 Handler 依赖
 type ExportTaskDeps struct {
-	CompositeService *composite.Service
+	CompositeUpdater crossmodule.CompositeExportUpdater
 	// Storage 可选，用于写入成片文件；nil 时仅更新状态为占位
 }
 
@@ -53,26 +53,26 @@ func (h *ExportTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 		zap.String("episode_id", payload.EpisodeID),
 	)
 
-	if h.deps.CompositeService == nil {
-		h.log.Warn("CompositeService 未配置，跳过")
+	if h.deps.CompositeUpdater == nil {
+		h.log.Warn("CompositeUpdater 未配置，跳过")
 		return nil
 	}
 
 	// 更新为导出中
-	_ = h.deps.CompositeService.UpdateStatus(ctx, payload.CompositeTaskID, composite.StatusExporting, "", "")
+	_ = h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusExporting, "", "")
 
 	// 占位：实际需合并镜头视频（FFmpeg）、音频、字幕
 	// 当前模拟延迟后标记完成
 	select {
 	case <-time.After(2 * time.Second):
 	case <-ctx.Done():
-		_ = h.deps.CompositeService.UpdateStatus(ctx, payload.CompositeTaskID, composite.StatusFailed, "", "任务取消")
+		_ = h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusFailed, "", "任务取消")
 		return ctx.Err()
 	}
 
 	// 占位 output_url，实际应从 Storage 上传后获取
 	outputURL := ""
-	_ = h.deps.CompositeService.UpdateStatus(ctx, payload.CompositeTaskID, composite.StatusDone, outputURL, "")
+	_ = h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusDone, outputURL, "")
 
 	h.log.Info("成片导出任务完成（占位）",
 		zap.String("composite_task_id", payload.CompositeTaskID),

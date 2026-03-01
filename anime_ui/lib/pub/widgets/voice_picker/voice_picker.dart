@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/services/audio_playback_svc.dart';
@@ -27,16 +29,18 @@ class VoicePicker extends StatefulWidget {
   static Future<Resource?> show(
     BuildContext context, {
     required List<Resource> voices,
-    Color accentColor = const Color(0xFF3B82F6),
+    Color accentColor = AppColors.info,
     int? selectedId,
   }) {
     return showDialog<Resource>(
       context: context,
       builder: (_) => Dialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+        ),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480, maxHeight: 560),
+          constraints: BoxConstraints(maxWidth: 480.w, maxHeight: 560.h),
           child: VoicePicker(
             voices: voices,
             accentColor: accentColor,
@@ -68,9 +72,13 @@ class _VoicePickerState extends State<VoicePicker> {
     }
     if (_search.isNotEmpty) {
       final q = _search.toLowerCase();
-      list = list.where((v) =>
-          v.name.toLowerCase().contains(q) ||
-          v.tags.any((t) => t.toLowerCase().contains(q))).toList();
+      list = list
+          .where(
+            (v) =>
+                v.name.toLowerCase().contains(q) ||
+                v.tags.any((t) => t.toLowerCase().contains(q)),
+          )
+          .toList();
     }
     return list;
   }
@@ -87,7 +95,12 @@ class _VoicePickerState extends State<VoicePicker> {
           child: items.isEmpty
               ? _buildEmpty()
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  padding: EdgeInsets.fromLTRB(
+                    Spacing.md.w,
+                    0,
+                    Spacing.md.w,
+                    Spacing.md.h,
+                  ),
                   itemCount: items.length,
                   itemBuilder: (_, i) => _VoicePickerItem(
                     voice: items[i],
@@ -103,22 +116,26 @@ class _VoicePickerState extends State<VoicePicker> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+      padding: EdgeInsets.fromLTRB(
+        Spacing.mid.w,
+        Spacing.lg.h,
+        Spacing.md.w,
+        Spacing.sm.h,
+      ),
       child: Row(
         children: [
-          Icon(AppIcons.mic, size: 18, color: accent),
-          const SizedBox(width: 8),
-          const Text(
+          Icon(AppIcons.mic, size: 18.r, color: accent),
+          SizedBox(width: Spacing.sm.w),
+          Text(
             '选择音色',
-            style: TextStyle(
-              fontSize: 15,
+            style: AppTextStyles.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: AppColors.onSurface,
             ),
           ),
           const Spacer(),
           IconButton(
-            icon: Icon(AppIcons.close, size: 16, color: Colors.grey[500]),
+            icon: Icon(AppIcons.close, size: 16.r, color: AppColors.mutedDark),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -128,41 +145,49 @@ class _VoicePickerState extends State<VoicePicker> {
 
   Widget _buildFilters() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: EdgeInsets.fromLTRB(Spacing.lg.w, 0, Spacing.lg.w, Spacing.sm.h),
       child: Column(
         children: [
           SizedBox(
-            height: 36,
+            height: 36.h,
             child: TextField(
-              style: const TextStyle(fontSize: 13, color: Colors.white),
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.onSurface,
+              ),
               decoration: InputDecoration(
                 hintText: '搜索音色…',
-                hintStyle: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                prefixIcon: Icon(AppIcons.search, size: 16, color: Colors.grey[500]),
+                hintStyle: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.mutedDarker,
+                ),
+                prefixIcon: Icon(
+                  AppIcons.search,
+                  size: 16.r,
+                  color: AppColors.mutedDark,
+                ),
                 filled: true,
-                fillColor: Colors.grey[900],
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                fillColor: AppColors.surfaceMutedDarker,
+                contentPadding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[800]!),
+                  borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+                  borderSide: const BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(RadiusTokens.md.r),
                   borderSide: BorderSide(color: accent),
                 ),
               ),
               onChanged: (v) => setState(() => _search = v),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: Spacing.sm.h),
           Row(
             children: [
               _filterChip('全部', ''),
-              const SizedBox(width: 6),
+              SizedBox(width: Spacing.sm.w),
               _filterChip('男声', 'male'),
-              const SizedBox(width: 6),
+              SizedBox(width: Spacing.sm.w),
               _filterChip('女声', 'female'),
-              const SizedBox(width: 6),
+              SizedBox(width: Spacing.sm.w),
               _filterChip('中性', 'neutral'),
             ],
           ),
@@ -176,19 +201,25 @@ class _VoicePickerState extends State<VoicePicker> {
     return GestureDetector(
       onTap: () => setState(() => _genderFilter = value),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.lg.w,
+          vertical: Spacing.xs.h,
+        ),
         decoration: BoxDecoration(
-          color: selected ? accent.withValues(alpha: 0.15) : Colors.grey[900],
-          borderRadius: BorderRadius.circular(6),
+          color: selected
+              ? accent.withValues(alpha: 0.15)
+              : AppColors.surfaceMutedDarker,
+          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
           border: Border.all(
-            color: selected ? accent.withValues(alpha: 0.4) : Colors.grey[800]!,
+            color: selected
+                ? accent.withValues(alpha: 0.4)
+                : AppColors.surfaceContainer,
           ),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: selected ? accent : Colors.grey[400],
+          style: AppTextStyles.caption.copyWith(
+            color: selected ? accent : AppColors.muted,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -201,9 +232,12 @@ class _VoicePickerState extends State<VoicePicker> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(AppIcons.mic, size: 32, color: Colors.grey[700]),
-          const SizedBox(height: 10),
-          Text('暂无可用音色', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+          Icon(AppIcons.mic, size: 32.r, color: AppColors.surfaceMuted),
+          SizedBox(height: Spacing.lg.h),
+          Text(
+            '暂无可用音色',
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
+          ),
         ],
       ),
     );
@@ -248,19 +282,22 @@ class _VoicePickerItem extends StatelessWidget {
         final isPlaying = hasAudio && playback.isPlayingUrl(_audioUrl!);
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
+          padding: EdgeInsets.only(bottom: Spacing.xs.h),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
               onTap: onTap,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Spacing.md.w,
+                  vertical: Spacing.lg.h,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? accent.withValues(alpha: 0.1)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(RadiusTokens.md.r),
                   border: isSelected
                       ? Border.all(color: accent.withValues(alpha: 0.3))
                       : null,
@@ -268,38 +305,33 @@ class _VoicePickerItem extends StatelessWidget {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: hasAudio
-                          ? () => playback.play(_audioUrl!)
-                          : null,
+                      onTap: hasAudio ? () => playback.play(_audioUrl!) : null,
                       child: Container(
-                        width: 36,
-                        height: 36,
+                        width: 36.w,
+                        height: 36.h,
                         decoration: BoxDecoration(
                           color: hasAudio
                               ? accent.withValues(alpha: isPlaying ? 0.25 : 0.1)
-                              : Colors.grey[850],
+                              : AppColors.surfaceMutedDarker,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          isPlaying
-                              ? Icons.stop_rounded
-                              : Icons.play_arrow_rounded,
-                          size: 18,
-                          color: hasAudio ? accent : Colors.grey[600],
+                          isPlaying ? AppIcons.stop : AppIcons.playArrow,
+                          size: 18.r,
+                          color: hasAudio ? accent : AppColors.mutedDarker,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: Spacing.md.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             voice.name,
-                            style: TextStyle(
-                              fontSize: 13,
+                            style: AppTextStyles.bodySmall.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: isSelected ? accent : Colors.white,
+                              color: isSelected ? accent : AppColors.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -307,7 +339,9 @@ class _VoicePickerItem extends StatelessWidget {
                           if (voice.description.isNotEmpty)
                             Text(
                               voice.description,
-                              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                              style: AppTextStyles.tiny.copyWith(
+                                color: AppColors.mutedDark,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -316,37 +350,41 @@ class _VoicePickerItem extends StatelessWidget {
                     ),
                     if (gender.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(left: 8),
+                        padding: EdgeInsets.only(left: 8.w),
                         child: Icon(
                           gender == 'female' || gender == '女'
                               ? Icons.female_rounded
                               : Icons.male_rounded,
-                          size: 14,
-                          color: Colors.grey[500],
+                          size: 14.r,
+                          color: AppColors.mutedDark,
                         ),
                       ),
                     if (model.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(left: 6),
+                        padding: EdgeInsets.only(left: Spacing.sm.w),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Spacing.sm.w,
+                            vertical: Spacing.xxs.h,
+                          ),
                           decoration: BoxDecoration(
                             color: accent.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(
+                              RadiusTokens.xs.r,
+                            ),
                           ),
                           child: Text(
                             model,
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: accent.withValues(alpha: 0.7)),
+                            style: AppTextStyles.labelTinySmall.copyWith(
+                              color: accent.withValues(alpha: 0.7),
+                            ),
                           ),
                         ),
                       ),
                     if (isSelected)
                       Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Icon(AppIcons.check, size: 16, color: accent),
+                        padding: EdgeInsets.only(left: Spacing.sm.w),
+                        child: Icon(AppIcons.check, size: 16.r, color: accent),
                       ),
                   ],
                 ),

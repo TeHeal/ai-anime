@@ -12,15 +12,16 @@ import (
 )
 
 const createProjectMember = `-- name: CreateProjectMember :one
-INSERT INTO project_members (project_id, user_id, role, joined_at)
-VALUES ($1, $2, COALESCE($3, 'viewer'), $4)
-RETURNING id, created_at, updated_at, deleted_at, project_id, user_id, role, joined_at
+INSERT INTO project_members (project_id, user_id, role, job_roles, joined_at)
+VALUES ($1, $2, COALESCE($3, 'viewer'), COALESCE($4, '[]'), $5)
+RETURNING id, created_at, updated_at, deleted_at, project_id, user_id, role, job_roles, joined_at
 `
 
 type CreateProjectMemberParams struct {
 	ProjectID pgtype.UUID        `json:"project_id"`
 	UserID    pgtype.UUID        `json:"user_id"`
 	Role      interface{}        `json:"role"`
+	JobRoles  interface{}        `json:"job_roles"`
 	JoinedAt  pgtype.Timestamptz `json:"joined_at"`
 }
 
@@ -29,6 +30,7 @@ func (q *Queries) CreateProjectMember(ctx context.Context, arg CreateProjectMemb
 		arg.ProjectID,
 		arg.UserID,
 		arg.Role,
+		arg.JobRoles,
 		arg.JoinedAt,
 	)
 	var i ProjectMember
@@ -40,13 +42,14 @@ func (q *Queries) CreateProjectMember(ctx context.Context, arg CreateProjectMemb
 		&i.ProjectID,
 		&i.UserID,
 		&i.Role,
+		&i.JobRoles,
 		&i.JoinedAt,
 	)
 	return i, err
 }
 
 const getProjectMemberByProjectAndUser = `-- name: GetProjectMemberByProjectAndUser :one
-SELECT id, created_at, updated_at, deleted_at, project_id, user_id, role, joined_at FROM project_members
+SELECT id, created_at, updated_at, deleted_at, project_id, user_id, role, job_roles, joined_at FROM project_members
 WHERE project_id = $1 AND user_id = $2 AND deleted_at IS NULL
 `
 
@@ -66,13 +69,14 @@ func (q *Queries) GetProjectMemberByProjectAndUser(ctx context.Context, arg GetP
 		&i.ProjectID,
 		&i.UserID,
 		&i.Role,
+		&i.JobRoles,
 		&i.JoinedAt,
 	)
 	return i, err
 }
 
 const listProjectMembersByProject = `-- name: ListProjectMembersByProject :many
-SELECT id, created_at, updated_at, deleted_at, project_id, user_id, role, joined_at FROM project_members
+SELECT id, created_at, updated_at, deleted_at, project_id, user_id, role, job_roles, joined_at FROM project_members
 WHERE project_id = $1 AND deleted_at IS NULL
 ORDER BY role ASC
 `
@@ -94,6 +98,7 @@ func (q *Queries) ListProjectMembersByProject(ctx context.Context, projectID pgt
 			&i.ProjectID,
 			&i.UserID,
 			&i.Role,
+			&i.JobRoles,
 			&i.JoinedAt,
 		); err != nil {
 			return nil, err
@@ -122,11 +127,41 @@ func (q *Queries) SoftDeleteProjectMember(ctx context.Context, arg SoftDeletePro
 	return err
 }
 
+const updateProjectMemberJobRoles = `-- name: UpdateProjectMemberJobRoles :one
+UPDATE project_members
+SET job_roles = COALESCE($1, job_roles)
+WHERE project_id = $2 AND user_id = $3 AND deleted_at IS NULL
+RETURNING id, created_at, updated_at, deleted_at, project_id, user_id, role, job_roles, joined_at
+`
+
+type UpdateProjectMemberJobRolesParams struct {
+	JobRoles  []byte      `json:"job_roles"`
+	ProjectID pgtype.UUID `json:"project_id"`
+	UserID    pgtype.UUID `json:"user_id"`
+}
+
+func (q *Queries) UpdateProjectMemberJobRoles(ctx context.Context, arg UpdateProjectMemberJobRolesParams) (ProjectMember, error) {
+	row := q.db.QueryRow(ctx, updateProjectMemberJobRoles, arg.JobRoles, arg.ProjectID, arg.UserID)
+	var i ProjectMember
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.ProjectID,
+		&i.UserID,
+		&i.Role,
+		&i.JobRoles,
+		&i.JoinedAt,
+	)
+	return i, err
+}
+
 const updateProjectMemberRole = `-- name: UpdateProjectMemberRole :one
 UPDATE project_members
 SET role = COALESCE($1, role)
 WHERE project_id = $2 AND user_id = $3 AND deleted_at IS NULL
-RETURNING id, created_at, updated_at, deleted_at, project_id, user_id, role, joined_at
+RETURNING id, created_at, updated_at, deleted_at, project_id, user_id, role, job_roles, joined_at
 `
 
 type UpdateProjectMemberRoleParams struct {
@@ -146,6 +181,7 @@ func (q *Queries) UpdateProjectMemberRole(ctx context.Context, arg UpdateProject
 		&i.ProjectID,
 		&i.UserID,
 		&i.Role,
+		&i.JobRoles,
 		&i.JoinedAt,
 	)
 	return i, err

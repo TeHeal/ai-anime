@@ -3,23 +3,31 @@ package composite
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
 // Service 成片业务逻辑层
 type Service struct {
-	store    Store
-	verifier crossmodule.ProjectVerifier
+	store          Store
+	verifier       crossmodule.ProjectVerifier
+	memberResolver crossmodule.ProjectMemberResolver
 }
 
 // NewService 创建成片服务
 func NewService(store Store, verifier crossmodule.ProjectVerifier) *Service {
+	return NewServiceWithResolver(store, verifier, nil)
+}
+
+// NewServiceWithResolver 创建成片服务（含成员解析器，用于工种权限校验）
+func NewServiceWithResolver(store Store, verifier crossmodule.ProjectVerifier, memberResolver crossmodule.ProjectMemberResolver) *Service {
 	if verifier == nil {
 		verifier = &dummyVerifier{}
 	}
-	return &Service{store: store, verifier: verifier}
+	return &Service{store: store, verifier: verifier, memberResolver: memberResolver}
 }
 
 type dummyVerifier struct{}
@@ -35,6 +43,9 @@ type CreateExportRequest struct {
 // CreateExport 创建成片导出任务，返回任务 ID（供 Worker 入队后使用）
 func (s *Service) CreateExport(ctx context.Context, projectID, userID string, req CreateExportRequest) (*Task, error) {
 	if err := s.verifier.Verify(projectID, userID); err != nil {
+		return nil, err
+	}
+	if err := s.checkResourceAction(projectID, userID, auth.ResourceComposite, "editing", auth.ActionCompositeExport); err != nil {
 		return nil, err
 	}
 	configJSON := req.Config
@@ -92,4 +103,18 @@ func (s *Service) UpdateStatus(ctx context.Context, id, status, outputURL, error
 // UpdateTaskID 更新 Asynq task_id（入队后调用）
 func (s *Service) UpdateTaskID(ctx context.Context, id, taskID string) error {
 	return s.store.UpdateTaskID(ctx, id, taskID)
+}
+
+func (s *Service) checkResourceAction(projectID, userID string, resourceType, status string, action auth.Action) error {
+	if s.memberResolver == nil {
+		return nil
+	}
+	info, err := s.memberResolver.Resolve(projectID, userID)
+	if err != nil {
+		return err
+	}
+	if !auth.CheckResourceAction(resourceType, status, action, info.JobRoles, info.IsOwner) {
+		return fmt.Errorf("%w: 当前工种或资源状态不允许执行此操作", pkg.ErrForbidden)
+	}
+	return nil
 }

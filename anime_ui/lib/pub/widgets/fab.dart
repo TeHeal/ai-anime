@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 
 class AppFab extends StatelessWidget {
-  const AppFab({
-    super.key,
-    this.onPressed,
-  });
+  const AppFab({super.key, this.onPressed});
 
   final VoidCallback? onPressed;
 
@@ -14,7 +12,7 @@ class AppFab extends StatelessWidget {
     return FloatingActionButton(
       onPressed: onPressed,
       backgroundColor: AppColors.primary,
-      child: const Icon(Icons.auto_awesome),
+      child: const Icon(AppIcons.autoAwesome),
     );
   }
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/dashboard.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 
 /// 整体进度概览
 class ProgressOverview extends StatelessWidget {
@@ -18,48 +19,45 @@ class ProgressOverview extends StatelessWidget {
     final pct = total > 0 ? done / total : 0.0;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(Spacing.mid.r),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.surface,
-            AppColors.surface.withValues(alpha: 0.8),
-          ],
+          colors: [AppColors.surface, AppColors.surface.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[800]!.withValues(alpha: 0.4)),
+        borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
+        border: Border.all(
+          color: AppColors.surfaceMutedDark.withValues(alpha: 0.4),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 '整体进度',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
               Text(
                 '${(pct * 100).toInt()}%',
-                style: TextStyle(
+                style: AppTextStyles.h1.copyWith(
                   color: AppColors.primary,
-                  fontSize: 22,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: Spacing.gridGap.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
             child: SizedBox(
-              height: 6,
+              height: Spacing.iconGapSm.h,
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: 1),
                 duration: const Duration(milliseconds: 800),
@@ -70,36 +68,34 @@ class ProgressOverview extends StatelessWidget {
                       Expanded(
                         flex: done,
                         child: Container(
-                          color: const Color(0xFF22C55E)
-                              .withValues(alpha: value),
+                          color: AppColors.success.withValues(alpha: value),
                         ),
                       ),
                     if (inProg > 0)
                       Expanded(
                         flex: inProg,
                         child: Container(
-                          color: const Color(0xFF3B82F6)
-                              .withValues(alpha: value),
+                          color: AppColors.info.withValues(alpha: value),
                         ),
                       ),
                     if (pending > 0)
                       Expanded(
                         flex: pending,
-                        child: Container(color: Colors.grey[800]),
+                        child: Container(color: AppColors.surfaceContainer),
                       ),
                   ],
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: Spacing.gridGap.h),
           Row(
             children: [
-              _legendDot(const Color(0xFF22C55E), '已完成 $done'),
-              const SizedBox(width: 20),
-              _legendDot(const Color(0xFF3B82F6), '进行中 $inProg'),
-              const SizedBox(width: 20),
-              _legendDot(Colors.grey[600]!, '待开始 $pending'),
+              _legendDot(AppColors.success, '已完成 $done'),
+              SizedBox(width: Spacing.mid.w),
+              _legendDot(AppColors.info, '进行中 $inProg'),
+              SizedBox(width: Spacing.mid.w),
+              _legendDot(AppColors.mutedDarker, '待开始 $pending'),
             ],
           ),
         ],
@@ -112,14 +108,14 @@ class ProgressOverview extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: Spacing.sm.w,
+          height: Spacing.sm.h,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: Spacing.sm.w),
         Text(
           text,
-          style: TextStyle(color: Colors.grey[400], fontSize: 12),
+          style: AppTextStyles.labelMedium.copyWith(color: AppColors.muted),
         ),
       ],
     );

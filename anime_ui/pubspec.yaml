@@ -8,8 +8,14 @@ environment:
   sdk: ^3.11.0
 
 dependencies:
+  animated_text_kit: any
+  animations: any
+  cached_network_image: any
+  audio_waveforms: any
   cupertino_icons: any
   dio: any
+  easy_image_viewer: any
+  extended_image: any
   file_picker: any
   shared_preferences: any
   flutter:
@@ -17,12 +23,15 @@ dependencies:
   flutter_fancy_tree_view: any
   flutter_markdown: any
   flutter_riverpod: any
+  flutter_screenutil: any
   freezed_annotation: any
   go_router: any
   json_annotation: any
   just_audio: any
+  shadcn_flutter: any
   solar_icons: any
   web_socket_channel: any
+  zo_animated_border: any
 
 dev_dependencies:
   flutter_test:

@@ -1,61 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
-/// 项目级 Dialog 统一封装。
+
+/// 统一深色主题对话框样式
 ///
-/// 通过 [builder] 将安全的 `close` 回调注入到调用方，
-/// 从 API 层面杜绝 `Navigator.of(context).pop()` 作用域错误。
-///
-/// ```dart
-/// AppDialog.show(context, builder: (_, close) {
-///   return MyDialogView(onClose: close);
-/// });
-/// ```
+/// 用于 AlertDialog、确认删除、警告等，保持视觉一致
 abstract final class AppDialog {
-  AppDialog._();
+  static ShapeBorder get shape => RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(RadiusTokens.lg.r)),
+  );
 
-  /// 显示一个全屏遮罩 Dialog。
-  ///
-  /// [builder] 接收两个参数：
-  /// - `dialogContext`：Dialog 层级的 BuildContext（一般不需要直接使用）
-  /// - `close`：关闭当前 Dialog 的安全回调，永远只弹出 Dialog 自身
+  static TextStyle get titleStyle =>
+      AppTextStyles.h3.copyWith(color: AppColors.onSurface);
+
+  static TextStyle get contentStyle =>
+      AppTextStyles.bodyMedium.copyWith(color: AppColors.muted, height: 1.5);
+
+  /// 显示自定义内容对话框（用于 ImageGen、VoiceGen、修改密码等）
   static Future<T?> show<T>(
     BuildContext context, {
-    required Widget Function(BuildContext dialogContext, VoidCallback close) builder,
-    bool barrierDismissible = false,
+    required Widget Function(BuildContext, VoidCallback close) builder,
   }) {
     return showDialog<T>(
       context: context,
-      barrierDismissible: barrierDismissible,
-      builder: (dialogContext) {
-        return builder(
-          dialogContext,
-          () => Navigator.of(dialogContext).pop(),
-        );
-      },
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: shape,
+        child: builder(ctx, () => Navigator.of(ctx).pop()),
+      ),
     );
   }
 
-  /// 显示一个可返回结果的 Dialog。
-  ///
-  /// ```dart
-  /// final result = await AppDialog.showWithResult<String>(context,
-  ///   builder: (_, close) => ConfirmDialog(onConfirm: () => close('yes')),
-  /// );
-  /// ```
-  static Future<T?> showWithResult<T>(
-    BuildContext context, {
-    required Widget Function(BuildContext dialogContext, void Function([T?]) close) builder,
-    bool barrierDismissible = false,
+  /// 构建统一样式的 AlertDialog
+  static AlertDialog alert({
+    required String title,
+    required Widget content,
+    List<Widget>? actions,
+    Color? backgroundColor,
   }) {
-    return showDialog<T>(
-      context: context,
-      barrierDismissible: barrierDismissible,
-      builder: (dialogContext) {
-        return builder(
-          dialogContext,
-          ([T? result]) => Navigator.of(dialogContext).pop(result),
-        );
-      },
+    return AlertDialog(
+      backgroundColor: backgroundColor ?? AppColors.surface,
+      shape: shape,
+      title: Text(title, style: titleStyle),
+      content: DefaultTextStyle(style: contentStyle, child: content),
+      actions: actions,
     );
   }
 }

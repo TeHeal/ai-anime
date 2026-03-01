@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 
 /// A single QA check item result.
@@ -15,8 +17,7 @@ class QACheckItem {
   });
 
   /// 0-59 fail, 60-79 warn, 80+ pass
-  String get status =>
-      score >= 80 ? 'pass' : (score >= 60 ? 'warn' : 'fail');
+  String get status => score >= 80 ? 'pass' : (score >= 60 ? 'warn' : 'fail');
 }
 
 /// Displays a list of QA check items with scores, icons, and a total score.
@@ -37,39 +38,47 @@ class QAChecklist extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveTotal =
-        totalScore ?? (items.isEmpty ? 0 : items.map((e) => e.score).reduce((a, b) => a + b) ~/ items.length);
+        totalScore ??
+        (items.isEmpty
+            ? 0
+            : items.map((e) => e.score).reduce((a, b) => a + b) ~/
+                  items.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white)),
+            Text(
+              title,
+              style: AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.onSurface,
+              ),
+            ),
             const Spacer(),
-            Text('$effectiveTotal/100',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _scoreColor(effectiveTotal))),
+            Text(
+              '$effectiveTotal/100',
+              style: AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                color: _scoreColor(effectiveTotal),
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: Spacing.lg.h),
         for (final item in items) _buildItem(item),
         if (onRerunQA != null) ...[
-          const SizedBox(height: 10),
+          SizedBox(height: Spacing.lg.h),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: onRerunQA,
-              icon: const Icon(AppIcons.magicStick, size: 14),
+              icon: Icon(AppIcons.magicStick, size: 14.r),
               label: const Text('重新 AI 审核'),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                textStyle: const TextStyle(fontSize: 12),
+                padding: EdgeInsets.symmetric(vertical: Spacing.sm.h),
+                textStyle: AppTextStyles.caption,
               ),
             ),
           ),
@@ -82,47 +91,54 @@ class QAChecklist extends StatelessWidget {
     final color = _statusColor(item.status);
     final icon = _statusIcon(item.status);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: Spacing.xs.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: color),
-              const SizedBox(width: 6),
+              Icon(icon, size: 14.r, color: color),
+              SizedBox(width: Spacing.sm.w),
               Expanded(
-                child: Text(item.name,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[300])),
+                child: Text(
+                  item.name,
+                  style: AppTextStyles.caption.copyWith(color: AppColors.mutedLight),
+                ),
               ),
-              Text('${item.score}',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: color)),
+              Text(
+                '${item.score}',
+                style: AppTextStyles.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
             ],
           ),
           if (item.feedback.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(left: 20, top: 2),
-              child: Text(item.feedback,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+              padding: EdgeInsets.only(left: Spacing.mid.w, top: Spacing.xxs.h),
+              child: Text(
+                item.feedback,
+                style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
+              ),
             ),
         ],
       ),
     );
   }
 
-  static Color _scoreColor(int score) =>
-      score >= 80 ? Colors.green : (score >= 60 ? Colors.orange : Colors.red);
+  static Color _scoreColor(int score) => score >= 80
+      ? AppColors.success
+      : (score >= 60 ? AppColors.warning : AppColors.error);
 
   static Color _statusColor(String status) {
     switch (status) {
       case 'pass':
-        return Colors.green;
+        return AppColors.success;
       case 'warn':
-        return Colors.orange;
+        return AppColors.warning;
       default:
-        return Colors.red;
+        return AppColors.error;
     }
   }
 

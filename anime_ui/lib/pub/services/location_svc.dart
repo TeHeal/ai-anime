@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/location.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class LocationService {
   /// projectId 支持 int 或 String（UUID）

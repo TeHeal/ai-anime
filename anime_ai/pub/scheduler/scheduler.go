@@ -5,26 +5,26 @@ import (
 	"context"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
 
 // TaskTrigger 任务触发接口，调度器执行到时任务时调用
 type TaskTrigger interface {
-	Trigger(ctx context.Context, sch *schedule.Schedule) error
+	Trigger(ctx context.Context, sch *crossmodule.ScheduleInfo) error
 }
 
 // Scheduler 定时任务调度器，轮询 due 任务并触发
 type Scheduler struct {
-	data   schedule.Data
+	data    crossmodule.ScheduleData
 	trigger TaskTrigger
-	logger *zap.Logger
-	stopCh chan struct{}
+	logger  *zap.Logger
+	stopCh  chan struct{}
 }
 
 // NewScheduler 创建调度器
-func NewScheduler(data schedule.Data, trigger TaskTrigger, logger *zap.Logger) *Scheduler {
+func NewScheduler(data crossmodule.ScheduleData, trigger TaskTrigger, logger *zap.Logger) *Scheduler {
 	return &Scheduler{data: data, trigger: trigger, logger: logger, stopCh: make(chan struct{})}
 }
 
@@ -61,7 +61,7 @@ func (s *Scheduler) tick() {
 	}
 }
 
-func (s *Scheduler) runOne(ctx context.Context, sch *schedule.Schedule) error {
+func (s *Scheduler) runOne(ctx context.Context, sch *crossmodule.ScheduleInfo) error {
 	now := time.Now()
 	if s.trigger != nil {
 		if err := s.trigger.Trigger(ctx, sch); err != nil {

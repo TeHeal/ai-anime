@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 /// Abstract descriptor for a shot item in the left navigation list.
 class ShotNavItem {
@@ -61,32 +61,36 @@ class ShotListNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF15152A),
+      color: AppColors.rightPanelBackground,
       child: Column(
         children: [
           // Episode selector
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(Spacing.md.r),
             child: DropdownButtonFormField<int>(
               initialValue: selectedEpisodeId,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: Spacing.lg.w,
+                  vertical: Spacing.sm.h,
+                ),
+                border: const OutlineInputBorder(),
               ),
-              dropdownColor: Colors.grey[900],
+              dropdownColor: AppColors.surfaceMutedDarker,
               items: episodes
                   .where((e) => e.id != null)
-                  .map((e) => DropdownMenuItem(
-                        value: e.id as int,
-                        child: Text(
-                          e.title?.isNotEmpty == true
-                              ? e.title!
-                              : '第${(e.sortIndex ?? 0) + 1}集',
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      ))
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e.id as int,
+                      child: Text(
+                        e.title?.isNotEmpty == true
+                            ? e.title!
+                            : '第${(e.sortIndex ?? 0) + 1}集',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    ),
+                  )
                   .toList(),
               onChanged: onEpisodeChanged,
             ),
@@ -95,46 +99,50 @@ class ShotListNav extends StatelessWidget {
           // Progress
           if (totalCount > 0)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
               child: Row(
                 children: [
-                  Text('$approvedCount/$totalCount 已确认',
-                      style:
-                          TextStyle(fontSize: 12, color: Colors.grey[500])),
+                  Text(
+                    '$approvedCount/$totalCount 已确认',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.mutedDark,
+                    ),
+                  ),
                   const Spacer(),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.circular(
+                      (RadiusTokens.xs - 1).r,
+                    ),
                     child: SizedBox(
-                      width: 60,
-                      height: 4,
+                      width: 60.w,
+                      height: 4.h,
                       child: LinearProgressIndicator(
-                        value: totalCount == 0
-                            ? 0
-                            : approvedCount / totalCount,
-                        backgroundColor: Colors.grey[800],
-                        color: Colors.green,
+                        value: totalCount == 0 ? 0 : approvedCount / totalCount,
+                        backgroundColor: AppColors.surfaceContainer,
+                        color: AppColors.success,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          const SizedBox(height: 8),
+          SizedBox(height: Spacing.sm.h),
 
           // Filter chips
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
             child: Row(
               children: [
                 for (int i = 0; i < filterOptions.length; i++) ...[
                   _filterChip(filterOptions[i]),
-                  if (i < filterOptions.length - 1) const SizedBox(width: 4),
+                  if (i < filterOptions.length - 1)
+                    SizedBox(width: Spacing.xs.w),
                 ],
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          const Divider(height: 1, color: Color(0xFF2A2A3C)),
+          SizedBox(height: Spacing.sm.h),
+          Divider(height: 1.h, color: AppColors.divider),
 
           // Shot list
           Expanded(
@@ -149,7 +157,7 @@ class ShotListNav extends StatelessWidget {
             ),
           ),
 
-          const Divider(height: 1, color: Color(0xFF2A2A3C)),
+          Divider(height: 1.h, color: AppColors.divider),
           _legend(),
         ],
       ),
@@ -162,25 +170,26 @@ class ShotListNav extends StatelessWidget {
       child: GestureDetector(
         onTap: () => onFilterChanged(label),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: EdgeInsets.symmetric(vertical: Spacing.xs.h),
           decoration: BoxDecoration(
             color: active
                 ? AppColors.primary.withValues(alpha: 0.2)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
             border: Border.all(
               color: active
                   ? AppColors.primary.withValues(alpha: 0.5)
-                  : Colors.grey[800]!,
+                  : AppColors.surfaceContainer,
             ),
           ),
           child: Center(
-            child: Text(label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-                  color: active ? AppColors.primary : Colors.grey[500],
-                )),
+            child: Text(
+              label,
+              style: AppTextStyles.tiny.copyWith(
+                fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+                color: active ? AppColors.primary : AppColors.mutedDark,
+              ),
+            ),
           ),
         ),
       ),
@@ -191,37 +200,42 @@ class ShotListNav extends StatelessWidget {
     return InkWell(
       onTap: () => onShotTap(shot.id),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.md.w,
+          vertical: Spacing.sm.h,
+        ),
         color: isSelected
             ? AppColors.primary.withValues(alpha: 0.15)
             : Colors.transparent,
         child: Row(
           children: [
             _reviewDot(shot.reviewStatus),
-            const SizedBox(width: 8),
+            SizedBox(width: Spacing.sm.w),
             Container(
-              width: 28,
-              height: 28,
+              width: 28.w,
+              height: 28.h,
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.grey[800],
-                borderRadius: BorderRadius.circular(6),
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.surfaceContainer,
+                borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
               ),
               child: Center(
-                child: Text('#${shot.shotNumber}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : Colors.grey[400],
-                    )),
+                child: Text(
+                  '#${shot.shotNumber}',
+                  style: AppTextStyles.tiny.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? AppColors.onPrimary : AppColors.muted,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: Spacing.lg.w),
             Expanded(
               child: Text(
                 shot.label.isNotEmpty ? shot.label : '—',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isSelected ? Colors.white : Colors.grey[400],
+                style: AppTextStyles.caption.copyWith(
+                  color: isSelected ? AppColors.onPrimary : AppColors.muted,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -236,31 +250,36 @@ class ShotListNav extends StatelessWidget {
     Color color;
     switch (status) {
       case 'approved':
-        color = Colors.green;
+        color = AppColors.success;
       case 'needsRevision':
-        color = Colors.orange;
+        color = AppColors.warning;
       case 'rejected':
-        color = Colors.red;
+        color = AppColors.error;
       default:
-        color = Colors.grey;
+        color = AppColors.muted;
     }
     return Container(
-      width: 8,
-      height: 8,
+      width: 8.w,
+      height: 8.h,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 
   Widget _legend() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      padding: EdgeInsets.fromLTRB(
+        Spacing.md.w,
+        Spacing.sm.h,
+        Spacing.md.w,
+        Spacing.sm.h,
+      ),
       child: Row(
         children: [
-          _legendDot(Colors.green, '已确认'),
-          const SizedBox(width: 8),
-          _legendDot(Colors.orange, '需修改'),
-          const SizedBox(width: 8),
-          _legendDot(Colors.grey, '待审核'),
+          _legendDot(AppColors.success, '已确认'),
+          SizedBox(width: Spacing.sm.w),
+          _legendDot(AppColors.warning, '需修改'),
+          SizedBox(width: Spacing.sm.w),
+          _legendDot(AppColors.muted, '待审核'),
         ],
       ),
     );
@@ -271,11 +290,15 @@ class ShotListNav extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 3),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+          width: 6.w,
+          height: 6.h,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        SizedBox(width: (RadiusTokens.xs - 1).w),
+        Text(
+          label,
+          style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDarker),
+        ),
       ],
     );
   }

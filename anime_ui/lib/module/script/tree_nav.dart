@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fancy_tree_view/flutter_fancy_tree_view.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/models/episode.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 // ---------------------------------------------------------------------------
 // 树节点模型
@@ -99,8 +102,9 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
   List<ScriptTreeNode> _buildRoots() {
     return widget.episodes.map((ep) {
       final children = ep.scenes.map((sc) {
-        final label =
-            sc.sceneId.isNotEmpty ? '${sc.sceneId} ${sc.location}' : sc.location;
+        final label = sc.sceneId.isNotEmpty
+            ? '${sc.sceneId} ${sc.location}'
+            : sc.location;
         return ScriptTreeNode(
           id: 'scene_${sc.id}',
           label: label.isEmpty ? '未命名场景' : label,
@@ -131,14 +135,18 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
     Offset offset,
     ScriptTreeNode node,
   ) {
-    final canDelete = (node.isEpisode && widget.onDeleteEpisode != null) ||
+    final canDelete =
+        (node.isEpisode && widget.onDeleteEpisode != null) ||
         (!node.isEpisode && widget.onDeleteScene != null);
     if (!canDelete) return;
 
     showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(
-        offset.dx, offset.dy, offset.dx + 1, offset.dy + 1,
+        offset.dx,
+        offset.dy,
+        offset.dx + 1,
+        offset.dy + 1,
       ),
       items: [const PopupMenuItem(value: 'delete', child: Text('删除'))],
     ).then((value) {
@@ -158,44 +166,47 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
   Widget build(BuildContext context) {
     return Container(
       width: 260,
-      color: const Color(0xFF181825),
+      color: AppColors.surfaceContainer,
       child: Column(
         children: [
           _buildHeader(),
-          const Divider(height: 1, color: Color(0xFF2A2A3C)),
+          const Divider(height: 1, color: AppColors.divider),
           Expanded(
             child: TreeView<ScriptTreeNode>(
               treeController: _treeController,
-              nodeBuilder: (BuildContext context, TreeEntry<ScriptTreeNode> entry) {
-                return _TreeNodeTile(
-                  entry: entry,
-                  isSelected: !entry.node.isEpisode &&
-                      entry.node.sceneDbId == widget.selectedSceneId,
-                  onTap: () {
-                    if (entry.node.isEpisode) {
-                      _treeController.toggleExpansion(entry.node);
-                    } else if (entry.node.episodeId != null &&
-                        entry.node.sceneDbId != null) {
-                      widget.onSceneSelected(
-                        entry.node.episodeId!,
-                        entry.node.sceneDbId!,
-                      );
-                    }
-                  },
-                  onSecondaryTap: (details) {
-                    _showDeleteMenu(
-                      context,
-                      details.globalPosition,
-                      entry.node,
+              nodeBuilder:
+                  (BuildContext context, TreeEntry<ScriptTreeNode> entry) {
+                    return _TreeNodeTile(
+                      entry: entry,
+                      isSelected:
+                          !entry.node.isEpisode &&
+                          entry.node.sceneDbId == widget.selectedSceneId,
+                      onTap: () {
+                        if (entry.node.isEpisode) {
+                          _treeController.toggleExpansion(entry.node);
+                        } else if (entry.node.episodeId != null &&
+                            entry.node.sceneDbId != null) {
+                          widget.onSceneSelected(
+                            entry.node.episodeId!,
+                            entry.node.sceneDbId!,
+                          );
+                        }
+                      },
+                      onSecondaryTap: (details) {
+                        _showDeleteMenu(
+                          context,
+                          details.globalPosition,
+                          entry.node,
+                        );
+                      },
+                      onAddScene:
+                          entry.node.isEpisode &&
+                              entry.node.episodeId != null &&
+                              widget.onAddScene != null
+                          ? () => widget.onAddScene!(entry.node.episodeId!)
+                          : null,
                     );
                   },
-                  onAddScene: entry.node.isEpisode &&
-                          entry.node.episodeId != null &&
-                          widget.onAddScene != null
-                      ? () => widget.onAddScene!(entry.node.episodeId!)
-                      : null,
-                );
-              },
             ),
           ),
         ],
@@ -205,29 +216,29 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.md, vertical: Spacing.sm),
       child: Row(
         children: [
-          const Icon(Icons.movie_outlined, size: 18, color: Color(0xFFE4E4E7)),
-          const SizedBox(width: 8),
-          const Expanded(
+          Icon(AppIcons.movie, size: 18.r, color: AppColors.onSurface),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
             child: Text(
               '剧本结构',
-              style: TextStyle(
-                fontSize: 14,
+              style: AppTextStyles.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFE4E4E7),
+                color: AppColors.onSurface,
               ),
             ),
           ),
           InkWell(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
             onTap: widget.onAddEpisode,
-            child: const Tooltip(
+            child: Tooltip(
               message: '添加集',
               child: Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(Icons.add, size: 18, color: Color(0xFF8B5CF6)),
+                padding: EdgeInsets.all(Spacing.xs.r),
+                child: Icon(AppIcons.add, size: 18.r, color: AppColors.primary),
               ),
             ),
           ),
@@ -273,60 +284,55 @@ class _TreeNodeTile extends StatelessWidget {
         child: Container(
           height: 34,
           color: isSelected
-              ? const Color(0xFF8B5CF6).withValues(alpha: 0.18)
+              ? AppColors.primary.withValues(alpha: 0.18)
               : Colors.transparent,
-          padding: EdgeInsets.only(left: 12 + indent, right: 8),
+          padding: EdgeInsets.only(
+              left: Spacing.md + indent, right: Spacing.sm),
           child: Row(
             children: [
               if (node.isEpisode) ...[
                 Icon(
-                  entry.isExpanded ? Icons.expand_more : Icons.chevron_right,
-                  size: 16,
-                  color: const Color(0xFF8B5CF6),
+                  entry.isExpanded ? AppIcons.expandMore : AppIcons.chevronRight,
+                  size: 16.r,
+                  color: AppColors.primary,
                 ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.folder_outlined,
-                  size: 16,
-                  color: const Color(0xFF8B5CF6),
-                ),
+                const SizedBox(width: Spacing.xs),
+                Icon(AppIcons.folder, size: 16.r, color: AppColors.primary),
               ] else ...[
-                const SizedBox(width: 20),
+                SizedBox(width: Spacing.mid.w),
                 Icon(
-                  Icons.description_outlined,
-                  size: 14,
+                  AppIcons.document,
+                  size: 14.r,
                   color: isSelected
-                      ? const Color(0xFF8B5CF6)
-                      : const Color(0xFF9CA3AF),
+                      ? AppColors.primary
+                      : AppColors.onSurface.withValues(alpha: 0.6),
                 ),
               ],
-              const SizedBox(width: 6),
+              const SizedBox(width: Spacing.sm),
               Expanded(
                 child: Text(
                   node.label,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isSelected
-                        ? const Color(0xFF8B5CF6)
-                        : const Color(0xFFE4E4E7),
-                    fontWeight:
-                        node.isEpisode ? FontWeight.w600 : FontWeight.normal,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: isSelected ? AppColors.primary : AppColors.onSurface,
+                    fontWeight: node.isEpisode
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
               ),
               if (onAddScene != null)
                 InkWell(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
                   onTap: onAddScene,
-                  child: const Tooltip(
+                  child: Tooltip(
                     message: '添加场',
                     child: Padding(
-                      padding: EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(Spacing.xxs),
                       child: Icon(
-                        Icons.add,
-                        size: 15,
-                        color: Color(0xFF9CA3AF),
+                        AppIcons.add,
+                        size: 15.r,
+                        color: AppColors.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ),

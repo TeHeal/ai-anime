@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/character_snapshot.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class CharacterSnapshotService {
   // ── Character-scoped ──

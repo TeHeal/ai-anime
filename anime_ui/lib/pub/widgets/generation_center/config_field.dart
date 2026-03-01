@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 /// A labelled text field for generation configuration (prompts, notes, etc.).
 class ConfigField extends StatelessWidget {
@@ -29,39 +29,50 @@ class ConfigField extends StatelessWidget {
         Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 13, color: Colors.grey[500]),
-              const SizedBox(width: 6),
+              Icon(
+                icon,
+                size: AppTextStyles.bodySmall.fontSize,
+                color: AppColors.mutedDark,
+              ),
+              SizedBox(width: Spacing.iconGapSm.w),
             ],
-            Text(label,
-                style: TextStyle(fontSize: 12, color: Colors.grey[400])),
+            Text(
+              label,
+              style: AppTextStyles.labelMedium.copyWith(color: AppColors.muted),
+            ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: Spacing.contentGap.h),
         TextFormField(
           initialValue: value,
           onChanged: onChanged,
           maxLines: maxLines,
-          style: const TextStyle(fontSize: 13, color: Colors.white),
+          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
           decoration: InputDecoration(
             isDense: true,
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600]),
+            hintStyle: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.mutedDarker,
+            ),
             filled: true,
-            fillColor: const Color(0xFF16162A),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            fillColor: AppColors.surfaceContainer,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: Spacing.gridGap.w,
+              vertical: Spacing.md.h,
+            ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2A2A40)),
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide:
-                  BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+              borderSide: BorderSide(
+                color: AppColors.primary.withValues(alpha: 0.5),
+              ),
             ),
           ),
         ),

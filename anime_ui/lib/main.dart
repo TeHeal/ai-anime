@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
-import 'package:anime_ui/pub/services/api.dart';
-import 'package:anime_ui/pub/services/storage.dart';
+import 'package:anime_ui/pub/services/api_svc.dart';
+import 'package:anime_ui/pub/services/storage_svc.dart';
 
 late final StorageService storageService;
 
@@ -24,5 +25,12 @@ void main() async {
     setAuthToken(savedToken);
   }
 
-  runApp(const App());
+  runApp(
+    ScreenUtilInit(
+      designSize: const Size(1920, 1080),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) => const App(),
+    ),
+  );
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/model_catalog.dart';
 
@@ -29,22 +31,22 @@ class ModelSelectorChips extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[400],
+          style: AppTextStyles.labelMedium.copyWith(
+            color: AppColors.muted,
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: Spacing.sm.h),
         if (isLoading)
           _buildLoading()
         else if (models.isEmpty)
-          Text('暂无可用模型',
-              style: TextStyle(fontSize: 12, color: Colors.grey[500]))
+          Text(
+            '暂无可用模型',
+            style: AppTextStyles.labelMedium.copyWith(color: AppColors.mutedDark),
+          )
         else
           Wrap(
-            spacing: 8,
-            runSpacing: 6,
+            spacing: Spacing.sm.w,
+            runSpacing: Spacing.sm.h,
             children: models.map((m) => _chip(m)).toList(),
           ),
       ],
@@ -55,13 +57,15 @@ class ModelSelectorChips extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(strokeWidth: 2, color: accent),
+          width: Spacing.gridGap.w,
+          height: Spacing.gridGap.h,
+          child: CircularProgressIndicator(strokeWidth: 2.r, color: accent),
         ),
-        const SizedBox(width: 8),
-        Text('加载模型中…',
-            style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+        SizedBox(width: Spacing.sm.w),
+        Text(
+          '加载模型中…',
+          style: AppTextStyles.labelMedium.copyWith(color: AppColors.mutedDark),
+        ),
       ],
     );
   }
@@ -72,37 +76,43 @@ class ModelSelectorChips extends StatelessWidget {
       onTap: () => onChanged(m),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.chipPaddingH.w,
+          vertical: Spacing.sm.h,
+        ),
         decoration: BoxDecoration(
           color: isSelected
               ? accent.withValues(alpha: 0.15)
-              : Colors.grey[900],
-          borderRadius: BorderRadius.circular(8),
+              : AppColors.surfaceMutedDarker,
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
           border: Border.all(
             color: isSelected
                 ? accent.withValues(alpha: 0.5)
-                : Colors.grey[800]!,
+                : AppColors.surfaceContainer,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (m.isRecommended) ...[
-              Icon(AppIcons.bolt, size: 12, color: Colors.amber[400]),
-              const SizedBox(width: 4),
+              Icon(
+                AppIcons.bolt,
+                size: (AppTextStyles.labelMedium.fontSize ?? 14).r,
+                color: AppColors.tagAmber,
+              ),
+              SizedBox(width: Spacing.xs.w),
             ],
             Text(
               m.displayName,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected ? accent : Colors.grey[300],
+              style: AppTextStyles.labelMedium.copyWith(
+                color: isSelected ? accent : AppColors.mutedLight,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: Spacing.xs.w),
             Text(
               m.operatorLabel,
-              style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+              style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
             ),
           ],
         ),

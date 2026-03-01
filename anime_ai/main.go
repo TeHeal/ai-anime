@@ -15,16 +15,17 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
 	"github.com/TeHeal/ai-anime/anime_ai/module/download"
 	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
-	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
+	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
-	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
+	"github.com/TeHeal/ai-anime/anime_ai/module/shot_video"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
 	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
@@ -36,8 +37,8 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/music"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/review_record"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/review_record"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/scheduler"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/worker"
@@ -139,7 +140,12 @@ func main() {
 	// 分镜模块
 	storyboardAccess := project.NewStoryboardAccess(projectData)
 	storyboardData := storyboard.NewMemData(storyboardAccess)
-	storyboardSvc := storyboard.NewService(storyboardData, projectVerifier)
+	var storyboardSvc *storyboard.Service
+	if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+		storyboardSvc = storyboard.NewServiceWithResolver(storyboardData, projectVerifier, resolver)
+	} else {
+		storyboardSvc = storyboard.NewService(storyboardData, projectVerifier)
+	}
 	storyboardHandler := storyboard.NewHandler(storyboardSvc)
 
 	// 脚本模块：DB 可用时用 DBSegmentStore，否则 Mem
@@ -150,7 +156,12 @@ func main() {
 	} else {
 		segmentStore = script.NewMemSegmentStore()
 	}
-	scriptSvc := script.NewService(segmentStore, projectVerifier)
+	var scriptSvc *script.Service
+	if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+		scriptSvc = script.NewServiceWithResolver(segmentStore, projectVerifier, resolver)
+	} else {
+		scriptSvc = script.NewService(segmentStore, projectVerifier)
+	}
 	scriptHandler := script.NewHandler(scriptSvc)
 
 	// 角色模块：DB 可用时用 DBData，否则 Mem
@@ -161,7 +172,12 @@ func main() {
 	} else {
 		characterData = character.NewMemData()
 	}
-	characterSvc := character.NewService(characterData, projectVerifier)
+	var characterSvc *character.Service
+	if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+		characterSvc = character.NewServiceWithResolver(characterData, projectVerifier, resolver)
+	} else {
+		characterSvc = character.NewService(characterData, projectVerifier)
+	}
 	characterHandler := character.NewHandler(characterSvc)
 
 	// 场景资产模块：DB 可用时用 DB，否则 Mem
@@ -172,7 +188,12 @@ func main() {
 	} else {
 		locationStore = location.NewMemLocationStore()
 	}
-	locationSvc := location.NewService(locationStore, projectVerifier)
+	var locationSvc *location.Service
+	if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+		locationSvc = location.NewServiceWithResolver(locationStore, projectVerifier, resolver)
+	} else {
+		locationSvc = location.NewService(locationStore, projectVerifier)
+	}
 	locationHandler := location.NewHandler(locationSvc)
 
 	// 道具资产模块：DB 可用时用 DB，否则 Mem
@@ -183,7 +204,12 @@ func main() {
 	} else {
 		propStore = prop.NewMemPropStore()
 	}
-	propSvc := prop.NewService(propStore, projectVerifier)
+	var propSvc *prop.Service
+	if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+		propSvc = prop.NewServiceWithResolver(propStore, projectVerifier, resolver)
+	} else {
+		propSvc = prop.NewService(propStore, projectVerifier)
+	}
 	propHandler := prop.NewHandler(propSvc)
 
 	// 镜头模块：DB 可用时用 DBShotStore，否则 Mem
@@ -200,7 +226,7 @@ func main() {
 	shotHandler := shot.NewHandler(shotSvc)
 
 	// 镜图模块：DB 可用时用 DBShotImageStore，否则 Mem
-	var shotImageStore shot_image.ShotImageStore
+	var shotImageStore crossmodule.ShotImageStore
 	if pool != nil {
 		shotImageStore = shot_image.NewDBShotImageStore(db.New(pool))
 		log.Println("使用 PostgreSQL 镜图存储")
@@ -211,8 +237,27 @@ func main() {
 	if pool != nil {
 		reviewRecorder = review_record.NewDBRecorder(db.New(pool))
 	}
-	shotImageSvc := shot_image.NewService(shotImageStore, shotReader, shotLocker, projectVerifier, reviewRecorder)
+	var shotImageSvc *shot_image.Service
+	if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+		shotImageSvc = shot_image.NewServiceWithResolver(shotImageStore, shotReader, shotLocker, projectVerifier, resolver, reviewRecorder)
+	} else {
+		shotImageSvc = shot_image.NewService(shotImageStore, shotReader, shotLocker, projectVerifier, reviewRecorder)
+	}
 	shotImageHandler := shot_image.NewHandler(shotImageSvc)
+
+	// 镜头视频模块（README 镜头阶段）
+	var shotVideoHandler *shot_video.Handler
+	if pool != nil {
+		shotVideoStore := shot_video.NewDBShotVideoStore(db.New(pool))
+		var shotVideoSvc *shot_video.Service
+		if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+			shotVideoSvc = shot_video.NewServiceWithResolver(shotVideoStore, projectVerifier, resolver)
+		} else {
+			shotVideoSvc = shot_video.NewService(shotVideoStore, projectVerifier)
+		}
+		shotVideoHandler = shot_video.NewHandler(shotVideoSvc)
+		log.Println("镜头视频模块已启用")
+	}
 
 	// 通知模块（README 2.6 站内通知中心、红点）
 	var notificationHandler *notification.Handler
@@ -230,7 +275,11 @@ func main() {
 	var compositeSvc *composite.Service
 	if pool != nil {
 		compositeStore = composite.NewDBStore(db.New(pool))
-		compositeSvc = composite.NewService(compositeStore, projectVerifier)
+		if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+			compositeSvc = composite.NewServiceWithResolver(compositeStore, projectVerifier, resolver)
+		} else {
+			compositeSvc = composite.NewService(compositeStore, projectVerifier)
+		}
 		log.Println("成片模块已启用")
 	}
 
@@ -296,7 +345,7 @@ func main() {
 
 	var exportHandler *worker.ExportTaskHandler
 	if compositeSvc != nil {
-		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{CompositeService: compositeSvc})
+		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{CompositeUpdater: compositeSvc})
 	}
 
 	// 按集打包模块（README 2.7）：Store 与 Worker 需在 Redis 块前创建，供 muxDeps 使用
@@ -307,8 +356,8 @@ func main() {
 		packageStore = package_task.NewDBStore(db.New(pool))
 		if packageStore != nil && store != nil {
 			packageWorkerHandler = worker.NewPackageTaskHandler(logger, worker.PackageTaskDeps{
-				PackageStore: packageStore,
-				Storage:      store,
+				PackageUpdater: packageStore,
+				Storage:        store,
 			})
 		}
 		log.Println("按集打包模块已启用")
@@ -367,7 +416,8 @@ func main() {
 		scheduleSvc := schedule.NewService(scheduleData, projectVerifier)
 		scheduleHandler = schedule.NewHandler(scheduleSvc)
 		// 启动调度器（占位触发器，后续可接入批量镜图等）
-		sched := scheduler.NewScheduler(scheduleData, scheduler.NewNoopTrigger(logger), logger)
+		scheduleDataAdapter := schedule.NewScheduleDataAdapter(scheduleData)
+		sched := scheduler.NewScheduler(scheduleDataAdapter, scheduler.NewNoopTrigger(logger), logger)
 		go sched.Start()
 		logger.Info("定时任务调度器已启动")
 	}
@@ -385,6 +435,7 @@ func main() {
 		StoryboardHandler:   storyboardHandler,
 		ShotHandler:         shotHandler,
 		ShotImageHandler:    shotImageHandler,
+		ShotVideoHandler:    shotVideoHandler,
 		CompositeHandler:    compositeHandler,
 		DownloadHandler:     downloadHandler,
 		PackageHandler:      packageHandler,

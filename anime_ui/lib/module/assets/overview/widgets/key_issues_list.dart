@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
-import 'package:anime_ui/module/assets/overview/providers/overview_provider.dart';
+import 'package:anime_ui/module/assets/overview/providers/overview.dart';
 
 /// 关键问题列表
 class KeyIssuesList extends StatelessWidget {
@@ -18,47 +19,57 @@ class KeyIssuesList extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(AppIcons.warning, size: 18, color: Colors.orange),
-            const SizedBox(width: 8),
-            Text('关键问题',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[300])),
-            const SizedBox(width: 8),
+            Icon(AppIcons.warning, size: 18.r, color: AppColors.warning),
+            SizedBox(width: Spacing.sm.w),
+            Text(
+              '关键问题',
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.onSurface.withValues(alpha: 0.75),
+              ),
+            ),
+            SizedBox(width: Spacing.sm.w),
             if (issues.isNotEmpty)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Spacing.sm.w,
+                  vertical: Spacing.xxs.h,
                 ),
-                child: Text('${issues.length}',
-                    style:
-                        const TextStyle(fontSize: 12, color: Colors.orange)),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+                ),
+                child: Text(
+                  '${issues.length}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.warning,
+                  ),
+                ),
               ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: Spacing.md.h),
         if (issues.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24),
+            padding: EdgeInsets.symmetric(vertical: Spacing.xl.h),
             decoration: BoxDecoration(
-              color: const Color(0xFF22C55E).withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.success.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
               border: Border.all(
-                  color: const Color(0xFF22C55E).withValues(alpha: 0.2)),
+                color: AppColors.success.withValues(alpha: 0.2),
+              ),
             ),
             child: Column(
               children: [
-                Icon(AppIcons.check,
-                    size: 28, color: const Color(0xFF22C55E)),
-                const SizedBox(height: 8),
-                Text('所有资产已就绪',
-                    style: TextStyle(
-                        fontSize: 14, color: const Color(0xFF22C55E))),
+                Icon(AppIcons.check, size: 28.r, color: AppColors.success),
+                SizedBox(height: Spacing.sm.h),
+                Text(
+                  '所有资产已就绪',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.success,
+                  ),
+                ),
               ],
             ),
           )
@@ -70,9 +81,9 @@ class KeyIssuesList extends StatelessWidget {
 
   Widget _buildIssueRow(BuildContext context, KeyIssue issue) {
     final color = switch (issue.severity) {
-      KeyIssueSeverity.error => Colors.red,
-      KeyIssueSeverity.warning => Colors.orange,
-      KeyIssueSeverity.info => Colors.blue,
+      KeyIssueSeverity.error => AppColors.error,
+      KeyIssueSeverity.warning => AppColors.warning,
+      KeyIssueSeverity.info => AppColors.info,
     };
 
     final icon = switch (issue.icon) {
@@ -84,42 +95,58 @@ class KeyIssuesList extends StatelessWidget {
     };
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: EdgeInsets.only(bottom: Spacing.sm.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.gridGap.w,
+        vertical: Spacing.md.h,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey[800]!),
+        borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
           Container(
-            width: 8,
-            height: 8,
+            width: Spacing.sm.w,
+            height: Spacing.sm.h,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
             ),
           ),
-          const SizedBox(width: 10),
-          Icon(icon, size: 14, color: Colors.grey[500]),
-          const SizedBox(width: 8),
+          SizedBox(width: Spacing.md.w),
+          Icon(
+            icon,
+            size: 14.r,
+            color: AppColors.onSurface.withValues(alpha: 0.55),
+          ),
+          SizedBox(width: Spacing.sm.w),
           Expanded(
-            child: Text(issue.text,
-                style: const TextStyle(fontSize: 13, color: Colors.white)),
+            child: Text(
+              issue.text,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.onSurface,
+              ),
+            ),
           ),
           GestureDetector(
             onTap: () => context.go(issue.route),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: EdgeInsets.symmetric(
+                horizontal: Spacing.md.w,
+                vertical: Spacing.xs.h,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
               ),
-              child: Text('前往',
-                  style:
-                      TextStyle(fontSize: 12, color: AppColors.primary)),
+              child: Text(
+                '前往',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
             ),
           ),
         ],

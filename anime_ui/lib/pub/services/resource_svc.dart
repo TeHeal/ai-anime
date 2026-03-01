@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/resource.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class ResourceService {
   Future<Resource> create({

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 
 /// 段落间插入按钮 — 默认居中短横线，hover 向两侧延伸 + 居中胶囊按钮
 class InsertHandle extends StatefulWidget {
@@ -13,8 +16,8 @@ class InsertHandle extends StatefulWidget {
 class _InsertHandleState extends State<InsertHandle> {
   bool _hovered = false;
 
-  static const _lineColor = Color(0xFF2E2E40);
-  static const _accent = Color(0xFF8B5CF6);
+  static const _lineColor = AppColors.border;
+  static const _accent = AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,7 @@ class _InsertHandleState extends State<InsertHandle> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onInsert,
         child: SizedBox(
-          height: 32,
+          height: Spacing.xxl.h,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final fullWidth = constraints.maxWidth;
@@ -36,11 +39,13 @@ class _InsertHandleState extends State<InsertHandle> {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 280),
                     curve: Curves.easeInOut,
-                    width: _hovered ? fullWidth : 100,
-                    height: _hovered ? 1.5 : 6,
+                    width: _hovered ? fullWidth : 100.w,
+                    height: (_hovered ? 1.5 : 6).h,
                     decoration: BoxDecoration(
                       color: _lineColor,
-                      borderRadius: BorderRadius.circular(_hovered ? 1 : 3),
+                      borderRadius: BorderRadius.circular(
+                        (_hovered ? 1 : RadiusTokens.xs - 1).r,
+                      ),
                     ),
                   ),
                   // 胶囊按钮
@@ -48,24 +53,29 @@ class _InsertHandleState extends State<InsertHandle> {
                     duration: const Duration(milliseconds: 220),
                     opacity: _hovered ? 1.0 : 0.0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 5),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Spacing.gridGap.w,
+                        vertical: Spacing.chipPaddingV.h,
+                      ),
                       decoration: BoxDecoration(
                         color: _accent,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(
+                          RadiusTokens.card.r,
+                        ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.add_circle_outline_rounded,
-                              size: 14, color: Colors.white),
-                          SizedBox(width: 4),
+                          Icon(
+                            AppIcons.add,
+                            size: Spacing.gridGap.r,
+                            color: AppColors.onPrimary,
+                          ),
+                          SizedBox(width: Spacing.xs.w),
                           Text(
                             '新增内容',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
+                            style: AppTextStyles.labelMedium.copyWith(
+                              color: AppColors.onPrimary,
                             ),
                           ),
                         ],

@@ -44,7 +44,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 	var req CreateShotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	shot, err := h.svc.Create(projectID, userID, req)
@@ -53,7 +53,7 @@ func (h *Handler) Create(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, shot)
@@ -68,7 +68,7 @@ func (h *Handler) BulkCreate(c *gin.Context) {
 	}
 	var req BulkCreateShotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	shots, err := h.svc.BulkCreate(projectID, userID, req)
@@ -77,7 +77,7 @@ func (h *Handler) BulkCreate(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, shots)
@@ -97,7 +97,7 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, shots)
@@ -116,7 +116,7 @@ func (h *Handler) Get(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, shot)
@@ -131,7 +131,7 @@ func (h *Handler) Update(c *gin.Context) {
 	}
 	var req UpdateShotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	shot, err := h.svc.Update(shotID, userID, req)
@@ -140,7 +140,7 @@ func (h *Handler) Update(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, shot)
@@ -158,7 +158,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			pkg.NotFound(c, "镜头不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -179,7 +179,7 @@ func (h *Handler) Reorder(c *gin.Context) {
 		return
 	}
 	if err := h.svc.Reorder(projectID, userID, req.OrderedIDs); err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -196,12 +196,12 @@ func (h *Handler) BatchGenerate(c *gin.Context) {
 		ShotIDs []string `json:"shot_ids" binding:"required,min=1"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	results, err := h.svc.BatchGenerate(projectID, userID, req.ShotIDs)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, results)
@@ -218,12 +218,12 @@ func (h *Handler) BatchComposite(c *gin.Context) {
 		ShotIDs []string `json:"shot_ids" binding:"required,min=1"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	results, err := h.svc.BatchComposite(projectID, userID, req.ShotIDs)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, results)

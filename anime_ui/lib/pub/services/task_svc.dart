@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:anime_ui/pub/models/task.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class TaskService {
   Future<Task> get(String taskId) async {

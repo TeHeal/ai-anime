@@ -63,7 +63,7 @@ func (h *Handler) RequestPackage(c *gin.Context) {
 			pkg.NotFound(c, "项目或集不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{
@@ -92,7 +92,7 @@ func (h *Handler) Get(c *gin.Context) {
 			pkg.NotFound(c, "任务不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{
@@ -119,7 +119,7 @@ func (h *Handler) ListByEpisode(c *gin.Context) {
 	}
 	list, err := h.svc.ListByEpisode(c.Request.Context(), episodeID, projectID, userID)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	items := make([]gin.H, len(list))

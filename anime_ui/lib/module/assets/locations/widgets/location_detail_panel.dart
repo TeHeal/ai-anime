@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
 import 'package:anime_ui/pub/models/location.dart';
-import 'package:anime_ui/pub/services/api.dart';
+import 'package:anime_ui/pub/services/api_svc.dart';
 import 'package:anime_ui/module/assets/shared/asset_detail_shell.dart';
 
 /// 场景详情面板
@@ -29,7 +31,7 @@ class LocationDetailPanel extends StatelessWidget {
       bottomBar: _buildBottomBar(),
       children: [
         _buildImageCard(),
-        const SizedBox(height: 16),
+        SizedBox(height: Spacing.lg.h),
         _buildInfoCard(),
       ],
     );
@@ -38,13 +40,15 @@ class LocationDetailPanel extends StatelessWidget {
   Widget _buildImageCard() {
     return Container(
       width: double.infinity,
-      height: 200,
+      height: 200.h,
       decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
         image: location.hasImage
             ? DecorationImage(
-                image: NetworkImage(resolveFileUrl(location.imageUrl)),
+                image: CachedNetworkImageProvider(
+                  resolveFileUrl(location.imageUrl),
+                ),
                 fit: BoxFit.cover,
               )
             : null,
@@ -55,17 +59,23 @@ class LocationDetailPanel extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(AppIcons.landscape, size: 48, color: Colors.grey[600]),
-                  const SizedBox(height: 8),
+                  Icon(
+                    AppIcons.landscape,
+                    size: 48.r,
+                    color: AppColors.onSurface.withValues(alpha: 0.5),
+                  ),
+                  SizedBox(height: Spacing.sm.h),
                   Text(
                     '暂无参考图',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.onSurface.withValues(alpha: 0.55),
+                    ),
                   ),
                   if (onGenerateImage != null) ...[
-                    const SizedBox(height: 12),
+                    SizedBox(height: Spacing.md.h),
                     OutlinedButton.icon(
                       onPressed: onGenerateImage,
-                      icon: const Icon(AppIcons.autoAwesome, size: 14),
+                      icon: Icon(AppIcons.autoAwesome, size: 14.r),
                       label: const Text('AI 生成'),
                     ),
                   ],
@@ -77,11 +87,11 @@ class LocationDetailPanel extends StatelessWidget {
 
   Widget _buildInfoCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(Spacing.lg.r),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[800]!),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,40 +100,36 @@ class LocationDetailPanel extends StatelessWidget {
             children: [
               Text(
                 location.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+                style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: Spacing.sm.w),
               _statusChip(location.status),
               const Spacer(),
               IconButton(
                 onPressed: onEdit,
-                icon: const Icon(AppIcons.edit, size: 16),
+                icon: Icon(AppIcons.edit, size: 16.r),
                 tooltip: '编辑',
               ),
             ],
           ),
           if (location.time.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: Spacing.sm.h),
             _infoRow('时间', location.time),
           ],
           if (location.interiorExterior.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: Spacing.xs.h),
             _infoRow('内外景', location.interiorExterior),
           ],
           if (location.atmosphere.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: Spacing.xs.h),
             _infoRow('氛围', location.atmosphere),
           ],
           if (location.colorTone.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: Spacing.xs.h),
             _infoRow('色调', location.colorTone),
           ],
           if (location.styleNote.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: Spacing.xs.h),
             _infoRow('风格备注', location.styleNote),
           ],
         ],
@@ -136,16 +142,18 @@ class LocationDetailPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 72,
+          width: Spacing.formLabelWidth.w,
           child: Text(
             '$label：',
-            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.55),
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
           ),
         ),
       ],
@@ -154,17 +162,20 @@ class LocationDetailPanel extends StatelessWidget {
 
   Widget _statusChip(String status) {
     final (String label, Color color) = switch (status) {
-      'confirmed' => ('已确认', const Color(0xFF22C55E)),
-      'skeleton' => ('骨架', Colors.grey),
+      'confirmed' => ('已确认', AppColors.success),
+      'skeleton' => ('骨架', AppColors.onSurface),
       _ => ('待确认', AppColors.newTag),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.sm.w,
+        vertical: Spacing.xxs.h,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11)),
+      child: Text(label, style: AppTextStyles.tiny.copyWith(color: color)),
     );
   }
 
@@ -174,19 +185,17 @@ class LocationDetailPanel extends StatelessWidget {
       children: [
         TextButton.icon(
           onPressed: onDelete,
-          icon: const Icon(AppIcons.delete, size: 14),
+          icon: Icon(AppIcons.delete, size: 14.r),
           label: const Text('删除'),
           style: TextButton.styleFrom(foregroundColor: AppColors.error),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: Spacing.sm.w),
         if (onConfirm != null && !location.isConfirmed)
           FilledButton.icon(
             onPressed: onConfirm,
-            icon: const Icon(AppIcons.check, size: 14),
+            icon: Icon(AppIcons.check, size: 14.r),
             label: const Text('确认'),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF22C55E),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.success),
           ),
       ],
     );

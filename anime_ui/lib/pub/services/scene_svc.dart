@@ -1,6 +1,6 @@
 import 'package:anime_ui/pub/models/scene.dart';
 import 'package:anime_ui/pub/models/scene_block.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class SceneService {
   String _basePath(int projectId, int episodeId) =>

@@ -1,0 +1,30 @@
+---
+description: Go 后端 Handler→Service→Data 架构与代码质量规范
+globs: "anime_ai/**/*.go"
+alwaysApply: true
+---
+
+# Go 后端 Agent 规范
+
+## 1. 架构逻辑
+
+- **分层遵循**：严格遵守 Handler → Service → Data 分层（非 Controller-Service-Repository）。
+- **目录结构**：业务在 `module/`，基础设施在 `pub/`；路由在根目录 `route.go` 注册。
+- **接口优先**：Service 层定义 interface，确保可测试性；跨模块访问经 Service 或接口，禁止直接引用 Data。
+
+## 2. 代码质量
+
+- **错误处理**：严禁忽略错误，遵循 `if err != nil { return fmt.Errorf("...", err) }`。
+- **错误码**：业务错误使用 `ERR_XXX` 格式，HTTP 映射到 4xx/5xx。
+- **并发控制**：涉及 goroutine 时，必须考虑 Context 传递和超时，避免泄漏。
+- **性能规范**：循环中避免频繁分配；大结构体优先使用指针传递；防范 N+1 查询。
+
+## 3. 数据与存储
+
+- **sqlc**：数据访问使用 sqlc 生成的 Queries，Schema 在 `sch/`。
+- **JSON 标签**：Struct 必须包含 `json:"fieldName"`，统一小驼峰以匹配 Flutter。
+
+## 4. Agent 执行时机
+
+- **依赖管理**：新增库后提醒运行 `go mod tidy`。
+- **API 变更**：主动询问是否更新 Swagger/OpenAPI 文档。

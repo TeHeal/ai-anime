@@ -1,4 +1,4 @@
-import 'api.dart';
+import 'api_svc.dart';
 
 /// 成片导出任务（README 成片阶段）
 class CompositeTask {

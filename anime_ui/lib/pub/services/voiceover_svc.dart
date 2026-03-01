@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/voiceover.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class VoiceoverService {
   Future<Voiceover> generate({

@@ -66,7 +66,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 	var req CreateSceneRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	scene, err := h.svc.Create(epID, userID, req)
@@ -75,7 +75,7 @@ func (h *Handler) Create(c *gin.Context) {
 			pkg.NotFound(c, "集不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, scene)
@@ -98,7 +98,7 @@ func (h *Handler) List(c *gin.Context) {
 			pkg.NotFound(c, "集不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, scenes)
@@ -125,7 +125,7 @@ func (h *Handler) Get(c *gin.Context) {
 			pkg.NotFound(c, "场不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, scene)
@@ -148,7 +148,7 @@ func (h *Handler) Update(c *gin.Context) {
 	}
 	var req UpdateSceneRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	scene, err := h.svc.Update(sceneID, epID, userID, req)
@@ -157,7 +157,7 @@ func (h *Handler) Update(c *gin.Context) {
 			pkg.NotFound(c, "场不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, scene)
@@ -183,7 +183,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			pkg.NotFound(c, "场不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -202,10 +202,11 @@ func (h *Handler) Reorder(c *gin.Context) {
 	}
 	var req ReorderScenesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.Reorder(epID, userID, req); err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "排序失败")
 		return
 	}
@@ -229,7 +230,7 @@ func (h *Handler) SaveBlocks(c *gin.Context) {
 	}
 	var req BulkSaveBlocksRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	blocks, err := h.svc.SaveBlocks(sceneID, epID, userID, req)
@@ -238,7 +239,7 @@ func (h *Handler) SaveBlocks(c *gin.Context) {
 			pkg.NotFound(c, "场不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, blocks)
@@ -253,7 +254,7 @@ func (h *Handler) CreateBlock(c *gin.Context) {
 	}
 	var req CreateBlockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	block, err := h.svc.CreateBlock(sceneID, userID, req)
@@ -262,7 +263,7 @@ func (h *Handler) CreateBlock(c *gin.Context) {
 			pkg.NotFound(c, "场不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, block)
@@ -281,7 +282,7 @@ func (h *Handler) UpdateBlock(c *gin.Context) {
 	}
 	var req UpdateBlockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	block, err := h.svc.UpdateBlock(blockID, sceneID, userID, req)
@@ -290,7 +291,7 @@ func (h *Handler) UpdateBlock(c *gin.Context) {
 			pkg.NotFound(c, "块不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, block)
@@ -312,7 +313,7 @@ func (h *Handler) DeleteBlock(c *gin.Context) {
 			pkg.NotFound(c, "块不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -327,10 +328,11 @@ func (h *Handler) ReorderBlocks(c *gin.Context) {
 	}
 	var req ReorderBlocksRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 	if err := h.svc.ReorderBlocks(sceneID, userID, req); err != nil {
+		c.Error(err)
 		pkg.InternalError(c, "排序失败")
 		return
 	}

@@ -4,21 +4,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
 // Service 分镜业务逻辑层
 type Service struct {
-	data             Data
-	projectVerifier  crossmodule.ProjectVerifier
+	data            Data
+	projectVerifier crossmodule.ProjectVerifier
+	memberResolver  crossmodule.ProjectMemberResolver
 }
 
 // NewService 创建分镜服务
 func NewService(data Data, projectVerifier crossmodule.ProjectVerifier) *Service {
+	return NewServiceWithResolver(data, projectVerifier, nil)
+}
+
+// NewServiceWithResolver 创建分镜服务（含成员解析器，用于工种权限校验）
+func NewServiceWithResolver(data Data, projectVerifier crossmodule.ProjectVerifier, memberResolver crossmodule.ProjectMemberResolver) *Service {
 	return &Service{
 		data:            data,
 		projectVerifier: projectVerifier,
+		memberResolver:  memberResolver,
 	}
 }
 
@@ -35,6 +43,9 @@ func (s *Service) Preview(ctx context.Context, projectID, userID string, req Pre
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
 		return nil, err
 	}
+	if err := s.checkAction(projectID, userID, auth.ActionGenerate); err != nil {
+		return nil, err
+	}
 	// 占位：后续调用 pub/mesh Chat 能力生成分镜
 	_ = req
 	return []ShotItem{}, nil
@@ -43,6 +54,9 @@ func (s *Service) Preview(ctx context.Context, projectID, userID string, req Pre
 // Generate 异步拆镜（占位：返回占位任务，后续接 Worker）
 func (s *Service) Generate(projectID, userID string, req GenerateRequest) (*GenerateTaskResponse, error) {
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
+		return nil, err
+	}
+	if err := s.checkAction(projectID, userID, auth.ActionGenerate); err != nil {
 		return nil, err
 	}
 	// 占位：后续入队 Asynq 任务，由 Worker 执行
@@ -58,6 +72,9 @@ func (s *Service) GenerateSync(ctx context.Context, projectID, userID string, re
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
 		return nil, err
 	}
+	if err := s.checkAction(projectID, userID, auth.ActionGenerate); err != nil {
+		return nil, err
+	}
 	// 占位：后续调用 LLM 生成
 	_ = req
 	return []ShotItem{}, nil
@@ -68,6 +85,9 @@ func (s *Service) Confirm(projectID, userID string, req ConfirmRequest) ([]ShotI
 	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
 		return nil, err
 	}
+	if err := s.checkAction(projectID, userID, auth.ActionScriptEdit); err != nil {
+		return nil, err
+	}
 	if len(req.Shots) == 0 {
 		return nil, pkg.NewBizError("分镜列表不能为空")
 	}
@@ -75,4 +95,21 @@ func (s *Service) Confirm(projectID, userID string, req ConfirmRequest) ([]ShotI
 		return nil, err
 	}
 	return req.Shots, nil
+}
+
+func (s *Service) checkAction(projectID, userID string, action auth.Action) error {
+	if s.memberResolver == nil {
+		return nil
+	}
+	info, err := s.memberResolver.Resolve(projectID, userID)
+	if err != nil {
+		return err
+	}
+	if info.IsOwner {
+		return nil
+	}
+	if !auth.CanDo(info.JobRoles, action) {
+		return fmt.Errorf("%w: 当前工种不允许执行此操作", pkg.ErrForbidden)
+	}
+	return nil
 }

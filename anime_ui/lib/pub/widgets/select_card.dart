@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:anime_ui/pub/theme/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+
 
 class SelectCard extends StatelessWidget {
   const SelectCard({
@@ -22,18 +24,20 @@ class SelectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.surface : AppColors.surface.withValues(alpha: 0.6),
-      borderRadius: BorderRadius.circular(12),
+      color: selected
+          ? AppColors.surface
+          : AppColors.surface.withValues(alpha: 0.6),
+      borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(Spacing.xl.r),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
             border: Border.all(
-              color: selected ? AppColors.primary : Colors.grey[700]!,
-              width: selected ? 2 : 1,
+              color: selected ? AppColors.primary : AppColors.surfaceMuted,
+              width: selected ? 2.w : 1.w,
             ),
           ),
           child: Column(
@@ -43,31 +47,24 @@ class SelectCard extends StatelessWidget {
               if (icon != null) ...[
                 Icon(
                   icon,
-                  color: selected ? AppColors.primary : Colors.grey[500],
-                  size: 28,
+                  color: selected ? AppColors.primary : AppColors.mutedDark,
+                  size: Spacing.avatarSize.r,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: Spacing.md.h),
               ],
               Text(
                 title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
+                style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: Spacing.xs.h),
                 Text(
                   subtitle!,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[400],
-                  ),
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
                 ),
               ],
               if (action != null) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: Spacing.sm.h),
                 action!,
               ],
             ],

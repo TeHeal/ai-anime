@@ -38,13 +38,13 @@ func (h *Handler) Create(c *gin.Context) {
 
 	var req CreateCharacterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	char, err := h.svc.Create(userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, char)
@@ -61,7 +61,7 @@ func (h *Handler) Get(c *gin.Context) {
 
 	char, err := h.svc.Get(id, userID)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -82,7 +82,7 @@ func (h *Handler) ListByProject(c *gin.Context) {
 			pkg.NotFound(c, "项目不存在")
 			return
 		}
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, chars)
@@ -94,7 +94,7 @@ func (h *Handler) ListLibrary(c *gin.Context) {
 
 	chars, err := h.svc.ListLibrary(userID)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, chars)
@@ -111,13 +111,13 @@ func (h *Handler) Update(c *gin.Context) {
 
 	var req UpdateCharacterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	char, err := h.svc.Update(id, userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -133,7 +133,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
 	if err := h.svc.Delete(id, userID); err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -150,7 +150,7 @@ func (h *Handler) Confirm(c *gin.Context) {
 
 	char, err := h.svc.Confirm(id, userID)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -164,12 +164,12 @@ func (h *Handler) BatchConfirm(c *gin.Context) {
 		IDs []string `json:"ids" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	if err := h.svc.BatchConfirm(req.IDs, userID); err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, nil)
@@ -184,13 +184,13 @@ func (h *Handler) BatchSetStyle(c *gin.Context) {
 		Style string   `json:"style" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	count, err := h.svc.BatchSetStyle(req.IDs, userID, req.Style)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"updated": count})
@@ -204,13 +204,13 @@ func (h *Handler) BatchAIComplete(c *gin.Context) {
 		IDs []string `json:"ids" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	count, err := h.svc.BatchAIComplete(req.IDs, userID)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"completed": count})
@@ -227,13 +227,13 @@ func (h *Handler) AddVariant(c *gin.Context) {
 
 	var req AddVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	char, err := h.svc.AddVariant(charID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, char)
@@ -255,13 +255,13 @@ func (h *Handler) UpdateVariant(c *gin.Context) {
 
 	var req UpdateVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	char, err := h.svc.UpdateVariant(charID, userID, idx, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -283,7 +283,7 @@ func (h *Handler) DeleteVariant(c *gin.Context) {
 
 	char, err := h.svc.DeleteVariant(charID, userID, idx)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -300,13 +300,13 @@ func (h *Handler) AddReferenceImage(c *gin.Context) {
 
 	var req AddReferenceImageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	char, err := h.svc.AddReferenceImage(charID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.Created(c, char)
@@ -328,7 +328,7 @@ func (h *Handler) DeleteReferenceImage(c *gin.Context) {
 
 	char, err := h.svc.DeleteReferenceImage(charID, userID, idx)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -405,7 +405,7 @@ func (h *Handler) SelectCandidate(c *gin.Context) {
 
 	var req SelectCandidateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
@@ -430,13 +430,13 @@ func (h *Handler) UpdateBio(c *gin.Context) {
 		Bio string `json:"bio"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "参数错误: "+err.Error())
+		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
 
 	char, err := h.svc.UpdateBio(charID, userID, req.Bio)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -461,7 +461,7 @@ func (h *Handler) ExtractBio(c *gin.Context) {
 
 	char, err := h.svc.ExtractBio(c.Request.Context(), projectID, charID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)
@@ -481,7 +481,7 @@ func (h *Handler) RegenerateBio(c *gin.Context) {
 
 	char, err := h.svc.RegenerateBio(c.Request.Context(), charID, userID, req)
 	if err != nil {
-		pkg.InternalError(c, err.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, char)

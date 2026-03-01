@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'api.dart';
+import 'api_svc.dart';
 import 'package:anime_ui/pub/models/task.dart';
 
 /// 提取结果 - 角色

@@ -1,4 +1,4 @@
-import 'api.dart';
+import 'api_svc.dart';
 
 class ShotCompositeService {
   Future<List<dynamic>> batchGenerate(

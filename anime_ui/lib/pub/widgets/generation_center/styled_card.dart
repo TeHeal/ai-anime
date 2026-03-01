@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
 
-/// Reusable dark card with subtle border, shadow, and rounded corners.
-/// Used as the container for config panels, task sections, import areas, etc.
+
+/// 可复用的深色卡片：圆角、边框、阴影
+///
+/// 用于配置面板、任务区、导入区等
 class StyledCard extends StatelessWidget {
   final Widget child;
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
 
   const StyledCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(22),
+    this.padding,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: padding,
+      padding: padding ?? EdgeInsets.all(Spacing.cardPadding.r),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF2A2A40)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(RadiusTokens.card.r),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: AppColors.shadowOverlay.withValues(alpha: 0.2),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),

@@ -1,5 +1,5 @@
 import 'package:anime_ui/pub/models/style.dart';
-import 'api.dart';
+import 'api_svc.dart';
 
 class StyleService {
   Future<Style> create(int projectId, {
