@@ -4,7 +4,7 @@ INSERT INTO scenes (
 )
 VALUES (
     sqlc.arg('episode_id'), sqlc.arg('scene_id'), sqlc.arg('location'), sqlc.arg('time'),
-    sqlc.arg('interior_exterior'), COALESCE(sqlc.narg('characters_json'), '[]'), sqlc.arg('sort_index')
+    sqlc.arg('interior_exterior'), COALESCE(sqlc.narg('characters_json'), '[]'::jsonb), sqlc.arg('sort_index')
 )
 RETURNING *;
 

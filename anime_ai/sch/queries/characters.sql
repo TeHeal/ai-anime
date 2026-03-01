@@ -10,17 +10,17 @@ INSERT INTO characters (
 )
 VALUES (
     sqlc.arg('project_id'), sqlc.arg('user_id'), sqlc.arg('name'),
-    COALESCE(sqlc.narg('alias_json'), '[]'), sqlc.arg('appearance'), sqlc.arg('style'),
+    COALESCE(sqlc.narg('alias_json'), '[]'::jsonb), sqlc.arg('appearance'), sqlc.arg('style'),
     COALESCE(sqlc.narg('style_override'), false), sqlc.arg('personality'), sqlc.arg('voice_hint'),
     sqlc.arg('emotions'), sqlc.arg('scenes'), sqlc.arg('gender'), sqlc.arg('age_group'),
     sqlc.arg('voice_id'), sqlc.arg('voice_name'), sqlc.arg('image_url'),
-    COALESCE(sqlc.narg('reference_images_json'), '[]'), sqlc.arg('task_id'),
+    COALESCE(sqlc.narg('reference_images_json'), '[]'::jsonb), sqlc.arg('task_id'),
     COALESCE(sqlc.narg('image_status'), 'none'), COALESCE(sqlc.narg('shared'), false),
     COALESCE(sqlc.narg('status'), 'draft'), COALESCE(sqlc.narg('source'), 'manual'),
-    COALESCE(sqlc.narg('variants_json'), '[]'), sqlc.arg('importance'), sqlc.arg('consistency'),
-    sqlc.arg('role_type'), COALESCE(sqlc.narg('tags_json'), '[]'),
+    COALESCE(sqlc.narg('variants_json'), '[]'::jsonb), sqlc.arg('importance'), sqlc.arg('consistency'),
+    sqlc.arg('role_type'), COALESCE(sqlc.narg('tags_json'), '[]'::jsonb),
     COALESCE(sqlc.narg('props_json'), '{}'::jsonb), sqlc.arg('bio'),
-    COALESCE(sqlc.narg('bio_fragments_json'), '[]'),
+    COALESCE(sqlc.narg('bio_fragments_json'), '[]'::jsonb),
     COALESCE(sqlc.narg('image_gen_override_json'), '{}'::jsonb),
     COALESCE(sqlc.narg('version'), 1)
 )

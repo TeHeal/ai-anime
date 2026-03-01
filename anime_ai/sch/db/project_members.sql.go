@@ -13,7 +13,7 @@ import (
 
 const createProjectMember = `-- name: CreateProjectMember :one
 INSERT INTO project_members (project_id, user_id, role, job_roles, joined_at)
-VALUES ($1, $2, COALESCE($3, 'viewer'), COALESCE($4, '[]'), $5)
+VALUES ($1, $2, COALESCE($3, 'viewer'), COALESCE($4, '[]'::jsonb), $5)
 RETURNING id, created_at, updated_at, deleted_at, project_id, user_id, role, job_roles, joined_at
 `
 

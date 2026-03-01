@@ -22,17 +22,17 @@ INSERT INTO characters (
 )
 VALUES (
     $1, $2, $3,
-    COALESCE($4, '[]'), $5, $6,
+    COALESCE($4, '[]'::jsonb), $5, $6,
     COALESCE($7, false), $8, $9,
     $10, $11, $12, $13,
     $14, $15, $16,
-    COALESCE($17, '[]'), $18,
+    COALESCE($17, '[]'::jsonb), $18,
     COALESCE($19, 'none'), COALESCE($20, false),
     COALESCE($21, 'draft'), COALESCE($22, 'manual'),
-    COALESCE($23, '[]'), $24, $25,
-    $26, COALESCE($27, '[]'),
+    COALESCE($23, '[]'::jsonb), $24, $25,
+    $26, COALESCE($27, '[]'::jsonb),
     COALESCE($28, '{}'::jsonb), $29,
-    COALESCE($30, '[]'),
+    COALESCE($30, '[]'::jsonb),
     COALESCE($31, '{}'::jsonb),
     COALESCE($32, 1)
 )

@@ -1,6 +1,6 @@
 -- name: CreateProjectMember :one
 INSERT INTO project_members (project_id, user_id, role, job_roles, joined_at)
-VALUES (sqlc.arg('project_id'), sqlc.arg('user_id'), COALESCE(sqlc.narg('role'), 'viewer'), COALESCE(sqlc.narg('job_roles'), '[]'), sqlc.narg('joined_at'))
+VALUES (sqlc.arg('project_id'), sqlc.arg('user_id'), COALESCE(sqlc.narg('role'), 'viewer'), COALESCE(sqlc.narg('job_roles'), '[]'::jsonb), sqlc.narg('joined_at'))
 RETURNING *;
 
 -- name: GetProjectMemberByProjectAndUser :one

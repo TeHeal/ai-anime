@@ -29,7 +29,7 @@ INSERT INTO scenes (
 )
 VALUES (
     $1, $2, $3, $4,
-    $5, COALESCE($6, '[]'), $7
+    $5, COALESCE($6, '[]'::jsonb), $7
 )
 RETURNING id, created_at, updated_at, deleted_at, episode_id, scene_id, location, time, interior_exterior, characters_json, sort_index
 `
