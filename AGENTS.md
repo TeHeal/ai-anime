@@ -48,3 +48,30 @@
 - **不录制视频**：除非用户明确要求，否则不录制演示视频。
 - **README 修改**：AI 助手可应用户要求修改 README；日常开发以阅读参考为主。
 
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Directory | Stack | Notes |
+|---------|-----------|-------|-------|
+| Flutter frontend (Web) | `anime_ui/` | Flutter 3.41 / Dart 3.11 | Riverpod + freezed |
+| Go backend API | `anime_ai/` | Go 1.26, Gin, sqlc, pgx | Requires PostgreSQL + Redis at runtime |
+
+### Common commands
+
+- **Flutter lint**: `cd anime_ui && flutter analyze`
+- **Flutter build (web)**: `cd anime_ui && flutter build web --no-tree-shake-icons`
+- **Flutter dev**: `cd anime_ui && flutter run -d chrome` (requires display)
+- **Go lint**: `cd anime_ai && go vet ./...` (pre-existing self-assignment warning in `module/episode/data.go:48`)
+- **Go build**: `cd anime_ai && go build ./...`
+- **Go test**: `cd anime_ai && go test ./...`
+- **Go run**: `cd anime_ai && make run` (needs DB/Redis config via env vars)
+
+### Gotchas
+
+- Flutter analyze reports only `info`-level issues (37 as of setup); **0 errors** is the baseline.
+- Go `vet` has a pre-existing self-assignment warning (`ep.ProjectIDStr`) — this is not introduced by agent changes.
+- Entity IDs (Episode, Scene, etc.) are **UUID strings** (`String?` in Dart, `string`/`uuid.UUID` in Go). Never use `int` for entity IDs in UI code.
+- After modifying freezed/json_serializable models run: `cd anime_ui && dart run build_runner build --delete-conflicting-outputs`.
+- The Go backend requires environment variables for DB connection (`DATABASE_URL`), Redis, and external AI provider keys to start. Without these, `make run` will fail at startup.
+
