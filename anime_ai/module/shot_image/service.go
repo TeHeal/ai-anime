@@ -16,14 +16,15 @@ import (
 
 // Service 镜图业务逻辑层
 type Service struct {
-	store           crossmodule.ShotImageStore
-	shotReader      crossmodule.ShotReader
-	shotLocker      crossmodule.ShotLocker
-	projectVerifier crossmodule.ProjectVerifier
-	memberResolver  crossmodule.ProjectMemberResolver
-	reviewRecorder  crossmodule.ReviewRecorder
-	reviewFlowCfg   *ReviewFlowConfig
-	asynqClient     *asynq.Client
+	store             crossmodule.ShotImageStore
+	shotReader        crossmodule.ShotReader
+	shotLocker        crossmodule.ShotLocker
+	projectVerifier   crossmodule.ProjectVerifier
+	memberResolver    crossmodule.ProjectMemberResolver
+	reviewRecorder    crossmodule.ReviewRecorder
+	scriptLockChecker crossmodule.ScriptLockChecker
+	reviewFlowCfg     *ReviewFlowConfig
+	asynqClient       *asynq.Client
 }
 
 // SetAsynqClient 设置 Asynq 客户端（供 main.go 注入）
@@ -62,6 +63,11 @@ func NewServiceWithResolver(
 // SetReviewFlowConfig 配置审核流程（AI 审核等），在 Service 创建后调用
 func (s *Service) SetReviewFlowConfig(cfg *ReviewFlowConfig) {
 	s.reviewFlowCfg = cfg
+}
+
+// SetScriptLockChecker 配置脚本锁定检查器（README 2.2/2.4 阶段门禁）
+func (s *Service) SetScriptLockChecker(c crossmodule.ScriptLockChecker) {
+	s.scriptLockChecker = c
 }
 
 func (s *Service) verifyProject(projectID, userID string) error {
@@ -246,9 +252,19 @@ func (s *Service) BatchReview(shotIDs []string, status string, userID string) er
 }
 
 // BatchGenerate 批量生成镜图，加锁并入队 Asynq 任务（README 2.3 任务锁）
+// 阶段门禁：脚本必须已锁定才能生成镜图（README 2.2/2.4）
 func (s *Service) BatchGenerate(projectID, userID string, req BatchGenerateRequest) ([]BatchGenerateResult, error) {
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return nil, err
+	}
+	if s.scriptLockChecker != nil {
+		locked, err := s.scriptLockChecker.IsScriptLocked(projectID)
+		if err != nil {
+			return nil, fmt.Errorf("检查脚本锁定状态失败: %w", err)
+		}
+		if !locked {
+			return nil, fmt.Errorf("请先锁定脚本后再生成镜图")
+		}
 	}
 	if err := s.checkResourceAction(projectID, userID, auth.ResourceShotImage, "pending", auth.ActionShotImageGen); err != nil {
 		return nil, err

@@ -12,9 +12,10 @@ import (
 
 // Service 镜头视频业务逻辑层
 type Service struct {
-	store           Store
-	projectVerifier crossmodule.ProjectVerifier
-	memberResolver  crossmodule.ProjectMemberResolver
+	store             Store
+	projectVerifier   crossmodule.ProjectVerifier
+	memberResolver    crossmodule.ProjectMemberResolver
+	scriptLockChecker crossmodule.ScriptLockChecker
 }
 
 // NewService 创建镜头视频服务
@@ -41,6 +42,11 @@ func (s *Service) verifyProject(projectID, userID string) error {
 		}
 	}
 	return nil
+}
+
+// SetScriptLockChecker 配置脚本锁定检查器（README 2.2/2.4 阶段门禁）
+func (s *Service) SetScriptLockChecker(c crossmodule.ScriptLockChecker) {
+	s.scriptLockChecker = c
 }
 
 func (s *Service) checkResourceAction(projectID, userID string, resourceType, status string, action auth.Action) error {
@@ -82,9 +88,19 @@ func (s *Service) Get(id, projectID, userID string) (*ShotVideo, error) {
 }
 
 // Create 创建镜头视频（占位，后续接入文生视频）
+// 阶段门禁：脚本必须已锁定才能生成镜头视频（README 2.2/2.4）
 func (s *Service) Create(shotID, projectID, userID string, shotImageID *string) (*ShotVideo, error) {
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return nil, err
+	}
+	if s.scriptLockChecker != nil {
+		locked, err := s.scriptLockChecker.IsScriptLocked(projectID)
+		if err != nil {
+			return nil, fmt.Errorf("检查脚本锁定状态失败: %w", err)
+		}
+		if !locked {
+			return nil, fmt.Errorf("请先锁定脚本后再生成镜头视频")
+		}
 	}
 	if err := s.checkResourceAction(projectID, userID, auth.ResourceShotVideo, "pending", auth.ActionShotVideoGen); err != nil {
 		return nil, err
