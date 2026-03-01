@@ -177,13 +177,11 @@ class _TaskGroup extends StatelessWidget {
 
 String _typeGroupLabel(String type) {
   const labels = {
-    'shot_image': '镜图生成',
-    'shot_video': '镜头生成',
+    'image': '镜图生成',
+    'video': '镜头生成',
     'script': '脚本生成',
     'export': '导出',
-    'composite': '成片合成',
-    'tts': '语音合成',
-    'music': '音乐生成',
+    'package': '打包',
   };
   return labels[type] ?? type;
 }
@@ -225,8 +223,8 @@ class _FilterChipRow extends StatelessWidget {
   const _FilterChipRow({required this.selected, required this.onChanged});
 
   static const _types = [
-    ('shot_image', '镜图'),
-    ('shot_video', '镜头'),
+    ('image', '镜图'),
+    ('video', '镜头'),
     ('script', '脚本'),
     ('export', '导出'),
   ];

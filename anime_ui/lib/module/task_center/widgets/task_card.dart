@@ -14,13 +14,11 @@ class _TaskTypeMeta {
 }
 
 final _typeMetaMap = <String, _TaskTypeMeta>{
-  'shot_image': const _TaskTypeMeta('镜图生成', AppIcons.image, AppColors.primary),
-  'shot_video': const _TaskTypeMeta('镜头生成', AppIcons.video, AppColors.info),
+  'image': const _TaskTypeMeta('镜图生成', AppIcons.image, AppColors.primary),
+  'video': const _TaskTypeMeta('镜头生成', AppIcons.video, AppColors.info),
   'script': const _TaskTypeMeta('脚本生成', AppIcons.script, AppColors.success),
   'export': const _TaskTypeMeta('导出', AppIcons.download, AppColors.warning),
-  'composite': const _TaskTypeMeta('成片合成', AppIcons.movie, AppColors.secondary),
-  'tts': const _TaskTypeMeta('语音合成', AppIcons.mic, AppColors.categoryVoice),
-  'music': const _TaskTypeMeta('音乐生成', AppIcons.music, AppColors.categoryStyle),
+  'package': const _TaskTypeMeta('打包', AppIcons.download, AppColors.secondary),
 };
 
 _TaskTypeMeta _metaFor(String type) =>
@@ -104,14 +102,14 @@ class TaskCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      meta.label,
+                      task.title.isNotEmpty ? task.title : meta.label,
                       style: AppTextStyles.labelLarge.copyWith(
                         color: AppColors.onSurface,
                       ),
                     ),
-                    if (task.model.isNotEmpty)
+                    if (task.description.isNotEmpty)
                       Text(
-                        task.model,
+                        task.description,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.mutedDark,
                         ),
@@ -184,7 +182,7 @@ class TaskCard extends StatelessWidget {
           // 底部：任务 ID
           SizedBox(height: Spacing.xs.h),
           Text(
-            'ID: ${task.taskId}',
+            'ID: ${task.id}',
             style: AppTextStyles.labelTiny.copyWith(
               color: AppColors.mutedDark,
             ),

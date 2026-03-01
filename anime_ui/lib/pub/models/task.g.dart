@@ -7,25 +7,43 @@ part of 'task.dart';
 // **************************************************************************
 
 _Task _$TaskFromJson(Map<String, dynamic> json) => _Task(
-  id: (json['id'] as num).toInt(),
-  taskId: json['taskId'] as String,
+  id: json['id'] as String,
   type: json['type'] as String,
   status: json['status'] as String,
-  provider: json['provider'] as String? ?? '',
-  model: json['model'] as String? ?? '',
-  error: json['error'] as String?,
   progress: (json['progress'] as num?)?.toInt() ?? 0,
-  result: json['result'] as Map<String, dynamic>?,
+  title: json['title'] as String? ?? '',
+  description: json['description'] as String? ?? '',
+  projectId: json['projectId'] as String? ?? '',
+  userId: json['userId'] as String? ?? '',
+  error: json['error'] as String?,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  updatedAt: json['updatedAt'] == null
+      ? null
+      : DateTime.parse(json['updatedAt'] as String),
+  startedAt: json['startedAt'] == null
+      ? null
+      : DateTime.parse(json['startedAt'] as String),
+  completedAt: json['completedAt'] == null
+      ? null
+      : DateTime.parse(json['completedAt'] as String),
+  resultJson: json['resultJson'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$TaskToJson(_Task instance) => <String, dynamic>{
   'id': instance.id,
-  'taskId': instance.taskId,
   'type': instance.type,
   'status': instance.status,
-  'provider': instance.provider,
-  'model': instance.model,
-  'error': instance.error,
   'progress': instance.progress,
-  'result': instance.result,
+  'title': instance.title,
+  'description': instance.description,
+  'projectId': instance.projectId,
+  'userId': instance.userId,
+  'error': instance.error,
+  'createdAt': instance.createdAt?.toIso8601String(),
+  'updatedAt': instance.updatedAt?.toIso8601String(),
+  'startedAt': instance.startedAt?.toIso8601String(),
+  'completedAt': instance.completedAt?.toIso8601String(),
+  'resultJson': instance.resultJson,
 };
