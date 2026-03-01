@@ -197,11 +197,22 @@ func (h *ImageTaskHandler) broadcastProgress(payload ImageTaskPayload, progress 
 	if payload.ProjectID != "" {
 		projectID = &payload.ProjectID
 	}
-	h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, map[string]interface{}{
+	data := map[string]interface{}{
+		"taskId":        payload.TaskID,
+		"type":          "image",
 		"progress":      progress,
 		"status":        status,
+		"title":         "镜图生成",
 		"shot_image_id": payload.ShotImageID,
-	})
+	}
+	switch {
+	case progress >= 100 && status == "completed":
+		h.deps.RealtimeHub.BroadcastTaskComplete(payload.UserID, projectID, payload.TaskID, data)
+	case status == "failed":
+		h.deps.RealtimeHub.BroadcastTaskError(payload.UserID, projectID, payload.TaskID, data)
+	default:
+		h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, data)
+	}
 }
 
 func (h *ImageTaskHandler) failShotImage(payload ImageTaskPayload, errMsg string) {
