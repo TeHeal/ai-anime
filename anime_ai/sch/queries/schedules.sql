@@ -7,7 +7,7 @@ VALUES (
     COALESCE(sqlc.narg('name'), ''),
     sqlc.arg('cron_expr'),
     COALESCE(sqlc.narg('action'), 'pipeline'),
-    COALESCE(sqlc.narg('config_json'), '{}'),
+    COALESCE(sqlc.narg('config_json'), '{}'::jsonb),
     COALESCE(sqlc.narg('enabled'), true),
     sqlc.narg('last_run_at'),
     sqlc.narg('next_run_at')

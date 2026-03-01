@@ -22,6 +22,6 @@ VALUES (
     COALESCE(sqlc.narg('image_count'), 0),
     COALESCE(sqlc.narg('video_seconds'), 0),
     COALESCE(sqlc.narg('cost_cents'), 0),
-    COALESCE(sqlc.narg('meta_json'), '{}')
+    COALESCE(sqlc.narg('meta_json'), '{}'::jsonb)
 )
 RETURNING *;

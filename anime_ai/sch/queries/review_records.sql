@@ -8,7 +8,7 @@ VALUES (
     COALESCE(sqlc.narg('reviewer_type'), 'human'),
     sqlc.arg('action'),
     sqlc.narg('comment'),
-    COALESCE(sqlc.narg('feedback_json'), '{}')
+    COALESCE(sqlc.narg('feedback_json'), '{}'::jsonb)
 )
 RETURNING *;
 

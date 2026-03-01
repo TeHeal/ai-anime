@@ -10,7 +10,7 @@ VALUES (
     sqlc.arg('shot_id'), sqlc.arg('project_id'), sqlc.narg('shot_image_id'),
     sqlc.arg('video_url'), sqlc.arg('task_id'), COALESCE(sqlc.narg('status'), 'pending'),
     COALESCE(sqlc.narg('duration'), 0), sqlc.arg('provider'), sqlc.arg('model'),
-    COALESCE(sqlc.narg('params_json'), '{}'), COALESCE(sqlc.narg('version'), 1),
+    COALESCE(sqlc.narg('params_json'), '{}'::jsonb), COALESCE(sqlc.narg('version'), 1),
     sqlc.arg('review_status'), sqlc.arg('review_comment'),
     sqlc.narg('reviewed_at'), sqlc.narg('reviewed_by')
 )

@@ -22,7 +22,7 @@ VALUES (
     $1, $2, $3,
     $4, $5, COALESCE($6, 'pending'),
     COALESCE($7, 0), $8, $9,
-    COALESCE($10, '{}'), COALESCE($11, 1),
+    COALESCE($10, '{}'::jsonb), COALESCE($11, 1),
     $12, $13,
     $14, $15
 )

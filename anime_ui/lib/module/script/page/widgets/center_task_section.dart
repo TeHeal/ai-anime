@@ -25,7 +25,7 @@ class CenterTaskSection extends ConsumerWidget {
     if (selected.isEmpty) return;
     final ids = selected.toList();
     showToast(context, '开始生成 ${ids.length} 集脚本');
-    await ref.read(episodeStatesProvider.notifier).batchGenerate(ids);
+    await ref.read(episodeStatesProvider.notifier).batchGenerate(ids.map((e) => e.toString()).toList());
     if (!context.mounted) return;
     showToast(context, '批量生成完成');
   }
@@ -133,7 +133,7 @@ class CenterTaskSection extends ConsumerWidget {
               onToggleSelectAll: () => uiNotifier.toggleSelectAll(
                 validEpisodes
                     .where((e) => e.id != null)
-                    .map((e) => e.id as int)
+                    .map((e) => e.id!)
                     .toList(),
               ),
               onBatchAction: () => _batchGenerate(context, ref),
@@ -154,7 +154,7 @@ class CenterTaskSection extends ConsumerWidget {
     ScriptCenterUiState uiState,
     ScriptCenterUiNotifier uiNotifier,
     List<dynamic> filtered,
-    Map<int, EpisodeGenerateState> states,
+    Map<String, EpisodeGenerateState> states,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -166,7 +166,7 @@ class CenterTaskSection extends ConsumerWidget {
           spacing: Spacing.gridGap,
           runSpacing: Spacing.gridGap,
           children: filtered.map((ep) {
-            final eid = ep.id as int;
+            final eid = ep.id!;
             final epState = states[eid];
             final cardWidth =
                 (constraints.maxWidth -

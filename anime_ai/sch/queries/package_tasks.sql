@@ -5,7 +5,7 @@ INSERT INTO package_tasks (project_id, episode_id, task_id, status, output_url, 
 VALUES (
     sqlc.arg('project_id'), sqlc.arg('episode_id'), sqlc.narg('task_id'),
     COALESCE(sqlc.narg('status'), 'pending'), sqlc.narg('output_url'),
-    COALESCE(sqlc.narg('config_json'), '{}'), sqlc.narg('error_msg')
+    COALESCE(sqlc.narg('config_json'), '{}'::jsonb), sqlc.narg('error_msg')
 )
 RETURNING *;
 

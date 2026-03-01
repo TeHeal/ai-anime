@@ -19,7 +19,7 @@ class EpisodeTaskCard extends StatelessWidget {
     required this.onReview,
   });
 
-  final int episodeId;
+  final String episodeId;
   final String title;
   final int sortIndex;
   final EpisodeGenerateState? state;

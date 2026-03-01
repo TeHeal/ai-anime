@@ -31,9 +31,9 @@ VALUES (
     COALESCE($21, 'draft'), COALESCE($22, 'manual'),
     COALESCE($23, '[]'), $24, $25,
     $26, COALESCE($27, '[]'),
-    COALESCE($28, '{}'), $29,
+    COALESCE($28, '{}'::jsonb), $29,
     COALESCE($30, '[]'),
-    COALESCE($31, '{}'),
+    COALESCE($31, '{}'::jsonb),
     COALESCE($32, 1)
 )
 RETURNING id, created_at, updated_at, deleted_at, project_id, user_id, name, alias_json, appearance, style, style_id, style_override, personality, voice_hint, emotions, scenes, gender, age_group, voice_id, voice_name, image_url, reference_images_json, task_id, image_status, shared, status, source, variants_json, importance, consistency, role_type, tags_json, props_json, bio, bio_fragments_json, image_gen_override_json, version

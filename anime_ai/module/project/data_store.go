@@ -28,14 +28,20 @@ func (d *DBData) CreateProject(p *Project) error {
 		return errors.New("无效的 user_id")
 	}
 	arg := db.CreateProjectParams{
-		UserID:         userID,
-		Name:           p.Name,
-		Story:          pgtype.Text{String: p.Story, Valid: true},
-		StoryMode:      pgtype.Text{String: p.StoryMode, Valid: true},
-		ConfigJson:     json.RawMessage(p.ConfigJSON),
-		PropsJson:      json.RawMessage(p.PropsJSON),
-		StoryboardJson: json.RawMessage(p.StoryboardJSON),
-		MirrorMode:     true,
+		UserID:    userID,
+		Name:      p.Name,
+		Story:     pgtype.Text{String: p.Story, Valid: true},
+		StoryMode: pgtype.Text{String: p.StoryMode, Valid: true},
+		MirrorMode: true,
+	}
+	if p.ConfigJSON != "" {
+		arg.ConfigJson = json.RawMessage(p.ConfigJSON)
+	}
+	if p.PropsJSON != "" {
+		arg.PropsJson = json.RawMessage(p.PropsJSON)
+	}
+	if p.StoryboardJSON != "" {
+		arg.StoryboardJson = json.RawMessage(p.StoryboardJSON)
 	}
 	row, err := d.q.CreateProject(ctx, arg)
 	if err != nil {

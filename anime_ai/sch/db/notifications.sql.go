@@ -28,7 +28,7 @@ INSERT INTO notifications (user_id, type, title, body, link_url, meta_json)
 VALUES (
     $1, COALESCE($2, 'task_complete'),
     $3, COALESCE($4, ''),
-    $5, COALESCE($6, '{}')
+    $5, COALESCE($6, '{}'::jsonb)
 )
 RETURNING id, created_at, user_id, type, title, body, link_url, read_at, meta_json
 `

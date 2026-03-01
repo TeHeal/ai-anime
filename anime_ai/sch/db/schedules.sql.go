@@ -19,7 +19,7 @@ VALUES (
     COALESCE($3, ''),
     $4,
     COALESCE($5, 'pipeline'),
-    COALESCE($6, '{}'),
+    COALESCE($6, '{}'::jsonb),
     COALESCE($7, true),
     $8,
     $9

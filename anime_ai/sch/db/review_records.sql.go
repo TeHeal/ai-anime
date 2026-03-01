@@ -20,7 +20,7 @@ VALUES (
     COALESCE($5, 'human'),
     $6,
     $7,
-    COALESCE($8, '{}')
+    COALESCE($8, '{}'::jsonb)
 )
 RETURNING id, created_at, target_type, target_id, project_id, reviewer_id, reviewer_type, action, comment, feedback_json
 `

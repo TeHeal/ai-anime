@@ -3,7 +3,7 @@ INSERT INTO notifications (user_id, type, title, body, link_url, meta_json)
 VALUES (
     sqlc.arg('user_id'), COALESCE(sqlc.narg('type'), 'task_complete'),
     sqlc.arg('title'), COALESCE(sqlc.narg('body'), ''),
-    sqlc.narg('link_url'), COALESCE(sqlc.narg('meta_json'), '{}')
+    sqlc.narg('link_url'), COALESCE(sqlc.narg('meta_json'), '{}'::jsonb)
 )
 RETURNING *;
 

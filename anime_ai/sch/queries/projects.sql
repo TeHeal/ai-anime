@@ -6,7 +6,7 @@ INSERT INTO projects (
 )
 VALUES (
     sqlc.arg('user_id'), sqlc.arg('name'), sqlc.arg('story'), sqlc.arg('story_mode'),
-    COALESCE(sqlc.narg('config_json'), '{}'), COALESCE(sqlc.narg('props_json'), '{}'), COALESCE(sqlc.narg('storyboard_json'), '{}'),
+    COALESCE(sqlc.narg('config_json'), '{}'::jsonb), COALESCE(sqlc.narg('props_json'), '{}'::jsonb), COALESCE(sqlc.narg('storyboard_json'), '{}'::jsonb),
     COALESCE(sqlc.narg('mirror_mode'), true), sqlc.narg('team_id'), COALESCE(sqlc.narg('visibility'), 'private'), COALESCE(sqlc.narg('version'), 1),
     COALESCE(sqlc.narg('story_locked'), false), sqlc.narg('story_locked_at'),
     COALESCE(sqlc.narg('assets_locked'), false), sqlc.narg('assets_locked_at'),

@@ -17,7 +17,7 @@ INSERT INTO composite_tasks (project_id, episode_id, task_id, status, output_url
 VALUES (
     $1, $2, $3,
     COALESCE($4, 'pending'), $5,
-    COALESCE($6, '{}'), $7
+    COALESCE($6, '{}'::jsonb), $7
 )
 RETURNING id, created_at, updated_at, deleted_at, project_id, episode_id, task_id, status, output_url, config_json, error_msg
 `

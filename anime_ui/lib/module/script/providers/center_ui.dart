@@ -7,7 +7,7 @@ import 'package:anime_ui/pub/models/storyboard_script.dart';
 // ---------------------------------------------------------------------------
 
 class ScriptCenterUiState {
-  final Set<int> selectedEpisodeIds;
+  final Set<String> selectedEpisodeIds;
   final bool configExpanded;
   final EpisodeScriptStatus? statusFilter;
   final int pageGroup;
@@ -20,7 +20,7 @@ class ScriptCenterUiState {
   });
 
   ScriptCenterUiState copyWith({
-    Set<int>? selectedEpisodeIds,
+    Set<String>? selectedEpisodeIds,
     bool? configExpanded,
     EpisodeScriptStatus? Function()? statusFilter,
     int? pageGroup,
@@ -42,8 +42,8 @@ class ScriptCenterUiNotifier extends Notifier<ScriptCenterUiState> {
   @override
   ScriptCenterUiState build() => const ScriptCenterUiState();
 
-  void toggleEpisodeSelection(int episodeId, bool isSelected) {
-    final updated = Set<int>.from(state.selectedEpisodeIds);
+  void toggleEpisodeSelection(String episodeId, bool isSelected) {
+    final updated = Set<String>.from(state.selectedEpisodeIds);
     if (isSelected) {
       updated.add(episodeId);
     } else {
@@ -52,7 +52,7 @@ class ScriptCenterUiNotifier extends Notifier<ScriptCenterUiState> {
     state = state.copyWith(selectedEpisodeIds: updated);
   }
 
-  void toggleSelectAll(List<int> allValidIds) {
+  void toggleSelectAll(List<String> allValidIds) {
     if (state.selectedEpisodeIds.length == allValidIds.length &&
         state.selectedEpisodeIds.isNotEmpty) {
       state = state.copyWith(selectedEpisodeIds: const {});

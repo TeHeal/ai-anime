@@ -19,7 +19,7 @@ INSERT INTO projects (
 )
 VALUES (
     $1, $2, $3, $4,
-    COALESCE($5, '{}'), COALESCE($6, '{}'), COALESCE($7, '{}'),
+    COALESCE($5, '{}'::jsonb), COALESCE($6, '{}'::jsonb), COALESCE($7, '{}'::jsonb),
     COALESCE($8, true), $9, COALESCE($10, 'private'), COALESCE($11, 1),
     COALESCE($12, false), $13,
     COALESCE($14, false), $15,

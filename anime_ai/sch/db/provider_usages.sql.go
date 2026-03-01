@@ -23,7 +23,7 @@ VALUES (
     COALESCE($8, 0),
     COALESCE($9, 0),
     COALESCE($10, 0),
-    COALESCE($11, '{}')
+    COALESCE($11, '{}'::jsonb)
 )
 RETURNING id, created_at, project_id, user_id, org_id, provider, model, service_type, token_count, image_count, video_seconds, cost_cents, meta_json
 `

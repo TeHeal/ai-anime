@@ -19,9 +19,9 @@ VALUES (
     COALESCE(sqlc.narg('status'), 'draft'), COALESCE(sqlc.narg('source'), 'manual'),
     COALESCE(sqlc.narg('variants_json'), '[]'), sqlc.arg('importance'), sqlc.arg('consistency'),
     sqlc.arg('role_type'), COALESCE(sqlc.narg('tags_json'), '[]'),
-    COALESCE(sqlc.narg('props_json'), '{}'), sqlc.arg('bio'),
+    COALESCE(sqlc.narg('props_json'), '{}'::jsonb), sqlc.arg('bio'),
     COALESCE(sqlc.narg('bio_fragments_json'), '[]'),
-    COALESCE(sqlc.narg('image_gen_override_json'), '{}'),
+    COALESCE(sqlc.narg('image_gen_override_json'), '{}'::jsonb),
     COALESCE(sqlc.narg('version'), 1)
 )
 RETURNING *;
