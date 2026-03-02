@@ -141,4 +141,13 @@ abstract final class AppIcons {
   static const IconData send = SolarIconsBold.sendSquare;
   static const IconData stop = SolarIconsBold.stop;
   static const IconData compareArrows = SolarIconsBold.transferHorizontal;
+
+  // 视频生成专用
+  static const IconData text = SolarIconsBold.document;
+  static const IconData film = SolarIconsBold.reel;
+  static const IconData images = SolarIconsBold.galleryMinimalistic;
+  static const IconData sound = SolarIconsBold.volume;
+  static const IconData clock = SolarIconsBold.clockCircle;
+  static const IconData camera = SolarIconsBold.camera;
+  static const IconData layers = SolarIconsBold.layers;
 }

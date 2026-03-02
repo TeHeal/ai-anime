@@ -87,9 +87,14 @@ func (s *Service) Get(id, projectID, userID string) (*ShotVideo, error) {
 	return s.store.FindByID(context.Background(), id)
 }
 
-// Create 创建镜头视频（占位，后续接入文生视频）
+// Create 创建镜头视频（兼容旧接口）
 // 阶段门禁：脚本必须已锁定才能生成镜头视频（README 2.2/2.4）
 func (s *Service) Create(shotID, projectID, userID string, shotImageID *string) (*ShotVideo, error) {
+	return s.CreateWithParams(shotID, projectID, userID, &VideoCreateRequest{})
+}
+
+// CreateWithParams 创建镜头视频（支持完整视频生成参数）
+func (s *Service) CreateWithParams(shotID, projectID, userID string, req *VideoCreateRequest) (*ShotVideo, error) {
 	if err := s.verifyProject(projectID, userID); err != nil {
 		return nil, err
 	}
@@ -105,13 +110,36 @@ func (s *Service) Create(shotID, projectID, userID string, shotImageID *string) 
 	if err := s.checkResourceAction(projectID, userID, auth.ResourceShotVideo, "pending", auth.ActionShotVideoGen); err != nil {
 		return nil, err
 	}
+
 	v := &ShotVideo{
 		ShotID:       shotID,
 		ProjectID:    projectID,
-		ShotImageID:  shotImageID,
 		Status:       "pending",
 		ReviewStatus: "pending",
 	}
+
+	if req != nil {
+		v.GenMode = req.GenMode
+		v.Resolution = req.Resolution
+		v.Ratio = req.Ratio
+		v.Provider = req.Provider
+		v.Model = req.Model
+		v.ServiceTier = req.ServiceTier
+		if req.Duration > 0 {
+			v.Duration = req.Duration
+		}
+		if req.Seed != nil {
+			v.Seed = *req.Seed
+		}
+		if req.Draft != nil && *req.Draft {
+			v.IsDraft = true
+		}
+		if req.GenerateAudio != nil && *req.GenerateAudio {
+			v.GenerateAudio = true
+		}
+		v.DraftTaskID = req.DraftTaskID
+	}
+
 	if err := s.store.Create(context.Background(), v); err != nil {
 		return nil, err
 	}
