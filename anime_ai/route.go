@@ -9,6 +9,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/health"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/organization"
 	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
@@ -63,6 +64,20 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 			protected.GET("/notifications/unread-count", cfg.NotificationHandler.CountUnread)
 			protected.PUT("/notifications/:id/read", cfg.NotificationHandler.MarkAsRead)
 			protected.PUT("/notifications/read-all", cfg.NotificationHandler.MarkAllAsRead)
+		}
+
+		// 组织管理（README §2.5, §3 组织/团队 CRUD）
+		if cfg.OrgHandler != nil {
+			orgs := protected.Group("/orgs")
+			{
+				orgs.POST("", cfg.OrgHandler.Create)
+				orgs.GET("", cfg.OrgHandler.List)
+				orgs.GET("/:orgId", cfg.OrgHandler.Get)
+				orgs.PUT("/:orgId", cfg.OrgHandler.Update)
+				orgs.POST("/:orgId/members", cfg.OrgHandler.AddMember)
+				orgs.GET("/:orgId/members", cfg.OrgHandler.ListMembers)
+				orgs.DELETE("/:orgId/members/:userId", cfg.OrgHandler.RemoveMember)
+			}
 		}
 
 		// 统一任务中心（README §2.1 任务编排，前端 /tasks）
@@ -305,6 +320,7 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 type RouteConfig struct {
 	AuthHandler         *modauth.Handler
 	NotificationHandler *notification.Handler
+	OrgHandler          *organization.Handler
 	TaskHandler         *task.Handler
 	ProjectHandler      *project.Handler
 	EpisodeHandler      *episode.Handler

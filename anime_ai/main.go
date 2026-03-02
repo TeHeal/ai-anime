@@ -17,6 +17,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/organization"
 	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
@@ -35,6 +36,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/audio"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
@@ -318,6 +320,15 @@ func main() {
 		log.Println("通知模块已启用")
 	}
 
+	// 组织模块（README §2.5, §3 组织/团队 CRUD）
+	var orgHandler *organization.Handler
+	if pool != nil {
+		orgData := organization.NewDBData(db.New(pool))
+		orgSvc := organization.NewService(orgData)
+		orgHandler = organization.NewHandler(orgSvc)
+		log.Println("组织模块已启用")
+	}
+
 	// 统一任务模块（README §2.1 任务编排，前端任务中心 /api/v1/tasks）
 	var taskHandler *task.Handler
 	if pool != nil {
@@ -381,6 +392,23 @@ func main() {
 		videoRouter.RegisterProvider(video.NewSeedanceProvider(cfg.Video.SeedanceKey))
 	}
 
+	// TTS 路由（README 2.5 语音合成）
+	ttsPolicy := mesh.DefaultPolicy()
+	ttsBreaker := mesh.NewBreaker(3)
+	ttsRouter := mesh.NewTTSRouter(ttsPolicy, ttsBreaker)
+	if cfg.TTS.CosyVoiceKey != "" {
+		ttsRouter.RegisterProvider(audio.NewCosyVoiceTTSProvider(cfg.TTS.CosyVoiceKey))
+		log.Println("TTS Provider 已注册: cosyvoice")
+	}
+	if cfg.TTS.MiniMaxKey != "" {
+		ttsRouter.RegisterProvider(audio.NewMiniMaxTTSProvider(cfg.TTS.MiniMaxKey))
+		log.Println("TTS Provider 已注册: minimax_tts")
+	}
+	if cfg.TTS.VolcengineKey != "" {
+		ttsRouter.RegisterProvider(audio.NewVolcengineTTSProvider(cfg.TTS.VolcengineKey, cfg.TTS.VolcengineAppID))
+		log.Println("TTS Provider 已注册: volcengine_tts")
+	}
+
 	var store storage.Storage
 	if s, storeErr := storage.NewFromConfig(&cfg.Storage); storeErr != nil {
 		log.Printf("Storage 初始化失败，使用 nil: %v", storeErr)
@@ -425,6 +453,19 @@ func main() {
 	}
 	videoHandler := worker.NewVideoTaskHandler(logger, videoTaskDeps)
 
+	// TTS Worker Handler（README 2.5 语音合成）
+	ttsTaskDeps := worker.TTSTaskDeps{
+		TTSRouter:     ttsRouter,
+		Storage:       store,
+		RealtimeHub:   realtimeHub,
+		TaskNotifier:  taskNotifier,
+		UsageRecorder: nil,
+	}
+	if pool != nil {
+		ttsTaskDeps.UsageRecorder = provider_usage.NewDBRecorder(db.New(pool))
+	}
+	ttsHandler := worker.NewTTSTaskHandler(logger, ttsTaskDeps)
+
 	var exportHandler *worker.ExportTaskHandler
 	if compositeSvc != nil {
 		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{CompositeUpdater: compositeSvc})
@@ -460,6 +501,7 @@ func main() {
 		muxDeps := &worker.MuxDeps{
 			ImageHandler:    imageHandler,
 			VideoHandler:    videoHandler,
+			TTSHandler:      ttsHandler,
 			ExportHandler:   exportHandler,
 			PackageHandler:  packageWorkerHandler,
 			PipelineHandler: pipelineHandler,
@@ -532,6 +574,7 @@ func main() {
 	routeCfg := &RouteConfig{
 		AuthHandler:         authHandler,
 		NotificationHandler: notificationHandler,
+		OrgHandler:          orgHandler,
 		TaskHandler:         taskHandler,
 		ProjectHandler:      projectHandler,
 		EpisodeHandler:      episodeHandler,
