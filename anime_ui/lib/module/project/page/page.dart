@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,9 +10,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/dashed_border_painter.dart';
-import 'package:anime_ui/pub/widgets/glow_card.dart';
 import 'package:anime_ui/pub/widgets/gradient_app_bar_bottom.dart';
-import 'package:anime_ui/pub/widgets/pulse.dart';
 import 'package:anime_ui/pub/widgets/starfield_background.dart';
 import 'package:anime_ui/pub/models/project.dart';
 import 'package:anime_ui/pub/providers/storage_provider.dart';
@@ -52,7 +52,7 @@ class ProjectsPage extends ConsumerWidget {
                   vertical: Spacing.xl.h,
                 ),
                 sliver: listAsync.when(
-                  data: (projects) => _buildGrid(context, ref, projects),
+                  data: (projects) => _buildCenteredGrid(context, ref, projects),
                   loading: () => const SliverToBoxAdapter(
                     child: Center(child: CircularProgressIndicator()),
                   ),
@@ -162,7 +162,8 @@ class ProjectsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildGrid(
+  /// 居中网格布局：卡片整体居中，适度大小
+  Widget _buildCenteredGrid(
     BuildContext context,
     WidgetRef ref,
     List<Project> projects,
@@ -171,47 +172,63 @@ class ProjectsPage extends ConsumerWidget {
 
     return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount =
-            Breakpoints.columnCountForWidth(
-              constraints.crossAxisExtent, maxCols: 4,
-            );
+        final availWidth = constraints.crossAxisExtent;
+        final crossAxisCount = Breakpoints.columnCountForWidth(
+          availWidth,
+          maxCols: 4,
+        );
 
-        return SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: Spacing.mid.h,
-            crossAxisSpacing: Spacing.mid.w,
-            childAspectRatio: 1.05,
-          ),
-          delegate: SliverChildBuilderDelegate(
-            (context, i) {
-              if (i == 0) {
-                return _NewProjectCard(
-                  onTap: () => _createProject(context, ref),
-                );
-              }
-              final index = i - 1;
-              return TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: Duration(milliseconds: 350 + index * 80),
-                curve: Curves.easeOutCubic,
-                builder: (_, value, child) => Opacity(
-                  opacity: value,
-                  child: Transform.translate(
-                    offset: Offset(0, 20.h * (1 - value)),
-                    child: child,
+        // 卡片固定尺寸（更适合展示）
+        const double cardWidth = 240;
+        const double cardHeight = 200;
+        const double spacing = 24;
+
+        final gridWidth =
+            crossAxisCount * cardWidth + (crossAxisCount - 1) * spacing;
+        final sidePadding = math.max((availWidth - gridWidth) / 2, 0.0);
+
+        return SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: sidePadding),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: spacing.h,
+              crossAxisSpacing: spacing.w,
+              childAspectRatio: cardWidth / cardHeight,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, i) {
+                if (i == 0) {
+                  return _NewProjectCard(
+                    onTap: () => _createProject(context, ref),
+                  );
+                }
+                final index = i - 1;
+                return TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: Duration(milliseconds: 400 + index * 100),
+                  curve: Curves.easeOutBack,
+                  builder: (_, value, child) => Opacity(
+                    opacity: value.clamp(0.0, 1.0),
+                    child: Transform.translate(
+                      offset: Offset(0, 30.h * (1 - value)),
+                      child: Transform.scale(
+                        scale: 0.85 + 0.15 * value,
+                        child: child,
+                      ),
+                    ),
                   ),
-                ),
-                child: _ProjectCard(
-                  project: projects[index],
-                  onTap: () => _openProject(context, ref, projects[index]),
-                  onEdit: () => _editProject(context, ref, projects[index]),
-                  onDelete: () =>
-                      _deleteProject(context, ref, projects[index]),
-                ),
-              );
-            },
-            childCount: totalItems,
+                  child: _ProjectCard(
+                    project: projects[index],
+                    onTap: () => _openProject(context, ref, projects[index]),
+                    onEdit: () => _editProject(context, ref, projects[index]),
+                    onDelete: () =>
+                        _deleteProject(context, ref, projects[index]),
+                  ),
+                );
+              },
+              childCount: totalItems,
+            ),
           ),
         );
       },
@@ -283,7 +300,7 @@ class ProjectsPage extends ConsumerWidget {
   }
 }
 
-/// 新建项目卡片 — 渐变虚线边框 + 脉冲动画 + 悬浮发光
+/// 新建项目卡片 — 动漫风格：霓虹虚线边框 + 脉冲光环 + 悬浮光晕 + 渐变底色
 class _NewProjectCard extends StatefulWidget {
   const _NewProjectCard({required this.onTap});
   final VoidCallback onTap;
@@ -292,8 +309,29 @@ class _NewProjectCard extends StatefulWidget {
   State<_NewProjectCard> createState() => _NewProjectCardState();
 }
 
-class _NewProjectCardState extends State<_NewProjectCard> {
+class _NewProjectCardState extends State<_NewProjectCard>
+    with SingleTickerProviderStateMixin {
   bool _hovered = false;
+  late final AnimationController _glowCtrl;
+  late final Animation<double> _glowAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+    _glowAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _glowCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -303,103 +341,160 @@ class _NewProjectCardState extends State<_NewProjectCard> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(0, _hovered ? -4 : 0, 0),
-          child: CustomPaint(
-            painter: DashedBorderPainter(
-              color: _hovered ? AppColors.primary : AppColors.mutedDarker,
-              borderRadius: RadiusTokens.xxxl,
-              dashLength: 8,
-              gapLength: 5,
-              strokeWidth: _hovered ? 2.0 : 1.5,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    _hovered
-                        ? AppColors.primary.withValues(alpha: 0.06)
-                        : AppColors.surface.withValues(alpha: 0.2),
-                    _hovered
-                        ? AppColors.primary.withValues(alpha: 0.03)
-                        : AppColors.surface.withValues(alpha: 0.15),
-                  ],
+        child: AnimatedBuilder(
+          animation: _glowAnim,
+          builder: (context, child) {
+            final glowVal = _glowAnim.value;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              transform: _hovered
+                  ? (Matrix4.translationValues(0, -6, 0)
+                      ..setEntry(0, 0, 1.03)
+                      ..setEntry(1, 1, 1.03)
+                      ..setEntry(2, 2, 1.03))
+                  : Matrix4.identity(),
+              child: CustomPaint(
+                painter: DashedBorderPainter(
+                  color: _hovered
+                      ? AppColors.primary
+                      : Color.lerp(
+                          AppColors.mutedDarker,
+                          AppColors.primary.withValues(alpha: 0.5),
+                          glowVal,
+                        )!,
+                  borderRadius: RadiusTokens.xxl,
+                  dashLength: 10,
+                  gapLength: 6,
+                  strokeWidth: _hovered ? 2.0 : 1.5,
                 ),
-                boxShadow: _hovered
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          blurRadius: 24.r,
-                          spreadRadius: 2.r,
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PulseWidget(
-                      pulseColor: AppColors.primary,
-                      ringPadding: 16.r,
-                      child: Container(
-                        width: 52.w,
-                        height: 52.h,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.primary.withValues(alpha: 0.15),
-                              AppColors.info.withValues(alpha: 0.08),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+                    gradient: RadialGradient(
+                      center: const Alignment(0, -0.3),
+                      radius: 1.2,
+                      colors: _hovered
+                          ? [
+                              AppColors.primary.withValues(alpha: 0.1),
+                              AppColors.primary.withValues(alpha: 0.03),
+                              AppColors.surface.withValues(alpha: 0.15),
+                            ]
+                          : [
+                              AppColors.surface.withValues(alpha: 0.25),
+                              AppColors.surface.withValues(alpha: 0.1),
                             ],
+                    ),
+                    boxShadow: [
+                      if (_hovered)
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 32.r,
+                          spreadRadius: 4.r,
+                        ),
+                      BoxShadow(
+                        color: AppColors.primary.withValues(
+                          alpha: 0.04 + 0.06 * glowVal,
+                        ),
+                        blurRadius: 16.r,
+                        spreadRadius: 1.r,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 带脉冲光环的加号图标
+                        _buildPulsingIcon(glowVal),
+                        SizedBox(height: Spacing.md.h),
+                        Text(
+                          '新建项目',
+                          style: AppTextStyles.labelLarge.copyWith(
+                            color: _hovered
+                                ? AppColors.primary
+                                : AppColors.onSurface.withValues(alpha: 0.75),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        child: Icon(
-                          AppIcons.add,
-                          size: 28.r,
-                          color: _hovered
-                              ? AppColors.primary
-                              : AppColors.onSurface.withValues(alpha: 0.7),
+                        SizedBox(height: 4.h),
+                        Text(
+                          '开始全新创作',
+                          style: AppTextStyles.caption.copyWith(
+                            color: _hovered
+                                ? AppColors.primary.withValues(alpha: 0.6)
+                                : AppColors.mutedDark,
+                            fontSize: 11.sp,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    SizedBox(height: Spacing.lg.h),
-                    Text(
-                      '新建项目',
-                      style: AppTextStyles.labelLarge.copyWith(
-                        color: _hovered
-                            ? AppColors.primary
-                            : AppColors.onSurface.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: Spacing.xs.h),
-                    Text(
-                      '开始全新创作',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.mutedDark,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
   }
+
+  Widget _buildPulsingIcon(double glowVal) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // 外层呼吸光环
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: (_hovered ? 72 : 64).w,
+          height: (_hovered ? 72 : 64).h,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.1 + 0.15 * glowVal),
+              width: 1.5.r,
+            ),
+          ),
+        ),
+        // 内层图标容器
+        Container(
+          width: 48.w,
+          height: 48.h,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primary.withValues(alpha: _hovered ? 0.25 : 0.12),
+                AppColors.info.withValues(alpha: _hovered ? 0.15 : 0.06),
+              ],
+            ),
+            boxShadow: _hovered
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 12.r,
+                    ),
+                  ]
+                : [],
+          ),
+          child: Icon(
+            AppIcons.add,
+            size: 24.r,
+            color: _hovered
+                ? AppColors.primary
+                : AppColors.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-/// 项目卡片 — GlowCard 包裹，渐变边框 + 状态指示 + 日期显示
-class _ProjectCard extends StatelessWidget {
+/// 项目卡片 — 动漫风格：霓虹顶部渐变条 + 悬浮光晕 + 角标装饰 + 彩色阴影
+class _ProjectCard extends StatefulWidget {
   const _ProjectCard({
     required this.project,
     required this.onTap,
@@ -412,118 +507,273 @@ class _ProjectCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  @override
+  State<_ProjectCard> createState() => _ProjectCardState();
+}
+
+class _ProjectCardState extends State<_ProjectCard> {
+  bool _hovered = false;
+
+  /// 根据项目名生成稳定的主题色
+  Color get _themeColor {
+    final hash = widget.project.name.hashCode.abs();
+    final hues = [
+      AppColors.primary,
+      AppColors.info,
+      const Color(0xFF8B5CF6),
+      const Color(0xFFEC4899),
+      const Color(0xFF06B6D4),
+      const Color(0xFFF59E0B),
+    ];
+    return hues[hash % hues.length];
+  }
+
   String _formatDate(DateTime? dt) {
     if (dt == null) return '';
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 1) return '刚刚更新';
-    if (diff.inHours < 1) return '${diff.inMinutes} 分钟前';
-    if (diff.inDays < 1) return '${diff.inHours} 小时前';
-    if (diff.inDays < 7) return '${diff.inDays} 天前';
+    if (diff.inMinutes < 1) return '刚刚';
+    if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
+    if (diff.inDays < 1) return '${diff.inHours}小时前';
+    if (diff.inDays < 7) return '${diff.inDays}天前';
     return '${dt.month}月${dt.day}日';
   }
 
   @override
   Widget build(BuildContext context) {
-    return GlowCard(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          const Spacer(),
-          Center(
-            child: Text(
-              project.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.h3.copyWith(
-                color: AppColors.onSurface,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
+    final accent = _themeColor;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+          transform: _hovered
+              ? (Matrix4.translationValues(0, -6, 0)
+                  ..setEntry(0, 0, 1.03)
+                  ..setEntry(1, 1, 1.03)
+                  ..setEntry(2, 2, 1.03))
+              : Matrix4.identity(),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: _hovered
+                  ? [
+                      AppColors.surfaceContainerHigh,
+                      accent.withValues(alpha: 0.06),
+                      AppColors.surfaceContainerHighest,
+                    ]
+                  : [
+                      AppColors.surfaceContainerHigh,
+                      AppColors.surfaceContainerHighest,
+                    ],
+            ),
+            border: Border.all(
+              color: _hovered
+                  ? accent.withValues(alpha: 0.5)
+                  : accent.withValues(alpha: 0.1),
+              width: _hovered ? 1.5 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: _hovered ? 0.25 : 0.08),
+                blurRadius: _hovered ? 28.r : 8.r,
+                spreadRadius: _hovered ? 3.r : 0,
               ),
+              if (_hovered)
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.1),
+                  blurRadius: 48.r,
+                  spreadRadius: -4.r,
+                ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 顶部霓虹渐变条
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  height: _hovered ? 4.h : 3.h,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        accent,
+                        accent.withValues(alpha: 0.8),
+                        AppColors.info,
+                      ],
+                    ),
+                    boxShadow: _hovered
+                        ? [
+                            BoxShadow(
+                              color: accent.withValues(alpha: 0.4),
+                              blurRadius: 8.r,
+                              offset: Offset(0, 2.h),
+                            ),
+                          ]
+                        : [],
+                  ),
+                ),
+                // 内容区
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      Spacing.lg.w,
+                      Spacing.md.h,
+                      Spacing.lg.w,
+                      Spacing.md.h,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(accent),
+                        const Spacer(),
+                        // 项目名称（居中显示）
+                        Center(
+                          child: Text(
+                            widget.project.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.h4.copyWith(
+                              color: _hovered
+                                  ? AppColors.onSurface
+                                  : AppColors.onSurface.withValues(alpha: 0.9),
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        _buildFooter(accent),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
-          _buildFooter(),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Color accent) {
     return Row(
       children: [
+        // 项目图标（带渐变背景）
         Container(
-          padding: EdgeInsets.all(Spacing.sm.r),
+          padding: EdgeInsets.all(6.r),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.primary.withValues(alpha: 0.2),
-                AppColors.info.withValues(alpha: 0.1),
+                accent.withValues(alpha: 0.25),
+                accent.withValues(alpha: 0.08),
               ],
             ),
-            borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
           ),
           child: Icon(
             AppIcons.movieFilter,
-            color: AppColors.primary.withValues(alpha: 0.85),
-            size: 20.r,
+            color: accent.withValues(alpha: 0.9),
+            size: 16.r,
           ),
         ),
         const Spacer(),
-        PopupMenuButton<String>(
-          icon: Icon(AppIcons.moreVert, color: AppColors.mutedDark, size: 20.r),
-          color: AppColors.surface,
-          onSelected: (v) {
-            if (v == 'edit') onEdit();
-            if (v == 'delete') onDelete();
-          },
-          itemBuilder: (_) => [
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(AppIcons.editOutline, size: 18.r, color: AppColors.muted),
-                  SizedBox(width: Spacing.sm.w),
-                  Text('编辑名称',
-                    style: AppTextStyles.bodyMedium
-                        .copyWith(color: AppColors.mutedLight)),
-                ],
-              ),
+        // 菜单按钮
+        SizedBox(
+          width: 28.w,
+          height: 28.h,
+          child: PopupMenuButton<String>(
+            icon: Icon(
+              AppIcons.moreVert,
+              color: _hovered
+                  ? AppColors.mutedLight
+                  : AppColors.mutedDark,
+              size: 16.r,
             ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(AppIcons.delete, size: 18.r, color: AppColors.error),
-                  SizedBox(width: Spacing.sm.w),
-                  Text('删除',
-                    style: AppTextStyles.bodyMedium
-                        .copyWith(color: AppColors.error)),
-                ],
+            padding: EdgeInsets.zero,
+            color: AppColors.surface,
+            onSelected: (v) {
+              if (v == 'edit') widget.onEdit();
+              if (v == 'delete') widget.onDelete();
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(AppIcons.editOutline, size: 16.r, color: AppColors.muted),
+                    SizedBox(width: Spacing.sm.w),
+                    Text('编辑名称',
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(color: AppColors.mutedLight)),
+                  ],
+                ),
               ),
-            ),
-          ],
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(AppIcons.delete, size: 16.r, color: AppColors.error),
+                    SizedBox(width: Spacing.sm.w),
+                    Text('删除',
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(color: AppColors.error)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(Color accent) {
     return Row(
       children: [
-        Icon(AppIcons.inProgress, size: 12.r, color: AppColors.mutedDarker),
-        SizedBox(width: Spacing.xs.w),
+        Icon(
+          AppIcons.inProgress,
+          size: 11.r,
+          color: AppColors.mutedDarker,
+        ),
+        SizedBox(width: 4.w),
         Text(
-          _formatDate(project.updatedAt),
-          style: AppTextStyles.caption.copyWith(color: AppColors.mutedDark),
+          _formatDate(widget.project.updatedAt),
+          style: AppTextStyles.tiny.copyWith(
+            color: AppColors.mutedDark,
+            fontSize: 10.sp,
+          ),
         ),
         const Spacer(),
-        Icon(AppIcons.chevronRight, size: 14.r, color: AppColors.mutedDarker),
+        // 悬浮箭头指示
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: _hovered ? 1.0 : 0.4,
+          child: Container(
+            padding: EdgeInsets.all(4.r),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: _hovered ? 0.15 : 0.05),
+              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+            ),
+            child: Icon(
+              AppIcons.chevronRight,
+              size: 12.r,
+              color: _hovered ? accent : AppColors.mutedDarker,
+            ),
+          ),
+        ),
       ],
     );
   }
