@@ -273,6 +273,14 @@ func (a *shotReaderAdapter) GetShot(shotID string) (projectID string, imageURL s
 	return sh.ProjectID, sh.ImageURL, sh.ReviewStatus, nil
 }
 
+func (a *shotReaderAdapter) GetShotPrompt(shotID string) (prompt string, negativePrompt string, err error) {
+	sh, err := a.store.FindByID(shotID)
+	if err != nil {
+		return "", "", err
+	}
+	return sh.Prompt, sh.NegativePrompt, nil
+}
+
 func (a *shotReaderAdapter) UpdateShotImage(shotID string, imageURL string) error {
 	return a.store.UpdateImageURL(shotID, imageURL)
 }

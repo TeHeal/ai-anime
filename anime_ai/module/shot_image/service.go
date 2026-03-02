@@ -198,6 +198,7 @@ func (s *Service) SelectCandidate(shotID, assetID, userID string) error {
 }
 
 // UpdateImageReview 更新镜头镜图审核状态
+// 当审核结果为 rejected 且审核配置为 ai_only/human_and_ai 时，自动触发重生成（README 2.2）
 func (s *Service) UpdateImageReview(shotID, userID string, status, comment string) error {
 	if s.shotReader == nil {
 		return fmt.Errorf("shot reader 未配置")
@@ -217,6 +218,10 @@ func (s *Service) UpdateImageReview(shotID, userID string, status, comment strin
 	}
 	if s.reviewRecorder != nil {
 		s.reviewRecorder.Record(context.Background(), "shot", shotID, projectID, userID, "human", status, comment, nil)
+	}
+	// 审核拒绝时自动触发重生成（README 2.2 审核闭环）
+	if status == ReviewStatusRejected && s.shouldAutoRetry(projectID) {
+		_ = s.triggerRegeneration(shotID, projectID, userID, comment)
 	}
 	return nil
 }

@@ -93,6 +93,10 @@ func (s *Service) executeAIReview(shotID, projectID string) error {
 	if s.reviewRecorder != nil {
 		s.reviewRecorder.Record(ctx, "shot", shotID, projectID, "ai", "ai", finalStatus, comment, nil)
 	}
+	// AI 审核拒绝时自动触发重生成（README 2.2 审核闭环）
+	if finalStatus == ReviewStatusRejected {
+		_ = s.triggerRegeneration(shotID, projectID, "", comment)
+	}
 	return nil
 }
 
