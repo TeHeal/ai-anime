@@ -16,10 +16,11 @@ import (
 
 // OpenAICompatProvider 实现 LLMProvider，兼容 OpenAI API（DeepSeek、Kimi、阿里云等）
 type OpenAICompatProvider struct {
-	name    string
-	baseURL string
-	apiKey  string
-	client  *http.Client
+	name         string
+	baseURL      string
+	apiKey       string
+	defaultModel string
+	client       *http.Client
 }
 
 // NewOpenAICompatProvider 创建 OpenAI 兼容 Provider
@@ -30,6 +31,13 @@ func NewOpenAICompatProvider(name, baseURL, apiKey string) *OpenAICompatProvider
 		apiKey:  apiKey,
 		client:  &http.Client{},
 	}
+}
+
+// NewOpenAICompatProviderWithModel 创建带默认模型的 Provider
+func NewOpenAICompatProviderWithModel(name, baseURL, apiKey, defaultModel string) *OpenAICompatProvider {
+	p := NewOpenAICompatProvider(name, baseURL, apiKey)
+	p.defaultModel = defaultModel
+	return p
 }
 
 func (p *OpenAICompatProvider) Name() string { return p.name }
@@ -55,8 +63,12 @@ type sseData struct {
 }
 
 func (p *OpenAICompatProvider) ChatStream(ctx context.Context, req provider.ChatRequest) (<-chan provider.ChatChunk, error) {
+	model := req.Model
+	if model == "" {
+		model = p.defaultModel
+	}
 	body := chatCompletionRequest{
-		Model:    req.Model,
+		Model:    model,
 		Messages: req.Messages,
 		Stream:   true,
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/organization"
 	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
@@ -27,6 +28,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_video"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"github.com/TeHeal/ai-anime/anime_ai/module/task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
@@ -34,6 +36,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/audio"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/image"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/kie"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
@@ -41,6 +44,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/video"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/provider_usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/review_ai"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/review_record"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/scheduler"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
@@ -112,6 +116,7 @@ func main() {
 	projectSvc := project.NewService(projectData)
 	projectHandler := project.NewHandler(projectSvc)
 	projectVerifier := project.NewProjectVerifier(projectData)
+	scriptLockChecker := project.NewScriptLockChecker(projectData)
 
 	// 集、场模块：DB 可用时用 DB 存储，否则 Mem
 	var episodeStore episode.EpisodeStore
@@ -276,10 +281,16 @@ func main() {
 	}
 	// 审核流程配置（README §2.2 双线 AI）
 	reviewConfigReader := project.NewReviewConfigReader(projectData)
+	var aiReviewer shot_image.AIReviewer
+	if llmSvc.Available() {
+		aiReviewer = review_ai.NewLLMReviewer(llmSvc)
+		log.Println("AI 审核器已启用（基于 LLM）")
+	}
 	shotImageSvc.SetReviewFlowConfig(&shot_image.ReviewFlowConfig{
 		ReviewConfigReader: reviewConfigReader,
-		AIReviewer:         nil, // AI 审核器待接入 LLM provider
+		AIReviewer:         aiReviewer,
 	})
+	shotImageSvc.SetScriptLockChecker(scriptLockChecker)
 	shotImageHandler := shot_image.NewHandler(shotImageSvc)
 
 	// 镜头视频模块（README 镜头阶段）
@@ -293,6 +304,7 @@ func main() {
 		} else {
 			shotVideoSvc = shot_video.NewService(shotVideoStore, projectVerifier)
 		}
+		shotVideoSvc.SetScriptLockChecker(scriptLockChecker)
 		shotVideoHandler = shot_video.NewHandler(shotVideoSvc)
 		log.Println("镜头视频模块已启用")
 	}
@@ -306,6 +318,24 @@ func main() {
 		notificationHandler = notification.NewHandler(notificationSvc)
 		taskNotifier = notification.NewTaskNotifierAdapter(notificationSvc)
 		log.Println("通知模块已启用")
+	}
+
+	// 组织模块（README §2.5, §3 组织/团队 CRUD）
+	var orgHandler *organization.Handler
+	if pool != nil {
+		orgData := organization.NewDBData(db.New(pool))
+		orgSvc := organization.NewService(orgData)
+		orgHandler = organization.NewHandler(orgSvc)
+		log.Println("组织模块已启用")
+	}
+
+	// 统一任务模块（README §2.1 任务编排，前端任务中心 /api/v1/tasks）
+	var taskHandler *task.Handler
+	if pool != nil {
+		taskData := task.NewDBData(db.New(pool))
+		taskSvc := task.NewService(taskData, projectVerifier)
+		taskHandler = task.NewHandler(taskSvc)
+		log.Println("统一任务模块已启用")
 	}
 
 	// 成片模块（README 成片阶段，状态机 editing→exporting→done）
@@ -362,6 +392,23 @@ func main() {
 		videoRouter.RegisterProvider(video.NewSeedanceProvider(cfg.Video.SeedanceKey))
 	}
 
+	// TTS 路由（README 2.5 语音合成）
+	ttsPolicy := mesh.DefaultPolicy()
+	ttsBreaker := mesh.NewBreaker(3)
+	ttsRouter := mesh.NewTTSRouter(ttsPolicy, ttsBreaker)
+	if cfg.TTS.CosyVoiceKey != "" {
+		ttsRouter.RegisterProvider(audio.NewCosyVoiceTTSProvider(cfg.TTS.CosyVoiceKey))
+		log.Println("TTS Provider 已注册: cosyvoice")
+	}
+	if cfg.TTS.MiniMaxKey != "" {
+		ttsRouter.RegisterProvider(audio.NewMiniMaxTTSProvider(cfg.TTS.MiniMaxKey))
+		log.Println("TTS Provider 已注册: minimax_tts")
+	}
+	if cfg.TTS.VolcengineKey != "" {
+		ttsRouter.RegisterProvider(audio.NewVolcengineTTSProvider(cfg.TTS.VolcengineKey, cfg.TTS.VolcengineAppID))
+		log.Println("TTS Provider 已注册: volcengine_tts")
+	}
+
 	var store storage.Storage
 	if s, storeErr := storage.NewFromConfig(&cfg.Storage); storeErr != nil {
 		log.Printf("Storage 初始化失败，使用 nil: %v", storeErr)
@@ -406,9 +453,35 @@ func main() {
 	}
 	videoHandler := worker.NewVideoTaskHandler(logger, videoTaskDeps)
 
+	// TTS Worker Handler（README 2.5 语音合成）
+	ttsTaskDeps := worker.TTSTaskDeps{
+		TTSRouter:     ttsRouter,
+		Storage:       store,
+		RealtimeHub:   realtimeHub,
+		TaskNotifier:  taskNotifier,
+		UsageRecorder: nil,
+	}
+	if pool != nil {
+		ttsTaskDeps.UsageRecorder = provider_usage.NewDBRecorder(db.New(pool))
+	}
+	ttsHandler := worker.NewTTSTaskHandler(logger, ttsTaskDeps)
+
+	// 成片导出所需的跨模块读取器
+	exportShotReader := shot.ExportShotReaderAdapter(shotStore)
+	var exportShotVideoReader crossmodule.ExportShotVideoReader
+	if shotVideoStore != nil {
+		exportShotVideoReader = shot_video.ExportShotVideoReaderAdapter(shotVideoStore)
+	}
+
 	var exportHandler *worker.ExportTaskHandler
 	if compositeSvc != nil {
-		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{CompositeUpdater: compositeSvc})
+		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{
+			CompositeUpdater: compositeSvc,
+			ShotReader:       exportShotReader,
+			ShotVideoReader:  exportShotVideoReader,
+			Storage:          store,
+			RealtimeHub:      realtimeHub,
+		})
 	}
 
 	// 按集打包模块（README 2.7）：Store 与 Worker 需在 Redis 块前创建，供 muxDeps 使用
@@ -433,11 +506,18 @@ func main() {
 	if redisAddr != "" && worker.PingRedis(redisAddr, cfg.Redis.Password, cfg.Redis.DB) {
 		asynqClient = worker.NewClient(redisAddr, cfg.Redis.Password, cfg.Redis.DB)
 		asynqServer = worker.NewServer(redisAddr, cfg.Redis.Password, cfg.Redis.DB, logger)
+		pipelineHandler := worker.NewPipelineTaskHandler(logger, worker.PipelineTaskDeps{
+			ScriptLockChecker: scriptLockChecker,
+			AsynqClient:       asynqClient,
+			RealtimeHub:       realtimeHub,
+		})
 		muxDeps := &worker.MuxDeps{
-			ImageHandler:   imageHandler,
-			VideoHandler:   videoHandler,
-			ExportHandler:  exportHandler,
-			PackageHandler: packageWorkerHandler,
+			ImageHandler:    imageHandler,
+			VideoHandler:    videoHandler,
+			TTSHandler:      ttsHandler,
+			ExportHandler:   exportHandler,
+			PackageHandler:  packageWorkerHandler,
+			PipelineHandler: pipelineHandler,
 		}
 		mux := worker.SetupMuxWithDeps(logger, muxDeps)
 		go func() {
@@ -454,9 +534,18 @@ func main() {
 		}
 	}
 
+	// 注入 Asynq 客户端到需要入队任务的 Service
+	if asynqClient != nil {
+		shotImageSvc.SetAsynqClient(asynqClient)
+	}
+
 	var compositeHandler *composite.Handler
+	var timelineHandler *composite.TimelineHandler
 	if compositeSvc != nil {
 		compositeHandler = composite.NewHandler(compositeSvc, asynqClient)
+		// 时间轴生成器
+		timelineGen := composite.NewTimelineGenerator(exportShotReader, exportShotVideoReader)
+		timelineHandler = composite.NewTimelineHandler(timelineGen, compositeSvc, storyboardAccess)
 	}
 
 	// 打包 HTTP Handler（需 asynqClient 入队，Redis 可用时创建）
@@ -502,6 +591,8 @@ func main() {
 	routeCfg := &RouteConfig{
 		AuthHandler:         authHandler,
 		NotificationHandler: notificationHandler,
+		OrgHandler:          orgHandler,
+		TaskHandler:         taskHandler,
 		ProjectHandler:      projectHandler,
 		EpisodeHandler:      episodeHandler,
 		SceneHandler:        sceneHandler,
@@ -514,6 +605,7 @@ func main() {
 		ShotImageHandler:    shotImageHandler,
 		ShotVideoHandler:    shotVideoHandler,
 		CompositeHandler:    compositeHandler,
+		TimelineHandler:     timelineHandler,
 		DownloadHandler:     downloadHandler,
 		PackageHandler:      packageHandler,
 		UsageHandler:        usageHandler,

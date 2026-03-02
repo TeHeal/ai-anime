@@ -9,6 +9,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/health"
 	"github.com/TeHeal/ai-anime/anime_ai/module/location"
 	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
+	"github.com/TeHeal/ai-anime/anime_ai/module/organization"
 	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
@@ -19,6 +20,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_video"
 	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"github.com/TeHeal/ai-anime/anime_ai/module/task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
@@ -62,6 +64,29 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 			protected.GET("/notifications/unread-count", cfg.NotificationHandler.CountUnread)
 			protected.PUT("/notifications/:id/read", cfg.NotificationHandler.MarkAsRead)
 			protected.PUT("/notifications/read-all", cfg.NotificationHandler.MarkAllAsRead)
+		}
+
+		// 组织管理（README §2.5, §3 组织/团队 CRUD）
+		if cfg.OrgHandler != nil {
+			orgs := protected.Group("/orgs")
+			{
+				orgs.POST("", cfg.OrgHandler.Create)
+				orgs.GET("", cfg.OrgHandler.List)
+				orgs.GET("/:orgId", cfg.OrgHandler.Get)
+				orgs.PUT("/:orgId", cfg.OrgHandler.Update)
+				orgs.POST("/:orgId/members", cfg.OrgHandler.AddMember)
+				orgs.GET("/:orgId/members", cfg.OrgHandler.ListMembers)
+				orgs.DELETE("/:orgId/members/:userId", cfg.OrgHandler.RemoveMember)
+			}
+		}
+
+		// 统一任务中心（README §2.1 任务编排，前端 /tasks）
+		if cfg.TaskHandler != nil {
+			protected.POST("/tasks", cfg.TaskHandler.Create)
+			protected.GET("/tasks", cfg.TaskHandler.List)
+			protected.POST("/tasks/batch", cfg.TaskHandler.Batch)
+			protected.GET("/tasks/:taskId", cfg.TaskHandler.Get)
+			protected.PUT("/tasks/:taskId/cancel", cfg.TaskHandler.Cancel)
 		}
 
 		// 项目管理
@@ -117,11 +142,17 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 						projectScoped.GET("/episodes/:epId/composite", cfg.CompositeHandler.ListByEpisode)
 					}
 				}
-				// 成片任务（项目级）
-				if cfg.CompositeHandler != nil {
-					projectScoped.GET("/composite", cfg.CompositeHandler.ListByProject)
-					projectScoped.GET("/composite/:taskId", cfg.CompositeHandler.Get)
-				}
+			// 成片任务（项目级）
+			if cfg.CompositeHandler != nil {
+				projectScoped.GET("/composite", cfg.CompositeHandler.ListByProject)
+				projectScoped.GET("/composite/:taskId", cfg.CompositeHandler.Get)
+			}
+			// 时间轴（成片模块）
+			if cfg.TimelineHandler != nil {
+				projectScoped.GET("/timeline", cfg.TimelineHandler.GetTimeline)
+				projectScoped.PUT("/timeline", middleware.RequireAction(auth.ActionCompositeEdit), cfg.TimelineHandler.SaveTimeline)
+				projectScoped.POST("/timeline/auto", middleware.RequireAction(auth.ActionCompositeEdit), cfg.TimelineHandler.AutoGenerateTimeline)
+			}
 				// 单文件下载（README 2.7）
 				if cfg.DownloadHandler != nil {
 					projectScoped.GET("/download", cfg.DownloadHandler.Download)
@@ -295,6 +326,8 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 type RouteConfig struct {
 	AuthHandler         *modauth.Handler
 	NotificationHandler *notification.Handler
+	OrgHandler          *organization.Handler
+	TaskHandler         *task.Handler
 	ProjectHandler      *project.Handler
 	EpisodeHandler      *episode.Handler
 	SceneHandler        *scene.Handler
@@ -307,6 +340,7 @@ type RouteConfig struct {
 	ShotImageHandler    *shot_image.Handler
 	ShotVideoHandler    *shot_video.Handler
 	CompositeHandler    *composite.Handler
+	TimelineHandler     *composite.TimelineHandler
 	DownloadHandler     *download.Handler
 	PackageHandler      *package_task.Handler
 	UsageHandler        *usage.Handler

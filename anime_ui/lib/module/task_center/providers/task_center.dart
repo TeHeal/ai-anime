@@ -89,7 +89,9 @@ class TaskCenterNotifier extends Notifier<TaskCenterState> {
   void _listenWs() {
     _wsSub = realtimeWS.events.listen((event) {
       final type = event['type'] as String?;
-      if (type != 'task_progress' && type != 'task_complete') return;
+      if (type != 'task_progress' &&
+          type != 'task_complete' &&
+          type != 'task_error') return;
       final data = event['data'];
       if (data is! Map<String, dynamic>) return;
       try {
@@ -103,7 +105,7 @@ class TaskCenterNotifier extends Notifier<TaskCenterState> {
 
   void _upsertTask(Task updated) {
     final tasks = [...state.tasks];
-    final idx = tasks.indexWhere((t) => t.taskId == updated.taskId);
+    final idx = tasks.indexWhere((t) => t.id == updated.id);
     if (idx >= 0) {
       tasks[idx] = updated;
     } else {

@@ -135,15 +135,39 @@ func (h *Hub) Broadcast(evt Event) {
 	}
 }
 
-// BroadcastTaskProgress 推送任务进度，供 Worker 等调用
+// BroadcastTaskProgress 推送任务进度（前端订阅 task_progress 事件）
 func (h *Hub) BroadcastTaskProgress(userID string, projectID *string, taskID string, payload interface{}) {
 	h.Broadcast(Event{
-		Type:        "task.updated",
-		UserIDStr:   userID,
+		Type:         "task_progress",
+		UserIDStr:    userID,
 		ProjectIDStr: ptrToStr(projectID),
-		TaskID:      taskID,
-		Timestamp:   time.Now(),
-		Payload:     payload,
+		TaskID:       taskID,
+		Timestamp:    time.Now(),
+		Payload:      payload,
+	})
+}
+
+// BroadcastTaskComplete 推送任务完成事件（前端订阅 task_complete 事件）
+func (h *Hub) BroadcastTaskComplete(userID string, projectID *string, taskID string, payload interface{}) {
+	h.Broadcast(Event{
+		Type:         "task_complete",
+		UserIDStr:    userID,
+		ProjectIDStr: ptrToStr(projectID),
+		TaskID:       taskID,
+		Timestamp:    time.Now(),
+		Payload:      payload,
+	})
+}
+
+// BroadcastTaskError 推送任务失败事件（前端可订阅 task_error 事件）
+func (h *Hub) BroadcastTaskError(userID string, projectID *string, taskID string, payload interface{}) {
+	h.Broadcast(Event{
+		Type:         "task_error",
+		UserIDStr:    userID,
+		ProjectIDStr: ptrToStr(projectID),
+		TaskID:       taskID,
+		Timestamp:    time.Now(),
+		Payload:      payload,
 	})
 }
 

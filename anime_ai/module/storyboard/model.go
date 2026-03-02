@@ -20,14 +20,14 @@ type ShotItem struct {
 
 // GenerateRequest 异步/同步拆镜请求
 type GenerateRequest struct {
-	EpisodeID uint   `json:"episode_id" binding:"required"`
+	EpisodeID string `json:"episode_id" binding:"required"`
 	Provider  string `json:"provider"`
 	Model     string `json:"model"`
 }
 
 // PreviewRequest 单场景预览请求
 type PreviewRequest struct {
-	SceneID  uint   `json:"scene_id" binding:"required"`
+	SceneID  string `json:"scene_id" binding:"required"`
 	Provider string `json:"provider"`
 	Model    string `json:"model"`
 }

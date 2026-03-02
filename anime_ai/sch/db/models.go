@@ -382,6 +382,26 @@ type ShotVideo struct {
 	ReviewedBy    pgtype.UUID        `json:"reviewed_by"`
 }
 
+type Task struct {
+	ID          pgtype.UUID        `json:"id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ProjectID   pgtype.UUID        `json:"project_id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	Type        string             `json:"type"`
+	Status      string             `json:"status"`
+	Progress    int32              `json:"progress"`
+	Title       pgtype.Text        `json:"title"`
+	Description pgtype.Text        `json:"description"`
+	ConfigJson  []byte             `json:"config_json"`
+	ResultJson  []byte             `json:"result_json"`
+	ErrorMsg    pgtype.Text        `json:"error_msg"`
+	StartedAt   pgtype.Timestamptz `json:"started_at"`
+	CompletedAt pgtype.Timestamptz `json:"completed_at"`
+	LockedBy    pgtype.UUID        `json:"locked_by"`
+	LockedAt    pgtype.Timestamptz `json:"locked_at"`
+}
+
 type Team struct {
 	ID          pgtype.UUID        `json:"id"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`

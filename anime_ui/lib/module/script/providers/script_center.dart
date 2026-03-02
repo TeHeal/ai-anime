@@ -101,10 +101,10 @@ class EpisodeStatesNotifier extends Notifier<Map<String, EpisodeGenerateState>> 
     try {
       try {
         final task = await _svc.generate(pid, episodeId: episodeId.toString());
-        await for (final t in _taskSvc.poll(task.taskId)) {
+        await for (final t in _taskSvc.poll(task.id)) {
           _update(episodeId, (s) => s.copyWith(progress: t.progress));
-          if (t.isCompleted && t.result != null) {
-            final shotsList = t.result!['shots'] as List<dynamic>? ?? [];
+          if (t.isCompleted && t.resultJson != null) {
+            final shotsList = t.resultJson!['shots'] as List<dynamic>? ?? [];
             final shots = shotsList
                 .map(
                   (e) => ConfirmShotInput.fromJson(e as Map<String, dynamic>),

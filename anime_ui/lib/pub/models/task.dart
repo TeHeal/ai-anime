@@ -8,15 +8,20 @@ abstract class Task with _$Task {
   const Task._();
 
   const factory Task({
-    required int id,
-    required String taskId,
+    required String id,
     required String type,
     required String status,
-    @Default('') String provider,
-    @Default('') String model,
-    String? error,
     @Default(0) int progress,
-    Map<String, dynamic>? result,
+    @Default('') String title,
+    @Default('') String description,
+    @Default('') String projectId,
+    @Default('') String userId,
+    String? error,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? startedAt,
+    DateTime? completedAt,
+    Map<String, dynamic>? resultJson,
   }) = _Task;
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
@@ -25,5 +30,6 @@ abstract class Task with _$Task {
   bool get isRunning => status == 'running';
   bool get isCompleted => status == 'completed';
   bool get isFailed => status == 'failed';
-  bool get isFinished => isCompleted || isFailed || status == 'cancelled';
+  bool get isCancelled => status == 'cancelled';
+  bool get isFinished => isCompleted || isFailed || isCancelled;
 }
