@@ -252,17 +252,14 @@ final goRouter = GoRouter(
             GoRoute(
               path: Routes.episodeTimeline,
               pageBuilder: (context, state) => sharedAxisPage(
-                child: const CompositeTimelinePage(),
+                child: const CompositeTimelineWithPreview(),
                 state: state,
               ),
             ),
             GoRoute(
               path: Routes.episodeAudio,
               pageBuilder: (context, state) => const NoTransitionPage(
-                child: EpisodePlaceholderPage(
-                  title: '音频 / 字幕',
-                  subtitle: '旁白、音乐、字幕管理',
-                ),
+                child: AudioSubtitlePage(),
               ),
             ),
             GoRoute(
