@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AddOrgMember(ctx context.Context, arg AddOrgMemberParams) (OrgMember, error)
 	BatchCancelTasks(ctx context.Context, ids []pgtype.UUID) error
 	BulkCreateSegments(ctx context.Context, arg []BulkCreateSegmentsParams) (int64, error)
 	CancelTask(ctx context.Context, id pgtype.UUID) (Task, error)
@@ -28,6 +29,7 @@ type Querier interface {
 	// 场景资产 CRUD（项目级）
 	CreateLocation(ctx context.Context, arg CreateLocationParams) (Location, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
+	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (Organization, error)
 	// 按集打包任务 CRUD（README 2.7）
 	CreatePackageTask(ctx context.Context, arg CreatePackageTaskParams) (PackageTask, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
@@ -52,6 +54,7 @@ type Querier interface {
 	// 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteOrganization(ctx context.Context, id pgtype.UUID) error
 	DeleteSchedule(ctx context.Context, id pgtype.UUID) error
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	GetCharacterByID(ctx context.Context, id pgtype.UUID) (Character, error)
@@ -60,6 +63,8 @@ type Querier interface {
 	GetCompositeTaskByTaskID(ctx context.Context, taskID pgtype.Text) (CompositeTask, error)
 	GetEpisodeByID(ctx context.Context, id pgtype.UUID) (Episode, error)
 	GetLocationByID(ctx context.Context, id pgtype.UUID) (Location, error)
+	GetOrgByID(ctx context.Context, id pgtype.UUID) (Organization, error)
+	GetOrgMember(ctx context.Context, arg GetOrgMemberParams) (OrgMember, error)
 	GetPackageTaskByID(ctx context.Context, id pgtype.UUID) (PackageTask, error)
 	GetPackageTaskByTaskID(ctx context.Context, taskID pgtype.Text) (PackageTask, error)
 	GetProjectByID(ctx context.Context, id pgtype.UUID) (Project, error)
@@ -86,6 +91,8 @@ type Querier interface {
 	ListEpisodesByProject(ctx context.Context, projectID pgtype.UUID) ([]Episode, error)
 	ListLocationsByProject(ctx context.Context, projectID pgtype.UUID) ([]Location, error)
 	ListNotificationsByUser(ctx context.Context, arg ListNotificationsByUserParams) ([]Notification, error)
+	ListOrgMembers(ctx context.Context, orgID pgtype.UUID) ([]ListOrgMembersRow, error)
+	ListOrgsByUser(ctx context.Context, userID pgtype.UUID) ([]Organization, error)
 	ListPackageTasksByEpisode(ctx context.Context, episodeID pgtype.UUID) ([]PackageTask, error)
 	ListProjectMembersByProject(ctx context.Context, projectID pgtype.UUID) ([]ProjectMember, error)
 	ListProjectsByUser(ctx context.Context, userID pgtype.UUID) ([]Project, error)
@@ -115,6 +122,7 @@ type Querier interface {
 	MarkAllAsReadByUser(ctx context.Context, userID pgtype.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	ReleaseExpiredShotLocks(ctx context.Context) error
+	RemoveOrgMember(ctx context.Context, arg RemoveOrgMemberParams) error
 	SoftDeleteCharacter(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteCompositeTask(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteEpisode(ctx context.Context, id pgtype.UUID) error
@@ -147,6 +155,7 @@ type Querier interface {
 	UpdateEpisodeSortIndex(ctx context.Context, arg UpdateEpisodeSortIndexParams) error
 	UpdateLocation(ctx context.Context, arg UpdateLocationParams) (Location, error)
 	UpdateLocationImage(ctx context.Context, arg UpdateLocationImageParams) (Location, error)
+	UpdateOrganization(ctx context.Context, arg UpdateOrganizationParams) (Organization, error)
 	UpdatePackageTaskID(ctx context.Context, arg UpdatePackageTaskIDParams) error
 	UpdatePackageTaskStatus(ctx context.Context, arg UpdatePackageTaskStatusParams) (PackageTask, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
