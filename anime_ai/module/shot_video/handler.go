@@ -58,7 +58,7 @@ func (h *Handler) List(c *gin.Context) {
 	pkg.OK(c, list)
 }
 
-// Create 创建镜头视频（占位）
+// Create 创建镜头视频（支持完整视频生成参数）
 func (h *Handler) Create(c *gin.Context) {
 	userID := pkg.GetUserIDStr(c)
 	projectID, ok := h.getProjectID(c)
@@ -69,7 +69,12 @@ func (h *Handler) Create(c *gin.Context) {
 	if !ok {
 		return
 	}
-	v, err := h.svc.Create(shotID, projectID, userID, nil)
+	var req VideoCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		// 兼容旧接口：无 body 时使用默认值
+		req = VideoCreateRequest{}
+	}
+	v, err := h.svc.CreateWithParams(shotID, projectID, userID, &req)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")

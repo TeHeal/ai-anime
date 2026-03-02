@@ -43,11 +43,18 @@ class _ShotsCenterPageState extends ConsumerState<ShotsCenterPage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(flex: 2, child: CenterOrchestrationCard()),
+              const Expanded(flex: 3, child: CenterOrchestrationCard()),
               SizedBox(width: Spacing.lg.w),
-              const Expanded(flex: 1, child: CenterModelCard()),
-              SizedBox(width: Spacing.lg.w),
-              SizedBox(width: 200.w, child: const CenterImportCard()),
+              SizedBox(
+                width: 280.w,
+                child: Column(
+                  children: [
+                    const CenterModelCard(),
+                    SizedBox(height: Spacing.lg.h),
+                    const CenterImportCard(),
+                  ],
+                ),
+              ),
             ],
           ),
           SizedBox(height: Spacing.xxl.h),

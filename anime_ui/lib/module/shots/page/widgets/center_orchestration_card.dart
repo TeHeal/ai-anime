@@ -10,8 +10,10 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
+import 'video_gen_mode_panel.dart';
+import 'video_spec_panel.dart';
 
-/// 生成编排卡片：子任务开关 + 全局提示词 + 并发设置
+/// 生成编排卡片：生成模式 + 子任务开关 + 视频规格 + 提示词 + 并发设置
 class CenterOrchestrationCard extends ConsumerWidget {
   const CenterOrchestrationCard({super.key});
 
@@ -41,15 +43,29 @@ class CenterOrchestrationCard extends ConsumerWidget {
         children: [
           _header(),
           SizedBox(height: Spacing.lg.h),
+
+          // 视频生成模式选择
+          const VideoGenModePanel(),
+          SizedBox(height: Spacing.lg.h),
+
+          // 子任务编排开关
           _subtaskToggles(ref, config),
           SizedBox(height: Spacing.lg.h),
+
+          // 视频输出规格面板
+          if (config.enableVideo) ...[
+            const VideoSpecPanel(),
+            SizedBox(height: Spacing.lg.h),
+          ],
+
+          // 提示词区域
           PromptFieldWithAssistant(
             value: config.videoPrompt,
             onChanged: (v) => notifier.update(videoPrompt: v),
-            hint: '运镜流畅，画面稳定，帧间一致性高…',
+            hint: _promptHint(config.videoGenMode),
             accent: AppColors.primary,
-            label: '全局视频提示词',
-            maxLines: 2,
+            label: '视频提示词',
+            maxLines: 3,
             onLibraryTap: (setText) =>
                 _showPromptLibrary(context, ref, setText),
             onSaveToLibrary: (text, name, {required bool isNegative}) async {
@@ -74,7 +90,7 @@ class CenterOrchestrationCard extends ConsumerWidget {
                   onChanged: (v) => notifier.update(negativePrompt: v),
                   hint: '模糊，抖动，跳帧…',
                   accent: AppColors.primary,
-                  label: '默认反向提示词',
+                  label: '反向提示词',
                   negOnly: true,
                   maxLines: 2,
                   onLibraryTap: (setText) =>
@@ -98,10 +114,27 @@ class CenterOrchestrationCard extends ConsumerWidget {
               _concurrencyDropdown(config, notifier),
             ],
           ),
+
+          // 参考图模式的提示词说明
+          if (config.videoGenMode == VideoGenMode.referenceImages) ...[
+            SizedBox(height: Spacing.sm.h),
+            _referenceImageHint(),
+          ],
         ],
       ),
     );
   }
+
+  String _promptHint(VideoGenMode mode) => switch (mode) {
+        VideoGenMode.text2video =>
+          '描述视频内容：主体 + 动作 + 背景 + 镜头运动。例如：写实风格，晴朗蓝天下一大片白色雏菊花田，镜头逐渐拉近…',
+        VideoGenMode.firstFrame =>
+          '描述视频动作和运镜。例如：女孩睁开眼，温柔地看向镜头，镜头缓缓拉出，头发被风吹动…',
+        VideoGenMode.firstLastFrame =>
+          '描述首尾帧之间的过渡效果。例如：360度环绕运镜，图中女孩对着镜头微笑…',
+        VideoGenMode.referenceImages =>
+          '用 [图N] 引用参考图。例如：[图1]戴着眼镜穿蓝色T恤的男生和[图2]的柯基小狗，坐在[图3]的草坪上…',
+      };
 
   Widget _header() {
     return Row(
@@ -262,6 +295,34 @@ class CenterOrchestrationCard extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+
+  Widget _referenceImageHint() {
+    return Container(
+      padding: EdgeInsets.all(Spacing.sm.r),
+      decoration: BoxDecoration(
+        color: AppColors.info.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(AppIcons.info, size: 13.r,
+              color: AppColors.info.withValues(alpha: 0.7)),
+          SizedBox(width: Spacing.sm.w),
+          Expanded(
+            child: Text(
+              '参考图模式：在提示词中使用 [图1]、[图2]… 引用对应参考图的对象特征。系统会提取各图的关键特征进行还原。',
+              style: AppTextStyles.tiny.copyWith(
+                color: AppColors.info.withValues(alpha: 0.8),
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -101,3 +101,10 @@ See README § 开发与部署（启动命令）and `anime_ai/Makefile` for full 
 - **Prompt templates** in `pub/provider/llm/prompts.go`: `GetScriptAssistSystemPrompt()`, `BuildScriptAssistUserPrompt()`, `GetStoryboardSystemPrompt()`, `BuildStoryboardUserPrompt()`.
 - LLM providers use `pub/provider/llm/openai_compat.go` (raw HTTP SSE) — NOT the `pub/adapters/openai/chat.go` (openai-go SDK). Both exist for different use cases (provider layer vs. capability/mesh layer).
 
+### Video generation (Seedance)
+
+- **SeedanceProvider** (`pub/provider/video/seedance.go`): complete implementation of Volcengine Ark Content Generation API. Supports all generation modes: text-to-video, first-frame I2V, first+last-frame I2V, reference-images I2V (1~4 images), and draft-to-final.
+- **VideoRequest** (`pub/capability/video.go`): expanded with `Mode`, `ContentItems`, video spec fields (resolution/ratio/duration/frames/seed/camera_fixed/watermark), audio generation, draft mode, offline inference (`service_tier: flex`), return-last-frame (for continuous video generation), and webhook callback.
+- **Frontend config** (`module/shots/page/provider.dart`): `CompositeConfig` includes `videoGenMode`, `videoResolution`, `videoRatio`, `videoDuration`, `videoSeed`, `generateAudio`, `draftMode`, `serviceTier`, `continuousMode` and other Seedance-specific parameters.
+- Model alias resolution: short names like `seedance-1.5-pro` auto-resolve to full Ark model IDs like `doubao-seedance-1-5-pro-251215`.
+

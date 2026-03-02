@@ -25,10 +25,28 @@ type VideoTaskPayload struct {
 	Provider    string `json:"provider"`
 	Model       string `json:"model"`
 	Prompt      string `json:"prompt"`
-	ImageURL    string `json:"image_url,omitempty"` // 参考图片 URL（图生视频）
+	ImageURL    string `json:"image_url,omitempty"` // 首帧图 URL（图生视频）
 	Duration    int    `json:"duration,omitempty"`
 	ProjectID   string `json:"project_id"`
 	UserID      string `json:"user_id"`
+
+	// 扩展字段（Seedance 完整能力）
+	GenMode            string   `json:"gen_mode,omitempty"`
+	LastFrameImageURL  string   `json:"last_frame_image_url,omitempty"`
+	ReferenceImageURLs []string `json:"reference_image_urls,omitempty"`
+	Resolution         string   `json:"resolution,omitempty"`
+	Ratio              string   `json:"ratio,omitempty"`
+	Frames             int      `json:"frames,omitempty"`
+	Seed               *int64   `json:"seed,omitempty"`
+	CameraFixed        *bool    `json:"camera_fixed,omitempty"`
+	Watermark          *bool    `json:"watermark,omitempty"`
+	GenerateAudio      *bool    `json:"generate_audio,omitempty"`
+	Draft              *bool    `json:"draft,omitempty"`
+	ReturnLastFrame    *bool    `json:"return_last_frame,omitempty"`
+	ServiceTier        string   `json:"service_tier,omitempty"`
+	NegativePrompt     string   `json:"negative_prompt,omitempty"`
+	DraftTaskID        string   `json:"draft_task_id,omitempty"`
+	CallbackURL        string   `json:"callback_url,omitempty"`
 }
 
 // VideoRouter 文生视频路由接口，用于依赖注入
@@ -83,13 +101,30 @@ func (h *VideoTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 
 	h.broadcastProgress(payload, 10, "running")
 
-	// 提交到 VideoRouter
-	providerName, providerTaskID, err := h.deps.VideoRouter.Submit(ctx, capability.VideoRequest{
-		ImageURL: payload.ImageURL,
-		Prompt:   payload.Prompt,
-		Model:    payload.Model,
-		Duration: payload.Duration,
-	}, payload.Provider)
+	// 提交到 VideoRouter（传递完整参数）
+	videoReq := capability.VideoRequest{
+		ImageURL:           payload.ImageURL,
+		Prompt:             payload.Prompt,
+		Model:              payload.Model,
+		Duration:           payload.Duration,
+		Mode:               capability.VideoGenMode(payload.GenMode),
+		LastFrameImageURL:  payload.LastFrameImageURL,
+		ReferenceImageURLs: payload.ReferenceImageURLs,
+		Resolution:         payload.Resolution,
+		Ratio:              payload.Ratio,
+		Frames:             payload.Frames,
+		Seed:               payload.Seed,
+		CameraFixed:        payload.CameraFixed,
+		Watermark:          payload.Watermark,
+		GenerateAudio:      payload.GenerateAudio,
+		Draft:              payload.Draft,
+		ReturnLastFrame:    payload.ReturnLastFrame,
+		ServiceTier:        payload.ServiceTier,
+		NegativePrompt:     payload.NegativePrompt,
+		DraftTaskID:        payload.DraftTaskID,
+		CallbackURL:        payload.CallbackURL,
+	}
+	providerName, providerTaskID, err := h.deps.VideoRouter.Submit(ctx, videoReq, payload.Provider)
 	if err != nil {
 		h.failShotVideo(ctx, payload, "供应商不可用: "+err.Error())
 		return nil
