@@ -34,6 +34,7 @@ func SetupMux(log *zap.Logger) *asynq.ServeMux {
 type MuxDeps struct {
 	ImageHandler    *ImageTaskHandler
 	VideoHandler    *VideoTaskHandler
+	TTSHandler      *TTSTaskHandler
 	ExportHandler   *ExportTaskHandler
 	PackageHandler  *PackageTaskHandler
 	PipelineHandler *PipelineTaskHandler
@@ -68,7 +69,12 @@ func SetupMuxWithDeps(log *zap.Logger, deps *MuxDeps) *asynq.ServeMux {
 		mux.HandleFunc(tasktypes.TypeVideoGeneration, placeholderHandler(l, tasktypes.TypeVideoGeneration))
 	}
 	mux.HandleFunc(tasktypes.TypeCharacterGeneration, placeholderHandler(l, tasktypes.TypeCharacterGeneration))
-	mux.HandleFunc(tasktypes.TypeTTS, placeholderHandler(l, tasktypes.TypeTTS))
+
+	if deps != nil && deps.TTSHandler != nil {
+		RegisterTTSHandler(mux, deps.TTSHandler)
+	} else {
+		mux.HandleFunc(tasktypes.TypeTTS, placeholderHandler(l, tasktypes.TypeTTS))
+	}
 	mux.HandleFunc(tasktypes.TypeVoiceClone, placeholderHandler(l, tasktypes.TypeVoiceClone))
 	mux.HandleFunc(tasktypes.TypeMusicGeneration, placeholderHandler(l, tasktypes.TypeMusicGeneration))
 	mux.HandleFunc(tasktypes.TypeScriptParse, placeholderHandler(l, tasktypes.TypeScriptParse))
