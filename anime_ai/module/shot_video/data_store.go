@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/TeHeal/ai-anime/anime_ai/sch/db"
 	"github.com/jackc/pgx/v5"
@@ -205,3 +206,47 @@ func textStr(t pgtype.Text) string {
 }
 
 var _ Store = (*DBShotVideoStore)(nil)
+
+// ExportShotVideoReaderAdapter 实现 crossmodule.ExportShotVideoReader，供成片导出 Worker 注入
+func ExportShotVideoReaderAdapter(store Store) crossmodule.ExportShotVideoReader {
+	return &exportShotVideoReaderAdapter{store: store}
+}
+
+type exportShotVideoReaderAdapter struct {
+	store Store
+}
+
+// GetLatestApprovedVideo 获取镜头最新的已完成视频（优先 approved，其次 completed）
+func (a *exportShotVideoReaderAdapter) GetLatestApprovedVideo(ctx context.Context, shotID string) (*crossmodule.ExportShotVideoInfo, error) {
+	videos, err := a.store.ListByShot(ctx, shotID)
+	if err != nil {
+		return nil, err
+	}
+	// 优先选择 approved 状态，其次 completed 状态，取最新的
+	var best *ShotVideo
+	for i := range videos {
+		v := &videos[i]
+		if v.VideoURL == "" {
+			continue
+		}
+		if v.ReviewStatus == "approved" {
+			if best == nil || best.ReviewStatus != "approved" || v.CreatedAt.After(best.CreatedAt) {
+				best = v
+			}
+		} else if v.Status == "completed" && (best == nil || best.ReviewStatus != "approved") {
+			if best == nil || v.CreatedAt.After(best.CreatedAt) {
+				best = v
+			}
+		}
+	}
+	if best == nil {
+		return nil, nil
+	}
+	return &crossmodule.ExportShotVideoInfo{
+		ID:       best.ID,
+		ShotID:   best.ShotID,
+		VideoURL: best.VideoURL,
+		Status:   best.Status,
+		Duration: best.Duration,
+	}, nil
+}

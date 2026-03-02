@@ -142,11 +142,17 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 						projectScoped.GET("/episodes/:epId/composite", cfg.CompositeHandler.ListByEpisode)
 					}
 				}
-				// 成片任务（项目级）
-				if cfg.CompositeHandler != nil {
-					projectScoped.GET("/composite", cfg.CompositeHandler.ListByProject)
-					projectScoped.GET("/composite/:taskId", cfg.CompositeHandler.Get)
-				}
+			// 成片任务（项目级）
+			if cfg.CompositeHandler != nil {
+				projectScoped.GET("/composite", cfg.CompositeHandler.ListByProject)
+				projectScoped.GET("/composite/:taskId", cfg.CompositeHandler.Get)
+			}
+			// 时间轴（成片模块）
+			if cfg.TimelineHandler != nil {
+				projectScoped.GET("/timeline", cfg.TimelineHandler.GetTimeline)
+				projectScoped.PUT("/timeline", middleware.RequireAction(auth.ActionCompositeEdit), cfg.TimelineHandler.SaveTimeline)
+				projectScoped.POST("/timeline/auto", middleware.RequireAction(auth.ActionCompositeEdit), cfg.TimelineHandler.AutoGenerateTimeline)
+			}
 				// 单文件下载（README 2.7）
 				if cfg.DownloadHandler != nil {
 					projectScoped.GET("/download", cfg.DownloadHandler.Download)
@@ -334,6 +340,7 @@ type RouteConfig struct {
 	ShotImageHandler    *shot_image.Handler
 	ShotVideoHandler    *shot_video.Handler
 	CompositeHandler    *composite.Handler
+	TimelineHandler     *composite.TimelineHandler
 	DownloadHandler     *download.Handler
 	PackageHandler      *package_task.Handler
 	UsageHandler        *usage.Handler

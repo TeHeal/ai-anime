@@ -466,9 +466,22 @@ func main() {
 	}
 	ttsHandler := worker.NewTTSTaskHandler(logger, ttsTaskDeps)
 
+	// 成片导出所需的跨模块读取器
+	exportShotReader := shot.ExportShotReaderAdapter(shotStore)
+	var exportShotVideoReader crossmodule.ExportShotVideoReader
+	if shotVideoStore != nil {
+		exportShotVideoReader = shot_video.ExportShotVideoReaderAdapter(shotVideoStore)
+	}
+
 	var exportHandler *worker.ExportTaskHandler
 	if compositeSvc != nil {
-		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{CompositeUpdater: compositeSvc})
+		exportHandler = worker.NewExportTaskHandler(logger, worker.ExportTaskDeps{
+			CompositeUpdater: compositeSvc,
+			ShotReader:       exportShotReader,
+			ShotVideoReader:  exportShotVideoReader,
+			Storage:          store,
+			RealtimeHub:      realtimeHub,
+		})
 	}
 
 	// 按集打包模块（README 2.7）：Store 与 Worker 需在 Redis 块前创建，供 muxDeps 使用
@@ -527,8 +540,12 @@ func main() {
 	}
 
 	var compositeHandler *composite.Handler
+	var timelineHandler *composite.TimelineHandler
 	if compositeSvc != nil {
 		compositeHandler = composite.NewHandler(compositeSvc, asynqClient)
+		// 时间轴生成器
+		timelineGen := composite.NewTimelineGenerator(exportShotReader, exportShotVideoReader)
+		timelineHandler = composite.NewTimelineHandler(timelineGen, compositeSvc, storyboardAccess)
 	}
 
 	// 打包 HTTP Handler（需 asynqClient 入队，Redis 可用时创建）
@@ -588,6 +605,7 @@ func main() {
 		ShotImageHandler:    shotImageHandler,
 		ShotVideoHandler:    shotVideoHandler,
 		CompositeHandler:    compositeHandler,
+		TimelineHandler:     timelineHandler,
 		DownloadHandler:     downloadHandler,
 		PackageHandler:      packageHandler,
 		UsageHandler:        usageHandler,

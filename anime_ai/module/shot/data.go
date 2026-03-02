@@ -1,6 +1,7 @@
 package shot
 
 import (
+	"context"
 	"sort"
 	"strconv"
 	"sync"
@@ -308,4 +309,31 @@ func (a *shotLockerAdapter) TryLockShot(shotID, userID string) error {
 
 func (a *shotLockerAdapter) UnlockShot(shotID, userID string) error {
 	return a.store.UnlockShot(shotID, userID)
+}
+
+// ExportShotReaderAdapter 实现 crossmodule.ExportShotReader，供成片导出 Worker 注入
+func ExportShotReaderAdapter(store ShotStore) crossmodule.ExportShotReader {
+	return &exportShotReaderAdapter{store: store}
+}
+
+type exportShotReaderAdapter struct {
+	store ShotStore
+}
+
+func (a *exportShotReaderAdapter) ListShotsByProject(_ context.Context, projectID string) ([]crossmodule.ExportShotInfo, error) {
+	shots, err := a.store.ListByProject(projectID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]crossmodule.ExportShotInfo, len(shots))
+	for i, sh := range shots {
+		out[i] = crossmodule.ExportShotInfo{
+			ID:            sh.ID,
+			SortIndex:     sh.SortIndex,
+			Dialogue:      sh.Dialogue,
+			CharacterName: sh.CharacterName,
+			Duration:      sh.Duration,
+		}
+	}
+	return out, nil
 }
