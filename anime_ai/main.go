@@ -338,15 +338,20 @@ func main() {
 	}
 
 	// 通知模块（README 2.6 站内通知中心、红点）
-	var notificationHandler *notification.Handler
+	// 无 DB 时使用内存实现降级，确保前端通知接口始终可用，避免 404 循环报错
 	var taskNotifier worker.TaskNotifier
+	var notificationSvc *notification.Service
 	if pool != nil {
 		notificationData := notification.NewDBData(db.New(pool))
-		notificationSvc := notification.NewService(notificationData)
-		notificationHandler = notification.NewHandler(notificationSvc)
+		notificationSvc = notification.NewService(notificationData)
 		taskNotifier = notification.NewTaskNotifierAdapter(notificationSvc)
-		log.Println("通知模块已启用")
+		log.Println("通知模块已启用（PostgreSQL）")
+	} else {
+		notificationData := notification.NewMemData()
+		notificationSvc = notification.NewService(notificationData)
+		log.Println("通知模块已启用（内存降级模式）")
 	}
+	notificationHandler := notification.NewHandler(notificationSvc)
 
 	// 组织模块（README §2.5, §3 组织/团队 CRUD）
 	var orgHandler *organization.Handler

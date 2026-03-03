@@ -6,18 +6,13 @@ import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/object_tab_bar.dart';
 
-/// 脚本对象主页面 — 4 Tab: 结构 / 生成中心 / 审核编辑 / 锁定
+/// 脚本对象主页面 — 3 Tab: 生成中心 / 审核编辑 / 锁定
 class ScriptObjectPage extends ConsumerWidget {
   const ScriptObjectPage({super.key, required this.child});
 
   final Widget child;
 
   static const tabs = [
-    ObjectTab(
-      label: '结构',
-      routePath: Routes.scriptStructure,
-      icon: AppIcons.script,
-    ),
     ObjectTab(
       label: '生成中心',
       routePath: Routes.scriptCenter,

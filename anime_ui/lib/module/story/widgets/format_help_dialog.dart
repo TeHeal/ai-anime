@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/module/draft/script_template.dart';
-import 'package:anime_ui/module/draft/template_download.dart';
+import 'package:anime_ui/module/story/script_template.dart';
+import 'package:anime_ui/module/story/template_download.dart';
 
 /// 显示格式说明与模板预览对话框
 void showFormatHelpDialog(BuildContext context) {

@@ -32,6 +32,14 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   String? _lastGateMessage;
   String? _lastAutoRedirectFromPath;
 
+  /// 缓存 ProviderScope 覆盖列表，避免每次 build() 创建新 Override 对象
+  /// 导致 Riverpod 认为覆盖已变更、触发无效的 provider 重建链
+  late final _providerOverrides = [
+    resourceListPortProvider.overrideWith(
+      (ref) => AssetResourceListAdapter(ref),
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -180,11 +188,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     final disabledHints = <String, String>{};
 
     return ProviderScope(
-      overrides: [
-        resourceListPortProvider.overrideWith(
-          (ref) => AssetResourceListAdapter(ref),
-        ),
-      ],
+      overrides: _providerOverrides,
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: const AppHeader(),

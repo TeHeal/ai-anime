@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -46,23 +44,19 @@ class ProjectsPage extends ConsumerWidget {
           CustomScrollView(
             slivers: [
               _buildHeroAppBar(context, ref),
-              SliverPadding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Spacing.xxl.w,
-                  vertical: Spacing.xl.h,
+              listAsync.when(
+                data: (projects) => _buildCenteredGrid(context, ref, projects),
+                loading: () => const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
                 ),
-                sliver: listAsync.when(
-                  data: (projects) => _buildCenteredGrid(context, ref, projects),
-                  loading: () => const SliverToBoxAdapter(
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (e, _) => SliverToBoxAdapter(
-                    child: Center(
-                      child: Text(
-                        '加载失败: $e',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.muted,
-                        ),
+                error: (e, _) => SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Text(
+                      '加载失败: $e',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.muted,
                       ),
                     ),
                   ),
@@ -162,76 +156,70 @@ class ProjectsPage extends ConsumerWidget {
     );
   }
 
-  /// 居中网格布局：卡片整体居中，适度大小
+  /// 居中网格布局：卡片上下左右均居中，Wrap 自动换行
   Widget _buildCenteredGrid(
     BuildContext context,
     WidgetRef ref,
     List<Project> projects,
   ) {
-    final totalItems = projects.length + 1;
+    const double cardWidth = 240;
+    const double cardHeight = 200;
+    const double spacing = 24;
 
-    return SliverLayoutBuilder(
-      builder: (context, constraints) {
-        final availWidth = constraints.crossAxisExtent;
-        final crossAxisCount = Breakpoints.columnCountForWidth(
-          availWidth,
-          maxCols: 4,
-        );
-
-        // 卡片固定尺寸（更适合展示）
-        const double cardWidth = 240;
-        const double cardHeight = 200;
-        const double spacing = 24;
-
-        final gridWidth =
-            crossAxisCount * cardWidth + (crossAxisCount - 1) * spacing;
-        final sidePadding = math.max((availWidth - gridWidth) / 2, 0.0);
-
-        return SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: sidePadding),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              mainAxisSpacing: spacing.h,
-              crossAxisSpacing: spacing.w,
-              childAspectRatio: cardWidth / cardHeight,
+    final cards = <Widget>[
+      SizedBox(
+        width: cardWidth.w,
+        height: cardHeight.h,
+        child: _NewProjectCard(onTap: () => _createProject(context, ref)),
+      ),
+      ...List.generate(projects.length, (i) {
+        return TweenAnimationBuilder<double>(
+          key: ValueKey(projects[i].id),
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: Duration(milliseconds: 400 + i * 100),
+          curve: Curves.easeOutBack,
+          builder: (_, value, child) => Opacity(
+            opacity: value.clamp(0.0, 1.0),
+            child: Transform.translate(
+              offset: Offset(0, 30.h * (1 - value)),
+              child: Transform.scale(
+                scale: 0.85 + 0.15 * value,
+                child: child,
+              ),
             ),
-            delegate: SliverChildBuilderDelegate(
-              (context, i) {
-                if (i == 0) {
-                  return _NewProjectCard(
-                    onTap: () => _createProject(context, ref),
-                  );
-                }
-                final index = i - 1;
-                return TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: Duration(milliseconds: 400 + index * 100),
-                  curve: Curves.easeOutBack,
-                  builder: (_, value, child) => Opacity(
-                    opacity: value.clamp(0.0, 1.0),
-                    child: Transform.translate(
-                      offset: Offset(0, 30.h * (1 - value)),
-                      child: Transform.scale(
-                        scale: 0.85 + 0.15 * value,
-                        child: child,
-                      ),
-                    ),
-                  ),
-                  child: _ProjectCard(
-                    project: projects[index],
-                    onTap: () => _openProject(context, ref, projects[index]),
-                    onEdit: () => _editProject(context, ref, projects[index]),
-                    onDelete: () =>
-                        _deleteProject(context, ref, projects[index]),
-                  ),
-                );
-              },
-              childCount: totalItems,
+          ),
+          child: SizedBox(
+            width: cardWidth.w,
+            height: cardHeight.h,
+            child: _ProjectCard(
+              project: projects[i],
+              onTap: () => _openProject(context, ref, projects[i]),
+              onEdit: () => _editProject(context, ref, projects[i]),
+              onDelete: () => _deleteProject(context, ref, projects[i]),
             ),
           ),
         );
-      },
+      }),
+    ];
+
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.xxl.w,
+            vertical: Spacing.xl.h,
+          ),
+          child: Wrap(
+            spacing: spacing.w,
+            runSpacing: spacing.h,
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: cards,
+          ),
+        ),
+      ),
     );
   }
 

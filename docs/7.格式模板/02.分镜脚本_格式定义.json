@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "storyboard_ai_v4",
+  "title": "AI驱动漫剧分镜脚本",
+  "description": "面向AI图像/视频/TTS流水线的分镜脚本格式 v4.0（增强版），支持主控编排和任务队列，与 03.分镜脚本_模板.json 一致（顶层与单镜字段中文）",
+  "type": "object",
+  "required": ["版本", "项目", "镜头列表"],
+  "properties": {
+    "版本": { "type": "string", "const": "4.0" },
+    "格式标识": { "type": "string", "default": "storyboard_ai_v4" },
+    "项目": { "type": "string" },
+    "集数": { "type": "number" },
+    "集标题": { "type": "string" },
+    "受控词表": {
+      "type": "object",
+      "description": "受控词表，供校验与AI提示使用",
+      "properties": {
+        "景别": { "type": "array", "items": { "type": "string" } },
+        "运镜": { "type": "array", "items": { "type": "string" } },
+        "转场": { "type": "array", "items": { "type": "string" } },
+        "优先级": { "type": "array", "items": { "type": "string" } },
+        "生成任务": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "项目元信息": {
+      "type": "object",
+      "properties": {
+        "全局风格": { "type": "string" },
+        "默认反向提示词": { "type": "string" },
+        "制作适配说明": {
+          "type": "object",
+          "properties": {
+            "节奏把控": { "type": "string" },
+            "运镜规范": { "type": "string" },
+            "音频准则": { "type": "string" },
+            "AI生成要求": { "type": "string" }
+          }
+        }
+      }
+    },
+    "镜头列表": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["镜号", "画面描述"],
+        "properties": {
+          "镜号": { "type": "number", "minimum": 1 },
+          "时长": { "type": "number", "minimum": 0 },
+          "时间轴": {
+            "type": "object",
+            "description": "精确时间轴信息，用于资源同步和合成",
+            "properties": {
+              "开始时间": { "type": "number", "minimum": 0, "description": "秒，从0开始累计" },
+              "结束时间": { "type": "number", "minimum": 0, "description": "秒，开始时间+时长" }
+            }
+          },
+          "优先级": { "type": "string" },
+          "景别": { "type": "string" },
+          "运镜方式": { "type": "string" },
+          "角色站位": { "type": "string" },
+          "画面描述": { "type": "string" },
+          "台词": { "type": "string" },
+          "角色": { "type": "string" },
+          "角色ID": { "type": "string" },
+          "情绪描述": { "type": "string" },
+          "情绪向量": {
+            "type": "array",
+            "items": { "type": "number" },
+            "description": "情绪多维向量，供TTS/图像情感模型使用；可为空数组 []"
+          },
+          "音频设计": { "type": "string" },
+          "AI提示词": { "type": "string" },
+          "反向提示词": { "type": "string" },
+          "转场方式": { "type": "string" },
+          "生成任务": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["图像", "视频", "TTS", "音效", "BGM", "转场"] }
+          },
+          "音频": {
+            "type": "object",
+            "description": "音频五大流线配置，支持ComfyUI Workflow编排",
+            "properties": {
+              "VO": {
+                "type": "object",
+                "description": "Voice Over - 旁白、对白、人物同期声",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["TTS", "同期声", "旁白"], "default": "TTS" },
+                  "台词": { "type": "string" },
+                  "角色ID": { "type": "string" },
+                  "情绪描述": { "type": "string" },
+                  "情绪向量": { "type": "array", "items": { "type": "number" } },
+                  "音量": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.8 },
+                  "优先级": { "type": "string" }
+                }
+              },
+              "BGM": {
+                "type": "object",
+                "description": "Background Music - 背景音乐",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["生成", "库匹配", "延续"], "default": "延续" },
+                  "提示词": { "type": "string", "description": "AI音乐生成提示词，当类型为'生成'时使用" },
+                  "风格": { "type": "string" },
+                  "情绪描述": { "type": "string" },
+                  "强度": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.6 },
+                  "淡入时间": { "type": "number", "minimum": 0, "default": 0.5 },
+                  "淡出时间": { "type": "number", "minimum": 0, "default": 0.5 }
+                }
+              },
+              "拟声": {
+                "type": "object",
+                "description": "Foley Sound - 模拟画面中事物的声音",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["生成", "库匹配"], "default": "生成" },
+                  "提示词": { "type": "string", "description": "AI音效生成提示词，当类型为'生成'时使用" },
+                  "描述": { "type": "string" },
+                  "触发时间": { "type": "number", "minimum": 0, "description": "秒，相对于镜头开始时间" },
+                  "音量": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.7 },
+                  "优先级": { "type": "string" }
+                }
+              },
+              "动态音效": {
+                "type": "object",
+                "description": "Dynamic Sound Effects - 转场、人物状态、信息暗示等情景音效",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["转场", "状态变化", "信息暗示"], "default": "转场" },
+                  "提示词": { "type": "string", "description": "AI音效生成提示词，用于生成转场或状态变化音效" },
+                  "描述": { "type": "string" },
+                  "触发时间": { "type": "number", "minimum": 0 },
+                  "音量": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.6 }
+                }
+              },
+              "氛围音效": {
+                "type": "object",
+                "description": "Ambient Sound Effects - 场景、环境、街道等环境音效",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["生成", "库匹配"], "default": "生成" },
+                  "提示词": { "type": "string", "description": "AI环境音生成提示词，当类型为'生成'时使用" },
+                  "描述": { "type": "string" },
+                  "强度": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.4 },
+                  "循环": { "type": "boolean", "default": true }
+                }
+              }
+            }
+          },
+          "图像": {
+            "type": "object",
+            "description": "图像生成任务配置，支持ComfyUI Workflow编排，AI驱动优化方案：完整画面+叠加特效",
+            "properties": {
+              "启用": { "type": "boolean", "default": false },
+              "类型": { "type": "string", "enum": ["静态图", "关键帧"], "default": "静态图" },
+              "提示词": { "type": "string", "description": "完整场景提示词，包含角色、背景、道具等所有元素，AI一次性生成完整画面" },
+              "反向提示词": { "type": "string" },
+              "风格": { "type": "string" },
+              "宽高比": { "type": "string", "default": "16:9" },
+              "分辨率": { "type": "string", "default": "1920x1080" },
+              "优先级": { "type": "string" },
+              "叠加特效": {
+                "type": "object",
+                "description": "叠加特效 - 需要叠加到完整画面上的独立特效（光效、粒子、魔法等），可选",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["静态图", "关键帧"], "default": "静态图" },
+                  "提示词": { "type": "string", "description": "特效提示词，如'光效、粒子特效、魔法光环'" },
+                  "反向提示词": { "type": "string" },
+                  "风格": { "type": "string" },
+                  "优先级": { "type": "string" }
+                }
+              }
+            }
+          },
+          "视频": {
+            "type": "object",
+            "description": "视频生成任务配置，支持ComfyUI Workflow编排，AI驱动优化方案：完整视频+叠加特效+口型同步",
+            "properties": {
+              "启用": { "type": "boolean", "default": false },
+              "类型": { "type": "string", "enum": ["动态视频", "动效", "口型同步"], "default": "动态视频" },
+              "提示词": { "type": "string", "description": "完整动态提示词，包含角色动作、背景动态、运镜等所有元素，AI一次性生成完整动态" },
+              "反向提示词": { "type": "string" },
+              "运镜方式": { "type": "string" },
+              "转场方式": { "type": "string" },
+              "依赖": { "type": "array", "items": { "type": "string", "enum": ["图像", "音频", "TTS"] } },
+              "帧率": { "type": "number", "default": 24 },
+              "优先级": { "type": "string" },
+              "叠加特效": {
+                "type": "object",
+                "description": "叠加特效 - 需要叠加到完整视频上的独立特效动画（光效、粒子等），可选",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["动态视频", "动效"], "default": "动效" },
+                  "提示词": { "type": "string", "description": "特效动画提示词，如'光效动画、粒子特效动态'" },
+                  "反向提示词": { "type": "string" },
+                  "优先级": { "type": "string" }
+                }
+              },
+              "口型同步": {
+                "type": "object",
+                "description": "口型同步 - 口型动画（与TTS对齐），有对白时启用",
+                "properties": {
+                  "启用": { "type": "boolean", "default": false },
+                  "类型": { "type": "string", "enum": ["口型同步"], "default": "口型同步" },
+                  "依赖": { "type": "array", "items": { "type": "string", "enum": ["音频.VO", "TTS"] } },
+                  "优先级": { "type": "string" }
+                }
+              }
+            }
+          },
+          "依赖关系": {
+            "type": "object",
+            "description": "镜头间的依赖关系，用于任务调度",
+            "properties": {
+              "前置镜头": { "type": "array", "items": { "type": "number" }, "description": "依赖的镜号列表" },
+              "后置镜头": { "type": "array", "items": { "type": "number" }, "description": "被依赖的镜号列表" },
+              "任务依赖": { "type": "object", "description": "任务间的依赖关系，如视频依赖图像和音频" }
+            }
+          },
+          "备注": { "type": "string" }
+        }
+      }
+    }
+  }
+}

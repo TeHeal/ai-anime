@@ -1,14 +1,16 @@
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:anime_ui/pub/const/routes.dart';
-import 'package:anime_ui/pub/providers/project_provider.dart';
-import 'package:anime_ui/module/draft/page/content.dart';
-import 'package:anime_ui/module/draft/providers/provider.dart';
+import 'package:anime_ui/pub/providers/project_provider.dart'
+    show currentProjectProvider, projectListProvider;
+import 'package:anime_ui/module/story/page/import_content.dart';
+import 'package:anime_ui/module/story/providers/import_provider.dart';
 
 /// 剧本草稿页 — 上传、解析、预览
 class DraftPage extends ConsumerStatefulWidget {
@@ -23,6 +25,7 @@ class _DraftPageState extends ConsumerState<DraftPage> {
   String _fullText = '';
   int _charCount = 0;
   List<String> _previewLines = [];
+  bool _isFileLoading = false;
 
   @override
   void initState() {
@@ -36,40 +39,74 @@ class _DraftPageState extends ConsumerState<DraftPage> {
   }
 
   void _setContent(String text, {String? fileName}) {
-    final lines = text.split('\n');
+    // 只取前 50 行用于预览，避免 split 后分配大量 String 对象
+    final preview = _extractPreviewLines(text, maxLines: 50);
     setState(() {
       _fullText = text;
       _charCount = text.length;
       _fileName = fileName;
-      _previewLines = lines.length > 50 ? lines.sublist(0, 50) : lines;
+      _previewLines = preview;
+      _isFileLoading = false;
     });
   }
 
+  /// 仅扫描前 maxLines 个换行符，不分割全文
+  static List<String> _extractPreviewLines(String text, {required int maxLines}) {
+    final lines = <String>[];
+    int start = 0;
+    for (var i = 0; i < text.length && lines.length < maxLines; i++) {
+      if (text[i] == '\n') {
+        lines.add(text.substring(start, i));
+        start = i + 1;
+      }
+    }
+    if (lines.length < maxLines && start < text.length) {
+      lines.add(text.substring(start));
+    }
+    return lines;
+  }
+
   Future<void> _uploadFile() async {
+    // 展示加载态，防止用户重复点击
+    setState(() => _isFileLoading = true);
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['txt', 'md', 'text'],
         withData: true,
       );
-      if (result == null || result.files.isEmpty) return;
+      if (result == null || result.files.isEmpty) {
+        if (mounted) setState(() => _isFileLoading = false);
+        return;
+      }
       final file = result.files.first;
       final bytes = file.bytes;
-      if (bytes == null) return;
-      final text = utf8.decode(bytes, allowMalformed: true);
-      _setContent(text, fileName: file.name);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('已导入「${file.name}」')),
-        );
+      if (bytes == null) {
+        if (mounted) setState(() => _isFileLoading = false);
+        return;
       }
+
+      // 大文件解码在 compute 中执行，避免阻塞主线程
+      final text = await compute(_decodeFileBytes, bytes);
+
+      if (!mounted) return;
+      _setContent(text, fileName: file.name);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('已导入「${file.name}」')),
+      );
     } catch (e) {
       if (mounted) {
+        setState(() => _isFileLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('导入失败: $e')),
         );
       }
     }
+  }
+
+  /// 在独立 isolate 中解码文件字节，避免大文件解码阻塞 UI
+  static String _decodeFileBytes(Uint8List bytes) {
+    return utf8.decode(bytes, allowMalformed: true);
   }
 
   void _clearContent() {
@@ -159,7 +196,9 @@ class _DraftPageState extends ConsumerState<DraftPage> {
       isParsing: isParsing,
       parseProgress: parseState.progress,
       parseStepLabel: parseState.stepLabel,
-      onUpload: _uploadFile,
+      // 文件读取中时禁用上传按钮，防止重复触发
+      onUpload: _isFileLoading ? null : _uploadFile,
+      isFileLoading: _isFileLoading,
       onClear: _clearContent,
     );
   }

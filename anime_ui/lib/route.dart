@@ -18,7 +18,6 @@ import 'package:anime_ui/pub/layout/layout.dart';
 
 // ① 剧本 Story
 import 'package:anime_ui/module/story/index.dart';
-import 'package:anime_ui/module/draft/index.dart';
 
 // ② 资产 Assets
 import 'package:anime_ui/module/assets/index.dart';
@@ -178,17 +177,10 @@ final goRouter = GoRouter(
           ],
         ),
 
-        // ③ 脚本 Script (4 Tab: 结构 / 生成中心 / 审核编辑 / 锁定)
+        // ③ 脚本 Script (3 Tab: 生成中心 / 审核编辑 / 锁定)
         ShellRoute(
           builder: (context, state, child) => ScriptObjectPage(child: child),
           routes: [
-            GoRoute(
-              path: Routes.scriptStructure,
-              pageBuilder: (context, state) => sharedAxisPage(
-                child: const ScriptStructurePage(),
-                state: state,
-              ),
-            ),
             GoRoute(
               path: Routes.scriptCenter,
               pageBuilder: (context, state) =>

@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:anime_ui/module/draft/providers/provider.dart';
-import 'package:anime_ui/module/draft/widgets/preview_unconfirmed_panel.dart';
-import 'package:anime_ui/module/draft/widgets/preview_widgets.dart';
+import 'package:anime_ui/module/story/providers/import_provider.dart';
+import 'package:anime_ui/module/story/widgets/preview_unconfirmed_panel.dart';
+import 'package:anime_ui/module/story/widgets/preview_widgets.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/const/routes.dart';

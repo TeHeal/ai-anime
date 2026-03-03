@@ -32,7 +32,6 @@ abstract final class Routes {
   static const String assetsVersions = '$assets/versions';
 
   // ③ 脚本 Script
-  static const String scriptStructure = '$script/structure';
   static const String scriptCenter = '$script/center';
   static const String scriptReview = '$script/review';
   static const String scriptFreeze = '$script/freeze';
@@ -78,7 +77,7 @@ abstract final class Routes {
   static const Map<String, String> objectDefaults = {
     story: storyImport,
     assets: assetsOverview,
-    script: scriptStructure,
+    script: scriptCenter,
     shotImages: shotImagesCenter,
     shots: shotsCenter,
     episode: episodeTimeline,

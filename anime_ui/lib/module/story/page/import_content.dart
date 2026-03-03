@@ -5,8 +5,8 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/select_card.dart';
 import 'package:anime_ui/pub/widgets/story_action_bar.dart';
-import 'package:anime_ui/module/draft/widgets/format_help_dialog.dart';
-import 'package:anime_ui/module/draft/widgets/parse_progress_panel.dart';
+import 'package:anime_ui/module/story/widgets/format_help_dialog.dart';
+import 'package:anime_ui/module/story/widgets/parse_progress_panel.dart';
 
 /// 剧本草稿内容区 — 格式选择、上传、预览
 class DraftContent extends StatelessWidget {
@@ -23,6 +23,7 @@ class DraftContent extends StatelessWidget {
     this.parseProgress = 0,
     this.parseStepLabel = '',
     this.onUpload,
+    this.isFileLoading = false,
     this.onClear,
   });
 
@@ -37,6 +38,7 @@ class DraftContent extends StatelessWidget {
   final int parseProgress;
   final String parseStepLabel;
   final VoidCallback? onUpload;
+  final bool isFileLoading;
   final VoidCallback? onClear;
 
   @override
@@ -172,7 +174,7 @@ class DraftContent extends StatelessWidget {
 
   /// 拖拽式上传区域
   Widget _buildUploadZone(BuildContext context) {
-    return _UploadZone(onTap: onUpload);
+    return _UploadZone(onTap: onUpload, isLoading: isFileLoading);
   }
 
   /// 文件加载后：预览前 50 行
@@ -301,9 +303,10 @@ class DraftContent extends StatelessWidget {
 
 /// 拖拽式上传区域（带悬停反馈：小手光标 + 背景/边框/图标动效）
 class _UploadZone extends StatefulWidget {
-  const _UploadZone({this.onTap});
+  const _UploadZone({this.onTap, this.isLoading = false});
 
   final VoidCallback? onTap;
+  final bool isLoading;
 
   @override
   State<_UploadZone> createState() => _UploadZoneState();
@@ -314,57 +317,88 @@ class _UploadZoneState extends State<_UploadZone> {
 
   @override
   Widget build(BuildContext context) {
+    final isDisabled = widget.isLoading || widget.onTap == null;
+
     return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
+      onEnter: (_) { if (!isDisabled) setState(() => _hovered = true); },
       onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
+      cursor: isDisabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: isDisabled ? null : widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
-            color: _hovered
+            color: _hovered && !isDisabled
                 ? AppColors.surfaceContainerHigh
                 : AppColors.surface,
             borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
             border: Border.all(
-              color: _hovered
+              color: _hovered && !isDisabled
                   ? AppColors.primary.withValues(alpha: 0.35)
                   : AppColors.border,
               width: 1,
             ),
           ),
           child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  AppIcons.uploadOutline,
-                  size: 56.r,
-                  color: _hovered
-                      ? AppColors.primary.withValues(alpha: 0.7)
-                      : AppColors.mutedDark,
-                ),
-                const SizedBox(height: Spacing.lg),
-                Text(
-                  '点击上传 .md / .txt 剧本文件',
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: _hovered ? AppColors.mutedLight : AppColors.muted,
-                  ),
-                ),
-                const SizedBox(height: Spacing.sm),
-                Text(
-                  '支持长篇剧本（推荐 20 万字以内） · UTF-8 / GBK 自动识别',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.mutedDarker,
-                  ),
-                ),
-              ],
-            ),
+            child: widget.isLoading
+                ? _buildLoadingState()
+                : _buildIdleState(),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildIdleState() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          AppIcons.uploadOutline,
+          size: 56.r,
+          color: _hovered
+              ? AppColors.primary.withValues(alpha: 0.7)
+              : AppColors.mutedDark,
+        ),
+        const SizedBox(height: Spacing.lg),
+        Text(
+          '点击上传 .md / .txt 剧本文件',
+          style: AppTextStyles.bodyLarge.copyWith(
+            color: _hovered ? AppColors.mutedLight : AppColors.muted,
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        Text(
+          '支持长篇剧本（推荐 20 万字以内） · UTF-8 / GBK 自动识别',
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.mutedDarker,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 40.r,
+          height: 40.r,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.r,
+            color: AppColors.primary.withValues(alpha: 0.7),
+          ),
+        ),
+        SizedBox(height: Spacing.lg.h),
+        Text(
+          '正在读取文件…',
+          style: AppTextStyles.bodyLarge.copyWith(
+            color: AppColors.muted,
+          ),
+        ),
+      ],
     );
   }
 }
