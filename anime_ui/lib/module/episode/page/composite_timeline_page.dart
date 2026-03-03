@@ -10,6 +10,7 @@ import 'package:anime_ui/pub/services/package_svc.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/secondary_btn.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 成片时间线页：按集展示、导出入口、打包入口（README 2.1.4）
 class CompositeTimelinePage extends ConsumerStatefulWidget {
@@ -180,9 +181,8 @@ class _EpisodeRowState extends State<_EpisodeRow> {
         _episodeId,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('导出任务已创建')),
-        );
+        showToast(context, '导出任务已创建');
+
         widget.onRefresh();
       }
     } catch (e) {
@@ -206,9 +206,8 @@ class _EpisodeRowState extends State<_EpisodeRow> {
         _episodeId,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('打包任务已创建')),
-        );
+        showToast(context, '打包任务已创建');
+
         widget.onRefresh();
       }
     } catch (e) {

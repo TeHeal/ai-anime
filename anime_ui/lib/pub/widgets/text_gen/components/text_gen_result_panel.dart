@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import '../text_gen_controller.dart';
 
 /// 文本生成右侧结果面板（空闲 / 生成中 / 结果 / 错误）
@@ -120,13 +121,8 @@ class TextGenResultPanel extends StatelessWidget {
                 color: accent,
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: ctrl.result));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('已复制到剪贴板'),
-                      backgroundColor: AppColors.surfaceContainer,
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
+                  showToast(context, '已复制到剪贴板',
+                      duration: const Duration(seconds: 1));
                 },
               ),
               SizedBox(width: Spacing.sm.w),

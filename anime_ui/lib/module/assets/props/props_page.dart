@@ -13,6 +13,7 @@ import 'package:anime_ui/module/assets/props/widgets/prop_detail_panel.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_edit_dialog.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_list_panel.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_toolbar.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 道具页
 class AssetsPropsPage extends ConsumerStatefulWidget {
@@ -215,9 +216,7 @@ class _AssetsPropsPageState extends ConsumerState<AssetsPropsPage> {
 
     if (warnings.isEmpty) {
       ref.read(assetPropsProvider.notifier).confirm(prop.id!);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('道具「${prop.name}」已确认')));
+      showToast(context, '道具「${prop.name}」已确认');
       return;
     }
 
@@ -270,9 +269,7 @@ class _AssetsPropsPageState extends ConsumerState<AssetsPropsPage> {
             onPressed: () {
               Navigator.pop(ctx);
               ref.read(assetPropsProvider.notifier).confirm(prop.id!);
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('道具「${prop.name}」已确认')));
+              showToast(context, '道具「${prop.name}」已确认');
             },
             style: FilledButton.styleFrom(backgroundColor: AppColors.success),
             child: const Text('仍然确认'),

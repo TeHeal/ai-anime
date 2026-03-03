@@ -11,6 +11,7 @@ import 'package:anime_ui/pub/providers/project_provider.dart'
     show currentProjectProvider, projectListProvider;
 import 'package:anime_ui/module/story/page/import_content.dart';
 import 'package:anime_ui/module/story/providers/import_provider.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 剧本草稿页 — 上传、解析、预览
 class DraftPage extends ConsumerStatefulWidget {
@@ -91,15 +92,11 @@ class _DraftPageState extends ConsumerState<DraftPage> {
 
       if (!mounted) return;
       _setContent(text, fileName: file.name);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已导入「${file.name}」')),
-      );
     } catch (e) {
       if (mounted) {
         setState(() => _isFileLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导入失败: $e')),
-        );
+        showToast(context, '导入失败: $e', isError: true);
+
       }
     }
   }
@@ -128,9 +125,8 @@ class _DraftPageState extends ConsumerState<DraftPage> {
 
   Future<void> _startParse() async {
     if (_fullText.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先上传剧本文件')),
-      );
+      showToast(context, '请先上传剧本文件', isInfo: true);
+
       return;
     }
 
@@ -146,9 +142,8 @@ class _DraftPageState extends ConsumerState<DraftPage> {
       final projectId = ref.read(currentProjectProvider).value?.id;
       if (projectId == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('项目创建失败，请重试')),
-          );
+          showToast(context, '项目创建失败，请重试', isError: true);
+
         }
         return;
       }
@@ -166,15 +161,13 @@ class _DraftPageState extends ConsumerState<DraftPage> {
       if (parseState.phase == ParsePhase.preview) {
         context.go(Routes.storyPreview);
       } else if (parseState.phase == ParsePhase.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('解析失败: ${parseState.errorMessage}')),
-        );
+        showToast(context, '解析失败: ${parseState.errorMessage}', isError: true);
+
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('操作失败: $e')),
-        );
+        showToast(context, '操作失败: $e', isError: true);
+
       }
     }
   }
@@ -192,7 +185,7 @@ class _DraftPageState extends ConsumerState<DraftPage> {
       charCount: _charCount,
       previewLines: _previewLines,
       hasContent: _fullText.isNotEmpty,
-      onParse: isParsing ? null : _startParse,
+      onParse: (isParsing || _fullText.trim().isEmpty) ? null : _startParse,
       isParsing: isParsing,
       parseProgress: parseState.progress,
       parseStepLabel: parseState.stepLabel,

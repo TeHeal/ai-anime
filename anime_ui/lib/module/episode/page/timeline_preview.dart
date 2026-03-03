@@ -11,6 +11,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/primary_btn.dart';
 import 'package:anime_ui/pub/widgets/secondary_btn.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 可视化时间线预览：时间标尺、视频轨、字幕轨
 class TimelinePreview extends ConsumerStatefulWidget {
@@ -70,16 +71,14 @@ class _TimelinePreviewState extends ConsumerState<TimelinePreview> {
       final tl = await _timelineSvc.autoGenerate(pid);
       if (mounted) {
         setState(() => _timeline = tl);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('时间线已重新生成')),
-        );
+        showToast(context, '时间线已重新生成');
+
       }
     } catch (e) {
       if (mounted) {
         setState(() => _error = e.toString());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('生成失败: $e')),
-        );
+        showToast(context, '生成失败: $e', isError: true);
+
       }
     } finally {
       if (mounted) setState(() => _regenerating = false);

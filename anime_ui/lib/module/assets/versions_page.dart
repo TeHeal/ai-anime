@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -50,20 +51,10 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
       if (version != null) {
         await ref.read(lockProvider.notifier).lockPhase('assets');
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('资产已冻结 — 版本 v${version.version}'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        showToast(context, '资产已冻结 — 版本 v${version.version}');
         ref.read(assetVersionsProvider.notifier).load();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('冻结失败，请重试'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        showToast(context, '冻结失败，请重试', isError: true);
       }
     } finally {
       if (mounted) setState(() => _freezing = false);

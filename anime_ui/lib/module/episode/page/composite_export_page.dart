@@ -11,6 +11,7 @@ import 'package:anime_ui/pub/services/episode_svc.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/primary_btn.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 成片导出页：任务列表、进度展示、下载入口（README 2.1.4、2.2.4）
 class CompositeExportPage extends ConsumerStatefulWidget {
@@ -114,15 +115,11 @@ class _CompositeExportPageState extends ConsumerState<CompositeExportPage> {
         filename: filename,
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('下载已开始')));
+        showToast(context, '下载已开始');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('下载失败: $e')));
+        showToast(context, '下载失败: $e', isError: true);
       }
     }
   }

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/widgets/prompt_library_dialog.dart';
 import 'components/image_gen_footer.dart';
@@ -168,9 +169,7 @@ class _ImageGenViewState extends State<ImageGenView> {
       if (mounted) widget.onClose?.call();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存失败：$e'), backgroundColor: AppColors.error),
-        );
+        showToast(context, '保存失败：$e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -182,12 +181,7 @@ class _ImageGenViewState extends State<ImageGenView> {
         widget.ref.read(resourceListPortProvider).resources.value ?? [];
     final prompts = resources.where((r) => r.libraryType == 'prompt').toList();
     if (prompts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('提示词库中暂无模板'),
-          backgroundColor: AppColors.surfaceContainer,
-        ),
-      );
+      showToast(context, '提示词库中暂无模板', isInfo: true);
       return;
     }
     showDialog(

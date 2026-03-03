@@ -6,6 +6,8 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
+
 import '../providers/versions.dart';
 
 /// 解冻影响分析弹窗区块
@@ -47,12 +49,7 @@ class _VersionsUnfreezeWarningState
     await ref.read(lockProvider.notifier).unlockPhase('assets');
     if (mounted) {
       widget.onDismiss();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('已解冻，资产可编辑'),
-          backgroundColor: AppColors.warning,
-        ),
-      );
+      showToast(context, '已解冻，资产可编辑');
     }
   }
 

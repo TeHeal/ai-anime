@@ -14,9 +14,11 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/resource"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
+	"github.com/TeHeal/ai-anime/anime_ai/module/style"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot_video"
@@ -242,6 +244,16 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projectScoped.POST("/props-v2/:propId/confirm", middleware.RequireAction(auth.ActionAssetEdit), cfg.PropHandler.Confirm)
 				}
 
+				// 风格资产（Style，阶段 3）
+				if cfg.StyleHandler != nil {
+					projectScoped.GET("/styles", cfg.StyleHandler.List)
+					projectScoped.POST("/styles", middleware.RequireAction(auth.ActionAssetEdit), cfg.StyleHandler.Create)
+					projectScoped.GET("/styles/:styleId", cfg.StyleHandler.Get)
+					projectScoped.PUT("/styles/:styleId", middleware.RequireAction(auth.ActionAssetEdit), cfg.StyleHandler.Update)
+					projectScoped.DELETE("/styles/:styleId", middleware.RequireAction(auth.ActionAssetEdit), cfg.StyleHandler.Delete)
+					projectScoped.POST("/styles/:styleId/apply-all", middleware.RequireAction(auth.ActionAssetEdit), cfg.StyleHandler.ApplyAll)
+				}
+
 				// 分镜
 				if cfg.StoryboardHandler != nil {
 					projectScoped.GET("/storyboard", cfg.StoryboardHandler.List)
@@ -338,6 +350,20 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 				snapshots.DELETE("/:snapshotId", cfg.CharacterHandler.DeleteSnapshot)
 			}
 		}
+
+		// 素材库（用户级 CRUD）
+		if cfg.ResourceHandler != nil {
+			resources := protected.Group("/resources")
+			{
+				resources.POST("", cfg.ResourceHandler.Create)
+				resources.GET("", cfg.ResourceHandler.List)
+				resources.GET("/counts", cfg.ResourceHandler.Counts)
+				resources.POST("/generate-image", cfg.ResourceHandler.GenerateImage)
+				resources.GET("/:resourceId", cfg.ResourceHandler.Get)
+				resources.PUT("/:resourceId", cfg.ResourceHandler.Update)
+				resources.DELETE("/:resourceId", cfg.ResourceHandler.Delete)
+			}
+		}
 	}
 }
 
@@ -355,6 +381,8 @@ type RouteConfig struct {
 	CharacterHandler    *character.Handler
 	LocationHandler     *location.Handler
 	PropHandler         *prop.Handler
+	ResourceHandler     *resource.Handler
+	StyleHandler        *style.Handler
 	StoryboardHandler   *storyboard.Handler
 	ShotHandler         *shot.Handler
 	ShotImageHandler    *shot_image.Handler

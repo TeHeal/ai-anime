@@ -13,6 +13,7 @@ import 'creation_assistant_pill_button.dart';
 import 'tiny_btn.dart';
 import 'prompt_field_neg.dart';
 import 'prompt_field_ai_suggestion.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 带「创作助理」和「提示词库」的提示词输入框，适用于所有需要提示词 / 反向提示词的场景。
 ///
@@ -159,9 +160,7 @@ class _PromptFieldWithAssistantState
   void _runAssistantAction(AiAction action, TextEditingController ctrl) {
     final content = ctrl.text.trim();
     if (content.isEmpty && action != AiAction.continueWrite) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请先输入提示词内容')));
+      showToast(context, '请先输入提示词内容', isInfo: true);
       return;
     }
 
@@ -200,12 +199,7 @@ class _PromptFieldWithAssistantState
         if (mounted) {
           setState(() => _aiLoading = false);
           final msg = e.toString().replaceFirst('ApiException(-1): ', '');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('创作助理失败: $msg'),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          showToast(context, '创作助理失败: $msg', isError: true);
         }
       },
     );
@@ -249,9 +243,7 @@ class _PromptFieldWithAssistantState
   ) async {
     final text = ctrl.text.trim();
     if (text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请先输入提示词内容')));
+      showToast(context, '请先输入提示词内容', isInfo: true);
       return;
     }
     final onSave = widget.onSaveToLibrary;
@@ -264,18 +256,11 @@ class _PromptFieldWithAssistantState
     try {
       await onSave(text, name.trim(), isNegative: isNegative);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('已保存到提示词库'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        showToast(context, '已保存到提示词库');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('入库失败: $e'), backgroundColor: AppColors.error),
-        );
+        showToast(context, '入库失败: $e', isError: true);
       }
     }
   }

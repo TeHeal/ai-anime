@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/episode.dart';
@@ -10,6 +12,7 @@ import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/module/script/providers/script.dart';
 import 'package:anime_ui/module/script/scene_editor.dart';
 import 'package:anime_ui/module/script/tree_nav.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 剧本编辑页 — 集/场/块结构化编辑
 class StoryEditPage extends ConsumerStatefulWidget {
@@ -57,15 +60,11 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
       final title = '第${episodes.length + 1}集';
       final ep = await ref.read(episodesProvider.notifier).add(title);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('已添加: ${ep.title}')));
+        showToast(context, '已添加: ${ep.title}');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('添加失败: $e')));
+        showToast(context, '添加失败: $e', isError: true);
       }
     }
   }
@@ -97,15 +96,11 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
           .selectScene(episodeId, scene.id!);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('已添加场景: $sceneId')));
+        showToast(context, '已添加场景: $sceneId');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('添加场景失败: $e')));
+        showToast(context, '添加场景失败: $e', isError: true);
       }
     }
   }
@@ -148,15 +143,11 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
       await ref.read(episodesProvider.notifier).remove(episodeId);
       _loadedEpisodeScenes.remove(episodeId);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('已删除')));
+        showToast(context, '已删除');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
+        showToast(context, '删除失败: $e', isError: true);
       }
     }
   }
@@ -199,15 +190,11 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
       await ref.read(scenesProvider.notifier).remove(episodeId, sceneDbId);
       await ref.read(episodesProvider.notifier).load();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('已删除场景')));
+        showToast(context, '已删除场景');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('删除场景失败: $e')));
+        showToast(context, '删除场景失败: $e', isError: true);
       }
     }
   }
@@ -356,7 +343,12 @@ class _StoryEditPageState extends ConsumerState<StoryEditPage> {
                 thickness: 1,
                 color: AppColors.divider,
               ),
-              Expanded(child: SceneEditor(readOnly: isLocked)),
+              Expanded(
+                child: SceneEditor(
+                  readOnly: isLocked,
+                  onNext: isLocked ? null : () => context.go(Routes.storyConfirm),
+                ),
+              ),
             ],
           ),
         ),

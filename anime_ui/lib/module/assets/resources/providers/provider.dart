@@ -289,3 +289,32 @@ final selectedLibraryTypeProvider =
     NotifierProvider<_ValueNotifier<ResourceLibraryType>, ResourceLibraryType>(
       () => _ValueNotifier(ResourceLibraryType.style),
     );
+
+/// 搜索关键词（用于筛选资源）
+final resourceSearchProvider =
+    NotifierProvider<_ValueNotifier<String>, String>(() => _ValueNotifier(''));
+
+/// 按当前选中的库类型和搜索关键词筛选后的资源列表
+final filteredResourceListProvider = Provider<List<Resource>>((ref) {
+  final libraryType = ref.watch(selectedLibraryTypeProvider);
+  final search = ref.watch(resourceSearchProvider).trim().toLowerCase();
+  final asyncList = ref.watch(resourceListProvider);
+
+  return asyncList.when(
+    data: (list) {
+      var filtered = list
+          .where((r) => r.libraryType == libraryType.name)
+          .toList();
+      if (search.isNotEmpty) {
+        filtered = filtered.where((r) {
+          final matchName = r.name.toLowerCase().contains(search);
+          final matchTags = r.tags.any((t) => t.toLowerCase().contains(search));
+          return matchName || matchTags;
+        }).toList();
+      }
+      return filtered;
+    },
+    loading: () => [],
+    error: (_, __) => [],
+  );
+});

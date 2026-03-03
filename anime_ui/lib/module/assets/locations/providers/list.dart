@@ -4,14 +4,14 @@ import 'package:anime_ui/pub/models/location.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/location_svc.dart';
 
-final _locationSvcProvider = Provider((_) => LocationService());
+final locationServiceProvider = Provider((_) => LocationService());
 
 /// 场景列表
 class AssetLocationsNotifier extends Notifier<AsyncValue<List<Location>>> {
   @override
   AsyncValue<List<Location>> build() => const AsyncValue.data([]);
 
-  LocationService get _svc => ref.read(_locationSvcProvider);
+  LocationService get _svc => ref.read(locationServiceProvider);
   Object? get _projectId => ref.read(currentProjectProvider).value?.id;
 
   Future<void> load() async {

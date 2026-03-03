@@ -30,6 +30,7 @@ class StoryPage extends ConsumerWidget {
 
     if (isLocked) {
       disabledRoutes.add(Routes.storyImport);
+      disabledRoutes.add(Routes.storyPreview);
       labelOverrides[Routes.storyEdit] = '查看';
     }
 

@@ -22,7 +22,9 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/package_task"
 	"github.com/TeHeal/ai-anime/anime_ai/module/project"
 	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
+	"github.com/TeHeal/ai-anime/anime_ai/module/style"
 	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
+	"github.com/TeHeal/ai-anime/anime_ai/module/resource"
 	"github.com/TeHeal/ai-anime/anime_ai/module/schedule"
 	"github.com/TeHeal/ai-anime/anime_ai/module/script"
 	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
@@ -33,6 +35,7 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/module/usage"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/migrate"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/mesh"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/metrics"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
@@ -92,6 +95,11 @@ func main() {
 		}
 	}
 	if pool != nil {
+		if err := migrate.Up(dsn, "./migrations"); err != nil {
+			log.Printf("数据库迁移失败（继续启动）: %v", err)
+		} else {
+			log.Println("数据库迁移已执行")
+		}
 		queries := db.New(pool)
 		userStore = auth.NewDBUserStore(queries)
 		log.Println("使用 PostgreSQL 用户存储")
@@ -250,6 +258,23 @@ func main() {
 	} else {
 		propSvc = prop.NewService(propStore, projectVerifier)
 	}
+	
+	// 风格模块（阶段 3）
+	var styleData style.Data
+	if pool != nil {
+		styleData = style.NewDBData(db.New(pool))
+		log.Println("使用 PostgreSQL 风格存储")
+	} else {
+		styleData = style.NewMemData()
+	}
+	var styleSvc *style.Service
+	if resolver, ok := projectVerifier.(crossmodule.ProjectMemberResolver); ok {
+		styleSvc = style.NewServiceWithResolver(styleData, projectVerifier, resolver)
+	} else {
+		styleSvc = style.NewService(styleData, projectVerifier)
+	}
+	styleHandler := style.NewHandler(styleSvc)
+
 	propHandler := prop.NewHandler(propSvc)
 
 	// 资产版本模块（Freeze/Unfreeze，FrozenAssetChecker）
@@ -617,6 +642,24 @@ func main() {
 	}
 
 	// RBAC 中间件适配器（ProjectContext 所需）
+
+	// 素材库模块（用户级 CRUD + 图生）
+	var resourceHandler *resource.Handler
+	if pool != nil {
+		resourceData := resource.NewDBData(db.New(pool))
+		resourceSvc := resource.NewService(resourceData)
+		imageCap := mesh.NewImageCapability(imageRouter)
+		resourceSvc.SetImageGen(imageCap)
+		resourceHandler = resource.NewHandler(resourceSvc)
+		log.Println("素材库模块已启用（PostgreSQL）")
+	} else {
+		resourceData := resource.NewMemData()
+		resourceSvc := resource.NewService(resourceData)
+		imageCap := mesh.NewImageCapability(imageRouter)
+		resourceSvc.SetImageGen(imageCap)
+		resourceHandler = resource.NewHandler(resourceSvc)
+		log.Println("素材库模块已启用（内存存储）")
+	}
 	projectMwReader := project.ProjectReaderAdapter(projectData)
 	projectMemberMwReader := project.ProjectMemberReaderAdapter(projectData)
 	teamMemberMwReader := &project.NoopTeamMemberReader{}
@@ -633,6 +676,7 @@ func main() {
 		CharacterHandler:    characterHandler,
 		LocationHandler:     locationHandler,
 		PropHandler:         propHandler,
+		StyleHandler:        styleHandler,
 		ScriptHandler:       scriptHandler,
 		StoryboardHandler:   storyboardHandler,
 		ShotHandler:         shotHandler,
@@ -644,6 +688,7 @@ func main() {
 		PackageHandler:      packageHandler,
 		UsageHandler:        usageHandler,
 		ScheduleHandler:     scheduleHandler,
+		ResourceHandler:     resourceHandler,
 		WSHandler:           wsHandler,
 		AsynqClient:         asynqClient,
 		JWTSecret:           cfg.App.Secret,

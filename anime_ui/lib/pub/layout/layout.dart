@@ -10,6 +10,7 @@ import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/widgets/ai_chat_panel.dart';
 import 'package:anime_ui/pub/services/episode_svc.dart';
 import 'package:anime_ui/module/assets/adapters/resource_list_adapter.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/layout/header.dart';
 import 'package:anime_ui/pub/widgets/notification_drawer.dart';
 import 'package:anime_ui/pub/widgets/side_nav.dart';
@@ -106,9 +107,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     if (!gate.enabled) {
       if (gate.message != null && gate.message != _lastGateMessage) {
         _lastGateMessage = gate.message;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(gate.message!)));
+        showToast(context, gate.message!, isInfo: true);
       }
       if (gate.redirectRoute != null) {
         context.go(gate.redirectRoute!);
@@ -173,9 +172,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
       if (livePath != path) return;
       if (gate.message != null && gate.message != _lastGateMessage) {
         _lastGateMessage = gate.message;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(gate.message!)));
+        showToast(context, gate.message!, isInfo: true);
       }
       context.go(redirectRoute);
     });

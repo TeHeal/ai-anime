@@ -5,6 +5,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/module/story/script_template.dart';
 import 'package:anime_ui/module/story/template_download.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 显示格式说明与模板预览对话框
 void showFormatHelpDialog(BuildContext context) {
@@ -223,15 +224,11 @@ class _TemplatePreviewTab extends StatelessWidget {
     try {
       await downloadTemplateFile(scriptTemplateMd, scriptTemplateFileName);
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('模板已下载')));
+        showToast(context, '模板已下载');
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('下载失败: $e')));
+        showToast(context, '下载失败: $e', isError: true);
       }
     }
   }

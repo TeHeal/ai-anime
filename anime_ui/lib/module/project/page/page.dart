@@ -17,6 +17,7 @@ import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/project_svc.dart';
 import 'package:anime_ui/pub/widgets/user_menu.dart';
 import 'dialogs.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 项目列表页 — 新建、打开、编辑、删除项目，仪表盘入口
 class ProjectsPage extends ConsumerWidget {
@@ -250,13 +251,11 @@ class ProjectsPage extends ConsumerWidget {
         await ProjectService().update(project.id!, name: name.trim());
         ref.invalidate(projectListProvider);
         if (context.mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('项目名称已更新')));
+          showToast(context, '项目名称已更新');
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('更新失败: $e')));
+          showToast(context, '更新失败: $e', isError: true);
         }
       }
     }
@@ -274,14 +273,12 @@ class ProjectsPage extends ConsumerWidget {
         await ProjectService().delete(project.id!);
         ref.invalidate(projectListProvider);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('项目「${project.name}」已删除')),
-          );
+          showToast(context, '项目「${project.name}」已删除');
+
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('删除失败: $e')));
+          showToast(context, '删除失败: $e', isError: true);
         }
       }
     }

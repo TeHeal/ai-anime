@@ -21,10 +21,17 @@ sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD' CREA
 echo "[2] 创建数据库 $DB_NAME..."
 sudo -u postgres createdb -O "$DB_USER" "$DB_NAME" 2>/dev/null || echo "    数据库已存在，跳过"
 
-# 3. 应用 schema
-echo "[3] 应用 schema..."
-export PGPASSWORD="$DB_PASSWORD"
-psql -h localhost -U "$DB_USER" -d "$DB_NAME" -f sch/schema.sql
+# 3. 执行迁移（golang-migrate）
+echo "[3] 执行数据库迁移..."
+export APP_DB_USER="$DB_USER"
+export APP_DB_PASSWORD="$DB_PASSWORD"
+export APP_DB_HOST="localhost"
+export APP_DB_DBNAME="$DB_NAME"
+if command -v migrate &>/dev/null; then
+  migrate -path ./migrations -database "postgres://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?sslmode=disable" up
+else
+  go run ./cmd/migrate
+fi
 
 echo ""
 echo "=== 初始化完成 ==="

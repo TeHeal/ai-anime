@@ -12,10 +12,16 @@ import (
 
 type Querier interface {
 	AddOrgMember(ctx context.Context, arg AddOrgMemberParams) (OrgMember, error)
+	ApplyStyleToCharacters(ctx context.Context, arg ApplyStyleToCharactersParams) ([]pgtype.UUID, error)
+	ApplyStyleToLocations(ctx context.Context, arg ApplyStyleToLocationsParams) ([]pgtype.UUID, error)
+	ApplyStyleToProps(ctx context.Context, arg ApplyStyleToPropsParams) ([]pgtype.UUID, error)
 	BatchCancelTasks(ctx context.Context, ids []pgtype.UUID) error
 	BulkCreateSegments(ctx context.Context, arg []BulkCreateSegmentsParams) (int64, error)
 	CancelTask(ctx context.Context, id pgtype.UUID) (Task, error)
+	ClearProjectDefault(ctx context.Context, projectID pgtype.UUID) error
 	CountEpisodesByProject(ctx context.Context, projectID pgtype.UUID) (int32, error)
+	CountResourcesByLibraryType(ctx context.Context, arg CountResourcesByLibraryTypeParams) ([]CountResourcesByLibraryTypeRow, error)
+	CountResourcesByUser(ctx context.Context, arg CountResourcesByUserParams) (int64, error)
 	CountSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) (int32, error)
 	CountScenesByEpisode(ctx context.Context, episodeID pgtype.UUID) (int32, error)
 	CountShotsByProject(ctx context.Context, projectID pgtype.UUID) (int32, error)
@@ -38,6 +44,8 @@ type Querier interface {
 	// 道具资产 CRUD（项目级）
 	CreateProp(ctx context.Context, arg CreatePropParams) (Prop, error)
 	CreateProviderUsage(ctx context.Context, arg CreateProviderUsageParams) (ProviderUsage, error)
+	// 素材库 CRUD（用户级）
+	CreateResource(ctx context.Context, arg CreateResourceParams) (Resource, error)
 	// 审核记录 CRUD（README 2.2 审核闭环、状态机、反馈给生产 AI）
 	CreateReviewRecord(ctx context.Context, arg CreateReviewRecordParams) (ReviewRecord, error)
 	CreateScene(ctx context.Context, arg CreateSceneParams) (Scene, error)
@@ -52,6 +60,8 @@ type Querier interface {
 	CreateShotImage(ctx context.Context, arg CreateShotImageParams) (ShotImage, error)
 	// 镜头视频 CRUD（每个镜头的视频片段）
 	CreateShotVideo(ctx context.Context, arg CreateShotVideoParams) (ShotVideo, error)
+	// 风格 CRUD（项目级，阶段 3）
+	CreateStyle(ctx context.Context, arg CreateStyleParams) (Style, error)
 	// 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
@@ -73,6 +83,8 @@ type Querier interface {
 	GetProjectByIDAndUser(ctx context.Context, arg GetProjectByIDAndUserParams) (Project, error)
 	GetProjectMemberByProjectAndUser(ctx context.Context, arg GetProjectMemberByProjectAndUserParams) (ProjectMember, error)
 	GetPropByID(ctx context.Context, id pgtype.UUID) (Prop, error)
+	GetResourceByID(ctx context.Context, id pgtype.UUID) (Resource, error)
+	GetResourceByIDAndUser(ctx context.Context, arg GetResourceByIDAndUserParams) (Resource, error)
 	GetSceneBlockByID(ctx context.Context, id pgtype.UUID) (SceneBlock, error)
 	GetSceneByID(ctx context.Context, id pgtype.UUID) (Scene, error)
 	GetScheduleByID(ctx context.Context, id pgtype.UUID) (Schedule, error)
@@ -81,6 +93,7 @@ type Querier interface {
 	GetShotImageByID(ctx context.Context, id pgtype.UUID) (ShotImage, error)
 	GetShotVideoByID(ctx context.Context, id pgtype.UUID) (ShotVideo, error)
 	GetShotVideoByShotPrimary(ctx context.Context, shotID pgtype.UUID) (ShotVideo, error)
+	GetStyleByID(ctx context.Context, id pgtype.UUID) (Style, error)
 	GetTaskByID(ctx context.Context, id pgtype.UUID) (Task, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
@@ -103,6 +116,7 @@ type Querier interface {
 	ListPropsByProject(ctx context.Context, projectID pgtype.UUID) ([]Prop, error)
 	// AI 用量统计（README 8.3 AI 成本控制）
 	ListProviderUsages(ctx context.Context, arg ListProviderUsagesParams) ([]ProviderUsage, error)
+	ListResourcesByUser(ctx context.Context, arg ListResourcesByUserParams) ([]Resource, error)
 	ListReviewRecordsByTarget(ctx context.Context, arg ListReviewRecordsByTargetParams) ([]ReviewRecord, error)
 	ListSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) ([]SceneBlock, error)
 	ListSceneBlocksBySceneIDs(ctx context.Context, sceneIds []pgtype.UUID) ([]SceneBlock, error)
@@ -117,6 +131,7 @@ type Querier interface {
 	ListShotsByProject(ctx context.Context, projectID pgtype.UUID) ([]Shot, error)
 	ListShotsByScene(ctx context.Context, sceneID pgtype.UUID) ([]Shot, error)
 	ListShotsBySegment(ctx context.Context, segmentID pgtype.UUID) ([]Shot, error)
+	ListStylesByProject(ctx context.Context, projectID pgtype.UUID) ([]Style, error)
 	ListTasksByIDs(ctx context.Context, ids []pgtype.UUID) ([]Task, error)
 	ListTasksByProject(ctx context.Context, arg ListTasksByProjectParams) ([]Task, error)
 	ListTasksByProjectAndStatus(ctx context.Context, arg ListTasksByProjectAndStatusParams) ([]Task, error)
@@ -128,6 +143,7 @@ type Querier interface {
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	ReleaseExpiredShotLocks(ctx context.Context) error
 	RemoveOrgMember(ctx context.Context, arg RemoveOrgMemberParams) error
+	SetProjectDefault(ctx context.Context, arg SetProjectDefaultParams) error
 	SoftDeleteCharacter(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteCompositeTask(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteEpisode(ctx context.Context, id pgtype.UUID) error
@@ -136,6 +152,7 @@ type Querier interface {
 	SoftDeleteProject(ctx context.Context, arg SoftDeleteProjectParams) error
 	SoftDeleteProjectMember(ctx context.Context, arg SoftDeleteProjectMemberParams) error
 	SoftDeleteProp(ctx context.Context, id pgtype.UUID) error
+	SoftDeleteResource(ctx context.Context, arg SoftDeleteResourceParams) error
 	SoftDeleteScene(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteSceneBlock(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) error
@@ -148,6 +165,7 @@ type Querier interface {
 	SoftDeleteShotVideo(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteShotVideosByShot(ctx context.Context, shotID pgtype.UUID) error
 	SoftDeleteShotsByProject(ctx context.Context, projectID pgtype.UUID) error
+	SoftDeleteStyle(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteUser(ctx context.Context, id pgtype.UUID) error
 	// 尝试加锁：仅当未锁、或本人持有、或超时(1h)时可加锁
 	TryLockShot(ctx context.Context, arg TryLockShotParams) (pgtype.UUID, error)
@@ -167,6 +185,7 @@ type Querier interface {
 	UpdateProjectMemberJobRoles(ctx context.Context, arg UpdateProjectMemberJobRolesParams) (ProjectMember, error)
 	UpdateProjectMemberRole(ctx context.Context, arg UpdateProjectMemberRoleParams) (ProjectMember, error)
 	UpdateProp(ctx context.Context, arg UpdatePropParams) (Prop, error)
+	UpdateResource(ctx context.Context, arg UpdateResourceParams) (Resource, error)
 	UpdateScene(ctx context.Context, arg UpdateSceneParams) (Scene, error)
 	UpdateSceneBlock(ctx context.Context, arg UpdateSceneBlockParams) (SceneBlock, error)
 	UpdateSceneBlockSortIndex(ctx context.Context, arg UpdateSceneBlockSortIndexParams) error
@@ -186,6 +205,7 @@ type Querier interface {
 	UpdateShotVideoResult(ctx context.Context, arg UpdateShotVideoResultParams) (Shot, error)
 	UpdateShotVideoReview(ctx context.Context, arg UpdateShotVideoReviewParams) (ShotVideo, error)
 	UpdateShotVideoStatus(ctx context.Context, arg UpdateShotVideoStatusParams) (ShotVideo, error)
+	UpdateStyle(ctx context.Context, arg UpdateStyleParams) (Style, error)
 	UpdateTaskProgress(ctx context.Context, arg UpdateTaskProgressParams) (Task, error)
 	UpdateTaskResult(ctx context.Context, arg UpdateTaskResultParams) (Task, error)
 	UpdateTaskStatus(ctx context.Context, arg UpdateTaskStatusParams) (Task, error)

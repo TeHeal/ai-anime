@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 批量导入人物小传对话框
 class ImportProfileDialog extends ConsumerStatefulWidget {
@@ -55,9 +56,7 @@ class _ImportProfileDialogState extends ConsumerState<ImportProfileDialog> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('导入失败: $e')));
+        showToast(context, '导入失败: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _loading = false);

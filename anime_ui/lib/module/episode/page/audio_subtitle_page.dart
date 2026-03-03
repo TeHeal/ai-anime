@@ -9,6 +9,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/primary_btn.dart';
 import 'package:anime_ui/pub/widgets/secondary_btn.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 音频/字幕管理页：配音状态、字幕预览、批量 TTS、SRT 导出
 class AudioSubtitlePage extends ConsumerStatefulWidget {
@@ -28,9 +29,8 @@ class _AudioSubtitlePageState extends ConsumerState<AudioSubtitlePage> {
         .toList();
     if (shotsWithDialogue.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('没有可生成配音的镜头（需有台词）')),
-        );
+        showToast(context, '没有可生成配音的镜头（需有台词）');
+
       }
       return;
     }
@@ -41,16 +41,14 @@ class _AudioSubtitlePageState extends ConsumerState<AudioSubtitlePage> {
         shotIds: shotsWithDialogue.map((s) => s.id!).toList(),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('配音生成任务已提交')),
-        );
+        showToast(context, '配音生成任务已提交');
+
         setState(() {});
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('配音生成失败: $e')),
-        );
+        showToast(context, '配音生成失败: $e', isError: true);
+
       }
     } finally {
       if (mounted) setState(() => _generating = false);
@@ -163,14 +161,12 @@ class _AudioSubtitlePageState extends ConsumerState<AudioSubtitlePage> {
           onPressed: () {
             final srt = _exportSubtitles(shots);
             if (srt.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('没有可导出的字幕内容')),
-              );
+              showToast(context, '没有可导出的字幕内容');
+
               return;
             }
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('字幕内容已生成（SRT 格式）')),
-            );
+            showToast(context, '字幕内容已生成（SRT 格式）');
+
           },
         ),
       ],

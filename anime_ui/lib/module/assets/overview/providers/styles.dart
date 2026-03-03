@@ -74,6 +74,13 @@ class AssetStylesNotifier extends Notifier<AsyncValue<List<Style>>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  /// 将风格应用到所有资产（角色、场景、道具）
+  Future<int> applyAll(String styleId) async {
+    final pid = _projectId;
+    if (pid == null) return 0;
+    return _svc.applyAll(pid, styleId);
+  }
 }
 
 final assetStylesProvider =

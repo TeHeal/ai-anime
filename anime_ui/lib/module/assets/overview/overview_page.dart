@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/assets/locations/providers/list.dart';
 import 'package:anime_ui/module/assets/props/providers/list.dart';
@@ -26,19 +27,19 @@ class AssetOverviewPage extends ConsumerStatefulWidget {
 
 class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      ref.read(assetCharactersProvider.notifier).load();
-      ref.read(assetLocationsProvider.notifier).load();
-      ref.read(assetPropsProvider.notifier).load();
-      ref.read(assetStylesProvider.notifier).load();
-      ref.read(resourceListProvider.notifier).load();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // 监听项目变化：项目加载完成或切换时触发资产数据加载
+    // 角色/场景/道具/风格均依赖 currentProjectProvider，若项目未加载则 load() 会直接 return
+    ref.listen(currentProjectProvider, (prev, next) {
+      if (next.hasValue && next.value != null) {
+        ref.read(assetCharactersProvider.notifier).load();
+        ref.read(assetLocationsProvider.notifier).load();
+        ref.read(assetPropsProvider.notifier).load();
+        ref.read(assetStylesProvider.notifier).load();
+        ref.read(resourceListProvider.notifier).load();
+      }
+    });
+
     final data = ref.watch(assetOverviewProvider);
 
     return ListView(

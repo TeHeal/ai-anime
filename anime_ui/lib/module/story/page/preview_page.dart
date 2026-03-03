@@ -12,6 +12,7 @@ import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/script_parse_svc.dart';
 import 'package:anime_ui/pub/widgets/story_action_bar.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 剧本解析预览页 — 检查并修正识别结果，确认后导入（Story 流程）
 class StoryPreviewPage extends ConsumerStatefulWidget {
@@ -185,9 +186,7 @@ class _StoryPreviewPageState extends ConsumerState<StoryPreviewPage> {
         context.go(Routes.storyEdit);
       }
     } else if (state.phase == ParsePhase.error) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('导入失败: ${state.errorMessage}')));
+      showToast(context, '导入失败: ${state.errorMessage}', isError: true);
     }
   }
 }

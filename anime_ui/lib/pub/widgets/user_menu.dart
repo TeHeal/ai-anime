@@ -7,9 +7,11 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_dialog.dart';
+import 'package:anime_ui/pub/providers/auth_provider.dart';
 import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/services/api_svc.dart';
 
 /// 用户头像菜单 — 提供修改密码、账户分配、退出登录。
@@ -19,6 +21,8 @@ class UserMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final username =
+        ref.watch(authProvider).user?.username ?? 'admin';
     return PopupMenuButton<String>(
       offset: Offset(0, 48.h),
       color: AppColors.surfaceContainerHigh,
@@ -67,7 +71,7 @@ class UserMenu extends ConsumerWidget {
             ),
             SizedBox(width: Spacing.sm.w),
             Text(
-              'admin',
+              username,
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.onSurface.withValues(alpha: 0.75),
                 fontWeight: FontWeight.w500,
@@ -200,13 +204,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       );
       if (mounted) {
         widget.onClose();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('密码修改成功'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        showToast(context, '密码修改成功');
       }
     } catch (e) {
       setState(() => _error = '修改失败：$e');
@@ -362,23 +360,11 @@ class _ManageAccountsDialogState extends State<_ManageAccountsDialog> {
       _passwordCtrl.clear();
       await _loadUsers();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('用户 $username 已创建'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        showToast(context, '用户 $username 已创建');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('创建失败: $e'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        showToast(context, '创建失败: $e', isError: true);
       }
     }
   }

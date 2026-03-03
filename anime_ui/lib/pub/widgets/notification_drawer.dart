@@ -6,6 +6,7 @@ import '../const/routes.dart';
 import '../theme/app_icons.dart';
 import '../providers/notification_provider.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 通知抽屉：从右侧滑出，显示站内通知列表（README 2.6）
 class NotificationDrawer extends ConsumerWidget {
@@ -56,9 +57,8 @@ class NotificationDrawer extends ConsumerWidget {
                   } catch (e, st) {
                     debugPrint('全部已读失败: $e\n$st');
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('全部已读失败，请稍后重试')),
-                      );
+                      showToast(context, '全部已读失败，请稍后重试', isError: true);
+
                     }
                   }
                 },
@@ -160,9 +160,7 @@ class _NotificationList extends ConsumerWidget {
                   } catch (e, st) {
                     debugPrint('标记已读失败: $e\n$st');
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('标记已读失败，请稍后重试')),
-                      );
+                      showToast(context, '标记已读失败，请稍后重试', isError: true);
                     }
                   }
                 }

@@ -91,7 +91,7 @@ See README § 开发与部署（启动命令）and `anime_ai/Makefile` for full 
 - **Flutter `initState` rule**: Never call `MediaQuery.of(context)`, `Theme.of(context)`, `Breakpoints.isNarrowContext(context)`, or any `InheritedWidget` accessor inside `initState()` or field initializers. Use `didChangeDependencies()` or `build()` instead.
 - After modifying freezed/json_serializable models: `cd anime_ui && dart run build_runner build --delete-conflicting-outputs`.
 - sqlc queries use `COALESCE(..., '{}'::jsonb)` for JSONB defaults. Always include `::jsonb` cast when adding new COALESCE defaults for JSONB columns.
-- Database schema: `anime_ai/sch/schema.sql` (full) + `anime_ai/migration/` (incremental). Apply schema first, then migrations in date order.
+- Database schema: `anime_ai/sch/schema.sql` (full, sqlc 来源) + `anime_ai/migrations/` (golang-migrate). 应用启动时自动执行迁移；手动执行见 `go run ./cmd/migrate` 或 migrate CLI。
 
 ### LLM integration
 

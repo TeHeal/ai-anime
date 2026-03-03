@@ -234,6 +234,23 @@ type ProviderUsage struct {
 	MetaJson     []byte             `json:"meta_json"`
 }
 
+type Resource struct {
+	ID             pgtype.UUID        `json:"id"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt      pgtype.Timestamptz `json:"deleted_at"`
+	UserID         pgtype.UUID        `json:"user_id"`
+	Name           string             `json:"name"`
+	LibraryType    string             `json:"library_type"`
+	Modality       string             `json:"modality"`
+	ThumbnailUrl   pgtype.Text        `json:"thumbnail_url"`
+	TagsJson       []byte             `json:"tags_json"`
+	Version        pgtype.Text        `json:"version"`
+	MetadataJson   []byte             `json:"metadata_json"`
+	BindingIdsJson []byte             `json:"binding_ids_json"`
+	Description    pgtype.Text        `json:"description"`
+}
+
 type ReviewRecord struct {
 	ID           pgtype.UUID        `json:"id"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
@@ -380,6 +397,21 @@ type ShotVideo struct {
 	ReviewComment pgtype.Text        `json:"review_comment"`
 	ReviewedAt    pgtype.Timestamptz `json:"reviewed_at"`
 	ReviewedBy    pgtype.UUID        `json:"reviewed_by"`
+}
+
+type Style struct {
+	ID                  pgtype.UUID        `json:"id"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt           pgtype.Timestamptz `json:"deleted_at"`
+	ProjectID           pgtype.UUID        `json:"project_id"`
+	Name                string             `json:"name"`
+	Description         pgtype.Text        `json:"description"`
+	NegativePrompt      pgtype.Text        `json:"negative_prompt"`
+	ReferenceImagesJson []byte             `json:"reference_images_json"`
+	ThumbnailUrl        pgtype.Text        `json:"thumbnail_url"`
+	IsPreset            bool               `json:"is_preset"`
+	IsProjectDefault    bool               `json:"is_project_default"`
 }
 
 type Task struct {

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Theme, ThemeData;
+import 'package:shadcn_flutter/shadcn_flutter.dart' show Theme, ThemeData, ToastLayer;
 
 import 'package:anime_ui/pub/const/app_const.dart';
 import 'package:anime_ui/pub/theme/app_theme.dart';
@@ -16,6 +17,11 @@ class App extends StatelessWidget {
       title: appName,
       theme: appTheme,
       routerConfig: goRouter,
+      // ToastLayer 依赖 shadcn_flutter 的 Theme，需用 Theme 包裹
+      builder: (ctx, child) => Theme(
+        data: ThemeData.dark(),
+        child: ToastLayer(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }

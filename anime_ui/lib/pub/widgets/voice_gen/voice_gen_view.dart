@@ -12,6 +12,7 @@ import 'components/voice_gen_mode_tabs.dart';
 import 'components/voice_gen_result_panel.dart';
 import 'voice_gen_config.dart';
 import 'voice_gen_controller.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 class VoiceGenView extends StatefulWidget {
@@ -163,9 +164,7 @@ class _VoiceGenViewState extends State<VoiceGenView>
       if (mounted) widget.onClose?.call();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存失败：$e'), backgroundColor: AppColors.error),
-        );
+        showToast(context, '保存失败：$e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);

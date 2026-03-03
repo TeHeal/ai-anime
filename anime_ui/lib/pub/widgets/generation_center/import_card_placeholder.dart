@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';
 
 /// 导入占位卡片：图标 + 标题 + 占位内容 + onTap
@@ -68,13 +69,7 @@ class ImportCardPlaceholder extends StatelessWidget {
               onTap:
                   onTap ??
                   () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('导入功能开发中'),
-                        backgroundColor: AppColors.success,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    showToast(context, '导入功能开发中', isInfo: true);
                   },
               child: Container(
                 width: double.infinity,

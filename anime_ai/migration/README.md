@@ -1,5 +1,7 @@
 # 数据库迁移
 
+> **已迁移至 golang-migrate**：请使用 `migrations/` 目录，详见 [migrations/README.md](../migrations/README.md)。应用启动时会自动执行迁移。
+
 ## 本地开发环境配置
 
 ### Redis
@@ -26,9 +28,10 @@ sudo apt-get install postgresql postgresql-contrib
 sudo -u postgres psql -c "CREATE USER yikai WITH PASSWORD 'mayikai' CREATEDB;"
 sudo -u postgres createdb -O yikai ai_anime
 
-# 应用 schema（从 anime_ai 目录执行）
+# 初始化数据库（从 anime_ai 目录执行）
 cd anime_ai
-PGPASSWORD=mayikai psql -h localhost -U yikai -d ai_anime -f sch/schema.sql
+./scripts/init_db.sh
+# 或手动：go run ./cmd/migrate
 ```
 
 config.yaml 中配置：
@@ -44,49 +47,9 @@ db:
 
 ---
 
-## 应用 Schema
+## 应用 Schema（golang-migrate）
 
-执行 `sch/schema.sql` 创建 PostgreSQL 表结构。
-
-### 方式一：psql 命令行
-
-```bash
-# 创建数据库（若不存在）
-createdb -U postgres ai_anime
-
-# 应用 schema
-psql -U postgres -d ai_anime -f sch/schema.sql
-```
-
-### 增量迁移（已有数据库）
-
-若已应用过 schema.sql，可单独执行增量迁移：
-
-```bash
-# 领域模型补充表（Notification、ReviewRecord、Schedule、CompositeTask、AssetVersion、ProviderUsage）
-psql -U "$DB_USER" -d "$DB_NAME" -f migration/20250228_add_domain_tables.sql
-
-# 阶段一权限扩展：project_members 增加 job_roles（工种角色数组）
-psql -U "$DB_USER" -d "$DB_NAME" -f migration/20250301_add_job_roles.sql
-```
-
-### 方式二：apply_schema.sh
-
-```bash
-#!/bin/bash
-# 从 anime_ai 目录执行
-DB_NAME="${DB_NAME:-ai_anime}"
-DB_USER="${DB_USER:-postgres}"
-psql -U "$DB_USER" -d "$DB_NAME" -f sch/schema.sql
-```
-
-保存为 `migration/apply_schema.sh` 并执行：
-
-```bash
-chmod +x migration/apply_schema.sh
-cd anime_ai
-./migration/apply_schema.sh
-```
+应用启动时自动执行迁移。手动执行见 [migrations/README.md](../migrations/README.md)。
 
 ### 环境变量
 

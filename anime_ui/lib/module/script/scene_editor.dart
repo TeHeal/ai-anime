@@ -12,6 +12,7 @@ import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/script_ai_svc.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/insert_handle.dart';
 import 'package:anime_ui/module/script/block_item.dart';
 import 'package:anime_ui/module/script/providers/script.dart';
@@ -20,9 +21,12 @@ import 'package:anime_ui/module/script/widgets/scene_editor_nav_bar.dart';
 
 /// 场景编辑器：场景元信息 + 内容块列表
 class SceneEditor extends ConsumerStatefulWidget {
-  const SceneEditor({super.key, this.readOnly = false});
+  const SceneEditor({super.key, this.readOnly = false, this.onNext});
 
   final bool readOnly;
+
+  /// 点击"下一步"时的回调；为 null 时不显示该按钮
+  final VoidCallback? onNext;
 
   @override
   ConsumerState<SceneEditor> createState() => _SceneEditorState();
@@ -178,21 +182,11 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
       _dirty = false;
       if (mounted) {
         setState(() => _saveStatus = _SaveStatus.saved);
-        if (!auto) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('保存成功'),
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _saveStatus = _SaveStatus.error);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('保存失败: $e')));
+        showToast(context, '保存失败: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -258,9 +252,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   void _onAiAction(AiAction action, int blockIndex) {
     final block = _blocks[blockIndex];
     if (block.content.trim().isEmpty && action != AiAction.continueWrite) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('当前块内容为空，请先输入内容')));
+      showToast(context, '当前块内容为空，请先输入内容', isInfo: true);
       return;
     }
 
@@ -500,6 +492,14 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
   }
 
   Widget _buildActionBar() {
+    final buttonShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+    );
+    final buttonPadding = const EdgeInsets.symmetric(
+        horizontal: Spacing.cardPadding, vertical: Spacing.sm);
+    final buttonTextStyle =
+        AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600);
+
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: Spacing.mid, vertical: Spacing.sm),
@@ -510,34 +510,54 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
         children: [
           _buildSaveStatusIndicator(),
           const Spacer(),
-          FilledButton.icon(
-            onPressed: (_saving || widget.readOnly) ? null : () => _save(),
-            icon: _saving
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.onPrimary,
-                    ),
-                  )
-                : Icon(AppIcons.save, size: 15.r),
-            label: Text(_saving ? '保存中…' : '保存'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-              ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: Spacing.cardPadding, vertical: Spacing.sm),
-              textStyle: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+          // 保存按钮：已保存/干净状态时灰色禁用，有未保存内容时激活
+          _buildSaveButton(buttonShape, buttonPadding, buttonTextStyle),
+          // 下一步 — 主按钮（FilledButton），仅当回调存在时渲染
+          if (widget.onNext != null) ...[
+            SizedBox(width: Spacing.md.w),
+            FilledButton.icon(
+              onPressed: widget.readOnly ? null : widget.onNext,
+              icon: Icon(AppIcons.arrowForward, size: 15.r),
+              label: const Text('下一步'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.onPrimary,
+                shape: buttonShape,
+                padding: buttonPadding,
+                textStyle: buttonTextStyle,
               ),
             ),
-          ),
-          const Spacer(),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildSaveButton(
+    OutlinedBorder shape,
+    EdgeInsets padding,
+    TextStyle textStyle,
+  ) {
+    final isSaved = _saveStatus == _SaveStatus.clean ||
+        _saveStatus == _SaveStatus.saved;
+    final isSaving = _saveStatus == _SaveStatus.saving;
+    final canSave = !isSaved && !isSaving && !widget.readOnly;
+
+    return OutlinedButton.icon(
+      onPressed: canSave ? () => _save() : null,
+      icon: isSaving
+          ? SizedBox(
+              width: 14.r,
+              height: 14.r,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(isSaved ? AppIcons.checkCircleOutline : AppIcons.save,
+              size: 15.r),
+      label: Text(isSaving ? '保存中…' : (isSaved ? '已保存' : '保存')),
+      style: OutlinedButton.styleFrom(
+        shape: shape,
+        padding: padding,
+        textStyle: textStyle,
       ),
     );
   }

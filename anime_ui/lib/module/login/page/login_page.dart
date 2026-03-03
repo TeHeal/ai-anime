@@ -11,6 +11,7 @@ import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/glow_card.dart';
 import 'package:anime_ui/pub/widgets/starfield_background.dart';
+import 'package:anime_ui/pub/providers/auth_provider.dart';
 import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/services/api_svc.dart';
 import 'package:anime_ui/pub/services/auth_svc.dart';
@@ -53,9 +54,10 @@ class _LoginPageState extends State<LoginPage> {
       final result = await AuthService().login(username, password);
       setAuthToken(result.token);
       if (!mounted) return;
-      await ProviderScope.containerOf(
-        context,
-      ).read(storageServiceProvider).setToken(result.token);
+      final container = ProviderScope.containerOf(context);
+      await container.read(storageServiceProvider).setToken(result.token);
+      // 拉取当前用户信息，供 UserMenu 等组件显示真实用户名
+      await container.read(authProvider.notifier).fetchCurrentUser();
       if (mounted) context.go(Routes.projects);
     } on DioException catch (e) {
       setState(

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,6 +8,9 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/loading.dart';
 import 'package:anime_ui/pub/models/location.dart';
+import 'package:anime_ui/pub/widgets/image_gen/image_gen_config.dart';
+import 'package:anime_ui/pub/widgets/image_gen/image_gen_dialog.dart';
+import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/module/assets/shared/confirm_delete_dialog.dart';
 import 'package:anime_ui/module/assets/locations/providers/list.dart';
 import 'package:anime_ui/module/assets/locations/providers/selection.dart';
@@ -13,6 +18,7 @@ import 'package:anime_ui/module/assets/locations/widgets/location_detail_panel.d
 import 'package:anime_ui/module/assets/locations/widgets/location_edit_dialog.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_list_panel.dart';
 import 'package:anime_ui/module/assets/locations/widgets/location_toolbar.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 场景/地点页（locations）
 class AssetsLocationsPage extends ConsumerStatefulWidget {
@@ -225,9 +231,7 @@ class _AssetsLocationsPageState extends ConsumerState<AssetsLocationsPage> {
 
     if (warnings.isEmpty) {
       ref.read(assetLocationsProvider.notifier).confirm(loc.id!);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('场景「${loc.name}」已确认')));
+      showToast(context, '场景「${loc.name}」已确认');
       return;
     }
 
@@ -280,9 +284,7 @@ class _AssetsLocationsPageState extends ConsumerState<AssetsLocationsPage> {
             onPressed: () {
               Navigator.pop(ctx);
               ref.read(assetLocationsProvider.notifier).confirm(loc.id!);
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('场景「${loc.name}」已确认')));
+              showToast(context, '场景「${loc.name}」已确认');
             },
             style: FilledButton.styleFrom(backgroundColor: AppColors.success),
             child: const Text('仍然确认'),
@@ -310,9 +312,28 @@ class _AssetsLocationsPageState extends ConsumerState<AssetsLocationsPage> {
     Location loc,
   ) async {
     if (loc.isGenerating) return;
-    // TODO: 接入 ImageGenDialog
-    ScaffoldMessenger.of(
+
+    final projectId = loc.projectId ?? ref.read(currentProjectProvider).value?.id;
+    final locId = loc.id;
+    if (projectId == null || locId == null) return;
+
+    await ImageGenDialog.show(
       context,
-    ).showSnackBar(const SnackBar(content: Text('场景图生成功能待接入')));
+      ref,
+      config: ImageGenConfig.scene(
+        onSaved: (urls, mode, {prompt = '', negativePrompt = ''}) async {
+          if (urls.isEmpty) return;
+          final firstUrl = urls.first;
+          final referenceImagesJson = jsonEncode([{'url': firstUrl}]);
+          final svc = ref.read(locationServiceProvider);
+          await svc.update(
+            projectId,
+            locId,
+            referenceImagesJson: referenceImagesJson,
+          );
+          await ref.read(assetLocationsProvider.notifier).load();
+        },
+      ),
+    );
   }
 }

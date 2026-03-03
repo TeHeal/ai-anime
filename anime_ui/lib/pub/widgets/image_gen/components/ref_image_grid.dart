@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_network_image.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import '../image_gen_controller.dart';
 
 /// 参考图网格：支持 0~N 张，点击添加，长按拖拽排序，点击已有图片可删除
@@ -87,9 +88,7 @@ class RefImageGrid extends StatelessWidget {
       await controller.addRefImage(file.bytes!, file.name);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('上传失败：$e'), backgroundColor: AppColors.error),
-        );
+        showToast(context, '上传失败：$e', isError: true);
       }
     }
   }

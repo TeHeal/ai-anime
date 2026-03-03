@@ -6,6 +6,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 剧本锁定/解锁页
 class StoryConfirmPage extends ConsumerStatefulWidget {
@@ -73,13 +74,9 @@ class _StoryConfirmPageState extends ConsumerState<StoryConfirmPage> {
     if (mounted) {
       setState(() => _loading = false);
       if (success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('剧本已$action')));
+        showToast(context, '剧本已$action');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$action失败，请重试')));
+        showToast(context, '$action失败，请重试', isError: true);
       }
     }
   }

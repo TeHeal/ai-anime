@@ -1,7 +1,11 @@
-.PHONY: run build test test-integration tidy clean
+.PHONY: run build test test-integration migrate tidy clean
 
 run:
 	go run .
+
+# 执行数据库迁移（读取 config.yaml）
+migrate:
+	go run ./cmd/migrate
 
 build:
 	CGO_ENABLED=0 go build -o bin/server .

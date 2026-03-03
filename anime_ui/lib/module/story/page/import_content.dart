@@ -51,8 +51,9 @@ class DraftContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 格式选择卡片
-          Row(
+          // 格式选择卡片：IntrinsicHeight 确保两卡片等高，同时避免向 Row 传入无限高约束
+          IntrinsicHeight(
+           child: Row(
             children: [
               Expanded(
                 child: Builder(
@@ -96,6 +97,7 @@ class DraftContent extends StatelessWidget {
                 ),
               ),
             ],
+           ),
           ),
           SizedBox(height: Spacing.xxl.h),
 

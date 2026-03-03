@@ -16,7 +16,13 @@ class AuthState {
 
 class AuthNotifier extends Notifier<AuthState> {
   @override
-  AuthState build() => AuthState();
+  AuthState build() {
+    // token 已存在（冷启动恢复 or 刚登录），立即拉取用户信息
+    if (authToken != null && authToken!.isNotEmpty) {
+      Future.microtask(fetchCurrentUser);
+    }
+    return AuthState();
+  }
 
   final _authSvc = AuthService();
 
