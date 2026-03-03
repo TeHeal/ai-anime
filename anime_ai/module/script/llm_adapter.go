@@ -3,8 +3,8 @@ package script
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/script/parser"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
+	"anime_ai/module/script/parser"
+	"anime_ai/pub/provider/llm"
 )
 
 // LLMServiceAdapter 将 llm.LLMService 适配为 parser.LLMClient

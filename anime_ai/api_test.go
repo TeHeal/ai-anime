@@ -8,18 +8,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/auth"
-	"github.com/TeHeal/ai-anime/anime_ai/module/character"
-	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
-	"github.com/TeHeal/ai-anime/anime_ai/module/location"
-	"github.com/TeHeal/ai-anime/anime_ai/module/notification"
-	"github.com/TeHeal/ai-anime/anime_ai/module/project"
-	"github.com/TeHeal/ai-anime/anime_ai/module/prop"
-	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
-	"github.com/TeHeal/ai-anime/anime_ai/module/script"
-	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
-	"github.com/TeHeal/ai-anime/anime_ai/module/shot_image"
-	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"anime_ai/module/auth"
+	"anime_ai/module/assets/character"
+	"anime_ai/module/episode"
+	"anime_ai/module/assets/location"
+	"anime_ai/module/notification"
+	"anime_ai/module/project"
+	"anime_ai/module/assets/prop"
+	"anime_ai/module/scene"
+	"anime_ai/module/script"
+	"anime_ai/module/shot"
+	"anime_ai/module/shot_image"
+	"anime_ai/module/storyboard"
+	"anime_ai/pub/route"
 	"github.com/gin-gonic/gin"
 )
 
@@ -87,7 +88,7 @@ func buildTestRouter() *gin.Engine {
 	projectMemberMwReader := project.ProjectMemberReaderAdapter(projectData)
 	teamMemberMwReader := &project.NoopTeamMemberReader{}
 
-	cfg := &RouteConfig{
+	cfg := &route.Config{
 		AuthHandler:         authHandler,
 		NotificationHandler: notificationHandler,
 		ProjectHandler:      projectHandler,
@@ -95,11 +96,11 @@ func buildTestRouter() *gin.Engine {
 		SceneHandler:        sceneHandler,
 		ScriptHandler:       scriptHandler,
 		StoryboardHandler:   storyboardHandler,
-		CharacterHandler:   characterHandler,
+		CharacterHandler:    characterHandler,
 		LocationHandler:     locationHandler,
-		PropHandler:        propHandler,
+		PropHandler:         propHandler,
 		ShotHandler:         shotHandler,
-		ShotImageHandler:   shotImageHandler,
+		ShotImageHandler:    shotImageHandler,
 		JWTSecret:           "test-jwt-secret",
 		ProjectReader:       projectMwReader,
 		ProjectMemberReader: projectMemberMwReader,
@@ -107,7 +108,7 @@ func buildTestRouter() *gin.Engine {
 	}
 
 	r := gin.New()
-	registerRoutes(r, cfg)
+	route.Register(r, cfg)
 	return r
 }
 
@@ -644,7 +645,7 @@ func TestAPI_Prop_CreateAndList(t *testing.T) {
 
 	createBody := map[string]interface{}{"name": "宝剑", "appearance": "银色长剑"}
 	cb, _ := json.Marshal(createBody)
-	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/props-v2", bytes.NewReader(cb))
+	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/asset-props", bytes.NewReader(cb))
 	createReq.Header.Set("Content-Type", "application/json")
 	createReq.Header.Set("Authorization", "Bearer "+token)
 	createW := httptest.NewRecorder()
@@ -653,7 +654,7 @@ func TestAPI_Prop_CreateAndList(t *testing.T) {
 		t.Errorf("创建道具应为 200/201, 得 %d body=%s", createW.Code, createW.Body.String())
 	}
 
-	listReq := httptest.NewRequest(http.MethodGet, "/api/v1/projects/"+projectID+"/props-v2", nil)
+	listReq := httptest.NewRequest(http.MethodGet, "/api/v1/projects/"+projectID+"/asset-props", nil)
 	listReq.Header.Set("Authorization", "Bearer "+token)
 	listW := httptest.NewRecorder()
 	r.ServeHTTP(listW, listReq)

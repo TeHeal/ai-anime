@@ -1,7 +1,7 @@
 package scene
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 )
 
 // SceneBlockReaderAdapter 适配 SceneStore/SceneBlockStore 为 crossmodule.SceneBlockReader

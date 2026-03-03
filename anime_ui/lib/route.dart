@@ -168,6 +168,11 @@ final goRouter = GoRouter(
                   sharedAxisPage(child: const AssetsPropsPage(), state: state),
             ),
             GoRoute(
+              path: Routes.assetsStyles,
+              pageBuilder: (context, state) =>
+                  sharedAxisPage(child: const StyleLibraryView(), state: state),
+            ),
+            GoRoute(
               path: Routes.assetsVersions,
               pageBuilder: (context, state) => sharedAxisPage(
                 child: const AssetsVersionsPage(),

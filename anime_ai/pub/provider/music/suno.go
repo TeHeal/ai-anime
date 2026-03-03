@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
+	"anime_ai/pub/provider"
 )
 
 // SunoProvider 实现 MusicProvider，使用 Suno API 网关

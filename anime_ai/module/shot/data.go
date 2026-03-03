@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
 )
 
 // ShotStore 镜头数据访问接口，sch 就绪后可切换为 sqlc 实现

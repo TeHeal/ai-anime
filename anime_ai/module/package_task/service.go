@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
+	"anime_ai/pub/tasktypes"
 	"github.com/hibiken/asynq"
 )
 

@@ -3,7 +3,7 @@ package mesh
 import (
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/controlplane"
+	"anime_ai/pub/controlplane"
 )
 
 // FromRoutePolicy 从 controlplane.RoutePolicy 转换为 mesh.Policy

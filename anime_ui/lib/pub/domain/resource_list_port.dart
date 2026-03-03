@@ -17,7 +17,7 @@ abstract class ResourceListPort {
   Future<void> addResource(Resource r);
 
   /// 图生：AI 生成图片并加入资源库
-  Future<int?> generateImage({
+  Future<String?> generateImage({
     required String name,
     required String libraryType,
     required String modality,
@@ -32,8 +32,8 @@ abstract class ResourceListPort {
     void Function(int)? onProgress,
   });
 
-  /// 音色克隆生成
-  Future<void> generateVoice({
+  /// 音色克隆生成，返回生成的 Resource（含试听 URL）
+  Future<Resource> generateVoice({
     required String name,
     required String sampleUrl,
     String tagsJson = '',

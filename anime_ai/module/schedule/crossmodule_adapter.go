@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 )
 
 // ScheduleDataAdapter 将 schedule.Data 适配为 crossmodule.ScheduleData，供 pub/scheduler 使用

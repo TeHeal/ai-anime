@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 func shouldRetry(err error) bool {

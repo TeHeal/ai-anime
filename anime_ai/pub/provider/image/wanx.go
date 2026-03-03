@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // WanxProvider 阿里云通义万相文生图（骨架，后续完善）

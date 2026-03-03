@@ -3,7 +3,7 @@ package parser
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 )
 
 // Parse 执行完整解析流程：预处理 → 正则解析 →（可选）LLM 辅助 → 校验

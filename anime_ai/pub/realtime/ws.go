@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )

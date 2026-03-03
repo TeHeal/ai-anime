@@ -3,7 +3,7 @@ package mesh
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // ChatCapability 对话能力封装

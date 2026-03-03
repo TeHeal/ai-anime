@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // KIEVideoProvider 通过 KIE Market 统一 API 实现 VideoProvider

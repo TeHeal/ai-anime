@@ -45,7 +45,7 @@ class ModalityTabs extends ConsumerWidget {
                 checkmarkColor: m.color,
                 onSelected: (_) {
                   ref.read(selectedModalityProvider.notifier).set(m);
-                  final libs = ResourceLibraryType.forModality(m);
+                  final libs = ResourceLibraryType.forModalityInResources(m);
                   ref.read(selectedLibraryTypeProvider.notifier).set(libs.first);
                   ref.read(resourceSearchProvider.notifier).set('');
                 },

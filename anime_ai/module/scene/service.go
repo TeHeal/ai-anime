@@ -3,8 +3,8 @@ package scene
 import (
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
 )
 
 // DummyEpisodeReader 占位实现，返回 episodeID 作为 projectID（开发用）

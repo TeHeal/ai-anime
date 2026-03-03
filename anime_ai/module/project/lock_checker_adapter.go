@@ -1,7 +1,7 @@
 package project
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
+	"anime_ai/pub/middleware"
 )
 
 // LockCheckerAdapter 实现 middleware.LockChecker，供 LockGuard 使用

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 )
 
 // Service 组织业务逻辑层

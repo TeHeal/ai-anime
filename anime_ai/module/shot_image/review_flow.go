@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/auth"
+	"anime_ai/pub/crossmodule"
 )
 
 // 审核状态常量（README §状态机：review → ai_reviewing → ai_approved/ai_rejected → approved/rejected）

@@ -5,9 +5,9 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/module/scene"
+	"anime_ai/pub/auth"
+	"anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
 

@@ -3,7 +3,7 @@ package auth
 import (
 	"sync"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 )
 
 // UserStore 用户数据访问接口，使用 string ID 以兼容 PostgreSQL UUID

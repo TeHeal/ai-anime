@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
+	"anime_ai/pub/config"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"

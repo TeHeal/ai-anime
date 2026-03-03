@@ -280,18 +280,22 @@ const updateResource = `-- name: UpdateResource :one
 UPDATE resources
 SET
     name = COALESCE($1, name),
-    thumbnail_url = COALESCE($2, thumbnail_url),
-    tags_json = COALESCE($3, tags_json),
-    version = COALESCE($4, version),
-    metadata_json = COALESCE($5, metadata_json),
-    binding_ids_json = COALESCE($6, binding_ids_json),
-    description = COALESCE($7, description)
-WHERE id = $8 AND user_id = $9 AND deleted_at IS NULL
+    library_type = COALESCE($2, library_type),
+    modality = COALESCE($3, modality),
+    thumbnail_url = COALESCE($4, thumbnail_url),
+    tags_json = COALESCE($5, tags_json),
+    version = COALESCE($6, version),
+    metadata_json = COALESCE($7, metadata_json),
+    binding_ids_json = COALESCE($8, binding_ids_json),
+    description = COALESCE($9, description)
+WHERE id = $10 AND user_id = $11 AND deleted_at IS NULL
 RETURNING id, created_at, updated_at, deleted_at, user_id, name, library_type, modality, thumbnail_url, tags_json, version, metadata_json, binding_ids_json, description
 `
 
 type UpdateResourceParams struct {
 	Name           pgtype.Text `json:"name"`
+	LibraryType    pgtype.Text `json:"library_type"`
+	Modality       pgtype.Text `json:"modality"`
 	ThumbnailUrl   pgtype.Text `json:"thumbnail_url"`
 	TagsJson       []byte      `json:"tags_json"`
 	Version        pgtype.Text `json:"version"`
@@ -305,6 +309,8 @@ type UpdateResourceParams struct {
 func (q *Queries) UpdateResource(ctx context.Context, arg UpdateResourceParams) (Resource, error) {
 	row := q.db.QueryRow(ctx, updateResource,
 		arg.Name,
+		arg.LibraryType,
+		arg.Modality,
 		arg.ThumbnailUrl,
 		arg.TagsJson,
 		arg.Version,

@@ -3,8 +3,8 @@ package episode
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
-	"github.com/TeHeal/ai-anime/anime_ai/sch/db"
+	"anime_ai/pub/pkg"
+	"anime_ai/sch/db"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 

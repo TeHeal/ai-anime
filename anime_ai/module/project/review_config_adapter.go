@@ -1,7 +1,7 @@
 package project
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 )
 
 // NewReviewConfigReader 基于 Data 创建审核配置读取器，实现 crossmodule.ReviewConfigReader

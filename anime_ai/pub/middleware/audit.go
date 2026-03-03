@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
+	"anime_ai/pub/auth"
 	"github.com/gin-gonic/gin"
 )
 

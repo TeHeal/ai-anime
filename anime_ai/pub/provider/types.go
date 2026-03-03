@@ -4,7 +4,7 @@ package provider
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // ── Chat 类型（Provider 层，与 capability.Chat* 区分）──

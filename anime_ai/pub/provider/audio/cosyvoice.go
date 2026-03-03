@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // CosyVoiceTTSProvider CosyVoice TTS（OpenAI 兼容 API）

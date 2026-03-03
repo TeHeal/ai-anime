@@ -1,8 +1,8 @@
 package project
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/middleware"
+	"anime_ai/pub/pkg"
 )
 
 // ProjectReaderAdapter 将 project.Data 适配为 middleware.ProjectReader（项目 ID 统一为 string）

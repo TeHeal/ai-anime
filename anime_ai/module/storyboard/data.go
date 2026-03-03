@@ -3,7 +3,7 @@ package storyboard
 import (
 	"encoding/json"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 )
 
 // Data 分镜数据访问层，封装 project.storyboard_json 读写，使用 string ID 以兼容 PostgreSQL UUID

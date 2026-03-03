@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
+	"anime_ai/pub/config"
 )
 
 // NewFromConfig 根据 StorageConfig 创建 Storage 实例

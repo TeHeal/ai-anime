@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
+	"anime_ai/pub/provider"
 )
 
 // LLMService 统一 LLM 调用入口，自动路由到可用 Provider

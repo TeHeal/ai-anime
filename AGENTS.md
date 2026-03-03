@@ -39,7 +39,7 @@
 
 ## 4. 工作方式
 
-- **任务开始前**：读取 README 确认技术栈与目录设计，检查 AGENTS 术语表（见 README）。
+- **任务开始前**：读取 README 确认技术栈与目录设计，检查 AGENTS 术语表（见 README）。注意：**场 (Scene)** 为剧本结构，**场景资产 (Location)** 为可引用实体，二者勿混淆。
 - **编码时**：遵循 Rules；Flutter 新组件必须使用设计令牌（`AppColors`、`RadiusTokens`、`Spacing`、`AppTextStyles`）与 flutter_screenutil 的 `.w`/`.h`/`.sp`/`.r`，详见 `docs/设计系统.md`。
 - **完成后**：列出已修改文件与核心变更，提示需运行的命令（如 `go mod tidy`、`dart run build_runner build`）。
 

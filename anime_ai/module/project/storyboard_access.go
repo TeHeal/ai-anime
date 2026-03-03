@@ -1,7 +1,7 @@
 package project
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 )
 
 // NewStoryboardAccess 基于 Data 创建分镜读写实现，供 storyboard 模块注入

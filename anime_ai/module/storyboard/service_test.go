@@ -3,7 +3,7 @@ package storyboard
 import (
 	"testing"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/project"
+	"anime_ai/module/project"
 )
 
 // noopVerifier 占位实现，始终通过验证

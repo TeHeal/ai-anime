@@ -14,9 +14,8 @@ enum ResourceModality {
   final Color color;
 }
 
-/// 子库类型
+/// 子库类型（风格已为独立顶级 Tab，不在此枚举）
 enum ResourceLibraryType {
-  style('风格库', AppIcons.brush, ResourceModality.visual),
   character('角色库', AppIcons.person, ResourceModality.visual),
   scene('场景库', AppIcons.landscape, ResourceModality.visual),
   prop('道具库', AppIcons.tag, ResourceModality.visual),
@@ -37,6 +36,7 @@ enum ResourceLibraryType {
   final IconData icon;
   final ResourceModality modality;
 
-  static List<ResourceLibraryType> forModality(ResourceModality m) =>
+  /// 素材页展示用：按模态返回子库列表
+  static List<ResourceLibraryType> forModalityInResources(ResourceModality m) =>
       values.where((v) => v.modality == m).toList();
 }

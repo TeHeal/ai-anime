@@ -4,9 +4,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
+	"anime_ai/pub/storage"
 	"github.com/gin-gonic/gin"
 )
 

@@ -12,11 +12,11 @@ import (
 	"sort"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg/ffmpeg"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/realtime"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg/ffmpeg"
+	"anime_ai/pub/realtime"
+	"anime_ai/pub/storage"
+	"anime_ai/pub/tasktypes"
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )

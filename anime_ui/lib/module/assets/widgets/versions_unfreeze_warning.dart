@@ -39,6 +39,9 @@ class _VersionsUnfreezeWarningState
       final impacts =
           (data['impacts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
       if (mounted) setState(() => _impactItems = impacts);
+    } catch (_) {
+      // API 失败时降级为空列表，避免解冻弹窗崩溃
+      if (mounted) setState(() => _impactItems = []);
     } finally {
       if (mounted) setState(() => _loadingImpact = false);
     }

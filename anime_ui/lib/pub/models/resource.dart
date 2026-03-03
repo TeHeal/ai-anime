@@ -5,13 +5,21 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'resource.freezed.dart';
 part 'resource.g.dart';
 
+/// 兼容后端 int 或 String（UUID）的 id 解析
+String? _resourceIdFromJson(dynamic v) {
+  if (v == null) return null;
+  if (v is String) return v.isEmpty ? null : v;
+  if (v is num) return v.toInt().toString();
+  return null;
+}
+
 @freezed
 abstract class Resource with _$Resource {
   const Resource._();
 
   const factory Resource({
-    int? id,
-    int? userId,
+    @JsonKey(fromJson: _resourceIdFromJson) String? id,
+    @JsonKey(fromJson: _resourceIdFromJson) String? userId,
     @Default('') String name,
     @Default('') String libraryType,
     @Default('') String modality,
@@ -46,10 +54,14 @@ abstract class Resource with _$Resource {
     }
   }
 
-  List<int> get bindingIds {
+  /// 绑定 ID 列表（可为 int 或 String，统一转为 String）
+  List<String> get bindingIds {
     if (bindingIdsJson.isEmpty) return [];
     try {
-      return (jsonDecode(bindingIdsJson) as List).cast<int>();
+      return (jsonDecode(bindingIdsJson) as List)
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
     } catch (_) {
       return [];
     }

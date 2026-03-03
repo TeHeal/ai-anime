@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
+	"anime_ai/module/scene"
 )
 
 // EpisodeStatus 集的生产状态

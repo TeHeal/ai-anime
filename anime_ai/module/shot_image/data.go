@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
 )
 
 var _ crossmodule.ShotImageStore = (*MemShotImageStore)(nil)

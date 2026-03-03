@@ -11,7 +11,7 @@ import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/assets/locations/providers/list.dart';
 import 'package:anime_ui/module/assets/props/providers/list.dart';
 import 'package:anime_ui/module/assets/overview/providers/overview.dart';
-import 'package:anime_ui/module/assets/overview/providers/styles.dart';
+import 'package:anime_ui/module/assets/styles/providers/styles.dart';
 import 'package:anime_ui/module/assets/resources/providers/provider.dart';
 import 'package:anime_ui/module/assets/overview/widgets/asset_category_card.dart';
 import 'package:anime_ui/module/assets/overview/widgets/key_issues_list.dart';
@@ -26,17 +26,27 @@ class AssetOverviewPage extends ConsumerStatefulWidget {
 }
 
 class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
+  void _loadAssets() {
+    ref.read(assetCharactersProvider.notifier).load();
+    ref.read(assetLocationsProvider.notifier).load();
+    ref.read(assetPropsProvider.notifier).load();
+    ref.read(assetStylesProvider.notifier).load();
+    ref.read(resourceListProvider.notifier).load();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // 首次进入时若项目已加载，ref.listen 不会触发，需在此主动加载
+    Future.microtask(_loadAssets);
+  }
+
   @override
   Widget build(BuildContext context) {
     // 监听项目变化：项目加载完成或切换时触发资产数据加载
-    // 角色/场景/道具/风格均依赖 currentProjectProvider，若项目未加载则 load() 会直接 return
     ref.listen(currentProjectProvider, (prev, next) {
       if (next.hasValue && next.value != null) {
-        ref.read(assetCharactersProvider.notifier).load();
-        ref.read(assetLocationsProvider.notifier).load();
-        ref.read(assetPropsProvider.notifier).load();
-        ref.read(assetStylesProvider.notifier).load();
-        ref.read(resourceListProvider.notifier).load();
+        _loadAssets();
       }
     });
 
@@ -45,11 +55,11 @@ class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
     return ListView(
       padding: EdgeInsets.all(Spacing.xl.r),
       children: [
-        ReadinessBar(data: data),
+        ReadinessBar(data: data, onRefresh: _loadAssets),
         SizedBox(height: Spacing.lg.h),
         _buildCategoryGrid(data),
         SizedBox(height: Spacing.xl.h),
-        KeyIssuesList(issues: data.keyIssues),
+        KeyIssuesList(issues: data.keyIssues, isLoading: data.isLoading),
       ],
     );
   }
@@ -97,7 +107,7 @@ class _AssetOverviewPageState extends ConsumerState<AssetOverviewPage> {
         total: data.styleTotal > 0 ? data.styleTotal : 1,
         isLoading: data.isLoading,
         nextAction: !data.hasDefaultStyle ? '设定默认风格' : null,
-        onTap: () => context.go(Routes.assetsResources),
+        onTap: () => context.go(Routes.assetsStyles),
       ),
       AssetCategoryCard(
         icon: AppIcons.gallery,

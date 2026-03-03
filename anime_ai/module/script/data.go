@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 )
 
 // SegmentStore 分段数据访问接口，项目 ID 为 string（UUID）

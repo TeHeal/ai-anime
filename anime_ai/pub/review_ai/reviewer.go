@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
+	"anime_ai/pub/provider/llm"
 )
 
 const reviewSystemPrompt = `你是一位专业的动漫分镜镜图质量审核员。

@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // SeedanceProvider 字节 Seedance 视频生成（对齐火山方舟 Ark Content Generation API）

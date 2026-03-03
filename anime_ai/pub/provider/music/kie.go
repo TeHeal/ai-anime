@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
+	"anime_ai/pub/provider"
 )
 
 // KieMusicProvider 通过 kie.ai API 实现 MusicProvider（Suno 等音乐模型）

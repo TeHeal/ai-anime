@@ -10,7 +10,7 @@ class PropService {
     String style = '',
     String imageUrl = '',
   }) async {
-    final resp = await dio.post('/projects/${projectId.toString()}/props-v2', data: {
+    final resp = await dio.post('/projects/${projectId.toString()}/asset-props', data: {
       'name': name,
       'appearance': appearance,
       'is_key_prop': isKeyProp,
@@ -21,12 +21,12 @@ class PropService {
   }
 
   Future<List<Prop>> list(Object projectId) async {
-    final resp = await dio.get('/projects/${projectId.toString()}/props-v2');
+    final resp = await dio.get('/projects/${projectId.toString()}/asset-props');
     return extractDataList(resp, Prop.fromJson);
   }
 
   Future<Prop> get(Object projectId, Object propId) async {
-    final resp = await dio.get('/projects/${projectId.toString()}/props-v2/${propId.toString()}');
+    final resp = await dio.get('/projects/${projectId.toString()}/asset-props/${propId.toString()}');
     return extractDataObject(resp, Prop.fromJson);
   }
 
@@ -49,16 +49,16 @@ class PropService {
     if (referenceImagesJson != null) body['reference_images_json'] = referenceImagesJson;
     if (imageUrl != null) body['image_url'] = imageUrl;
     if (status != null) body['status'] = status;
-    final resp = await dio.put('/projects/${projectId.toString()}/props-v2/${propId.toString()}', data: body);
+    final resp = await dio.put('/projects/${projectId.toString()}/asset-props/${propId.toString()}', data: body);
     return extractDataObject(resp, Prop.fromJson);
   }
 
   Future<Prop> confirm(Object projectId, Object propId) async {
-    final resp = await dio.post('/projects/${projectId.toString()}/props-v2/${propId.toString()}/confirm');
+    final resp = await dio.post('/projects/${projectId.toString()}/asset-props/${propId.toString()}/confirm');
     return extractDataObject(resp, Prop.fromJson);
   }
 
   Future<void> delete(Object projectId, Object propId) async {
-    await dio.delete('/projects/${projectId.toString()}/props-v2/${propId.toString()}');
+    await dio.delete('/projects/${projectId.toString()}/asset-props/${propId.toString()}');
   }
 }

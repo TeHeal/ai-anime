@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/assets/locations/providers/list.dart';
 import 'package:anime_ui/module/assets/props/providers/list.dart';
 import 'package:anime_ui/module/assets/resources/providers/provider.dart';
-import 'package:anime_ui/module/assets/overview/providers/styles.dart';
+import 'package:anime_ui/module/assets/styles/providers/styles.dart';
 
 /// 资产总览数据
 class AssetOverviewData {
@@ -130,7 +131,7 @@ final assetOverviewProvider = Provider<AssetOverviewData>((ref) {
       KeyIssue(
         icon: 'person',
         text: '$charSkeleton 个角色为骨架状态，需补充信息',
-        route: '/assets/characters',
+        route: Routes.assetsCharacters,
         count: charSkeleton,
         severity: KeyIssueSeverity.error,
       ),
@@ -141,7 +142,7 @@ final assetOverviewProvider = Provider<AssetOverviewData>((ref) {
       KeyIssue(
         icon: 'person',
         text: '$charNoImage 个角色缺少形象图',
-        route: '/assets/characters',
+        route: Routes.assetsCharacters,
         count: charNoImage,
         severity: KeyIssueSeverity.error,
       ),
@@ -152,7 +153,7 @@ final assetOverviewProvider = Provider<AssetOverviewData>((ref) {
       KeyIssue(
         icon: 'mic',
         text: '$charNoVoice 个角色缺少声音设定',
-        route: '/assets/characters',
+        route: Routes.assetsCharacters,
         count: charNoVoice,
         severity: KeyIssueSeverity.warning,
       ),
@@ -163,7 +164,7 @@ final assetOverviewProvider = Provider<AssetOverviewData>((ref) {
       KeyIssue(
         icon: 'landscape',
         text: '$locSkeleton 个场景为骨架，需补充信息',
-        route: '/assets/environments',
+        route: Routes.assetsEnvironments,
         count: locSkeleton,
         severity: KeyIssueSeverity.error,
       ),
@@ -174,7 +175,7 @@ final assetOverviewProvider = Provider<AssetOverviewData>((ref) {
       const KeyIssue(
         icon: 'style',
         text: '默认风格未设定',
-        route: '/assets/resources',
+        route: Routes.assetsStyles,
         count: 1,
         severity: KeyIssueSeverity.warning,
       ),

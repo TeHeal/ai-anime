@@ -3,7 +3,7 @@ package scheduler
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 	"go.uber.org/zap"
 )
 

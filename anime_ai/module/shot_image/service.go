@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
+	"anime_ai/pub/auth"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
+	"anime_ai/pub/tasktypes"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 )

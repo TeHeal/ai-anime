@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/auth"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
 )
 
 // Service 成片业务逻辑层

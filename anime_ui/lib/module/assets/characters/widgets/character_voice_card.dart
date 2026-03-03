@@ -6,7 +6,10 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/const/app_const.dart';
 import 'package:anime_ui/pub/models/character.dart';
+import 'package:anime_ui/pub/widgets/voice_gen/voice_gen_config.dart';
+import 'package:anime_ui/pub/widgets/voice_gen/voice_gen_trigger.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
+import 'package:anime_ui/module/assets/resources/providers/provider.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 角色音色设定卡片
@@ -107,6 +110,19 @@ class CharacterVoiceCard extends ConsumerWidget {
                       onPressed: () =>
                           _showVoicePickerDialog(context, ref),
                       child: const Text('从音色库选择'),
+                    ),
+                    VoiceGenTrigger(
+                      config: VoiceGenConfig.voiceLibrary(
+                        accentColor: AppColors.info,
+                        onSaved: (_) async {
+                          await ref.read(resourceListProvider.notifier).load();
+                        },
+                      ),
+                      label: '创建音色',
+                      icon: AppIcons.mic,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.info,
+                      ),
                     ),
                   ],
                 ),

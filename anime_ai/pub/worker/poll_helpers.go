@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/storage"
+	"anime_ai/pub/storage"
 	"go.uber.org/zap"
 )
 

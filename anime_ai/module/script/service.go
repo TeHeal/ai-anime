@@ -3,15 +3,17 @@ package script
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
-	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
-	"github.com/TeHeal/ai-anime/anime_ai/module/script/parser"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider/llm"
+	"anime_ai/module/episode"
+	"anime_ai/module/scene"
+	"anime_ai/module/script/parser"
+	"anime_ai/pub/auth"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
+	"anime_ai/pub/provider"
+	"anime_ai/pub/provider/llm"
+	"anime_ai/pub/skeleton"
 )
 
 // DummyProjectVerifier 占位实现，始终通过验证
@@ -27,6 +29,7 @@ type Service struct {
 	llmSvc         *llm.LLMService
 	episodeSvc     *episode.Service
 	sceneSvc       *scene.Service
+	skeletonSvc    skeleton.Extractor
 }
 
 // NewService 创建脚本服务
@@ -51,6 +54,11 @@ func (s *Service) SetLLMService(svc *llm.LLMService) {
 func (s *Service) SetEpisodeSceneServices(epSvc *episode.Service, scSvc *scene.Service) {
 	s.episodeSvc = epSvc
 	s.sceneSvc = scSvc
+}
+
+// SetSkeletonService 注入骨架提取服务，用于确认导入后创建角色/场景骨架
+func (s *Service) SetSkeletonService(svc skeleton.Extractor) {
+	s.skeletonSvc = svc
 }
 
 // checkScriptEdit 校验脚本编辑权限（projectIDStr/userIDStr 为 string，支持 UUID）
@@ -333,6 +341,14 @@ func (s *Service) Confirm(projectIDStr, userIDStr string, req ScriptConfirmReque
 			}
 		}
 	}
+
+	// 3. 骨架提取：从场数据创建角色/场景骨架（失败不阻塞导入成功）
+	if s.skeletonSvc != nil {
+		if err := s.skeletonSvc.Extract(projectIDStr, userIDStr); err != nil {
+			slog.Warn("剧本骨架提取失败", "project_id", projectIDStr, "error", err)
+		}
+	}
+
 	return nil
 }
 

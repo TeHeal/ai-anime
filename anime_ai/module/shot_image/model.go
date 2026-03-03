@@ -1,7 +1,7 @@
 package shot_image
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 )
 
 // ShotImage 镜图实体，与 crossmodule.ShotImage 对齐

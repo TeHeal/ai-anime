@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // Named Provider 名称约束

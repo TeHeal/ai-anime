@@ -3,7 +3,7 @@ package scene
 import (
 	"testing"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 )
 
 func TestSceneService_Create(t *testing.T) {

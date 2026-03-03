@@ -16,12 +16,14 @@ class ResourceCard extends StatelessWidget {
     required this.accentColor,
     this.aspectRatio = 3 / 2,
     this.onTap,
+    this.isSelected = false,
   });
 
   final Resource resource;
   final Color accentColor;
   final double aspectRatio;
   final VoidCallback? onTap;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +38,10 @@ class ResourceCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceContainer,
           borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(
+            color: isSelected ? accentColor : AppColors.border,
+            width: isSelected ? 2 : 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -59,7 +64,7 @@ class ResourceCard extends StatelessWidget {
                         child: Image.network(
                           resolveFileUrl(resource.thumbnailUrl),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
+                          errorBuilder: (_, Object? err, StackTrace? stack) =>
                               _buildPlaceholder(icon),
                         ),
                       )

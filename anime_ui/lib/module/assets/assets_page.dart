@@ -15,6 +15,7 @@ class AssetsObjectPage extends ConsumerWidget {
   static const tabs = [
     ObjectTab(label: '总览', routePath: Routes.assetsOverview, icon: AppIcons.analytics),
     ObjectTab(label: '素材', routePath: Routes.assetsResources, icon: AppIcons.gallery),
+    ObjectTab(label: '风格', routePath: Routes.assetsStyles, icon: AppIcons.brush),
     ObjectTab(label: '角色', routePath: Routes.assetsCharacters, icon: AppIcons.person),
     ObjectTab(label: '场景', routePath: Routes.assetsEnvironments, icon: AppIcons.landscape),
     ObjectTab(label: '道具', routePath: Routes.assetsProps, icon: AppIcons.category),

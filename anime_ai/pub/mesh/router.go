@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // Router 对话流式路由

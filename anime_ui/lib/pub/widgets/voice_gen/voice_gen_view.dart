@@ -111,13 +111,16 @@ class _VoiceGenViewState extends State<VoiceGenView>
             final tagsJson = tags.isEmpty ? '' : jsonEncode(tags);
 
             if (mode == VoiceGenMode.clone) {
-              await port.generateVoice(
+              final resource = await port.generateVoice(
                 name: name,
                 sampleUrl: sampleUrl,
                 tagsJson: tagsJson,
                 description: description,
                 onProgress: onProgress,
               );
+              final audioUrl = resource.metadata['audioUrl'] as String? ??
+                  resource.thumbnailUrl;
+              if (audioUrl.isNotEmpty) onResult(audioUrl);
             } else {
               final resource = await port.generateVoiceDesign(
                 name: name,

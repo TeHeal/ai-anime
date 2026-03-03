@@ -29,6 +29,7 @@ abstract final class Routes {
   static const String assetsCharacters = '$assets/characters';
   static const String assetsEnvironments = '$assets/environments';
   static const String assetsProps = '$assets/props';
+  static const String assetsStyles = '$assets/styles';
   static const String assetsVersions = '$assets/versions';
 
   // ③ 脚本 Script

@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
+	"anime_ai/pub/crossmodule"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )

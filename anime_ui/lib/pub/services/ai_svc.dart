@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
+import 'package:anime_ui/pub/models/image_gen_output.dart';
+import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/models/task.dart';
 import 'api_svc.dart';
 
@@ -60,25 +62,62 @@ class AiService {
     }
   }
 
-  Future<Task> generateImage({
+  /// 统一图生接口，支持 output 参数
+  /// output.type=resource 时同步返回 Resource
+  Future<Resource> generateImage({
     required String prompt,
+    String negativePrompt = '',
+    List<String> referenceImageUrls = const [],
     String provider = '',
     String model = '',
     int? width,
     int? height,
-    int count = 1,
-    String? projectId,
+    String aspectRatio = '',
+    required ImageGenOutput output,
   }) async {
-    final resp = await dio.post('/ai/generate/image', data: {
+    final data = <String, dynamic>{
       'prompt': prompt,
-      if (provider.isNotEmpty) 'provider': provider,
-      if (model.isNotEmpty) 'model': model,
-      if (width != null) 'width': width,
-      if (height != null) 'height': height,
-      if (count > 1) 'count': count,
-      if (projectId != null) 'project_id': projectId,
-    });
-    return extractDataObject(resp, Task.fromJson);
+      'output': output.toJson(),
+    };
+    if (negativePrompt.isNotEmpty) data['negativePrompt'] = negativePrompt;
+    if (referenceImageUrls.isNotEmpty) {
+      data['referenceImageUrls'] = referenceImageUrls;
+    }
+    if (provider.isNotEmpty) data['provider'] = provider;
+    if (model.isNotEmpty) data['model'] = model;
+    if (width != null && width > 0) data['width'] = width;
+    if (height != null && height > 0) data['height'] = height;
+    if (aspectRatio.isNotEmpty) data['aspectRatio'] = aspectRatio;
+
+    final resp = await dio.post('/ai/generate/image', data: data);
+    return extractDataObject(resp, Resource.fromJson);
+  }
+
+  /// 统一文本生成接口，action=prompt 时同步返回 Resource
+  Future<Resource> generateText({
+    required String action,
+    required String instruction,
+    String name = '',
+    String targetModel = '',
+    String category = '',
+    String libraryType = '',
+    String language = '',
+    String referenceText = '',
+  }) async {
+    final data = <String, dynamic>{
+      'action': action,
+      'instruction': instruction,
+      'output': {'type': 'resource'},
+    };
+    if (name.isNotEmpty) data['name'] = name;
+    if (targetModel.isNotEmpty) data['targetModel'] = targetModel;
+    if (category.isNotEmpty) data['category'] = category;
+    if (libraryType.isNotEmpty) data['libraryType'] = libraryType;
+    if (language.isNotEmpty) data['language'] = language;
+    if (referenceText.isNotEmpty) data['referenceText'] = referenceText;
+
+    final resp = await dio.post('/ai/generate/text', data: data);
+    return extractDataObject(resp, Resource.fromJson);
   }
 
   Future<Task> generateVideo({
@@ -94,8 +133,8 @@ class AiService {
       if (prompt.isNotEmpty) 'prompt': prompt,
       if (provider.isNotEmpty) 'provider': provider,
       if (model.isNotEmpty) 'model': model,
-      if (duration != null) 'duration': duration,
-      if (projectId != null) 'project_id': projectId,
+      ...?duration != null ? {'duration': duration} : null,
+      ...?projectId != null ? {'project_id': projectId} : null,
     });
     return extractDataObject(resp, Task.fromJson);
   }

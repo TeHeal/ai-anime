@@ -44,6 +44,8 @@ WHERE user_id = sqlc.arg('user_id') AND deleted_at IS NULL
 UPDATE resources
 SET
     name = COALESCE(sqlc.narg('name'), name),
+    library_type = COALESCE(sqlc.narg('library_type'), library_type),
+    modality = COALESCE(sqlc.narg('modality'), modality),
     thumbnail_url = COALESCE(sqlc.narg('thumbnail_url'), thumbnail_url),
     tags_json = COALESCE(sqlc.narg('tags_json'), tags_json),
     version = COALESCE(sqlc.narg('version'), version),

@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/config"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/migrate"
+	"anime_ai/pub/config"
+	"anime_ai/pub/migrate"
 )
 
 func main() {

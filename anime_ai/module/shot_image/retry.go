@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/tasktypes"
+	"anime_ai/pub/tasktypes"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 )

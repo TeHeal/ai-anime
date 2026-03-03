@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
-import '../../overview/providers/styles.dart';
 import '../models/resource_category.dart';
 import '../providers/provider.dart';
 
-/// 素材库侧边导航：按模态展示子库类型列表
+/// 素材库侧边导航：按模态展示子库类型列表（风格已合并到顶级 Tab，不在此展示）
 class ResourceSideNav extends ConsumerWidget {
   const ResourceSideNav({super.key, required this.modality});
 
@@ -15,11 +14,9 @@ class ResourceSideNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final libraries = ResourceLibraryType.forModality(modality);
+    final libraries = ResourceLibraryType.forModalityInResources(modality);
     final selected = ref.watch(selectedLibraryTypeProvider);
     final allResources = ref.watch(resourceListProvider).value ?? [];
-    final stylesCount =
-        ref.watch(assetStylesProvider).value?.length ?? 0;
 
     return Container(
       width: Spacing.listPanelMinWidth.w,
@@ -34,9 +31,7 @@ class ResourceSideNav extends ConsumerWidget {
         ),
         children: libraries.map((lib) {
           final isSelected = lib == selected;
-          final count = lib == ResourceLibraryType.style
-              ? stylesCount
-              : allResources.where((r) => r.libraryType == lib.name).length;
+          final count = allResources.where((r) => r.libraryType == lib.name).length;
 
           return Padding(
             padding: EdgeInsets.only(bottom: Spacing.xxs.h),

@@ -1,7 +1,7 @@
 package episode
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/module/storyboard"
+	"anime_ai/module/storyboard"
 )
 
 // StoryboardEpisodeReaderAdapter 适配 EpisodeStore 为 storyboard.EpisodeReader

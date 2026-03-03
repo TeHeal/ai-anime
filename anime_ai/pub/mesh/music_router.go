@@ -3,7 +3,7 @@ package mesh
 import (
 	"context"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // MusicRouter 音乐生成路由

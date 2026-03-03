@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 )
 
 func TestProjectReaderAdapter(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/capability"
+	"anime_ai/pub/capability"
 )
 
 // VolcengineTTSProvider 火山引擎 TTS（骨架，后续完善）

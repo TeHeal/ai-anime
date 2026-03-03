@@ -256,7 +256,7 @@ func tryCreateLocationIntegration(t *testing.T, token, projectID string) {
 func tryCreatePropIntegration(t *testing.T, token, projectID string) {
 	body := map[string]interface{}{"name": "宝剑", "appearance": "银色长剑"}
 	b, _ := json.Marshal(body)
-	req, _ := http.NewRequest(http.MethodPost, integrationBaseURL+"/api/v1/projects/"+projectID+"/props-v2", bytes.NewReader(b))
+	req, _ := http.NewRequest(http.MethodPost, integrationBaseURL+"/api/v1/projects/"+projectID+"/asset-props", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp, err := http.DefaultClient.Do(req)

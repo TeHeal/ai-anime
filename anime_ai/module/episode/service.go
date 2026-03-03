@@ -3,8 +3,8 @@ package episode
 import (
 	"strconv"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
 )
 
 func episodeProjectID(ep *Episode) string {

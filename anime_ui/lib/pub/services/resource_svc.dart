@@ -62,13 +62,15 @@ class ResourceService {
     );
   }
 
-  Future<Resource> get(int resourceId) async {
+  Future<Resource> get(String resourceId) async {
     final resp = await dio.get('/resources/$resourceId');
     return extractDataObject(resp, Resource.fromJson);
   }
 
-  Future<Resource> update(int resourceId, {
+  Future<Resource> update(String resourceId, {
     String? name,
+    String? libraryType,
+    String? modality,
     String? thumbnailUrl,
     String? tagsJson,
     String? version,
@@ -78,6 +80,8 @@ class ResourceService {
   }) async {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
+    if (libraryType != null) body['libraryType'] = libraryType;
+    if (modality != null) body['modality'] = modality;
     if (thumbnailUrl != null) body['thumbnail_url'] = thumbnailUrl;
     if (tagsJson != null) body['tags_json'] = tagsJson;
     if (version != null) body['version'] = version;
@@ -88,7 +92,7 @@ class ResourceService {
     return extractDataObject(resp, Resource.fromJson);
   }
 
-  Future<void> delete(int resourceId) async {
+  Future<void> delete(String resourceId) async {
     await dio.delete('/resources/$resourceId');
   }
 
@@ -128,8 +132,8 @@ class ResourceService {
       if (referenceImageUrl.isNotEmpty) 'reference_image_url': referenceImageUrl,
       if (provider.isNotEmpty) 'provider': provider,
       if (model.isNotEmpty) 'model': model,
-      'width': ?width,
-      'height': ?height,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
       if (size.isNotEmpty) 'size': size,
       if (seed != null && seed != 0) 'seed': seed,
       if (aspectRatio.isNotEmpty) 'aspect_ratio': aspectRatio,
@@ -179,17 +183,17 @@ class ResourceService {
     final resp = await dio.post('/resources/generate-voice-design', data: {
       'name': name,
       'prompt': prompt,
-      if (previewText.isNotEmpty) 'preview_text': previewText,
+      if (previewText.isNotEmpty) 'previewText': previewText,
       if (provider.isNotEmpty) 'provider': provider,
       if (model.isNotEmpty) 'model': model,
-      if (voiceId.isNotEmpty) 'voice_id': voiceId,
-      if (tagsJson.isNotEmpty) 'tags_json': tagsJson,
+      if (voiceId.isNotEmpty) 'voiceId': voiceId,
+      if (tagsJson.isNotEmpty) 'tagsJson': tagsJson,
       if (description.isNotEmpty) 'description': description,
     });
     final data = extractData<Map<String, dynamic>>(resp);
     return GenerateResourceResult(
       resource: Resource.fromJson(data['resource'] as Map<String, dynamic>),
-      taskId: data['task_id'] as String? ?? '',
+      taskId: data['taskId'] as String? ?? data['task_id'] as String? ?? '',
     );
   }
 
@@ -200,7 +204,7 @@ class ResourceService {
     String model = '',
   }) async {
     final resp = await dio.post('/resources/generate-preview-text', data: {
-      'voice_prompt': voicePrompt,
+      'voicePrompt': voicePrompt,
       if (operator.isNotEmpty) 'operator': operator,
       if (model.isNotEmpty) 'model': model,
     });
@@ -208,7 +212,7 @@ class ResourceService {
     return data['text'] as String? ?? '';
   }
 
-  Future<Resource> syncVoiceResource(int resourceId) async {
+  Future<Resource> syncVoiceResource(String resourceId) async {
     final resp = await dio.post('/resources/$resourceId/sync-voice');
     final data = extractData<Map<String, dynamic>>(resp);
     return Resource.fromJson(data['resource'] as Map<String, dynamic>);
@@ -228,15 +232,14 @@ class ResourceService {
     final resp = await dio.post('/resources/generate-prompt', data: {
       'name': name,
       'instruction': instruction,
-      if (targetModel.isNotEmpty) 'target_model': targetModel,
+      if (targetModel.isNotEmpty) 'targetModel': targetModel,
       if (category.isNotEmpty) 'category': category,
-      if (tagsJson.isNotEmpty) 'tags_json': tagsJson,
+      if (tagsJson.isNotEmpty) 'tagsJson': tagsJson,
       if (description.isNotEmpty) 'description': description,
-      if (libraryType.isNotEmpty) 'library_type': libraryType,
+      if (libraryType.isNotEmpty) 'libraryType': libraryType,
       if (language.isNotEmpty) 'language': language,
     });
-    final data = extractData<Map<String, dynamic>>(resp);
-    return Resource.fromJson(data['resource'] as Map<String, dynamic>);
+    return extractDataObject(resp, Resource.fromJson);
   }
 }
 

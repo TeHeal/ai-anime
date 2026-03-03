@@ -1,8 +1,8 @@
 package project
 
 import (
-	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/pkg"
 )
 
 // NewProjectVerifier 基于 Data 创建验证器，实现 crossmodule.ProjectVerifier 与 ProjectMemberResolver

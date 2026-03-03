@@ -1,4 +1,4 @@
-module github.com/TeHeal/ai-anime/anime_ai
+module anime_ai
 
 go 1.26
 

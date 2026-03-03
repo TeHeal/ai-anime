@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
+	"anime_ai/pub/pkg"
 )
 
 // normalizeIDForMem 将 UUID 格式（00000000-0000-0000-0000-000000000001）转为短 ID "1"，供 MemData 查找

@@ -3,7 +3,7 @@ package shot_image
 import (
 	"testing"
 
-	"github.com/TeHeal/ai-anime/anime_ai/module/shot"
+	"anime_ai/module/shot"
 )
 
 func TestShotImageService_Create(t *testing.T) {

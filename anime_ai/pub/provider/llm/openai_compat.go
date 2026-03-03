@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/TeHeal/ai-anime/anime_ai/pub/provider"
+	"anime_ai/pub/provider"
 )
 
 // OpenAICompatProvider 实现 LLMProvider，兼容 OpenAI API（DeepSeek、Kimi、阿里云等）

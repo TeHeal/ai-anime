@@ -1,0 +1,317 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'package:anime_ui/pub/models/resource.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
+
+import '../models/resource_category.dart';
+import '../providers/provider.dart';
+import 'resource_form_dialog.dart';
+
+void showResourceDetailDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  required Resource resource,
+  required Color accentColor,
+}) {
+  showDialog(
+    context: context,
+    builder: (_) => _ResourceDetailDialog(
+      resource: resource,
+      accentColor: accentColor,
+    ),
+  );
+}
+
+class _ResourceDetailDialog extends ConsumerWidget {
+  const _ResourceDetailDialog({
+    required this.resource,
+    required this.accentColor,
+  });
+
+  final Resource resource;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final libType = ResourceLibraryType.values
+        .where((t) => t.name == resource.libraryType)
+        .firstOrNull;
+
+    return Dialog(
+      backgroundColor: AppColors.surfaceContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 560.w, maxHeight: 640.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(context),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(Spacing.xl.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (resource.hasThumbnail &&
+                        resource.modality == 'visual') ...[
+                      ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(RadiusTokens.lg.r),
+                        child: Image.network(
+                          resolveFileUrl(resource.thumbnailUrl),
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          errorBuilder: (_, Object? e, StackTrace? s) => const SizedBox.shrink(),
+                        ),
+                      ),
+                      SizedBox(height: Spacing.lg.h),
+                    ],
+                    Text(
+                      resource.name,
+                      style: AppTextStyles.h4.copyWith(
+                        color: AppColors.onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (libType != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: Spacing.xxs.h),
+                        child: Text(
+                          libType.label,
+                          style: AppTextStyles.caption.copyWith(
+                            color: accentColor,
+                          ),
+                        ),
+                      ),
+                    if (resource.description.isNotEmpty) ...[
+                      SizedBox(height: Spacing.md.h),
+                      Text(
+                        '描述',
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.xs.h),
+                      Text(
+                        resource.description,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                    ],
+                    if (resource.tags.isNotEmpty) ...[
+                      SizedBox(height: Spacing.md.h),
+                      Text(
+                        '标签',
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.xs.h),
+                      Wrap(
+                        spacing: Spacing.xs.w,
+                        runSpacing: Spacing.xs.h,
+                        children: resource.tags
+                            .map((tag) => Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Spacing.sm.w,
+                                    vertical: Spacing.xxs.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: accentColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(
+                                      RadiusTokens.xs.r,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    tag,
+                                    style: AppTextStyles.caption.copyWith(
+                                      color: accentColor,
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ],
+                    if (resource.metadata.isNotEmpty) ...[
+                      SizedBox(height: Spacing.md.h),
+                      Text(
+                        '元数据',
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.xs.h),
+                      ...resource.metadata.entries
+                          .where((e) =>
+                              e.value != null &&
+                              e.value.toString().isNotEmpty)
+                          .map((e) => Padding(
+                                padding: EdgeInsets.only(bottom: Spacing.xs.h),
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 100.w,
+                                      child: Text(
+                                        '${e.key}:',
+                                        style: AppTextStyles.caption
+                                            .copyWith(color: AppColors.muted),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        e.value.toString(),
+                                        style: AppTextStyles.bodySmall
+                                            .copyWith(
+                                                color: AppColors.onSurface),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                    ],
+                    if (resource.bindingIds.isNotEmpty) ...[
+                      SizedBox(height: Spacing.md.h),
+                      Text(
+                        '绑定',
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.xs.h),
+                      Text(
+                        '${resource.bindingIds.length} 个绑定对象',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            _buildFooter(context, ref),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        Spacing.xl.w,
+        Spacing.lg.h,
+        Spacing.md.w,
+        Spacing.md.h,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '素材详情',
+              style: AppTextStyles.h4.copyWith(
+                color: AppColors.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(AppIcons.close, size: 18.r, color: AppColors.muted),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        Spacing.xl.w,
+        Spacing.md.h,
+        Spacing.xl.w,
+        Spacing.lg.h,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton.icon(
+            onPressed: () async {
+              final libType = ResourceLibraryType.values
+                  .where((t) => t.name == resource.libraryType)
+                  .firstOrNull;
+              if (libType == null) return;
+              await showResourceFormDialog(
+                context,
+                ref,
+                libraryType: libType,
+                accentColor: accentColor,
+                initial: resource,
+              );
+              if (context.mounted) Navigator.pop(context);
+            },
+            icon: Icon(AppIcons.edit, size: 16.r),
+            label: const Text('编辑'),
+            style: TextButton.styleFrom(foregroundColor: accentColor),
+          ),
+          SizedBox(width: Spacing.sm.w),
+          TextButton.icon(
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('确认删除'),
+                  content: Text(
+                    '确定要删除「${resource.name}」吗？',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('取消'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                      ),
+                      child: const Text('删除'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true && context.mounted) {
+                await ref.read(resourceListProvider.notifier).removeResource(
+                      resource.id ?? '',
+                    );
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            icon: Icon(AppIcons.close, size: 16.r),
+            label: const Text('删除'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+          ),
+        ],
+      ),
+    );
+  }
+}
