@@ -299,3 +299,53 @@ func (h *Handler) UpdateReviewConfig(c *gin.Context) {
 	}
 	pkg.OK(c, cfg)
 }
+
+// GetLockStatus 获取项目锁定状态
+func (h *Handler) GetLockStatus(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	projectID := c.Param("id")
+	if projectID == "" {
+		pkg.BadRequest(c, "无效的项目 ID")
+		return
+	}
+	status, err := h.svc.GetLockStatus(projectID, userID)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+	pkg.OK(c, status)
+}
+
+// LockPhase 锁定指定阶段
+func (h *Handler) LockPhase(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	projectID := c.Param("id")
+	phase := c.Param("phase")
+	if projectID == "" || phase == "" {
+		pkg.BadRequest(c, "无效的项目 ID 或 phase")
+		return
+	}
+	if err := h.svc.LockPhase(projectID, userID, phase); err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+	status, _ := h.svc.GetLockStatus(projectID, userID)
+	pkg.OK(c, status)
+}
+
+// UnlockPhase 解锁指定阶段
+func (h *Handler) UnlockPhase(c *gin.Context) {
+	userID := pkg.GetUserIDStr(c)
+	projectID := c.Param("id")
+	phase := c.Param("phase")
+	if projectID == "" || phase == "" {
+		pkg.BadRequest(c, "无效的项目 ID 或 phase")
+		return
+	}
+	if err := h.svc.UnlockPhase(projectID, userID, phase); err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+	status, _ := h.svc.GetLockStatus(projectID, userID)
+	pkg.OK(c, status)
+}

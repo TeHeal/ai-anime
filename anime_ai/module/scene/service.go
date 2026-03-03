@@ -1,6 +1,8 @@
 package scene
 
 import (
+	"fmt"
+
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
@@ -53,6 +55,7 @@ type CreateSceneRequest struct {
 	Time             string   `json:"time" binding:"max=32"`
 	InteriorExterior string   `json:"interior_exterior" binding:"max=8"`
 	Characters       []string `json:"characters"`
+	SortIndex        *int     `json:"sort_index"` // 可选，指定插入位置；缺省则追加到末尾
 }
 
 // UpdateSceneRequest 更新场请求
@@ -105,23 +108,58 @@ func (s *Service) verifyEpisode(episodeID, userID string) error {
 	return s.projectVerifier.Verify(projectID, userID)
 }
 
-// Create 创建场
+// Create 创建场（支持 sort_index 指定插入位置，缺省则追加到末尾）
 func (s *Service) Create(episodeID, userID string, req CreateSceneRequest) (*SceneResponse, error) {
 	if err := s.verifyEpisode(episodeID, userID); err != nil {
 		return nil, err
 	}
-	count, _ := s.sceneStore.CountByEpisode(episodeID)
+	count, err := s.sceneStore.CountByEpisode(episodeID)
+	if err != nil {
+		count = 0
+	}
+	sortIdx := int(count)
+	if req.SortIndex != nil {
+		idx := *req.SortIndex
+		if idx < 0 {
+			idx = 0
+		}
+		if idx > int(count) {
+			idx = int(count)
+		}
+		sortIdx = idx
+	}
 	sc := &Scene{
 		EpisodeID:        episodeID,
 		SceneID:          req.SceneID,
 		Location:         req.Location,
 		Time:             req.Time,
 		InteriorExterior: req.InteriorExterior,
-		SortIndex:        int(count),
+		SortIndex:        sortIdx,
 	}
 	sc.SetCharacters(req.Characters)
 	if err := s.sceneStore.Create(sc); err != nil {
 		return nil, err
+	}
+	// 若指定了插入位置，需重排以保持顺序（插入会导致 sort_index 重复）
+	if req.SortIndex != nil {
+		existing, err := s.sceneStore.ListByEpisode(episodeID)
+		if err != nil {
+			return nil, fmt.Errorf("列出场失败: %w", err)
+		}
+		ordered := make([]string, 0, len(existing))
+		for i := range existing {
+			if existing[i].ID != sc.ID {
+				ordered = append(ordered, existing[i].ID)
+			}
+		}
+		// 将新场插入到 sortIdx 位置
+		final := make([]string, 0, len(ordered)+1)
+		final = append(final, ordered[:sortIdx]...)
+		final = append(final, sc.ID)
+		final = append(final, ordered[sortIdx:]...)
+		if err := s.sceneStore.ReorderByEpisode(episodeID, final); err != nil {
+			return nil, fmt.Errorf("重排场顺序失败: %w", err)
+		}
 	}
 	blocks, _ := s.blockStore.ListByScene(sc.ID)
 	return ptr(sc.ToResponse(blocks)), nil
@@ -158,6 +196,37 @@ func (s *Service) List(episodeID, userID string) ([]SceneResponse, error) {
 		resp[i] = sc.ToResponse(blocks)
 	}
 	return resp, nil
+}
+
+// ListByProjectWithBlocks 按项目批量列出场及块（供 episode List 使用，避免 N+1）
+func (s *Service) ListByProjectWithBlocks(projectID, userID string) (map[string][]SceneResponse, error) {
+	if err := s.projectVerifier.Verify(projectID, userID); err != nil {
+		return nil, err
+	}
+	scenes, err := s.sceneStore.ListByProject(projectID)
+	if err != nil {
+		return nil, err
+	}
+	if len(scenes) == 0 {
+		return map[string][]SceneResponse{}, nil
+	}
+	sceneIDs := make([]string, 0, len(scenes))
+	for i := range scenes {
+		sceneIDs = append(sceneIDs, scenes[i].ID)
+	}
+	blocks, _ := s.blockStore.ListBySceneIDs(sceneIDs)
+	blocksByScene := make(map[string][]SceneBlock)
+	for i := range blocks {
+		b := &blocks[i]
+		blocksByScene[b.SceneID] = append(blocksByScene[b.SceneID], *b)
+	}
+	out := make(map[string][]SceneResponse)
+	for i := range scenes {
+		sc := &scenes[i]
+		blks := blocksByScene[sc.ID]
+		out[sc.EpisodeID] = append(out[sc.EpisodeID], sc.ToResponse(blks))
+	}
+	return out, nil
 }
 
 // Update 更新场

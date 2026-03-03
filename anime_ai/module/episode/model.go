@@ -3,6 +3,8 @@ package episode
 import (
 	"strconv"
 	"time"
+
+	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
 )
 
 // EpisodeStatus 集的生产状态
@@ -31,17 +33,18 @@ type Episode struct {
 
 // EpisodeResponse 集 API 响应
 type EpisodeResponse struct {
-	ID           string     `json:"id"`
-	ProjectID    string     `json:"project_id"`
-	Title        string     `json:"title"`
-	SortIndex    int        `json:"sort_index"`
-	Summary      string     `json:"summary"`
-	Status       string     `json:"status"`
-	CurrentStep  int        `json:"current_step"`
-	CurrentPhase string     `json:"current_phase"`
-	LastActiveAt *time.Time `json:"last_active_at"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
+	ID           string             `json:"id"`
+	ProjectID    string             `json:"project_id"`
+	Title        string             `json:"title"`
+	SortIndex    int                `json:"sort_index"`
+	Summary      string             `json:"summary"`
+	Status       string             `json:"status"`
+	CurrentStep  int                `json:"current_step"`
+	CurrentPhase string             `json:"current_phase"`
+	LastActiveAt *time.Time         `json:"last_active_at"`
+	CreatedAt    time.Time          `json:"created_at"`
+	UpdatedAt    time.Time          `json:"updated_at"`
+	Scenes       []scene.SceneResponse `json:"scenes,omitempty"`
 }
 
 // ToResponse 转为 API 响应（不含 Scenes 时由调用方填充）

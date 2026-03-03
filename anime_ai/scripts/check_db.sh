@@ -9,9 +9,9 @@ cd "$ROOT_DIR"
 
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
-DB_USER="${DB_USER:-ai_anime}"
+DB_USER="${DB_USER:-yikai}"
 DB_NAME="${DB_NAME:-ai_anime}"
-DB_PASSWORD="${APP_DB_PASSWORD:-ai_anime_dev}"
+DB_PASSWORD="${APP_DB_PASSWORD:-mayikai}"
 
 echo "=== 数据库检查 ==="
 echo "连接: $DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
@@ -36,12 +36,12 @@ else
   echo ""
   echo "可能原因："
   echo "  1. 用户 $DB_USER 或数据库 $DB_NAME 不存在"
-  echo "  2. 密码错误（config.yaml 中配置为 ai_anime_dev）"
+  echo "  2. 密码错误（config.yaml 中配置为 mayikai）"
   echo ""
   echo "初始化步骤（需 sudo）："
-  echo "  sudo -u postgres psql -c \"CREATE USER ai_anime WITH PASSWORD 'ai_anime_dev' CREATEDB;\""
-  echo "  sudo -u postgres createdb -O ai_anime ai_anime"
-  echo "  PGPASSWORD=ai_anime_dev psql -h localhost -U ai_anime -d ai_anime -f sch/schema.sql"
+  echo "  sudo -u postgres psql -c \"CREATE USER yikai WITH PASSWORD 'mayikai' CREATEDB;\""
+  echo "  sudo -u postgres createdb -O yikai ai_anime"
+  echo "  PGPASSWORD=mayikai psql -h localhost -U yikai -d ai_anime -f sch/schema.sql"
   exit 1
 fi
 

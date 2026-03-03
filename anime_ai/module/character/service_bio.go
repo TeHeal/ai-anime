@@ -34,22 +34,22 @@ func (s *Service) UpdateBio(charID string, userID uint, bio string) (*Character,
 }
 
 // ExtractBio 从剧本提取小传（占位：直接返回角色）
-func (s *Service) ExtractBio(ctx context.Context, projectID uint, charID string, userID uint, req ExtractBioRequest) (*Character, error) {
+func (s *Service) ExtractBio(ctx context.Context, projectIDStr, charID, userIDStr string, req ExtractBioRequest) (*Character, error) {
 	_ = ctx
 	_ = req
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
-	if projectID > 0 {
-		if err := s.checkAssetEditForProject(projectID, userID); err != nil {
+	if projectIDStr != "" {
+		if err := s.checkAssetEditForProject(projectIDStr, userIDStr); err != nil {
 			return nil, err
 		}
 	} else if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
@@ -59,5 +59,6 @@ func (s *Service) ExtractBio(ctx context.Context, projectID uint, charID string,
 
 // RegenerateBio 重新生成小传（占位）
 func (s *Service) RegenerateBio(ctx context.Context, charID string, userID uint, req ExtractBioRequest) (*Character, error) {
-	return s.ExtractBio(ctx, 0, charID, userID, req)
+	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+	return s.ExtractBio(ctx, "", charID, userIDStr, req)
 }

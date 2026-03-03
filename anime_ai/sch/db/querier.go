@@ -21,6 +21,7 @@ type Querier interface {
 	CountShotsByProject(ctx context.Context, projectID pgtype.UUID) (int32, error)
 	CountTasksByProject(ctx context.Context, projectID pgtype.UUID) (int64, error)
 	CountUnreadByUser(ctx context.Context, userID pgtype.UUID) (int64, error)
+	CreateAssetVersion(ctx context.Context, arg CreateAssetVersionParams) (AssetVersion, error)
 	// 角色 CRUD（项目级）
 	CreateCharacter(ctx context.Context, arg CreateCharacterParams) (Character, error)
 	// 成片任务 CRUD（README 成片阶段，状态机 editing→exporting→done）
@@ -62,6 +63,7 @@ type Querier interface {
 	GetCompositeTaskByID(ctx context.Context, id pgtype.UUID) (CompositeTask, error)
 	GetCompositeTaskByTaskID(ctx context.Context, taskID pgtype.Text) (CompositeTask, error)
 	GetEpisodeByID(ctx context.Context, id pgtype.UUID) (Episode, error)
+	GetLatestFreezeByProject(ctx context.Context, projectID pgtype.UUID) (AssetVersion, error)
 	GetLocationByID(ctx context.Context, id pgtype.UUID) (Location, error)
 	GetOrgByID(ctx context.Context, id pgtype.UUID) (Organization, error)
 	GetOrgMember(ctx context.Context, arg GetOrgMemberParams) (OrgMember, error)
@@ -82,6 +84,7 @@ type Querier interface {
 	GetTaskByID(ctx context.Context, id pgtype.UUID) (Task, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	ListAssetVersionsByProject(ctx context.Context, arg ListAssetVersionsByProjectParams) ([]AssetVersion, error)
 	ListCharactersByProject(ctx context.Context, projectID pgtype.UUID) ([]Character, error)
 	ListCharactersByUser(ctx context.Context, userID pgtype.UUID) ([]Character, error)
 	ListCharactersByUserWithShared(ctx context.Context, userID pgtype.UUID) ([]Character, error)
@@ -102,7 +105,9 @@ type Querier interface {
 	ListProviderUsages(ctx context.Context, arg ListProviderUsagesParams) ([]ProviderUsage, error)
 	ListReviewRecordsByTarget(ctx context.Context, arg ListReviewRecordsByTargetParams) ([]ReviewRecord, error)
 	ListSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) ([]SceneBlock, error)
+	ListSceneBlocksBySceneIDs(ctx context.Context, sceneIds []pgtype.UUID) ([]SceneBlock, error)
 	ListScenesByEpisode(ctx context.Context, episodeID pgtype.UUID) ([]Scene, error)
+	ListScenesByProject(ctx context.Context, projectID pgtype.UUID) ([]Scene, error)
 	ListSchedulesByProject(ctx context.Context, projectID pgtype.UUID) ([]Schedule, error)
 	ListSegmentsByProject(ctx context.Context, projectID pgtype.UUID) ([]Segment, error)
 	ListShotImagesByProject(ctx context.Context, projectID pgtype.UUID) ([]ShotImage, error)

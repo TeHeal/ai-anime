@@ -17,6 +17,7 @@ class ScriptTreeNode {
     required this.isEpisode,
     this.episodeId,
     this.sceneDbId,
+    this.sceneIndex,
     this.children = const [],
   });
 
@@ -25,6 +26,8 @@ class ScriptTreeNode {
   final bool isEpisode;
   final String? episodeId;
   final String? sceneDbId;
+  /// 场在集内的索引（仅场节点有效），用于「在该场后添加」
+  final int? sceneIndex;
   final List<ScriptTreeNode> children;
 }
 
@@ -50,7 +53,8 @@ class ScriptTreeNav extends StatefulWidget {
   final String? selectedSceneId;
   final void Function(String episodeId, String sceneDbId) onSceneSelected;
   final VoidCallback? onAddEpisode;
-  final void Function(String episodeId)? onAddScene;
+  /// [afterIndex] 为 null 表示在集首添加；非 null 表示在该场后添加
+  final void Function(String episodeId, {int? afterIndex})? onAddScene;
   final void Function(String episodeId)? onDeleteEpisode;
   final void Function(String episodeId, String sceneDbId)? onDeleteScene;
 
@@ -101,7 +105,8 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
 
   List<ScriptTreeNode> _buildRoots() {
     return widget.episodes.map((ep) {
-      final children = ep.scenes.map((sc) {
+      final children = ep.scenes.asMap().entries.map((e) {
+        final sc = e.value;
         final label = sc.sceneId.isNotEmpty
             ? '${sc.sceneId} ${sc.location}'
             : sc.location;
@@ -111,6 +116,7 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
           isEpisode: false,
           episodeId: ep.id,
           sceneDbId: sc.id,
+          sceneIndex: e.key,
         );
       }).toList();
 
@@ -128,6 +134,14 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
   void dispose() {
     _treeController.dispose();
     super.dispose();
+  }
+
+  VoidCallback? _buildOnAddScene(ScriptTreeNode node) {
+    if (widget.onAddScene == null || node.episodeId == null) return null;
+    if (node.isEpisode) {
+      return () => widget.onAddScene!(node.episodeId!);
+    }
+    return () => widget.onAddScene!(node.episodeId!, afterIndex: node.sceneIndex);
   }
 
   void _showDeleteMenu(
@@ -181,6 +195,9 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
                       isSelected:
                           !entry.node.isEpisode &&
                           entry.node.sceneDbId == widget.selectedSceneId,
+                      addSceneTooltip: entry.node.isEpisode
+                          ? '在集首添加场'
+                          : '在此场后添加',
                       onTap: () {
                         if (entry.node.isEpisode) {
                           _treeController.toggleExpansion(entry.node);
@@ -199,12 +216,7 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
                           entry.node,
                         );
                       },
-                      onAddScene:
-                          entry.node.isEpisode &&
-                              entry.node.episodeId != null &&
-                              widget.onAddScene != null
-                          ? () => widget.onAddScene!(entry.node.episodeId!)
-                          : null,
+                      onAddScene: _buildOnAddScene(entry.node),
                     );
                   },
             ),
@@ -256,6 +268,7 @@ class _TreeNodeTile extends StatelessWidget {
   const _TreeNodeTile({
     required this.entry,
     required this.isSelected,
+    required this.addSceneTooltip,
     required this.onTap,
     required this.onSecondaryTap,
     this.onAddScene,
@@ -263,6 +276,7 @@ class _TreeNodeTile extends StatelessWidget {
 
   final TreeEntry<ScriptTreeNode> entry;
   final bool isSelected;
+  final String addSceneTooltip;
   final VoidCallback onTap;
   final void Function(TapDownDetails) onSecondaryTap;
   final VoidCallback? onAddScene;
@@ -326,7 +340,7 @@ class _TreeNodeTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
                   onTap: onAddScene,
                   child: Tooltip(
-                    message: '添加场',
+                    message: addSceneTooltip,
                     child: Padding(
                       padding: const EdgeInsets.all(Spacing.xxs),
                       child: Icon(

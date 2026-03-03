@@ -15,7 +15,7 @@ type Data interface {
 	// 角色 CRUD
 	CreateCharacter(c *Character) error
 	FindCharacterByID(id string) (*Character, error)
-	ListCharactersByProject(projectID uint) ([]Character, error)
+	ListCharactersByProject(projectIDStr string) ([]Character, error)
 	ListCharactersByUser(userID uint, includeShared bool) ([]Character, error)
 	UpdateCharacter(c *Character) error
 	DeleteCharacter(id string) error
@@ -25,7 +25,7 @@ type Data interface {
 	CreateSnapshot(s *CharacterSnapshot) error
 	FindSnapshotByID(id uint) (*CharacterSnapshot, error)
 	ListSnapshotsByCharacter(characterID string) ([]CharacterSnapshot, error)
-	ListSnapshotsByProject(projectID uint) ([]CharacterSnapshot, error)
+	ListSnapshotsByProject(projectIDStr string) ([]CharacterSnapshot, error)
 	UpdateSnapshot(s *CharacterSnapshot) error
 	DeleteSnapshot(id uint) error
 }
@@ -86,15 +86,13 @@ func (d *MemData) FindCharacterByID(id string) (*Character, error) {
 	return cloneCharacter(c), nil
 }
 
-func (d *MemData) ListCharactersByProject(projectID uint) ([]Character, error) {
+func (d *MemData) ListCharactersByProject(projectIDStr string) ([]Character, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	// 兼容 UUID 格式与简单数字格式
-	pid := strconv.FormatUint(uint64(projectID), 10)
 	var list []Character
 	for _, c := range d.chars {
-		if c.ProjectID != nil && (*c.ProjectID == pid || *c.ProjectID == pkg.UUIDString(pkg.UintToUUID(projectID))) {
+		if c.ProjectID != nil && *c.ProjectID == projectIDStr {
 			list = append(list, *cloneCharacter(c))
 		}
 	}
@@ -211,13 +209,13 @@ func (d *MemData) ListSnapshotsByCharacter(characterID string) ([]CharacterSnaps
 	return list, nil
 }
 
-func (d *MemData) ListSnapshotsByProject(projectID uint) ([]CharacterSnapshot, error) {
+func (d *MemData) ListSnapshotsByProject(projectIDStr string) ([]CharacterSnapshot, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
 	var list []CharacterSnapshot
 	for _, s := range d.snapshots {
-		if s.ProjectID == projectID {
+		if s.ProjectID == projectIDStr {
 			list = append(list, *cloneSnapshot(s))
 		}
 	}

@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/TeHeal/ai-anime/anime_ai/module/episode"
+	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
+	"github.com/TeHeal/ai-anime/anime_ai/module/script/parser"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
@@ -22,6 +25,8 @@ type Service struct {
 	verifier       crossmodule.ProjectVerifier
 	memberResolver crossmodule.ProjectMemberResolver
 	llmSvc         *llm.LLMService
+	episodeSvc     *episode.Service
+	sceneSvc       *scene.Service
 }
 
 // NewService 创建脚本服务
@@ -42,13 +47,17 @@ func (s *Service) SetLLMService(svc *llm.LLMService) {
 	s.llmSvc = svc
 }
 
-// checkScriptEdit 校验脚本编辑权限（projectID/userID 为 uint）
-func (s *Service) checkScriptEdit(projectID, userID uint) error {
+// SetEpisodeSceneServices 注入集、场服务，用于确认导入时创建 episode/scene/block
+func (s *Service) SetEpisodeSceneServices(epSvc *episode.Service, scSvc *scene.Service) {
+	s.episodeSvc = epSvc
+	s.sceneSvc = scSvc
+}
+
+// checkScriptEdit 校验脚本编辑权限（projectIDStr/userIDStr 为 string，支持 UUID）
+func (s *Service) checkScriptEdit(projectIDStr, userIDStr string) error {
 	if s.memberResolver == nil {
 		return nil
 	}
-	projectIDStr := pkg.UUIDString(pkg.UintToUUID(projectID))
-	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
 	info, err := s.memberResolver.Resolve(projectIDStr, userIDStr)
 	if err != nil {
 		return err
@@ -85,15 +94,15 @@ type ReorderSegmentsRequest struct {
 }
 
 // Create 创建分段
-func (s *Service) Create(projectID, userID uint, req CreateSegmentRequest) (*Segment, error) {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+func (s *Service) Create(projectIDStr, userIDStr string, req CreateSegmentRequest) (*Segment, error) {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
 	seg := &Segment{
-		ProjectID: projectID,
+		ProjectID: projectIDStr,
 		SortIndex: req.SortIndex,
 		Content:   req.Content,
 	}
@@ -104,18 +113,18 @@ func (s *Service) Create(projectID, userID uint, req CreateSegmentRequest) (*Seg
 }
 
 // BulkCreate 批量创建分段（先清空项目下已有分段）
-func (s *Service) BulkCreate(projectID, userID uint, req BulkCreateSegmentRequest) ([]Segment, error) {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+func (s *Service) BulkCreate(projectIDStr, userIDStr string, req BulkCreateSegmentRequest) ([]Segment, error) {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	_ = s.store.DeleteByProject(projectID)
+	_ = s.store.DeleteByProject(projectIDStr)
 	segments := make([]Segment, len(req.Segments))
 	for i, r := range req.Segments {
 		segments[i] = Segment{
-			ProjectID: projectID,
+			ProjectID: projectIDStr,
 			SortIndex: i,
 			Content:   r.Content,
 		}
@@ -123,30 +132,30 @@ func (s *Service) BulkCreate(projectID, userID uint, req BulkCreateSegmentReques
 	if err := s.store.BulkCreate(segments); err != nil {
 		return nil, err
 	}
-	return s.store.ListByProject(projectID)
+	return s.store.ListByProject(projectIDStr)
 }
 
 // List 按项目列出分段
-func (s *Service) List(projectID, userID uint) ([]Segment, error) {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+func (s *Service) List(projectIDStr, userIDStr string) ([]Segment, error) {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	return s.store.ListByProject(projectID)
+	return s.store.ListByProject(projectIDStr)
 }
 
 // Update 更新分段
-func (s *Service) Update(id string, projectID, userID uint, req UpdateSegmentRequest) (*Segment, error) {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+func (s *Service) Update(id string, projectIDStr, userIDStr string, req UpdateSegmentRequest) (*Segment, error) {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
 	seg, err := s.store.FindByID(id)
 	if err != nil {
 		return nil, err
 	}
-	if seg.ProjectID != projectID {
+	if seg.ProjectID != projectIDStr {
 		return nil, pkg.ErrNotFound
 	}
 	if req.Content != nil {
@@ -162,41 +171,35 @@ func (s *Service) Update(id string, projectID, userID uint, req UpdateSegmentReq
 }
 
 // Delete 删除分段
-func (s *Service) Delete(id string, projectID, userID uint) error {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+func (s *Service) Delete(id string, projectIDStr, userIDStr string) error {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return err
 	}
 	seg, err := s.store.FindByID(id)
 	if err != nil {
 		return err
 	}
-	if seg.ProjectID != projectID {
+	if seg.ProjectID != projectIDStr {
 		return pkg.ErrNotFound
 	}
 	return s.store.Delete(id)
 }
 
 // Reorder 排序分段
-func (s *Service) Reorder(projectID, userID uint, req ReorderSegmentsRequest) error {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+func (s *Service) Reorder(projectIDStr, userIDStr string, req ReorderSegmentsRequest) error {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return err
 	}
-	return s.store.ReorderByProject(projectID, req.OrderedIDs)
+	return s.store.ReorderByProject(projectIDStr, req.OrderedIDs)
 }
 
-// --- 脚本解析（占位）---
-
-// ParseResult 解析结果占位结构，后续对接 script_parser 时替换
-type ParseResult struct {
-	Script interface{} `json:"script"`
-	Issues []string    `json:"issues"`
-}
+// --- 脚本解析 ---
 
 // ScriptParseRequest 解析请求
 type ScriptParseRequest struct {
@@ -211,51 +214,125 @@ type ParseTask struct {
 }
 
 // SubmitParse 提交异步解析任务（占位：直接返回模拟 task_id）
-func (s *Service) SubmitParse(projectID, userID uint, req ScriptParseRequest) (*ParseTask, error) {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+func (s *Service) SubmitParse(projectIDStr, userIDStr string, req ScriptParseRequest) (*ParseTask, error) {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	taskID := fmt.Sprintf("script_parse_%d_%d", projectID, userID)
+	taskID := fmt.Sprintf("script_parse_%s_%s", projectIDStr, userIDStr)
 	return &ParseTask{TaskID: taskID, Status: "pending"}, nil
 }
 
-// ParseSync 同步解析（占位：返回空结构）
-func (s *Service) ParseSync(ctx context.Context, projectID, userID uint, req ScriptParseRequest) (*ParseResult, error) {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+// ParseSync 同步解析：预处理 → 正则解析 →（可选）LLM 辅助 → 校验
+func (s *Service) ParseSync(ctx context.Context, projectIDStr, userIDStr string, req ScriptParseRequest) (*parser.ParseResult, error) {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
-	_ = ctx
-	return &ParseResult{Script: nil, Issues: []string{}}, nil
+	hint := parser.FormatStandard
+	if req.FormatHint == "unknown" {
+		hint = parser.FormatUnknown
+	}
+	var llmClient parser.LLMClient
+	if s.llmSvc != nil && s.llmSvc.Available() {
+		llmClient = NewLLMServiceAdapter(s.llmSvc)
+	}
+	return parser.Parse(ctx, req.Content, parser.ParseOptions{FormatHint: hint}, llmClient)
 }
 
-// GetPreview 获取解析预览（占位）
-func (s *Service) GetPreview(projectID, userID uint) (*ParseResult, error) {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+// GetPreview 获取解析预览（异步任务完成后调用，占位：当前仅支持同步解析）
+func (s *Service) GetPreview(projectIDStr, userIDStr string) (*parser.ParseResult, error) {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
 	return nil, fmt.Errorf("解析结果不存在或未完成")
 }
 
-// ScriptConfirmRequest 确认导入请求（占位）
+// ScriptConfirmRequest 确认导入请求
 type ScriptConfirmRequest struct {
-	Episodes []interface{} `json:"episodes" binding:"required"`
+	Episodes []parser.ParsedEpisode `json:"episodes" binding:"required"`
 }
 
-// Confirm 确认导入解析结果（占位：暂不写入 episode/scene/block）
-func (s *Service) Confirm(projectID, userID uint, req ScriptConfirmRequest) error {
-	if err := s.verifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+// Confirm 确认导入解析结果，将解析的集/场/块写入数据库
+func (s *Service) Confirm(projectIDStr, userIDStr string, req ScriptConfirmRequest) error {
+	if err := s.verifier.Verify(projectIDStr, userIDStr); err != nil {
 		return err
 	}
-	if err := s.checkScriptEdit(projectID, userID); err != nil {
+	if err := s.checkScriptEdit(projectIDStr, userIDStr); err != nil {
 		return err
 	}
-	_ = req
+	if s.episodeSvc == nil || s.sceneSvc == nil {
+		return pkg.NewBizError("集/场服务未注入，无法执行导入")
+	}
+	if len(req.Episodes) == 0 {
+		return pkg.NewBizError("没有可导入的集数据")
+	}
+
+	// 1. 删除项目下已有集（及其场、块）
+	existingEps, err := s.episodeSvc.ListByProject(projectIDStr, userIDStr)
+	if err != nil {
+		return pkg.NewBizError("列出已有集失败: " + err.Error())
+	}
+	for _, ep := range existingEps {
+		epID := ep.IDStr
+		if epID == "" {
+			epID = fmt.Sprintf("%d", ep.ID)
+		}
+		scenes, _ := s.sceneSvc.List(epID, userIDStr)
+		for _, sc := range scenes {
+			_ = s.sceneSvc.Delete(sc.ID, epID, userIDStr)
+		}
+		if err := s.episodeSvc.Delete(epID, projectIDStr, userIDStr); err != nil {
+			return pkg.NewBizError("删除已有集失败: " + err.Error())
+		}
+	}
+
+	// 2. 创建集 → 场 → 块
+	for _, parsedEp := range req.Episodes {
+		ep, err := s.episodeSvc.Create(projectIDStr, userIDStr, episode.CreateEpisodeRequest{
+			Title: fmt.Sprintf("第%d集", parsedEp.EpisodeNum),
+		})
+		if err != nil {
+			return pkg.NewBizError(fmt.Sprintf("创建第%d集失败: %v", parsedEp.EpisodeNum, err))
+		}
+		epID := ep.IDStr
+		if epID == "" {
+			epID = fmt.Sprintf("%d", ep.ID)
+		}
+
+		for _, parsedSc := range parsedEp.Scenes {
+			scResp, err := s.sceneSvc.Create(epID, userIDStr, scene.CreateSceneRequest{
+				SceneID:          parsedSc.SceneNum,
+				Location:         parsedSc.Location,
+				Time:             parsedSc.Time,
+				InteriorExterior: parsedSc.IntExt,
+				Characters:       parsedSc.Characters,
+			})
+			if err != nil {
+				return pkg.NewBizError(fmt.Sprintf("创建场 %s 失败: %v", parsedSc.SceneNum, err))
+			}
+
+			if len(parsedSc.Blocks) > 0 {
+				blocks := make([]scene.CreateBlockRequest, len(parsedSc.Blocks))
+				for bIdx, pb := range parsedSc.Blocks {
+					blocks[bIdx] = scene.CreateBlockRequest{
+						Type:      string(pb.Type),
+						Character: pb.Character,
+						Emotion:   pb.Emotion,
+						Content:   pb.Content,
+					}
+				}
+				_, err = s.sceneSvc.SaveBlocks(scResp.ID, epID, userIDStr, scene.BulkSaveBlocksRequest{Blocks: blocks})
+				if err != nil {
+					return pkg.NewBizError(fmt.Sprintf("保存场 %s 的块失败: %v", parsedSc.SceneNum, err))
+				}
+			}
+		}
+	}
 	return nil
 }
 

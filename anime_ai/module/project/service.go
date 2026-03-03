@@ -255,3 +255,53 @@ func (s *Service) GetReviewConfigByIDOnly(projectID string) (*ReviewConfig, erro
 	cfg := p.GetReviewConfig()
 	return &cfg, nil
 }
+
+// LockPhase 锁定指定阶段（story/assets/script）
+func (s *Service) LockPhase(projectID, userID, phase string) error {
+	if _, err := s.data.FindByID(projectID, userID); err != nil {
+		return err
+	}
+	return s.data.UpdateLockPhase(projectID, phase, true)
+}
+
+// UnlockPhase 解锁指定阶段
+func (s *Service) UnlockPhase(projectID, userID, phase string) error {
+	if _, err := s.data.FindByID(projectID, userID); err != nil {
+		return err
+	}
+	return s.data.UpdateLockPhase(projectID, phase, false)
+}
+
+// GetLockStatus 获取项目各阶段锁定状态
+func (s *Service) GetLockStatus(projectID, userID string) (*LockStatus, error) {
+	p, err := s.data.FindByID(projectID, userID)
+	if err != nil {
+		return nil, err
+	}
+	return &LockStatus{
+		StoryLocked:    p.StoryLocked,
+		StoryLockedAt:  p.StoryLockedAt,
+		AssetsLocked:   p.AssetsLocked,
+		AssetsLockedAt: p.AssetsLockedAt,
+		ScriptLocked:   p.ScriptLocked,
+		ScriptLockedAt: p.ScriptLockedAt,
+	}, nil
+}
+
+// IsLocked 检查指定阶段是否已锁定（供 LockChecker 使用，不校验用户权限）
+func (s *Service) IsLocked(projectID, phase string) (bool, error) {
+	p, err := s.data.FindByIDOnly(projectID)
+	if err != nil {
+		return false, err
+	}
+	switch phase {
+	case "story":
+		return p.StoryLocked, nil
+	case "assets":
+		return p.AssetsLocked, nil
+	case "script":
+		return p.ScriptLocked, nil
+	default:
+		return false, nil
+	}
+}

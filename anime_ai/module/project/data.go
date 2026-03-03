@@ -37,6 +37,7 @@ type Data interface {
 	FindByIDOnly(id string) (*Project, error)
 	ListByUser(userID string) ([]Project, error)
 	UpdateProject(p *Project) error
+	UpdateLockPhase(projectID, phase string, locked bool) error
 	DeleteProject(id, userID string) error
 
 	CreateMember(m *ProjectMember) error
@@ -150,6 +151,46 @@ func (d *MemData) UpdateProject(p *Project) error {
 	p.UpdatedAt = time.Now()
 	p.CreatedAt = old.CreatedAt
 	d.projects[key] = cloneProject(p)
+	return nil
+}
+
+// UpdateLockPhase 更新指定阶段的锁定状态
+func (d *MemData) UpdateLockPhase(projectID, phase string, locked bool) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	key := normalizeIDForMem(projectID)
+	p, ok := d.projects[key]
+	if !ok {
+		return pkg.ErrNotFound
+	}
+	now := time.Now()
+	switch phase {
+	case "story":
+		p.StoryLocked = locked
+		if locked {
+			p.StoryLockedAt = &now
+		} else {
+			p.StoryLockedAt = nil
+		}
+	case "assets":
+		p.AssetsLocked = locked
+		if locked {
+			p.AssetsLockedAt = &now
+		} else {
+			p.AssetsLockedAt = nil
+		}
+	case "script":
+		p.ScriptLocked = locked
+		if locked {
+			p.ScriptLockedAt = &now
+		} else {
+			p.ScriptLockedAt = nil
+		}
+	default:
+		return errors.New("无效的 phase")
+	}
+	p.UpdatedAt = now
 	return nil
 }
 

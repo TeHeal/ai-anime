@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
-import 'package:anime_ui/pub/services/api_svc.dart';
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/widgets/prompt_library_dialog.dart';
 import 'components/image_gen_footer.dart';
 import 'components/image_gen_header.dart';

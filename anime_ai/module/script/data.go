@@ -9,17 +9,16 @@ import (
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
-// SegmentStore 分段数据访问接口，sch 有 segments 表后可切换为 sqlc 实现
-// 分段 ID 使用 string（UUID 格式）
+// SegmentStore 分段数据访问接口，项目 ID 为 string（UUID）
 type SegmentStore interface {
 	Create(seg *Segment) error
 	BulkCreate(segments []Segment) error
 	FindByID(id string) (*Segment, error)
-	ListByProject(projectID uint) ([]Segment, error)
+	ListByProject(projectID string) ([]Segment, error)
 	Update(seg *Segment) error
 	Delete(id string) error
-	DeleteByProject(projectID uint) error
-	ReorderByProject(projectID uint, orderedIDs []string) error
+	DeleteByProject(projectID string) error
+	ReorderByProject(projectID string, orderedIDs []string) error
 }
 
 // MemSegmentStore 内存占位实现，sch 无 segments 表时使用
@@ -27,14 +26,14 @@ type MemSegmentStore struct {
 	mu      sync.RWMutex
 	nextID  atomic.Uint64
 	byID    map[string]*Segment
-	byProj  map[uint][]*Segment
+	byProj  map[string][]*Segment
 }
 
 // NewMemSegmentStore 创建内存分段存储
 func NewMemSegmentStore() *MemSegmentStore {
 	return &MemSegmentStore{
 		byID:   make(map[string]*Segment),
-		byProj: make(map[uint][]*Segment),
+		byProj: make(map[string][]*Segment),
 	}
 }
 
@@ -86,7 +85,7 @@ func (s *MemSegmentStore) FindByID(id string) (*Segment, error) {
 	return &c, nil
 }
 
-func (s *MemSegmentStore) ListByProject(projectID uint) ([]Segment, error) {
+func (s *MemSegmentStore) ListByProject(projectID string) ([]Segment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	list := s.byProj[projectID]
@@ -133,7 +132,7 @@ func (s *MemSegmentStore) Delete(id string) error {
 	return nil
 }
 
-func (s *MemSegmentStore) DeleteByProject(projectID uint) error {
+func (s *MemSegmentStore) DeleteByProject(projectID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, seg := range s.byProj[projectID] {
@@ -143,7 +142,7 @@ func (s *MemSegmentStore) DeleteByProject(projectID uint) error {
 	return nil
 }
 
-func (s *MemSegmentStore) ReorderByProject(projectID uint, orderedIDs []string) error {
+func (s *MemSegmentStore) ReorderByProject(projectID string, orderedIDs []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	list := s.byProj[projectID]

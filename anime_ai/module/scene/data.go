@@ -14,11 +14,13 @@ type SceneStore interface {
 	Create(s *Scene) error
 	FindByID(id string) (*Scene, error)
 	ListByEpisode(episodeID string) ([]Scene, error)
+	ListByProject(projectID string) ([]Scene, error)
 	Update(s *Scene) error
 	Delete(id string) error
 	CountByEpisode(episodeID string) (int64, error)
 	ReorderByEpisode(episodeID string, orderedIDs []string) error
 }
+
 
 // SceneBlockStore 块数据访问接口，使用 string ID 以兼容 PostgreSQL UUID
 type SceneBlockStore interface {
@@ -26,6 +28,7 @@ type SceneBlockStore interface {
 	BulkCreate(blocks []SceneBlock) error
 	FindByID(id string) (*SceneBlock, error)
 	ListByScene(sceneID string) ([]SceneBlock, error)
+	ListBySceneIDs(sceneIDs []string) ([]SceneBlock, error)
 	Update(b *SceneBlock) error
 	Delete(id string) error
 	DeleteByScene(sceneID string) error
@@ -80,6 +83,18 @@ func (s *MemSceneStore) ListByEpisode(episodeID string) ([]Scene, error) {
 	out := make([]Scene, len(list))
 	for i, sc := range list {
 		out[i] = *sc
+	}
+	return out, nil
+}
+
+func (s *MemSceneStore) ListByProject(projectID string) ([]Scene, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var out []Scene
+	for _, list := range s.byEpisode {
+		for _, sc := range list {
+			out = append(out, *sc)
+		}
 	}
 	return out, nil
 }
@@ -204,6 +219,23 @@ func (s *MemSceneBlockStore) ListByScene(sceneID string) ([]SceneBlock, error) {
 	out := make([]SceneBlock, len(list))
 	for i, b := range list {
 		out[i] = *b
+	}
+	return out, nil
+}
+
+func (s *MemSceneBlockStore) ListBySceneIDs(sceneIDs []string) ([]SceneBlock, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var out []SceneBlock
+	seen := make(map[string]bool)
+	for _, sid := range sceneIDs {
+		if seen[sid] {
+			continue
+		}
+		seen[sid] = true
+		for _, b := range s.byScene[sid] {
+			out = append(out, *b)
+		}
 	}
 	return out, nil
 }

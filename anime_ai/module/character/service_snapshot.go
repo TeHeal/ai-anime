@@ -9,7 +9,7 @@ import (
 // CreateSnapshotRequest 创建快照请求
 type CreateSnapshotRequest struct {
 	CharacterID        string `json:"character_id" binding:"required"`
-	ProjectID          uint   `json:"project_id" binding:"required"`
+	ProjectID          string `json:"project_id" binding:"required"`
 	StartSceneID       string `json:"start_scene_id"`
 	EndSceneID         string `json:"end_scene_id"`
 	TriggerEvent       string `json:"trigger_event"`
@@ -41,7 +41,7 @@ type UpdateSnapshotRequest struct {
 }
 
 // CreateSnapshot 创建角色快照
-func (s *Service) CreateSnapshot(userID uint, req CreateSnapshotRequest) (*CharacterSnapshot, error) {
+func (s *Service) CreateSnapshot(userID uint, userIDStr string, req CreateSnapshotRequest) (*CharacterSnapshot, error) {
 	c, err := s.data.FindCharacterByID(req.CharacterID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
@@ -49,7 +49,7 @@ func (s *Service) CreateSnapshot(userID uint, req CreateSnapshotRequest) (*Chara
 	if !userIDMatches(c.UserID, userID) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
-	if err := s.checkAssetEditForProject(req.ProjectID, userID); err != nil {
+	if err := s.checkAssetEditForProject(req.ProjectID, userIDStr); err != nil {
 		return nil, err
 	}
 	snap := &CharacterSnapshot{
@@ -86,7 +86,7 @@ func (s *Service) UpdateSnapshot(id uint, userID uint, req UpdateSnapshotRequest
 	if err != nil {
 		return nil, err
 	}
-	if err := s.checkAssetEditForProject(snap.ProjectID, userID); err != nil {
+	if err := s.checkAssetEditForProject(snap.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 		return nil, err
 	}
 	applySnapshotUpdate(snap, req)
@@ -142,7 +142,7 @@ func (s *Service) DeleteSnapshot(id uint, userID uint) error {
 	if err != nil {
 		return err
 	}
-	if err := s.checkAssetEditForProject(snap.ProjectID, userID); err != nil {
+	if err := s.checkAssetEditForProject(snap.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 		return err
 	}
 	return s.data.DeleteSnapshot(id)
@@ -154,11 +154,11 @@ func (s *Service) ListSnapshotsByCharacter(characterID string) ([]CharacterSnaps
 }
 
 // ListSnapshotsByProject 按项目列出快照
-func (s *Service) ListSnapshotsByProject(projectID, userID uint) ([]CharacterSnapshot, error) {
+func (s *Service) ListSnapshotsByProject(projectIDStr, userIDStr string) ([]CharacterSnapshot, error) {
 	if s.projectVerifier != nil {
-		if err := s.projectVerifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.projectVerifier.Verify(projectIDStr, userIDStr); err != nil {
 			return nil, err
 		}
 	}
-	return s.data.ListSnapshotsByProject(projectID)
+	return s.data.ListSnapshotsByProject(projectIDStr)
 }

@@ -23,8 +23,12 @@ func NewDBSegmentStore(queries *db.Queries) *DBSegmentStore {
 // Create 创建分段
 func (s *DBSegmentStore) Create(seg *Segment) error {
 	ctx := context.Background()
+	pid := pkg.StrToUUID(seg.ProjectID)
+	if !pid.Valid {
+		return pkg.ErrNotFound
+	}
 	arg := db.CreateSegmentParams{
-		ProjectID: pkg.UintToUUID(seg.ProjectID),
+		ProjectID: pid,
 		SortIndex: int32(seg.SortIndex),
 		Content:   pgtype.Text{String: seg.Content, Valid: true},
 	}
@@ -44,8 +48,12 @@ func (s *DBSegmentStore) BulkCreate(segments []Segment) error {
 	ctx := context.Background()
 	args := make([]db.BulkCreateSegmentsParams, len(segments))
 	for i := range segments {
+		pid := pkg.StrToUUID(segments[i].ProjectID)
+		if !pid.Valid {
+			return pkg.ErrNotFound
+		}
 		args[i] = db.BulkCreateSegmentsParams{
-			ProjectID: pkg.UintToUUID(segments[i].ProjectID),
+			ProjectID: pid,
 			SortIndex: int32(segments[i].SortIndex),
 			Content:   pgtype.Text{String: segments[i].Content, Valid: true},
 		}
@@ -54,7 +62,6 @@ func (s *DBSegmentStore) BulkCreate(segments []Segment) error {
 	if err != nil {
 		return err
 	}
-	// BulkCreate 不返回 ID，需重新 List 获取
 	return nil
 }
 
@@ -78,9 +85,12 @@ func (s *DBSegmentStore) FindByID(id string) (*Segment, error) {
 }
 
 // ListByProject 按项目列出分段
-func (s *DBSegmentStore) ListByProject(projectID uint) ([]Segment, error) {
+func (s *DBSegmentStore) ListByProject(projectIDStr string) ([]Segment, error) {
 	ctx := context.Background()
-	pid := pkg.UintToUUID(projectID)
+	pid := pkg.StrToUUID(projectIDStr)
+	if !pid.Valid {
+		return nil, pkg.ErrNotFound
+	}
 	rows, err := s.q.ListSegmentsByProject(ctx, pid)
 	if err != nil {
 		return nil, err
@@ -119,16 +129,22 @@ func (s *DBSegmentStore) Delete(id string) error {
 }
 
 // DeleteByProject 按项目软删除所有分段
-func (s *DBSegmentStore) DeleteByProject(projectID uint) error {
+func (s *DBSegmentStore) DeleteByProject(projectIDStr string) error {
 	ctx := context.Background()
-	pid := pkg.UintToUUID(projectID)
+	pid := pkg.StrToUUID(projectIDStr)
+	if !pid.Valid {
+		return pkg.ErrNotFound
+	}
 	return s.q.SoftDeleteSegmentsByProject(ctx, pid)
 }
 
 // ReorderByProject 按指定顺序重排分段
-func (s *DBSegmentStore) ReorderByProject(projectID uint, orderedIDs []string) error {
+func (s *DBSegmentStore) ReorderByProject(projectIDStr string, orderedIDs []string) error {
 	ctx := context.Background()
-	pid := pkg.UintToUUID(projectID)
+	pid := pkg.StrToUUID(projectIDStr)
+	if !pid.Valid {
+		return pkg.ErrNotFound
+	}
 	for i, id := range orderedIDs {
 		uid := pkg.ParseUUID(id)
 		if !uid.Valid {
@@ -147,7 +163,7 @@ func (s *DBSegmentStore) ReorderByProject(projectID uint, orderedIDs []string) e
 
 func dbToSegment(row *db.Segment, seg *Segment) {
 	seg.ID = pkg.UUIDString(row.ID)
-	seg.ProjectID = pkg.UUIDToUint(row.ProjectID)
+	seg.ProjectID = pkg.UUIDString(row.ProjectID)
 	seg.SortIndex = int(row.SortIndex)
 	seg.Content = textVal(row.Content)
 	seg.CreatedAt = row.CreatedAt.Time

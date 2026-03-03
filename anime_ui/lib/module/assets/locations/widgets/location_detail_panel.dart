@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/location.dart';
-import 'package:anime_ui/pub/services/api_svc.dart';
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/module/assets/shared/asset_detail_shell.dart';
 
 /// 场景详情面板

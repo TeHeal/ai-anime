@@ -71,7 +71,7 @@ type CharacterSnapshot struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	CharacterID string `json:"character_id"` // 对应 Character.ID
-	ProjectID   uint   `json:"project_id"`
+	ProjectID   string `json:"project_id"`   // 项目 ID 字符串（UUID）
 
 	StartSceneID string `json:"start_scene_id"`
 	EndSceneID   string `json:"end_scene_id"`

@@ -6,7 +6,7 @@ import 'package:anime_ui/pub/services/shot_svc.dart';
 
 final shotServiceProvider = Provider((_) => ShotService());
 
-/// 镜头列表
+/// 镜头列表（跨模块共享）
 class ShotsNotifier extends Notifier<AsyncValue<List<StoryboardShot>>> {
   @override
   AsyncValue<List<StoryboardShot>> build() => const AsyncValue.data([]);

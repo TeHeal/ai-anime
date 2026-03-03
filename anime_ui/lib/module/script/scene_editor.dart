@@ -231,7 +231,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
       ref
           .read(scriptSelectionProvider.notifier)
           .selectScene(ep.id!, target.id!);
-      await ref.read(scenesProvider.notifier).loadForEpisode(ep.id!);
+      ref.read(scenesProvider.notifier).setScenes(ep.scenes);
     } else if (direction < 0 && epIdx > 0) {
       final prevEp = episodes[epIdx - 1];
       if (prevEp.scenes.isNotEmpty) {
@@ -240,7 +240,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
         ref
             .read(scriptSelectionProvider.notifier)
             .selectScene(prevEp.id!, target.id!);
-        await ref.read(scenesProvider.notifier).loadForEpisode(prevEp.id!);
+        ref.read(scenesProvider.notifier).setScenes(prevEp.scenes);
       }
     } else if (direction > 0 && epIdx < episodes.length - 1) {
       final nextEp = episodes[epIdx + 1];
@@ -250,7 +250,7 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
         ref
             .read(scriptSelectionProvider.notifier)
             .selectScene(nextEp.id!, target.id!);
-        await ref.read(scenesProvider.notifier).loadForEpisode(nextEp.id!);
+        ref.read(scenesProvider.notifier).setScenes(nextEp.scenes);
       }
     }
   }

@@ -133,6 +133,45 @@ func (q *Queries) ListScenesByEpisode(ctx context.Context, episodeID pgtype.UUID
 	return items, nil
 }
 
+const listScenesByProject = `-- name: ListScenesByProject :many
+SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.episode_id, s.scene_id, s.location, s.time, s.interior_exterior, s.characters_json, s.sort_index FROM scenes s
+INNER JOIN episodes e ON s.episode_id = e.id AND e.deleted_at IS NULL
+WHERE e.project_id = $1 AND s.deleted_at IS NULL
+ORDER BY e.sort_index ASC, s.sort_index ASC
+`
+
+func (q *Queries) ListScenesByProject(ctx context.Context, projectID pgtype.UUID) ([]Scene, error) {
+	rows, err := q.db.Query(ctx, listScenesByProject, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Scene{}
+	for rows.Next() {
+		var i Scene
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.EpisodeID,
+			&i.SceneID,
+			&i.Location,
+			&i.Time,
+			&i.InteriorExterior,
+			&i.CharactersJson,
+			&i.SortIndex,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const softDeleteScene = `-- name: SoftDeleteScene :exec
 UPDATE scenes
 SET deleted_at = now()

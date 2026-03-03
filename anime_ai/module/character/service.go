@@ -2,6 +2,7 @@ package character
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/crossmodule"
@@ -10,9 +11,10 @@ import (
 
 // Service 角色业务逻辑层
 type Service struct {
-	data            Data
-	projectVerifier crossmodule.ProjectVerifier
-	memberResolver  crossmodule.ProjectMemberResolver
+	data               Data
+	projectVerifier    crossmodule.ProjectVerifier
+	memberResolver     crossmodule.ProjectMemberResolver
+	frozenAssetChecker crossmodule.FrozenAssetChecker
 }
 
 // NewService 创建 Service 实例
@@ -29,10 +31,15 @@ func NewServiceWithResolver(data Data, projectVerifier crossmodule.ProjectVerifi
 	}
 }
 
+// SetFrozenAssetChecker 注入资产冻结检查器（assets 锁定后禁止修改已纳入版本的角色）
+func (s *Service) SetFrozenAssetChecker(c crossmodule.FrozenAssetChecker) {
+	s.frozenAssetChecker = c
+}
+
 // CreateCharacterRequest 创建角色请求
 type CreateCharacterRequest struct {
-	ProjectID            *uint  `json:"project_id"`
-	Name                 string `json:"name" binding:"required"`
+	ProjectID            *string `json:"project_id"`
+	Name                 string  `json:"name" binding:"required"`
 	AliasJSON            string `json:"alias_json"`
 	Appearance           string `json:"appearance"`
 	Style                string `json:"style"`
@@ -90,17 +97,16 @@ type UpdateCharacterRequest struct {
 
 // Create 创建角色
 func (s *Service) Create(userID uint, req CreateCharacterRequest) (*Character, error) {
-	uidStr := pkg.UUIDString(pkg.UintToUUID(userID))
+	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
 	var projectIDStr *string
-	if req.ProjectID != nil {
-		pidStr := pkg.UUIDString(pkg.UintToUUID(*req.ProjectID))
-		projectIDStr = &pidStr
-		if err := s.checkAssetEditForProject(*req.ProjectID, userID); err != nil {
+	if req.ProjectID != nil && *req.ProjectID != "" {
+		projectIDStr = req.ProjectID
+		if err := s.checkAssetEditForProject(*req.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
 	c := &Character{
-		UserID:               uidStr,
+		UserID:               userIDStr,
 		ProjectID:            projectIDStr,
 		Name:                 req.Name,
 		AliasJSON:            req.AliasJSON,
@@ -146,22 +152,20 @@ func (s *Service) Get(id string, userID uint) (*Character, error) {
 }
 
 // ListByProject 按项目列出角色（需验证项目归属）
-func (s *Service) ListByProject(projectID, userID uint) ([]Character, error) {
+func (s *Service) ListByProject(projectIDStr, userIDStr string) ([]Character, error) {
 	if s.projectVerifier != nil {
-		if err := s.projectVerifier.Verify(pkg.UUIDString(pkg.UintToUUID(projectID)), pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.projectVerifier.Verify(projectIDStr, userIDStr); err != nil {
 			return nil, err
 		}
 	}
-	return s.data.ListCharactersByProject(projectID)
+	return s.data.ListCharactersByProject(projectIDStr)
 }
 
-// checkAssetEditForProject 校验项目内资产编辑权限（projectID/userID 为 uint，用于 /projects/:id/characters 路由）
-func (s *Service) checkAssetEditForProject(projectID, userID uint) error {
+// checkAssetEditForProject 校验项目内资产编辑权限（projectIDStr/userIDStr 为字符串）
+func (s *Service) checkAssetEditForProject(projectIDStr, userIDStr string) error {
 	if s.memberResolver == nil {
 		return nil
 	}
-	projectIDStr := pkg.UUIDString(pkg.UintToUUID(projectID))
-	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
 	return s.checkAssetEdit(projectIDStr, userIDStr)
 }
 
@@ -199,6 +203,12 @@ func (s *Service) Update(id string, userID uint, req UpdateCharacterRequest) (*C
 	if c.ProjectID != nil && *c.ProjectID != "" {
 		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 			return nil, err
+		}
+		if s.frozenAssetChecker != nil {
+			inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(*c.ProjectID, "character", id)
+			if err == nil && inFrozen {
+				return nil, fmt.Errorf("%w: assets 阶段已锁定，该角色已纳入版本，无法修改", pkg.ErrPhaseLocked)
+			}
 		}
 	}
 
@@ -306,6 +316,12 @@ func (s *Service) Confirm(id string, userID uint) (*Character, error) {
 		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 			return nil, err
 		}
+		if s.frozenAssetChecker != nil {
+			inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(*c.ProjectID, "character", id)
+			if err == nil && inFrozen {
+				return nil, fmt.Errorf("%w: assets 阶段已锁定，该角色已纳入版本，无法确认", pkg.ErrPhaseLocked)
+			}
+		}
 	}
 	c.Status = CharacterStatusConfirmed
 	if err := s.data.UpdateCharacter(c); err != nil {
@@ -340,6 +356,18 @@ func (s *Service) BatchConfirm(ids []string, userID uint) error {
 func userIDMatches(userIDStr string, userID uint) bool {
 	return userIDStr == pkg.UUIDString(pkg.UintToUUID(userID)) ||
 		userIDStr == fmt.Sprintf("%d", userID)
+}
+
+// userIDMatchesStr 判断角色 UserID 是否匹配给定 userIDStr（string，用于 GetUserIDStr 场景）
+func userIDMatchesStr(fromChar, fromCtx string) bool {
+	if fromChar == fromCtx {
+		return true
+	}
+	// MemData 可能存 "1"，上下文为 UUID
+	if u, err := strconv.ParseUint(fromChar, 10, 64); err == nil {
+		return fromCtx == pkg.UUIDString(pkg.UintToUUID(uint(u)))
+	}
+	return false
 }
 
 // BatchSetStyle 批量设置风格
@@ -410,6 +438,12 @@ func (s *Service) Delete(id string, userID uint) error {
 	if c.ProjectID != nil && *c.ProjectID != "" {
 		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
 			return err
+		}
+		if s.frozenAssetChecker != nil {
+			inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(*c.ProjectID, "character", id)
+			if err == nil && inFrozen {
+				return fmt.Errorf("%w: assets 阶段已锁定，该角色已纳入版本，无法删除", pkg.ErrPhaseLocked)
+			}
 		}
 	}
 	return s.data.DeleteCharacter(id)

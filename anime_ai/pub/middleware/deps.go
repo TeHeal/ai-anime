@@ -4,13 +4,14 @@ package middleware
 
 // ProjectInfo 项目基本信息，用于解析项目上下文
 type ProjectInfo struct {
-	UserID uint
-	TeamID uint
+	UserID    uint   // MemData 数字 id 时使用
+	UserIDStr string // UUID 时用于 owner 校验
+	TeamID    uint
 }
 
 // ProjectReader 项目读取接口
 type ProjectReader interface {
-	FindByIDOnly(id uint) (*ProjectInfo, error)
+	FindByIDOnly(idStr string) (*ProjectInfo, error)
 }
 
 // ProjectMemberInfo 项目成员信息
@@ -20,7 +21,7 @@ type ProjectMemberInfo struct {
 
 // ProjectMemberReader 项目成员读取接口
 type ProjectMemberReader interface {
-	FindByProjectAndUser(projectID, userID uint) (*ProjectMemberInfo, error)
+	FindByProjectAndUser(projectIDStr, userIDStr string) (*ProjectMemberInfo, error)
 }
 
 // TeamMemberInfo 团队成员信息
@@ -35,7 +36,7 @@ type TeamMemberReader interface {
 
 // LockChecker 阶段锁检查接口
 type LockChecker interface {
-	IsLocked(projectID uint, phase string) (bool, error)
+	IsLocked(projectIDStr string, phase string) (bool, error)
 }
 
 // AuditLogEntry 审计日志条目

@@ -23,12 +23,12 @@ redis-cli ping  # 应返回 PONG
 sudo apt-get install postgresql postgresql-contrib
 
 # 创建专用用户和数据库（推荐，避免使用 postgres 超级用户）
-sudo -u postgres psql -c "CREATE USER ai_anime WITH PASSWORD 'ai_anime_dev' CREATEDB;"
-sudo -u postgres createdb -O ai_anime ai_anime
+sudo -u postgres psql -c "CREATE USER yikai WITH PASSWORD 'mayikai' CREATEDB;"
+sudo -u postgres createdb -O yikai ai_anime
 
 # 应用 schema（从 anime_ai 目录执行）
 cd anime_ai
-PGPASSWORD=ai_anime_dev psql -h localhost -U ai_anime -d ai_anime -f sch/schema.sql
+PGPASSWORD=mayikai psql -h localhost -U yikai -d ai_anime -f sch/schema.sql
 ```
 
 config.yaml 中配置：
@@ -37,8 +37,8 @@ config.yaml 中配置：
 db:
   host: localhost
   port: 5432
-  user: ai_anime
-  password: "ai_anime_dev"  # 或使用 APP_DB_PASSWORD 环境变量
+  user: yikai
+  password: "mayikai"  # 或使用 APP_DB_PASSWORD 环境变量
   dbname: ai_anime
 ```
 

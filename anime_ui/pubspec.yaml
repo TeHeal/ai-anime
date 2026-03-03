@@ -26,7 +26,7 @@ dependencies:
   flutter_screenutil: any
   freezed_annotation: any
   go_router: any
-  json_annotation: any
+  json_annotation: ">=4.11.0"
   just_audio: any
   shadcn_flutter: any
   solar_icons: any

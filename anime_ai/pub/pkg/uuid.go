@@ -36,7 +36,8 @@ func StringToUUID(s string) (pgtype.UUID, error) {
 	return pgtype.UUID{Bytes: u, Valid: true}, nil
 }
 
-// UintToUUID 将 uint 转为确定性 pgtype.UUID（用于 project_id/user_id 等迁移期兼容）
+// UintToUUID 将 uint 转为确定性 pgtype.UUID（用于 user_id 等迁移期兼容）。
+// 仅用于兼容数字 id；新代码中 project_id 应使用 string 与 ParseUUID/StrToUUID，勿对 project_id 使用本函数。
 // 格式：00000000-0000-0000-0000-{12位十六进制}
 func UintToUUID(id uint) pgtype.UUID {
 	s := fmt.Sprintf("00000000-0000-0000-0000-%012x", id)
@@ -49,7 +50,8 @@ func StrToUUID(s string) pgtype.UUID { return ParseUUID(s) }
 // UUIDToStr 别名，兼容 project 等模块
 func UUIDToStr(u pgtype.UUID) string { return UUIDString(u) }
 
-// UUIDToUint 将确定性 UintToUUID 格式的 UUID 转回 uint，非该格式返回 0
+// UUIDToUint 将确定性 UintToUUID 格式的 UUID 转回 uint，非该格式返回 0。
+// 仅用于兼容数字 id；新代码中 project_id 应使用 UUIDString(row.ProjectID) 等，勿对 project_id 使用本函数。
 func UUIDToUint(u pgtype.UUID) uint {
 	if !u.Valid {
 		return 0

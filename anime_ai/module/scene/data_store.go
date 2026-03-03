@@ -81,6 +81,23 @@ func (s *DBSceneStore) ListByEpisode(episodeID string) ([]Scene, error) {
 	return out, nil
 }
 
+func (s *DBSceneStore) ListByProject(projectID string) ([]Scene, error) {
+	ctx := context.Background()
+	projUUID := pkg.StrToUUID(projectID)
+	if !projUUID.Valid {
+		return nil, pkg.ErrNotFound
+	}
+	rows, err := s.q.ListScenesByProject(ctx, projUUID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Scene, len(rows))
+	for i := range rows {
+		out[i] = *dbSceneToScene(&rows[i])
+	}
+	return out, nil
+}
+
 func (s *DBSceneStore) Update(sc *Scene) error {
 	ctx := context.Background()
 	idUUID := pkg.StrToUUID(sc.ID)
@@ -237,6 +254,32 @@ func (s *DBSceneBlockStore) ListByScene(sceneID string) ([]SceneBlock, error) {
 		return nil, pkg.ErrNotFound
 	}
 	rows, err := s.q.ListSceneBlocksByScene(ctx, sceneUUID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]SceneBlock, len(rows))
+	for i := range rows {
+		out[i] = *dbSceneBlockToSceneBlock(&rows[i])
+	}
+	return out, nil
+}
+
+func (s *DBSceneBlockStore) ListBySceneIDs(sceneIDs []string) ([]SceneBlock, error) {
+	if len(sceneIDs) == 0 {
+		return nil, nil
+	}
+	ctx := context.Background()
+	uuids := make([]pgtype.UUID, 0, len(sceneIDs))
+	for _, id := range sceneIDs {
+		u := pkg.StrToUUID(id)
+		if u.Valid {
+			uuids = append(uuids, u)
+		}
+	}
+	if len(uuids) == 0 {
+		return nil, nil
+	}
+	rows, err := s.q.ListSceneBlocksBySceneIDs(ctx, uuids)
 	if err != nil {
 		return nil, err
 	}

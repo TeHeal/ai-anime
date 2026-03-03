@@ -17,6 +17,12 @@ SELECT * FROM scenes
 WHERE episode_id = sqlc.arg('episode_id') AND deleted_at IS NULL
 ORDER BY sort_index ASC;
 
+-- name: ListScenesByProject :many
+SELECT s.* FROM scenes s
+INNER JOIN episodes e ON s.episode_id = e.id AND e.deleted_at IS NULL
+WHERE e.project_id = sqlc.arg('project_id') AND s.deleted_at IS NULL
+ORDER BY e.sort_index ASC, s.sort_index ASC;
+
 -- name: UpdateScene :one
 UPDATE scenes
 SET

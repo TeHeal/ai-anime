@@ -7,9 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
-DB_USER="ai_anime"
+DB_USER="yikai"
 DB_NAME="ai_anime"
-DB_PASSWORD="ai_anime_dev"
+DB_PASSWORD="mayikai"
 
 echo "=== 初始化数据库 ==="
 

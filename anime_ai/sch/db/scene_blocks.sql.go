@@ -126,6 +126,43 @@ func (q *Queries) ListSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUI
 	return items, nil
 }
 
+const listSceneBlocksBySceneIDs = `-- name: ListSceneBlocksBySceneIDs :many
+SELECT id, created_at, updated_at, deleted_at, scene_id, type, character, emotion, content, sort_index FROM scene_blocks
+WHERE scene_id = ANY($1::uuid[]) AND deleted_at IS NULL
+ORDER BY scene_id, sort_index ASC
+`
+
+func (q *Queries) ListSceneBlocksBySceneIDs(ctx context.Context, sceneIds []pgtype.UUID) ([]SceneBlock, error) {
+	rows, err := q.db.Query(ctx, listSceneBlocksBySceneIDs, sceneIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SceneBlock{}
+	for rows.Next() {
+		var i SceneBlock
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.SceneID,
+			&i.Type,
+			&i.Character,
+			&i.Emotion,
+			&i.Content,
+			&i.SortIndex,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const softDeleteSceneBlock = `-- name: SoftDeleteSceneBlock :exec
 UPDATE scene_blocks
 SET deleted_at = now()

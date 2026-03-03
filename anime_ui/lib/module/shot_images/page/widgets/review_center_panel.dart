@@ -6,7 +6,7 @@ import 'package:anime_ui/module/shot_images/providers/review_ui.dart';
 import 'package:anime_ui/module/shot_images/page/widgets/review_script_ref.dart';
 import 'package:anime_ui/module/shot_images/page/widgets/review_edit_toolbar.dart';
 import 'package:anime_ui/pub/models/shot.dart';
-import 'package:anime_ui/pub/services/api_svc.dart' show resolveFileUrl;
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';

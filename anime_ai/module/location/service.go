@@ -10,9 +10,10 @@ import (
 
 // Service 场景资产业务逻辑层
 type Service struct {
-	store           Store
-	projectVerifier crossmodule.ProjectVerifier
-	memberResolver  crossmodule.ProjectMemberResolver
+	store              Store
+	projectVerifier    crossmodule.ProjectVerifier
+	memberResolver     crossmodule.ProjectMemberResolver
+	frozenAssetChecker crossmodule.FrozenAssetChecker
 }
 
 // NewService 创建 Service 实例
@@ -27,6 +28,11 @@ func NewServiceWithResolver(store Store, projectVerifier crossmodule.ProjectVeri
 		projectVerifier: projectVerifier,
 		memberResolver:  memberResolver,
 	}
+}
+
+// SetFrozenAssetChecker 注入资产冻结检查器
+func (s *Service) SetFrozenAssetChecker(c crossmodule.FrozenAssetChecker) {
+	s.frozenAssetChecker = c
 }
 
 // CreateRequest 创建场景请求
@@ -104,6 +110,12 @@ func (s *Service) Update(locID, projectID, userID string, req UpdateRequest) (*L
 	if err := s.checkAssetEdit(projectID, userID); err != nil {
 		return nil, err
 	}
+	if s.frozenAssetChecker != nil {
+		inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(projectID, "location", locID)
+		if err == nil && inFrozen {
+			return nil, fmt.Errorf("%w: assets 阶段已锁定，该场景已纳入版本，无法修改", pkg.ErrPhaseLocked)
+		}
+	}
 	loc, err := s.Get(locID, projectID, userID)
 	if err != nil {
 		return nil, err
@@ -155,6 +167,12 @@ func (s *Service) Confirm(locID, projectID, userID string) (*Location, error) {
 	if err := s.checkAssetEdit(projectID, userID); err != nil {
 		return nil, err
 	}
+	if s.frozenAssetChecker != nil {
+		inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(projectID, "location", locID)
+		if err == nil && inFrozen {
+			return nil, fmt.Errorf("%w: assets 阶段已锁定，该场景已纳入版本，无法确认", pkg.ErrPhaseLocked)
+		}
+	}
 	loc, err := s.Get(locID, projectID, userID)
 	if err != nil {
 		return nil, err
@@ -170,6 +188,12 @@ func (s *Service) Confirm(locID, projectID, userID string) (*Location, error) {
 func (s *Service) Delete(locID, projectID, userID string) error {
 	if err := s.checkAssetEdit(projectID, userID); err != nil {
 		return err
+	}
+	if s.frozenAssetChecker != nil {
+		inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(projectID, "location", locID)
+		if err == nil && inFrozen {
+			return fmt.Errorf("%w: assets 阶段已锁定，该场景已纳入版本，无法删除", pkg.ErrPhaseLocked)
+		}
 	}
 	if _, err := s.Get(locID, projectID, userID); err != nil {
 		return err

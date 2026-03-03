@@ -10,7 +10,7 @@ import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/widgets/ai_chat_panel.dart';
 import 'package:anime_ui/pub/services/episode_svc.dart';
 import 'package:anime_ui/module/assets/adapters/resource_list_adapter.dart';
-import 'package:anime_ui/module/layout/header.dart';
+import 'package:anime_ui/pub/layout/header.dart';
 import 'package:anime_ui/pub/widgets/notification_drawer.dart';
 import 'package:anime_ui/pub/widgets/side_nav.dart';
 

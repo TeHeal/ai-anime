@@ -43,23 +43,7 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
     if (_freezing) return;
     setState(() => _freezing = true);
     try {
-      final chars = ref.read(assetCharactersProvider).value ?? [];
-      final locs = ref.read(assetLocationsProvider).value ?? [];
-
-      // 冻结前自动确认未确认的角色
-      final draftIds = chars
-          .where((c) => c.status != 'confirmed' && c.id != null)
-          .map((c) => c.id!)
-          .toList();
-      if (draftIds.isNotEmpty) {
-        await ref.read(assetCharactersProvider.notifier).batchConfirm(draftIds);
-      }
-      for (final loc in locs) {
-        if (loc.status != 'confirmed' && loc.id != null) {
-          await ref.read(assetLocationsProvider.notifier).confirm(loc.id!);
-        }
-      }
-
+      // 只冻结已确认的角色、场景、道具，未确认的跳过
       final version = await ref.read(assetVersionsProvider.notifier).freeze();
       if (!mounted) return;
 
@@ -105,6 +89,7 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
 
     final confirmedChars = chars.where((c) => c.isConfirmed).length;
     final confirmedLocs = locs.where((l) => l.status == 'confirmed').length;
+    final confirmedProps = props.where((p) => p.isConfirmed).length;
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
@@ -136,7 +121,8 @@ class _AssetsVersionsPageState extends ConsumerState<AssetsVersionsPage> {
                 charConfirmed: confirmedChars,
                 locTotal: locs.length,
                 locConfirmed: confirmedLocs,
-                propCount: props.length,
+                propTotal: props.length,
+                propConfirmed: confirmedProps,
                 isLocked: isLocked,
               ),
               if (_showUnfreezeWarning) ...[

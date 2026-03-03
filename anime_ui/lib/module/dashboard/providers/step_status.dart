@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/domain/step_status.dart';
 import 'package:anime_ui/module/script/providers/script.dart';
-import 'package:anime_ui/module/script/providers/shots.dart';
+import 'package:anime_ui/pub/providers/shots_provider.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 
 /// 对象状态提供者 — 计算 6 个核心对象的完成状态

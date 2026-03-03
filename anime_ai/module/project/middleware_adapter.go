@@ -1,14 +1,11 @@
 package project
 
 import (
-	"strconv"
-
 	"github.com/TeHeal/ai-anime/anime_ai/pub/middleware"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 )
 
-// ProjectReaderAdapter 将 project.Data 适配为 middleware.ProjectReader
-// middleware 使用 uint ID（从 URL 参数解析），Data 使用 string ID
+// ProjectReaderAdapter 将 project.Data 适配为 middleware.ProjectReader（项目 ID 统一为 string）
 func ProjectReaderAdapter(data Data) middleware.ProjectReader {
 	return &projectReaderAdapter{data: data}
 }
@@ -17,16 +14,16 @@ type projectReaderAdapter struct {
 	data Data
 }
 
-func (a *projectReaderAdapter) FindByIDOnly(id uint) (*middleware.ProjectInfo, error) {
-	idStr := strconv.FormatUint(uint64(id), 10)
+func (a *projectReaderAdapter) FindByIDOnly(idStr string) (*middleware.ProjectInfo, error) {
 	p, err := a.data.FindByIDOnly(idStr)
 	if err != nil {
 		return nil, err
 	}
-	return &middleware.ProjectInfo{
-		UserID: p.UserID,
-		TeamID: p.TeamID,
-	}, nil
+	info := &middleware.ProjectInfo{UserID: p.UserID, TeamID: p.TeamID}
+	if p.UserIDStr != "" {
+		info.UserIDStr = p.UserIDStr
+	}
+	return info, nil
 }
 
 // ProjectMemberReaderAdapter 将 project.Data 适配为 middleware.ProjectMemberReader
@@ -38,10 +35,8 @@ type projectMemberReaderAdapter struct {
 	data Data
 }
 
-func (a *projectMemberReaderAdapter) FindByProjectAndUser(projectID, userID uint) (*middleware.ProjectMemberInfo, error) {
-	pStr := strconv.FormatUint(uint64(projectID), 10)
-	uStr := strconv.FormatUint(uint64(userID), 10)
-	m, err := a.data.FindMemberByProjectAndUser(pStr, uStr)
+func (a *projectMemberReaderAdapter) FindByProjectAndUser(projectIDStr, userIDStr string) (*middleware.ProjectMemberInfo, error) {
+	m, err := a.data.FindMemberByProjectAndUser(projectIDStr, userIDStr)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +44,6 @@ func (a *projectMemberReaderAdapter) FindByProjectAndUser(projectID, userID uint
 }
 
 // NoopTeamMemberReader 空实现，团队成员功能尚未完成时使用
-// 始终返回 ErrNotFound，ProjectContext 会回退到项目级权限判断
 type NoopTeamMemberReader struct{}
 
 func (n *NoopTeamMemberReader) FindByTeamAndUser(teamID, userID uint) (*middleware.TeamMemberInfo, error) {

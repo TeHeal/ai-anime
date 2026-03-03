@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/TeHeal/ai-anime/anime_ai/sch/db"
@@ -125,9 +126,56 @@ func (d *DBData) UpdateProject(p *Project) error {
 		PropsJson:      []byte(p.PropsJSON),
 		StoryboardJson: []byte(p.StoryboardJSON),
 		MirrorMode:     pgtype.Bool{Bool: p.MirrorMode, Valid: true},
+		StoryLocked:    pgtype.Bool{Bool: p.StoryLocked, Valid: true},
+		AssetsLocked:   pgtype.Bool{Bool: p.AssetsLocked, Valid: true},
+		ScriptLocked:   pgtype.Bool{Bool: p.ScriptLocked, Valid: true},
+	}
+	if p.StoryLockedAt != nil {
+		arg.StoryLockedAt = pgtype.Timestamptz{Time: *p.StoryLockedAt, Valid: true}
+	}
+	if p.AssetsLockedAt != nil {
+		arg.AssetsLockedAt = pgtype.Timestamptz{Time: *p.AssetsLockedAt, Valid: true}
+	}
+	if p.ScriptLockedAt != nil {
+		arg.ScriptLockedAt = pgtype.Timestamptz{Time: *p.ScriptLockedAt, Valid: true}
 	}
 	_, err := d.q.UpdateProject(ctx, arg)
 	return err
+}
+
+// UpdateLockPhase 更新指定阶段的锁定状态
+func (d *DBData) UpdateLockPhase(projectID, phase string, locked bool) error {
+	p, err := d.FindByIDOnly(projectID)
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	switch phase {
+	case "story":
+		p.StoryLocked = locked
+		if locked {
+			p.StoryLockedAt = &now
+		} else {
+			p.StoryLockedAt = nil
+		}
+	case "assets":
+		p.AssetsLocked = locked
+		if locked {
+			p.AssetsLockedAt = &now
+		} else {
+			p.AssetsLockedAt = nil
+		}
+	case "script":
+		p.ScriptLocked = locked
+		if locked {
+			p.ScriptLockedAt = &now
+		} else {
+			p.ScriptLockedAt = nil
+		}
+	default:
+		return errors.New("无效的 phase")
+	}
+	return d.UpdateProject(p)
 }
 
 func (d *DBData) DeleteProject(id string, userID string) error {

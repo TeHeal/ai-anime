@@ -113,16 +113,16 @@ func (p *Project) ToResponse() ProjectResponse {
 	}
 }
 
-// ProjectMember 项目成员
+// ProjectMember 项目成员（API 响应中 id/project_id/user_id 为字符串以兼容 UUID）
 type ProjectMember struct {
-	ID           uint       `json:"id"`
-	IDStr        string     `json:"-"`
+	ID           uint       `json:"-"`
+	IDStr        string     `json:"id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
-	ProjectID    uint       `json:"project_id"`
-	ProjectIDStr string     `json:"-"`
-	UserID       uint       `json:"user_id"`
-	UserIDStr    string     `json:"-"`
+	ProjectID    uint       `json:"-"`
+	ProjectIDStr string     `json:"project_id"`
+	UserID       uint       `json:"-"`
+	UserIDStr    string     `json:"user_id"`
 	Role         string     `json:"role"`      // owner, editor, viewer
 	JobRoles     []string   `json:"job_roles"` // 工种：director, storyboarder, designer 等
 	JoinedAt     *time.Time `json:"joined_at"`

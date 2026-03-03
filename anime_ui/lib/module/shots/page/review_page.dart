@@ -5,7 +5,7 @@ import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/module/script/providers/shots.dart' show shotsProvider;
+import 'package:anime_ui/pub/providers/shots_provider.dart' show shotsProvider;
 import 'package:anime_ui/module/script/providers/script.dart';
 import 'package:anime_ui/pub/widgets/review_layout/qa_checklist.dart';
 import 'package:anime_ui/pub/widgets/review_layout/review_scaffold.dart';

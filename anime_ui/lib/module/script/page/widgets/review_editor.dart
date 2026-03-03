@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
-import 'package:anime_ui/pub/services/api_svc.dart' show resolveFileUrl;
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_network_image.dart';
 import 'package:anime_ui/pub/models/character.dart';

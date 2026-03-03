@@ -2,8 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'realtime_svc.dart';
 
-export 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl, kServerOrigin;
-
 /// Base URL for the backend API.
 /// Override at build time: `flutter run --dart-define=API_BASE_URL=https://example.com/api/v1`
 const _kBaseUrl = String.fromEnvironment(

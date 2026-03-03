@@ -8,10 +8,10 @@ type AnalyzeRequest struct {
 }
 
 // AnalyzePreview 分析预览（占位）
-func (s *Service) AnalyzePreview(ctx context.Context, projectID, userID uint, req AnalyzeRequest) (interface{}, error) {
+func (s *Service) AnalyzePreview(ctx context.Context, projectIDStr, userIDStr string, req AnalyzeRequest) (interface{}, error) {
 	_ = ctx
 	_ = req
-	if err := s.checkAssetEditForProject(projectID, userID); err != nil {
+	if err := s.checkAssetEditForProject(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
 	return map[string]interface{}{
@@ -21,10 +21,10 @@ func (s *Service) AnalyzePreview(ctx context.Context, projectID, userID uint, re
 }
 
 // AnalyzeConfirm 分析确认（占位）
-func (s *Service) AnalyzeConfirm(ctx context.Context, projectID, userID uint, req AnalyzeRequest) (interface{}, error) {
+func (s *Service) AnalyzeConfirm(ctx context.Context, projectIDStr, userIDStr string, req AnalyzeRequest) (interface{}, error) {
 	_ = ctx
 	_ = req
-	if err := s.checkAssetEditForProject(projectID, userID); err != nil {
+	if err := s.checkAssetEditForProject(projectIDStr, userIDStr); err != nil {
 		return nil, err
 	}
 	return map[string]interface{}{

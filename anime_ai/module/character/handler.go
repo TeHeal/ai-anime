@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -21,15 +22,9 @@ func NewHandler(svc *Service) *Handler {
 // parseCharID 解析角色 ID，支持 UUID 或数字格式，直接返回字符串
 func parseCharID(s string) (string, error) {
 	if s == "" {
-		return "", strconv.ErrSyntax
+		return "", errors.New("empty character id")
 	}
 	return s, nil
-}
-
-// parseProjectID 解析项目 ID（仍为 uint，用于 ProjectVerifier）
-func parseProjectID(s string) (uint, error) {
-	n, err := strconv.ParseUint(s, 10, 64)
-	return uint(n), err
 }
 
 // Create 创建角色
@@ -69,14 +64,17 @@ func (h *Handler) Get(c *gin.Context) {
 
 // ListByProject 按项目列出角色
 func (h *Handler) ListByProject(c *gin.Context) {
-	projectID, err := parseProjectID(c.Param("id"))
-	if err != nil {
+	projectIDStr := auth.GetProjectIDStr(c)
+	if projectIDStr == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
-
-	chars, err := h.svc.ListByProject(projectID, userID)
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
+	chars, err := h.svc.ListByProject(projectIDStr, userIDStr)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
@@ -449,17 +447,20 @@ func (h *Handler) ExtractBio(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	projectID, err := parseProjectID(c.Param("id"))
-	if err != nil {
+	projectIDStr := auth.GetProjectIDStr(c)
+	if projectIDStr == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
-
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
 	var req ExtractBioRequest
 	_ = c.ShouldBindJSON(&req)
 
-	char, err := h.svc.ExtractBio(c.Request.Context(), projectID, charID, userID, req)
+	char, err := h.svc.ExtractBio(c.Request.Context(), projectIDStr, charID, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return

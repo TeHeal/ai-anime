@@ -12,14 +12,17 @@ class SceneService {
     String time = '',
     String interiorExterior = '',
     List<String> characters = const [],
+    int? sortIndex,
   }) async {
-    final resp = await dio.post(_basePath(projectId, episodeId), data: {
+    final data = <String, dynamic>{
       'scene_id': sceneId,
       'location': location,
       'time': time,
       'interior_exterior': interiorExterior,
       'characters': characters,
-    });
+    };
+    if (sortIndex != null) data['sort_index'] = sortIndex;
+    final resp = await dio.post(_basePath(projectId, episodeId), data: data);
     return extractDataObject(resp, Scene.fromJson);
   }
 

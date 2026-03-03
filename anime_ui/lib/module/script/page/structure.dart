@@ -40,7 +40,11 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
   final _loadedEpisodeScenes = <String>{};
 
   Future<void> _onSceneSelected(String episodeId, String sceneDbId) async {
-    if (!_loadedEpisodeScenes.contains(episodeId)) {
+    final episodes = ref.read(episodesProvider).value ?? [];
+    final ep = episodes.where((e) => e.id == episodeId).firstOrNull;
+    if (ep != null && ep.scenes.isNotEmpty) {
+      ref.read(scenesProvider.notifier).setScenes(ep.scenes);
+    } else if (!_loadedEpisodeScenes.contains(episodeId)) {
       _loadedEpisodeScenes.add(episodeId);
       await ref.read(scenesProvider.notifier).loadForEpisode(episodeId);
     }
@@ -68,22 +72,26 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
     }
   }
 
-  Future<void> _onAddScene(String episodeId) async {
+  Future<void> _onAddScene(String episodeId, {int? afterIndex}) async {
     try {
       final episodes = ref.read(episodesProvider).value ?? [];
       final ep = episodes.where((e) => e.id == episodeId).firstOrNull;
       final epIdx = ep != null ? (ep.sortIndex + 1) : 1;
-      final sceneCount = ep?.scenes.length ?? 0;
-      final sceneId = '$epIdx-${sceneCount + 1}';
+      final sortIndex = afterIndex == null ? 0 : afterIndex + 1;
+      final sceneId = '$epIdx-${sortIndex + 1}';
 
-      if (!_loadedEpisodeScenes.contains(episodeId)) {
+      if (ep != null && ep.scenes.isNotEmpty) {
+        ref.read(scenesProvider.notifier).setScenes(ep.scenes);
+      } else if (!_loadedEpisodeScenes.contains(episodeId)) {
         _loadedEpisodeScenes.add(episodeId);
         await ref.read(scenesProvider.notifier).loadForEpisode(episodeId);
       }
 
-      final scene = await ref
-          .read(scenesProvider.notifier)
-          .add(episodeId, sceneId: sceneId);
+      final scene = await ref.read(scenesProvider.notifier).add(
+            episodeId,
+            sceneId: sceneId,
+            sortIndex: sortIndex,
+          );
 
       await ref.read(episodesProvider.notifier).load();
 
@@ -217,6 +225,23 @@ class _ScriptStructurePageState extends ConsumerState<ScriptStructurePage> {
         _loaded = false;
         _loadEpisodes();
       }
+    });
+
+    ref.listen(episodesProvider, (prev, next) {
+      next.whenData((episodes) {
+        if (episodes.isEmpty) return;
+        final sel = ref.read(scriptSelectionProvider);
+        if (sel.sceneId != null) return;
+        for (final ep in episodes) {
+          if (ep.scenes.isNotEmpty) {
+            ref.read(scenesProvider.notifier).setScenes(ep.scenes);
+            ref
+                .read(scriptSelectionProvider.notifier)
+                .selectScene(ep.id!, ep.scenes.first.id!);
+            break;
+          }
+        }
+      });
     });
 
     return episodesState.when(

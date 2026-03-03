@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:anime_ui/module/script/providers/shots.dart' show shotsProvider;
+import 'package:anime_ui/pub/providers/shots_provider.dart' show shotsProvider;
 import 'package:anime_ui/module/shot_images/providers/center_ui.dart';
 import 'package:anime_ui/module/shot_images/page/provider.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/models/shot.dart';
-import 'package:anime_ui/pub/services/api_svc.dart' show resolveFileUrl;
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/generation_center/batch_action_bar.dart';

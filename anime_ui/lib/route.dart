@@ -14,7 +14,7 @@ import 'package:anime_ui/module/login/index.dart';
 import 'package:anime_ui/module/register/index.dart';
 import 'package:anime_ui/module/project/index.dart';
 import 'package:anime_ui/module/dashboard/index.dart';
-import 'package:anime_ui/module/layout/layout.dart';
+import 'package:anime_ui/pub/layout/layout.dart';
 
 // ① 剧本 Story
 import 'package:anime_ui/module/story/index.dart';

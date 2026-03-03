@@ -60,8 +60,14 @@ class ScriptParseResult {
   ScriptParseResult({required this.script, required this.issues});
 
   factory ScriptParseResult.fromJson(Map<String, dynamic> json) {
+    final scriptRaw = json['script'];
+    if (scriptRaw == null) {
+      throw const FormatException(
+        '解析结果为空：后端剧本解析功能返回了空数据，请检查输入格式或联系管理员',
+      );
+    }
     return ScriptParseResult(
-      script: ParsedScript.fromJson(json['script'] as Map<String, dynamic>),
+      script: ParsedScript.fromJson(scriptRaw as Map<String, dynamic>),
       issues: (json['issues'] as List<dynamic>? ?? [])
           .map((e) => ValidationIssue.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -78,13 +84,24 @@ class ParsedScript {
       {required this.title, required this.episodes, required this.metadata});
 
   factory ParsedScript.fromJson(Map<String, dynamic> json) {
+    final metadataRaw = json['metadata'];
+    final metadata = metadataRaw != null
+        ? ParsedMetadata.fromJson(metadataRaw as Map<String, dynamic>)
+        : ParsedMetadata(
+            totalLines: 0,
+            recognizedLines: 0,
+            recognizeRate: 0,
+            episodeCount: 0,
+            sceneCount: 0,
+            characterNames: [],
+            unknownBlocks: 0,
+          );
     return ParsedScript(
       title: json['title'] as String? ?? '',
       episodes: (json['episodes'] as List<dynamic>? ?? [])
           .map((e) => ParsedEpisode.fromJson(e as Map<String, dynamic>))
           .toList(),
-      metadata:
-          ParsedMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
+      metadata: metadata,
     );
   }
 }

@@ -172,40 +172,7 @@ class DraftContent extends StatelessWidget {
 
   /// 拖拽式上传区域
   Widget _buildUploadZone(BuildContext context) {
-    return GestureDetector(
-      onTap: onUpload,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-          border: Border.all(color: AppColors.border, width: 1),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                AppIcons.uploadOutline,
-                size: 56.r,
-                color: AppColors.mutedDark,
-              ),
-              const SizedBox(height: Spacing.lg),
-              Text(
-                '点击上传 .md / .txt 剧本文件',
-                style: AppTextStyles.bodyLarge.copyWith(color: AppColors.muted),
-              ),
-              const SizedBox(height: Spacing.sm),
-              Text(
-                '支持长篇剧本（推荐 20 万字以内） · UTF-8 / GBK 自动识别',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.mutedDarker,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return _UploadZone(onTap: onUpload);
   }
 
   /// 文件加载后：预览前 50 行
@@ -329,6 +296,76 @@ class DraftContent extends StatelessWidget {
       return '${(count / 10000).toStringAsFixed(1)} 万字';
     }
     return '$count 字';
+  }
+}
+
+/// 拖拽式上传区域（带悬停反馈：小手光标 + 背景/边框/图标动效）
+class _UploadZone extends StatefulWidget {
+  const _UploadZone({this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  State<_UploadZone> createState() => _UploadZoneState();
+}
+
+class _UploadZoneState extends State<_UploadZone> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            color: _hovered
+                ? AppColors.surfaceContainerHigh
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+            border: Border.all(
+              color: _hovered
+                  ? AppColors.primary.withValues(alpha: 0.35)
+                  : AppColors.border,
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.uploadOutline,
+                  size: 56.r,
+                  color: _hovered
+                      ? AppColors.primary.withValues(alpha: 0.7)
+                      : AppColors.mutedDark,
+                ),
+                const SizedBox(height: Spacing.lg),
+                Text(
+                  '点击上传 .md / .txt 剧本文件',
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: _hovered ? AppColors.mutedLight : AppColors.muted,
+                  ),
+                ),
+                const SizedBox(height: Spacing.sm),
+                Text(
+                  '支持长篇剧本（推荐 20 万字以内） · UTF-8 / GBK 自动识别',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.mutedDarker,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

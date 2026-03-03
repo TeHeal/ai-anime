@@ -44,31 +44,32 @@ func (s *Scene) SetCharacters(chars []string) {
 }
 
 // SceneBlock 内容块实体，属于 Scene，ID 统一为 string (UUID)
+// JSON 使用 camelCase 以兼容 Flutter
 type SceneBlock struct {
 	ID        string    `json:"id"`
-	SceneID   string    `json:"scene_id"`
+	SceneID   string    `json:"sceneId"`
 	Type      string    `json:"type"`
 	Character string    `json:"character"`
 	Emotion   string    `json:"emotion"`
 	Content   string    `json:"content"`
-	SortIndex int       `json:"sort_index"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	SortIndex int       `json:"sortIndex"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// SceneResponse 场 API 响应
+// SceneResponse 场 API 响应（camelCase 以兼容 Flutter）
 type SceneResponse struct {
 	ID               string       `json:"id"`
-	EpisodeID        string       `json:"episode_id"`
-	SceneID          string       `json:"scene_id"`
+	EpisodeID        string       `json:"episodeId"`
+	SceneID          string       `json:"sceneId"`
 	Location         string       `json:"location"`
 	Time             string       `json:"time"`
-	InteriorExterior string       `json:"interior_exterior"`
+	InteriorExterior string       `json:"interiorExterior"`
 	Characters       []string     `json:"characters"`
-	SortIndex        int          `json:"sort_index"`
+	SortIndex        int          `json:"sortIndex"`
 	Blocks           []SceneBlock `json:"blocks,omitempty"`
-	CreatedAt        time.Time    `json:"created_at"`
-	UpdatedAt        time.Time    `json:"updated_at"`
+	CreatedAt        time.Time    `json:"createdAt"`
+	UpdatedAt        time.Time    `json:"updatedAt"`
 }
 
 // ToResponse 转为 API 响应

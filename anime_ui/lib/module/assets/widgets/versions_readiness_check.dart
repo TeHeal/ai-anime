@@ -5,6 +5,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 
 /// 冻结前检查 / 冻结时资产状态
+/// 冻结范围：仅已确认的角色、场景、道具；锁定后仍可新增
 class VersionsReadinessCheck extends StatelessWidget {
   const VersionsReadinessCheck({
     super.key,
@@ -12,7 +13,8 @@ class VersionsReadinessCheck extends StatelessWidget {
     required this.charConfirmed,
     required this.locTotal,
     required this.locConfirmed,
-    required this.propCount,
+    required this.propTotal,
+    required this.propConfirmed,
     required this.isLocked,
   });
 
@@ -20,7 +22,8 @@ class VersionsReadinessCheck extends StatelessWidget {
   final int charConfirmed;
   final int locTotal;
   final int locConfirmed;
-  final int propCount;
+  final int propTotal;
+  final int propConfirmed;
   final bool isLocked;
 
   @override
@@ -72,12 +75,19 @@ class VersionsReadinessCheck extends StatelessWidget {
           _checkRow(
             AppIcons.category,
             '道具',
-            '$propCount 个',
-            propCount > 0,
-            null,
+            '$propConfirmed / $propTotal 已确认',
+            propTotal > 0 && propConfirmed == propTotal,
+            propTotal > 0 && propConfirmed < propTotal
+                ? '${propTotal - propConfirmed} 个待确认'
+                : null,
           ),
           Divider(color: AppColors.surfaceContainer, height: 20.h),
           _checkRow(AppIcons.brush, '风格', '已设定', true, null),
+          SizedBox(height: Spacing.md.h),
+          Text(
+            '冻结范围：仅已确认的角色、场景、道具；锁定后仍可新增',
+            style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+          ),
         ],
       ),
     );

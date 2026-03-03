@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/services/script_parse_svc.dart';
@@ -89,9 +90,17 @@ class ParseStateNotifier extends Notifier<ParseState> {
         stepLabel: '解析完成',
       );
     } catch (e) {
+      String msg = e.toString();
+      if (e is DioException && e.response?.data is Map) {
+        final data = e.response!.data as Map;
+        final backendMsg = data['message']?.toString();
+        if (backendMsg != null && backendMsg.isNotEmpty) {
+          msg = backendMsg;
+        }
+      }
       state = ParseState(
         phase: ParsePhase.error,
-        errorMessage: e.toString(),
+        errorMessage: msg,
         stepLabel: '解析失败',
       );
     }

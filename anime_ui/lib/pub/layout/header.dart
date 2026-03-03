@@ -13,7 +13,7 @@ import 'package:anime_ui/pub/providers/notification_provider.dart';
 import 'package:anime_ui/pub/widgets/user_menu.dart';
 
 /// 主布局 AppBar — 仪表盘入口、项目列表、通知、用户菜单
-/// 归属 layout 模块，可依赖 dashboard 等同级模块
+/// 归属 pub/layout，可依赖 dashboard 等 module
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({super.key});
 

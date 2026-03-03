@@ -2,6 +2,7 @@ package main
 
 import (
 	modauth "github.com/TeHeal/ai-anime/anime_ai/module/auth"
+	"github.com/TeHeal/ai-anime/anime_ai/module/asset_version"
 	"github.com/TeHeal/ai-anime/anime_ai/module/character"
 	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
 	"github.com/TeHeal/ai-anime/anime_ai/module/download"
@@ -120,14 +121,32 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 				projectScoped.PUT("/members/:userId/job-roles", middleware.RequireAction(auth.ActionManageMembers), cfg.ProjectHandler.UpdateMemberJobRoles)
 				projectScoped.DELETE("/members/:userId", middleware.RequireAction(auth.ActionManageMembers), cfg.ProjectHandler.RemoveMember)
 
-				// 集 CRUD
+				// 阶段锁定（README §2.4 剧本锁定、资产版本）
+				projectScoped.GET("/lock", cfg.ProjectHandler.GetLockStatus)
+				projectScoped.POST("/lock/:phase", middleware.RequireAction(auth.ActionEdit), cfg.ProjectHandler.LockPhase)
+				projectScoped.DELETE("/lock/:phase", middleware.RequireAction(auth.ActionEdit), cfg.ProjectHandler.UnlockPhase)
+
+				// 资产版本（Freeze/Unfreeze）
+				if cfg.AssetVersionHandler != nil {
+					projectScoped.GET("/asset-versions", cfg.AssetVersionHandler.List)
+					projectScoped.POST("/asset-versions/freeze", middleware.RequireAction(auth.ActionEdit), cfg.AssetVersionHandler.Freeze)
+					projectScoped.POST("/asset-versions/unfreeze", middleware.RequireAction(auth.ActionEdit), cfg.AssetVersionHandler.Unfreeze)
+				}
+
+				// 集 CRUD（storyGuard：剧本锁定后禁止写，LockChecker 为空时跳过）
+				var storyGuard gin.HandlerFunc
+				if cfg.LockChecker != nil {
+					storyGuard = middleware.LockGuard(cfg.LockChecker, "story")
+				} else {
+					storyGuard = func(c *gin.Context) { c.Next() }
+				}
 				if cfg.EpisodeHandler != nil {
-					projectScoped.POST("/episodes", middleware.RequireAction(auth.ActionEdit), cfg.EpisodeHandler.Create)
+					projectScoped.POST("/episodes", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.EpisodeHandler.Create)
 					projectScoped.GET("/episodes", cfg.EpisodeHandler.List)
 					projectScoped.GET("/episodes/:epId", cfg.EpisodeHandler.Get)
-					projectScoped.PUT("/episodes/:epId", middleware.RequireAction(auth.ActionEdit), cfg.EpisodeHandler.Update)
-					projectScoped.DELETE("/episodes/:epId", middleware.RequireAction(auth.ActionEdit), cfg.EpisodeHandler.Delete)
-					projectScoped.PUT("/episodes/reorder", middleware.RequireAction(auth.ActionEdit), cfg.EpisodeHandler.Reorder)
+					projectScoped.PUT("/episodes/:epId", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.EpisodeHandler.Update)
+					projectScoped.DELETE("/episodes/:epId", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.EpisodeHandler.Delete)
+					projectScoped.PUT("/episodes/reorder", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.EpisodeHandler.Reorder)
 					projectScoped.GET("/episodes/:epId/package-config", cfg.EpisodeHandler.GetPackageConfig)
 					// 按集打包（README 2.7）
 					if cfg.PackageHandler != nil {
@@ -174,23 +193,23 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projectScoped.DELETE("/schedules/:scheduleId", middleware.RequireAction(auth.ActionEdit), cfg.ScheduleHandler.Delete)
 				}
 
-				// 场 CRUD（嵌套在集下）
+				// 场 CRUD（嵌套在集下，storyGuard）
 				if cfg.SceneHandler != nil {
-					projectScoped.POST("/episodes/:epId/scenes", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.Create)
+					projectScoped.POST("/episodes/:epId/scenes", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.Create)
 					projectScoped.GET("/episodes/:epId/scenes", cfg.SceneHandler.List)
 					projectScoped.GET("/episodes/:epId/scenes/:sceneId", cfg.SceneHandler.Get)
-					projectScoped.PUT("/episodes/:epId/scenes/:sceneId", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.Update)
-					projectScoped.DELETE("/episodes/:epId/scenes/:sceneId", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.Delete)
-					projectScoped.PUT("/episodes/:epId/scenes/reorder", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.Reorder)
-					projectScoped.PUT("/episodes/:epId/scenes/:sceneId/blocks", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.SaveBlocks)
+					projectScoped.PUT("/episodes/:epId/scenes/:sceneId", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.Update)
+					projectScoped.DELETE("/episodes/:epId/scenes/:sceneId", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.Delete)
+					projectScoped.PUT("/episodes/:epId/scenes/reorder", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.Reorder)
+					projectScoped.PUT("/episodes/:epId/scenes/:sceneId/blocks", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.SaveBlocks)
 				}
 
-				// 块 CRUD（project-scoped sceneId）
+				// 块 CRUD（project-scoped sceneId，storyGuard）
 				if cfg.SceneHandler != nil {
-					projectScoped.POST("/scenes/:sceneId/blocks", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.CreateBlock)
-					projectScoped.PUT("/scenes/:sceneId/blocks/:blockId", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.UpdateBlock)
-					projectScoped.DELETE("/scenes/:sceneId/blocks/:blockId", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.DeleteBlock)
-					projectScoped.PUT("/scenes/:sceneId/blocks/reorder", middleware.RequireAction(auth.ActionEdit), cfg.SceneHandler.ReorderBlocks)
+					projectScoped.POST("/scenes/:sceneId/blocks", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.CreateBlock)
+					projectScoped.PUT("/scenes/:sceneId/blocks/:blockId", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.UpdateBlock)
+					projectScoped.DELETE("/scenes/:sceneId/blocks/:blockId", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.DeleteBlock)
+					projectScoped.PUT("/scenes/:sceneId/blocks/reorder", middleware.RequireAction(auth.ActionEdit), storyGuard, cfg.SceneHandler.ReorderBlocks)
 				}
 
 				// 角色（项目内）
@@ -243,7 +262,7 @@ func registerRoutes(r *gin.Engine, cfg *RouteConfig) {
 					projectScoped.POST("/script/parse", middleware.RequireAction(auth.ActionGenerate), cfg.ScriptHandler.Parse)
 					projectScoped.POST("/script/parse-sync", middleware.RequireAction(auth.ActionGenerate), cfg.ScriptHandler.ParseSync)
 					projectScoped.GET("/script/preview", cfg.ScriptHandler.Preview)
-					projectScoped.POST("/script/confirm", middleware.RequireAction(auth.ActionScriptEdit), cfg.ScriptHandler.Confirm)
+					projectScoped.POST("/script/confirm", middleware.RequireAction(auth.ActionScriptEdit), storyGuard, cfg.ScriptHandler.Confirm)
 					projectScoped.POST("/script/ai-assist", middleware.RequireAction(auth.ActionGenerate), cfg.ScriptHandler.Assist)
 				}
 
@@ -328,8 +347,9 @@ type RouteConfig struct {
 	NotificationHandler *notification.Handler
 	OrgHandler          *organization.Handler
 	TaskHandler         *task.Handler
-	ProjectHandler      *project.Handler
-	EpisodeHandler      *episode.Handler
+	ProjectHandler       *project.Handler
+	AssetVersionHandler  *asset_version.Handler
+	EpisodeHandler       *episode.Handler
 	SceneHandler        *scene.Handler
 	ScriptHandler       *script.Handler
 	CharacterHandler    *character.Handler
@@ -353,4 +373,5 @@ type RouteConfig struct {
 	ProjectReader       middleware.ProjectReader
 	ProjectMemberReader middleware.ProjectMemberReader
 	TeamMemberReader    middleware.TeamMemberReader
+	LockChecker         middleware.LockChecker
 }

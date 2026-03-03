@@ -14,7 +14,7 @@ func TestProjectReaderAdapter(t *testing.T) {
 	p, _ := svc.Create("1", CreateProjectRequest{Name: "测试项目"})
 
 	reader := ProjectReaderAdapter(data)
-	info, err := reader.FindByIDOnly(p.ID)
+	info, err := reader.FindByIDOnly(p.IDStr)
 	if err != nil {
 		t.Fatalf("FindByIDOnly 失败: %v", err)
 	}
@@ -27,7 +27,7 @@ func TestProjectReaderAdapter_NotFound(t *testing.T) {
 	data := NewMemData()
 	reader := ProjectReaderAdapter(data)
 
-	_, err := reader.FindByIDOnly(999)
+	_, err := reader.FindByIDOnly("999")
 	if err == nil {
 		t.Fatal("应返回错误")
 	}
@@ -44,7 +44,7 @@ func TestProjectMemberReaderAdapter(t *testing.T) {
 	svc.AddMember(p.IDStr, "1", AddMemberRequest{UserID: "2", Role: "editor"})
 
 	reader := ProjectMemberReaderAdapter(data)
-	info, err := reader.FindByProjectAndUser(p.ID, 2)
+	info, err := reader.FindByProjectAndUser(p.IDStr, "2")
 	if err != nil {
 		t.Fatalf("FindByProjectAndUser 失败: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestProjectMemberReaderAdapter_NotFound(t *testing.T) {
 	data := NewMemData()
 	reader := ProjectMemberReaderAdapter(data)
 
-	_, err := reader.FindByProjectAndUser(1, 999)
+	_, err := reader.FindByProjectAndUser("1", "999")
 	if err == nil {
 		t.Fatal("应返回错误")
 	}

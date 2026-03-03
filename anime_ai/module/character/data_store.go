@@ -25,13 +25,12 @@ func NewDBData(queries *db.Queries) *DBData {
 	}
 }
 
-// CreateCharacter 创建角色
-// c.UserID、c.ProjectID 需为 UUID 字符串（可由 pkg.UUIDString(pkg.UintToUUID(id)) 生成）
+// CreateCharacter 创建角色，c.UserID、c.ProjectID 为 UUID 字符串
 func (d *DBData) CreateCharacter(c *Character) error {
 	ctx := context.Background()
-	projectID := pkg.UintToUUID(0)
+	projectID := pkg.UintToUUID(0) // 无项目时用零 UUID 满足 NOT NULL
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		pid := pkg.ParseUUID(*c.ProjectID)
+		pid := pkg.StrToUUID(*c.ProjectID)
 		if pid.Valid {
 			projectID = pid
 		}
@@ -111,9 +110,12 @@ func (d *DBData) FindCharacterByID(id string) (*Character, error) {
 }
 
 // ListCharactersByProject 按项目列出角色
-func (d *DBData) ListCharactersByProject(projectID uint) ([]Character, error) {
+func (d *DBData) ListCharactersByProject(projectIDStr string) ([]Character, error) {
 	ctx := context.Background()
-	pid := pkg.UintToUUID(projectID)
+	pid := pkg.StrToUUID(projectIDStr)
+	if !pid.Valid {
+		return nil, pkg.ErrNotFound
+	}
 	rows, err := d.q.ListCharactersByProject(ctx, pid)
 	if err != nil {
 		return nil, err
@@ -222,8 +224,8 @@ func (d *DBData) ListSnapshotsByCharacter(characterID string) ([]CharacterSnapsh
 	return d.snapshots.ListSnapshotsByCharacter(characterID)
 }
 
-func (d *DBData) ListSnapshotsByProject(projectID uint) ([]CharacterSnapshot, error) {
-	return d.snapshots.ListSnapshotsByProject(projectID)
+func (d *DBData) ListSnapshotsByProject(projectIDStr string) ([]CharacterSnapshot, error) {
+	return d.snapshots.ListSnapshotsByProject(projectIDStr)
 }
 
 func (d *DBData) UpdateSnapshot(s *CharacterSnapshot) error {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -26,14 +27,17 @@ func (h *Handler) ListByCharacter(c *gin.Context) {
 
 // ListSnapshotsByProject 按项目列出快照 GET /projects/:id/character-snapshots
 func (h *Handler) ListSnapshotsByProject(c *gin.Context) {
-	projectID, err := parseProjectID(c.Param("id"))
-	if err != nil {
+	projectIDStr := auth.GetProjectIDStr(c)
+	if projectIDStr == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
-
-	snapshots, err := h.svc.ListSnapshotsByProject(projectID, userID)
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
+	snapshots, err := h.svc.ListSnapshotsByProject(projectIDStr, userIDStr)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
@@ -65,14 +69,17 @@ func (h *Handler) GetSnapshot(c *gin.Context) {
 // CreateSnapshot 创建快照 POST /character-snapshots
 func (h *Handler) CreateSnapshot(c *gin.Context) {
 	userID := c.GetUint("user_id")
-
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
 	var req CreateSnapshotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-
-	snap, err := h.svc.CreateSnapshot(userID, req)
+	snap, err := h.svc.CreateSnapshot(userID, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -121,17 +128,20 @@ func (h *Handler) DeleteSnapshot(c *gin.Context) {
 
 // AnalyzePreview 角色分析预览 POST /projects/:id/characters/analyze-preview
 func (h *Handler) AnalyzePreview(c *gin.Context) {
-	projectID, err := parseProjectID(c.Param("id"))
-	if err != nil {
+	projectIDStr := auth.GetProjectIDStr(c)
+	if projectIDStr == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
-
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
 	var req AnalyzeRequest
 	_ = c.ShouldBindJSON(&req)
 
-	result, err := h.svc.AnalyzePreview(c.Request.Context(), projectID, userID, req)
+	result, err := h.svc.AnalyzePreview(c.Request.Context(), projectIDStr, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -141,17 +151,20 @@ func (h *Handler) AnalyzePreview(c *gin.Context) {
 
 // AnalyzeConfirm 角色分析确认 POST /projects/:id/characters/analyze
 func (h *Handler) AnalyzeConfirm(c *gin.Context) {
-	projectID, err := parseProjectID(c.Param("id"))
-	if err != nil {
+	projectIDStr := auth.GetProjectIDStr(c)
+	if projectIDStr == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
-
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
 	var req AnalyzeRequest
 	_ = c.ShouldBindJSON(&req)
 
-	result, err := h.svc.AnalyzeConfirm(c.Request.Context(), projectID, userID, req)
+	result, err := h.svc.AnalyzeConfirm(c.Request.Context(), projectIDStr, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return

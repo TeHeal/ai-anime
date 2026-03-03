@@ -15,6 +15,11 @@ SELECT * FROM scene_blocks
 WHERE scene_id = sqlc.arg('scene_id') AND deleted_at IS NULL
 ORDER BY sort_index ASC;
 
+-- name: ListSceneBlocksBySceneIDs :many
+SELECT * FROM scene_blocks
+WHERE scene_id = ANY(sqlc.arg('scene_ids')::uuid[]) AND deleted_at IS NULL
+ORDER BY scene_id, sort_index ASC;
+
 -- name: UpdateSceneBlock :one
 UPDATE scene_blocks
 SET

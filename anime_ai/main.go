@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/TeHeal/ai-anime/anime_ai/module/asset_version"
 	"github.com/TeHeal/ai-anime/anime_ai/module/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/module/character"
 	"github.com/TeHeal/ai-anime/anime_ai/module/composite"
@@ -117,6 +118,7 @@ func main() {
 	projectHandler := project.NewHandler(projectSvc)
 	projectVerifier := project.NewProjectVerifier(projectData)
 	scriptLockChecker := project.NewScriptLockChecker(projectData)
+	lockChecker := project.NewLockCheckerAdapter(projectSvc)
 
 	// 集、场模块：DB 可用时用 DB 存储，否则 Mem
 	var episodeStore episode.EpisodeStore
@@ -144,6 +146,7 @@ func main() {
 	episodeReader := episode.EpisodeReaderAdapter(episodeStore)
 	sceneSvc := scene.NewService(sceneStore, sceneBlockStore, episodeReader, projectVerifier)
 	sceneHandler := scene.NewHandler(sceneSvc)
+	episodeHandler.SetSceneService(sceneSvc)
 
 	// LLM 服务（按优先级注册可用的 Provider）
 	var llmProviders []provider.LLMProvider
@@ -198,6 +201,7 @@ func main() {
 		scriptSvc = script.NewService(segmentStore, projectVerifier)
 	}
 	scriptSvc.SetLLMService(llmSvc)
+	scriptSvc.SetEpisodeSceneServices(episodeSvc, sceneSvc)
 	scriptHandler := script.NewHandler(scriptSvc)
 
 	// 角色模块：DB 可用时用 DBData，否则 Mem
@@ -247,6 +251,30 @@ func main() {
 		propSvc = prop.NewService(propStore, projectVerifier)
 	}
 	propHandler := prop.NewHandler(propSvc)
+
+	// 资产版本模块（Freeze/Unfreeze，FrozenAssetChecker）
+	var assetVersionData asset_version.Data
+	var frozenAssetChecker crossmodule.FrozenAssetChecker
+	var assetVersionHandler *asset_version.Handler
+	if pool != nil {
+		assetVersionData = asset_version.NewDBData(db.New(pool))
+		collector := &confirmedAssetCollector{
+			charData: characterData,
+			locStore: locationStore,
+			propStore: propStore,
+		}
+		assetVersionSvc := asset_version.NewService(assetVersionData, projectData, collector)
+		frozenAssetChecker = asset_version.NewFrozenCheckerAdapter(assetVersionSvc)
+		assetVersionHandler = asset_version.NewHandler(assetVersionSvc)
+		characterSvc.SetFrozenAssetChecker(frozenAssetChecker)
+		locationSvc.SetFrozenAssetChecker(frozenAssetChecker)
+		propSvc.SetFrozenAssetChecker(frozenAssetChecker)
+		log.Println("资产版本模块已启用（Freeze/Unfreeze、FrozenAssetChecker）")
+	} else {
+		assetVersionData = &asset_version.NoopData{}
+		assetVersionSvc := asset_version.NewService(assetVersionData, projectData, &asset_version.NoopCollector{})
+		assetVersionHandler = asset_version.NewHandler(assetVersionSvc)
+	}
 
 	// 镜头模块：DB 可用时用 DBShotStore，否则 Mem
 	var shotStore shot.ShotStore
@@ -593,7 +621,8 @@ func main() {
 		NotificationHandler: notificationHandler,
 		OrgHandler:          orgHandler,
 		TaskHandler:         taskHandler,
-		ProjectHandler:      projectHandler,
+		ProjectHandler:       projectHandler,
+		AssetVersionHandler: assetVersionHandler,
 		EpisodeHandler:      episodeHandler,
 		SceneHandler:        sceneHandler,
 		CharacterHandler:    characterHandler,
@@ -616,6 +645,7 @@ func main() {
 		ProjectReader:       projectMwReader,
 		ProjectMemberReader: projectMemberMwReader,
 		TeamMemberReader:    teamMemberMwReader,
+		LockChecker:         lockChecker,
 	}
 
 	port := os.Getenv("APP_APP_PORT")
@@ -665,4 +695,46 @@ func main() {
 	} else {
 		log.Println("服务已关闭")
 	}
+}
+
+// confirmedAssetCollector 收集项目内已确认的角色、场景、道具 ID（供 asset_version 冻结时使用）
+type confirmedAssetCollector struct {
+	charData character.Data
+	locStore location.Store
+	propStore prop.Store
+}
+
+func (c *confirmedAssetCollector) Collect(projectID string) (*crossmodule.ConfirmedAssetIDs, error) {
+	out := &crossmodule.ConfirmedAssetIDs{}
+	if c.charData != nil {
+		chars, err := c.charData.ListCharactersByProject(projectID)
+		if err == nil {
+			for _, ch := range chars {
+				if ch.ProjectID != nil && *ch.ProjectID == projectID && ch.Status == character.CharacterStatusConfirmed && ch.ID != "" {
+					out.CharacterIDs = append(out.CharacterIDs, ch.ID)
+				}
+			}
+		}
+	}
+	if c.locStore != nil {
+		locs, err := c.locStore.ListByProject(projectID)
+		if err == nil {
+			for _, loc := range locs {
+				if loc.Status == "confirmed" && loc.ID != "" {
+					out.LocationIDs = append(out.LocationIDs, loc.ID)
+				}
+			}
+		}
+	}
+	if c.propStore != nil {
+		props, err := c.propStore.ListByProject(projectID)
+		if err == nil {
+			for _, p := range props {
+				if p.Status == "confirmed" && p.ID != "" {
+					out.PropIDs = append(out.PropIDs, p.ID)
+				}
+			}
+		}
+	}
+	return out, nil
 }

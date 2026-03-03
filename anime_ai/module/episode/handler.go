@@ -2,8 +2,11 @@ package episode
 
 import (
 	"errors"
+	"log"
 	"strconv"
 
+	"github.com/TeHeal/ai-anime/anime_ai/module/scene"
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +15,8 @@ var _ = strconv.Itoa // 保留 strconv 用于 getEpisodeID
 
 // Handler 集 HTTP 接口层
 type Handler struct {
-	svc *Service
+	svc       *Service
+	sceneSvc  *scene.Service
 }
 
 // NewHandler 创建集 Handler
@@ -20,13 +24,21 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
+// SetSceneService 注入场服务，用于 List 时返回嵌套的 scenes（兼容备份版本编辑页树形结构）
+func (h *Handler) SetSceneService(s *scene.Service) {
+	h.sceneSvc = s
+}
+
 func (h *Handler) getProjectID(c *gin.Context) (string, bool) {
-	id := c.Param("id")
-	if id == "" {
+	s := auth.GetProjectIDStr(c)
+	if s == "" {
+		s = c.Param("id")
+	}
+	if s == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
 		return "", false
 	}
-	return id, true
+	return s, true
 }
 
 func (h *Handler) getEpisodeID(c *gin.Context) (string, bool) {
@@ -62,7 +74,7 @@ func (h *Handler) Create(c *gin.Context) {
 	pkg.Created(c, ep.ToResponse())
 }
 
-// List 列出集
+// List 列出集（含 scenes 时供编辑页树形结构使用，批量加载避免 N+1）
 func (h *Handler) List(c *gin.Context) {
 	userID := pkg.GetUserIDStr(c)
 	projectID, ok := h.getProjectID(c)
@@ -81,6 +93,20 @@ func (h *Handler) List(c *gin.Context) {
 	resp := make([]EpisodeResponse, len(episodes))
 	for i := range episodes {
 		resp[i] = episodes[i].ToResponse()
+	}
+	if h.sceneSvc != nil {
+		scenesByEp, err := h.sceneSvc.ListByProjectWithBlocks(projectID, userID)
+		if err != nil {
+			log.Printf("[episode.List] 加载 scenes 失败: %v", err)
+		} else {
+			for i := range episodes {
+				epID := episodes[i].IDStr
+				if epID == "" {
+					epID = strconv.FormatUint(uint64(episodes[i].ID), 10)
+				}
+				resp[i].Scenes = scenesByEp[epID]
+			}
+		}
 	}
 	pkg.OK(c, resp)
 }

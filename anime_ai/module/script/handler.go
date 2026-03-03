@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -21,13 +21,13 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) getProjectID(c *gin.Context) (uint, bool) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
+func (h *Handler) getProjectIDStr(c *gin.Context) (string, bool) {
+	s := auth.GetProjectIDStr(c)
+	if s == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
-		return 0, false
+		return "", false
 	}
-	return uint(id), true
+	return s, true
 }
 
 // getSegmentID 解析分段 ID，支持 UUID 或数字格式
@@ -42,9 +42,13 @@ func (h *Handler) getSegmentID(c *gin.Context) (string, bool) {
 
 // Create 创建分段
 func (h *Handler) Create(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	var req CreateSegmentRequest
@@ -52,7 +56,7 @@ func (h *Handler) Create(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	seg, err := h.svc.Create(projectID, userID, req)
+	seg, err := h.svc.Create(projectIDStr, userIDStr, req)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
@@ -66,9 +70,13 @@ func (h *Handler) Create(c *gin.Context) {
 
 // BulkCreate 批量创建分段
 func (h *Handler) BulkCreate(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	var req BulkCreateSegmentRequest
@@ -76,7 +84,7 @@ func (h *Handler) BulkCreate(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	segments, err := h.svc.BulkCreate(projectID, userID, req)
+	segments, err := h.svc.BulkCreate(projectIDStr, userIDStr, req)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
@@ -94,12 +102,16 @@ func (h *Handler) BulkCreate(c *gin.Context) {
 
 // List 列出分段
 func (h *Handler) List(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
 		return
 	}
-	segments, err := h.svc.List(projectID, userID)
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
+	segments, err := h.svc.List(projectIDStr, userIDStr)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目不存在")
@@ -117,9 +129,13 @@ func (h *Handler) List(c *gin.Context) {
 
 // Update 更新分段
 func (h *Handler) Update(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	segID, ok := h.getSegmentID(c)
@@ -131,7 +147,7 @@ func (h *Handler) Update(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	seg, err := h.svc.Update(segID, projectID, userID, req)
+	seg, err := h.svc.Update(segID, projectIDStr, userIDStr, req)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "段落不存在")
@@ -145,16 +161,20 @@ func (h *Handler) Update(c *gin.Context) {
 
 // Delete 删除分段
 func (h *Handler) Delete(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	segID, ok := h.getSegmentID(c)
 	if !ok {
 		return
 	}
-	if err := h.svc.Delete(segID, projectID, userID); err != nil {
+	if err := h.svc.Delete(segID, projectIDStr, userIDStr); err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "段落不存在")
 			return
@@ -167,9 +187,13 @@ func (h *Handler) Delete(c *gin.Context) {
 
 // Reorder 排序分段
 func (h *Handler) Reorder(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	var req ReorderSegmentsRequest
@@ -177,7 +201,7 @@ func (h *Handler) Reorder(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	if err := h.svc.Reorder(projectID, userID, req); err != nil {
+	if err := h.svc.Reorder(projectIDStr, userIDStr, req); err != nil {
 		c.Error(err)
 		pkg.InternalError(c, "排序失败")
 		return
@@ -187,9 +211,13 @@ func (h *Handler) Reorder(c *gin.Context) {
 
 // Parse 提交异步解析任务
 func (h *Handler) Parse(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	var req ScriptParseRequest
@@ -197,7 +225,7 @@ func (h *Handler) Parse(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	task, err := h.svc.SubmitParse(projectID, userID, req)
+	task, err := h.svc.SubmitParse(projectIDStr, userIDStr, req)
 	if err != nil {
 		c.Error(err)
 		pkg.InternalError(c, "提交解析任务失败")
@@ -211,9 +239,13 @@ func (h *Handler) Parse(c *gin.Context) {
 
 // ParseSync 同步解析
 func (h *Handler) ParseSync(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	var req ScriptParseRequest
@@ -221,10 +253,9 @@ func (h *Handler) ParseSync(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	result, err := h.svc.ParseSync(c.Request.Context(), projectID, userID, req)
+	result, err := h.svc.ParseSync(c.Request.Context(), projectIDStr, userIDStr, req)
 	if err != nil {
-		c.Error(err)
-		pkg.InternalError(c, "解析失败")
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, result)
@@ -232,12 +263,16 @@ func (h *Handler) ParseSync(c *gin.Context) {
 
 // Preview 获取解析预览
 func (h *Handler) Preview(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
 		return
 	}
-	result, err := h.svc.GetPreview(projectID, userID)
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
+		return
+	}
+	result, err := h.svc.GetPreview(projectIDStr, userIDStr)
 	if err != nil {
 		pkg.NotFound(c, "解析结果不存在或未完成: "+err.Error())
 		return
@@ -247,9 +282,13 @@ func (h *Handler) Preview(c *gin.Context) {
 
 // Confirm 确认导入解析结果
 func (h *Handler) Confirm(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	projectID, ok := h.getProjectID(c)
+	projectIDStr, ok := h.getProjectIDStr(c)
 	if !ok {
+		return
+	}
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.BadRequest(c, "未登录或无效用户")
 		return
 	}
 	var req ScriptConfirmRequest
@@ -257,9 +296,8 @@ func (h *Handler) Confirm(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	if err := h.svc.Confirm(projectID, userID, req); err != nil {
-		c.Error(err)
-		pkg.InternalError(c, "导入失败")
+	if err := h.svc.Confirm(projectIDStr, userIDStr, req); err != nil {
+		pkg.HandleError(c, err)
 		return
 	}
 	pkg.OK(c, gin.H{"message": "剧本导入成功"})

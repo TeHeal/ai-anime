@@ -3,6 +3,7 @@ package shot_video
 import (
 	"errors"
 
+	"github.com/TeHeal/ai-anime/anime_ai/pub/auth"
 	"github.com/TeHeal/ai-anime/anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -18,12 +19,15 @@ func NewHandler(svc *Service) *Handler {
 }
 
 func (h *Handler) getProjectID(c *gin.Context) (string, bool) {
-	id := c.Param("id")
-	if id == "" {
+	s := auth.GetProjectIDStr(c)
+	if s == "" {
+		s = c.Param("id")
+	}
+	if s == "" {
 		pkg.BadRequest(c, "无效的项目 ID")
 		return "", false
 	}
-	return id, true
+	return s, true
 }
 
 func (h *Handler) getShotID(c *gin.Context) (string, bool) {

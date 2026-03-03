@@ -6,7 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/prop.dart';
-import 'package:anime_ui/pub/services/api_svc.dart';
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/module/assets/shared/asset_list_item.dart';
 import 'package:anime_ui/module/assets/shared/asset_list_panel.dart';
 import 'package:anime_ui/module/assets/shared/asset_status_chip.dart';

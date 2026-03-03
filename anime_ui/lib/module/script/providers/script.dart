@@ -147,11 +147,17 @@ class ScenesNotifier extends Notifier<AsyncValue<List<Scene>>> {
     }
   }
 
+  /// 直接设置场景列表（当 episodes 已含 scenes 时跳过 API 请求）
+  void setScenes(List<Scene> scenes) {
+    state = AsyncValue.data(scenes);
+  }
+
   Future<Scene> add(
     String episodeId, {
     required String sceneId,
     String location = '',
     List<String> characters = const [],
+    int? sortIndex,
   }) async {
     final pid = _projectId;
     if (pid == null) throw Exception('没有选中项目');
@@ -161,8 +167,15 @@ class ScenesNotifier extends Notifier<AsyncValue<List<Scene>>> {
       sceneId: sceneId,
       location: location,
       characters: characters,
+      sortIndex: sortIndex,
     );
-    state = AsyncValue.data([...state.value ?? [], scene]);
+    final list = state.value ?? [];
+    if (sortIndex != null) {
+      final idx = sortIndex.clamp(0, list.length);
+      state = AsyncValue.data([...list.sublist(0, idx), scene, ...list.sublist(idx)]);
+    } else {
+      state = AsyncValue.data([...list, scene]);
+    }
     return scene;
   }
 

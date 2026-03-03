@@ -110,6 +110,10 @@ func HandleError(c *gin.Context, err error) {
 		Forbidden(c, "无权限")
 		return
 	}
+	if errors.Is(err, ErrPhaseLocked) {
+		Fail(c, 423, err.Error())
+		return
+	}
 	if errors.Is(err, ErrAlreadyExists) {
 		Fail(c, http.StatusConflict, "资源已存在")
 		return
