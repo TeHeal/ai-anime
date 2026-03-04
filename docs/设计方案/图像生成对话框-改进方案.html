@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图像生成对话框 · 布局改进方案</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0b10;
+      --surface: #13141c;
+      --surface-2: #1a1c28;
+      --surface-3: #222433;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(255, 255, 255, 0.12);
+      --text: #e2e4ee;
+      --text-muted: #7a7e96;
+      --text-dim: #4a4e66;
+      --accent: #7c5cfc;
+      --accent-light: #9b7fff;
+      --accent-glow: rgba(124, 92, 252, 0.15);
+      --accent-subtle: rgba(124, 92, 252, 0.08);
+      --accent-border: rgba(124, 92, 252, 0.3);
+      --success: #34d399;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      gap: 48px;
+    }
+
+    .section-header {
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: 26px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-light), #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ===== 对比分析 ===== */
+    .comparison {
+      width: 100%;
+      max-width: 1060px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .comparison-card {
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 24px;
+    }
+
+    .comparison-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .comparison-card h3 .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .comparison-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .comparison-card li {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.6;
+    }
+
+    .comparison-card li .marker {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-weight: 700;
+    }
+
+    .issue-marker {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .fix-marker {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--success);
+    }
+
+    .divider {
+      width: 100%;
+      max-width: 1060px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    /* ===== 改进方案对话框 ===== */
+    .dialog-wrapper {
+      width: 100%;
+      max-width: 1060px;
+    }
+
+    .dialog-label {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
+
+    .improved-dialog {
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow:
+        0 32px 100px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(124, 92, 252, 0.04),
+        0 0 80px rgba(124, 92, 252, 0.06);
+    }
+
+    /* Header */
+    .v2-header {
+      display: flex;
+      align-items: center;
+      padding: 20px 28px 16px;
+      gap: 14px;
+      background: linear-gradient(180deg, rgba(124, 92, 252, 0.05) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .icon-glow {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(124, 92, 252, 0.35);
+      position: relative;
+    }
+
+    .icon-glow::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 17px;
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      opacity: 0.12;
+      z-index: -1;
+    }
+
+    .title-area {
+      flex: 1;
+    }
+
+    .title-area .title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .title-area .meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .mode-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 8px;
+      background: var(--accent-subtle);
+      border: 1px solid rgba(124, 92, 252, 0.12);
+      color: var(--accent-light);
+    }
+
+    .step-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+
+    .close-btn:hover {
+      background: var(--surface-3);
+      border-color: var(--border-hover);
+    }
+
+    /* Body */
+    .v2-body {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      min-height: 460px;
+    }
+
+    .v2-divider {
+      background: var(--border);
+    }
+
+    /* 左栏 */
+    .v2-left {
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+      max-height: 460px;
+    }
+
+    .prompt-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .prompt-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .prompt-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .pill-btn {
+      font-size: 10px;
+      padding: 4px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .pill-btn.accent {
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(124, 92, 252, 0.25);
+    }
+
+    .pill-btn.accent:hover {
+      box-shadow: 0 4px 14px rgba(124, 92, 252, 0.35);
+      transform: translateY(-0.5px);
+    }
+
+    .pill-btn.ghost {
+      background: var(--surface-3);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .pill-btn.ghost:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+    }
+
+    .textarea-v2 {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      padding-bottom: 36px;
+      font-size: 13px;
+      color: var(--text-dim);
+      min-height: 96px;
+      position: relative;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+
+    .textarea-v2:hover {
+      border-color: var(--border-hover);
+    }
+
+    .textarea-bottom {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .quick-chips-inline {
+      display: flex;
+      gap: 4px;
+    }
+
+    .quick-chip {
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: var(--accent-subtle);
+      color: var(--accent-light);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .quick-chip:hover {
+      background: var(--accent-glow);
+      border-color: var(--accent-border);
+    }
+
+    .save-btn {
+      font-size: 10px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+
+    .save-btn:hover {
+      color: var(--text-muted);
+      background: var(--surface-3);
+    }
+
+    /* 反向提示词 */
+    .neg-section {
+      margin-top: 14px;
+    }
+
+    .neg-textarea {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      padding-bottom: 30px;
+      font-size: 12px;
+      color: var(--text-dim);
+      min-height: 60px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+
+    .neg-textarea:hover {
+      border-color: var(--border-hover);
+    }
+
+    /* 参考图 */
+    .ref-section {
+      margin-top: 18px;
+    }
+
+    .ref-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .ref-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .ref-count {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .ref-grid {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ref-add {
+      width: 66px;
+      height: 66px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-subtle), rgba(147, 51, 234, 0.06));
+      border: 1.5px dashed var(--accent-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--accent-light);
+      font-size: 10px;
+      gap: 3px;
+      transition: all 0.2s;
+    }
+
+    .ref-add:hover {
+      background: var(--accent-glow);
+      border-color: var(--accent);
+      transform: scale(1.03);
+    }
+
+    .ref-add .plus {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    /* 内联配置条 */
+    .config-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-top: 18px;
+    }
+
+    .config-bar-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .config-bar-pills {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+      flex-wrap: wrap;
+    }
+
+    .ratio-pill {
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .ratio-pill.active {
+      background: var(--accent-glow);
+      border: 1px solid var(--accent-border);
+      color: var(--accent-light);
+    }
+
+    .ratio-pill.inactive {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    .ratio-pill.inactive:hover {
+      border-color: var(--border-hover);
+      color: var(--text-muted);
+    }
+
+    .separator {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .res-toggle {
+      display: flex;
+      background: var(--surface-3);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .res-btn {
+      font-size: 10px;
+      padding: 4px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .res-btn.active {
+      background: var(--accent-glow);
+      color: var(--accent-light);
+    }
+
+    .res-btn.inactive {
+      color: var(--text-dim);
+    }
+
+    /* 右栏 */
+    .v2-right {
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .right-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .count-pills {
+      display: flex;
+      gap: 5px;
+      margin-left: auto;
+    }
+
+    .count-pill {
+      width: 34px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .count-pill.active {
+      background: var(--accent-glow);
+      border: 1px solid var(--accent-border);
+      color: var(--accent-light);
+    }
+
+    .count-pill.inactive {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    .count-pill.inactive:hover {
+      border-color: var(--border-hover);
+      color: var(--text-muted);
+    }
+
+    /* 预览区 */
+    .preview-area {
+      flex: 1;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface-3) 100%);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-area::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: -40%;
+      width: 180%;
+      height: 180%;
+      background: radial-gradient(circle at 50% 55%, var(--accent-subtle) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .preview-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .preview-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: var(--accent-subtle);
+      border: 1px solid rgba(124, 92, 252, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .preview-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .preview-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .preview-steps {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 7px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 10px;
+    }
+
+    /* Footer */
+    .v2-footer {
+      display: flex;
+      align-items: center;
+      padding: 16px 28px 20px;
+      border-top: 1px solid var(--border);
+      background: linear-gradient(0deg, rgba(124, 92, 252, 0.02) 0%, transparent 100%);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .model-tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 8px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .est-time {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .footer-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-cancel {
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 10px 18px;
+      border-radius: 10px;
+      transition: all 0.15s;
+    }
+
+    .btn-cancel:hover {
+      background: var(--surface-2);
+    }
+
+    .btn-gen {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 28px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      color: #fff;
+      box-shadow: 0 6px 24px rgba(124, 92, 252, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-gen::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+      transition: left 0.6s;
+    }
+
+    .btn-gen:hover::before {
+      left: 100%;
+    }
+
+    .btn-gen:hover {
+      box-shadow: 0 8px 32px rgba(124, 92, 252, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    /* 细节改进卡片 */
+    .details-grid {
+      width: 100%;
+      max-width: 1060px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .detail-card {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--accent-border);
+      padding: 22px;
+    }
+
+    .detail-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .detail-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .detail-card li {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    .detail-card li .ck {
+      color: var(--success);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ===== 代码变更摘要 ===== */
+    .code-changes {
+      width: 100%;
+      max-width: 1060px;
+    }
+
+    .code-changes h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .change-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .change-item {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .change-file {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-light);
+      background: var(--accent-subtle);
+      padding: 4px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .change-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 标题 -->
+  <div class="section-header">
+    <div class="section-title">图像生成对话框 · 布局改进方案</div>
+    <div class="section-subtitle">基于当前实现的 UI/UX 评估与优化建议</div>
+  </div>
+
+  <!-- 问题 vs 改进 -->
+  <div class="comparison">
+    <div class="comparison-card">
+      <h3><span class="dot"
+          style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span> 当前方案问题</h3>
+      <ul>
+        <li><span class="marker issue-marker">1</span> 左右面板空间失衡（360:540），左侧拥挤、右侧空旷</li>
+        <li><span class="marker issue-marker">2</span>「输出数量」配置放在右侧面板，与其他配置分离，打断认知流</li>
+        <li><span class="marker issue-marker">3</span> 高级选项默认折叠且触发区域小，比例/模型设置易被忽略</li>
+        <li><span class="marker issue-marker">4</span> 空状态预览区占位大但信息量低，无操作引导</li>
+        <li><span class="marker issue-marker">5</span> 快捷提示词放在输入框外部，额外增加视觉层级和纵向空间</li>
+        <li><span class="marker issue-marker">6</span> 底部仅有取消/生成，缺少当前模型信息和预估耗时等上下文</li>
+        <li><span class="marker issue-marker">7</span> 生成按钮视觉权重偏低，disabled 态与深色背景融为一体</li>
+      </ul>
+    </div>
+    <div class="comparison-card">
+      <h3><span class="dot"
+          style="width:10px;height:10px;border-radius:50%;background:var(--success);display:inline-block"></span> 改进方案要点
+      </h3>
+      <ul>
+        <li><span class="marker fix-marker">✓</span> 等宽双栏布局（1:1），左右均衡分配空间</li>
+        <li><span class="marker fix-marker">✓</span>「输出数量」合并到右栏标题行，配置集中在同一视觉流</li>
+        <li><span class="marker fix-marker">✓</span> 比例/分辨率以「内联配置条」常驻显示，取消折叠隐藏</li>
+        <li><span class="marker fix-marker">✓</span> 空状态区增加 1→2→3 步骤引导，降低认知负担</li>
+        <li><span class="marker fix-marker">✓</span> 快捷提示词内嵌到输入框底部，减少外部噪音</li>
+        <li><span class="marker fix-marker">✓</span> Footer 展示当前模型标签 + 预估耗时，增强操作上下文</li>
+        <li><span class="marker fix-marker">✓</span> 生成按钮增加渐变、发光和微动效，提升视觉引导力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 改进后方案原型 ===== -->
+  <div class="dialog-wrapper">
+    <div class="dialog-label">▼ 改进方案原型</div>
+    <div class="improved-dialog">
+      <!-- Header -->
+      <div class="v2-header">
+        <div class="icon-glow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+            <path d="M12 2L15 8.5L22 9.5L17 14.5L18 21.5L12 18L6 21.5L7 14.5L2 9.5L9 8.5L12 2Z" />
+          </svg>
+        </div>
+        <div class="title-area">
+          <div class="title">生成角色参考图</div>
+          <div class="meta">
+            <span class="mode-chip">✦ 文生图 · 单张</span>
+            <span class="step-hint">填写提示词后点击生成</span>
+          </div>
+        </div>
+        <div class="close-btn">✕</div>
+      </div>
+
+      <!-- Body -->
+      <div class="v2-body">
+        <!-- 左栏 -->
+        <div class="v2-left">
+          <!-- 提示词 -->
+          <div>
+            <div class="prompt-header">
+              <span class="prompt-label">提示词</span>
+              <div class="prompt-actions">
+                <span class="pill-btn accent">✦ 创作助理</span>
+                <span class="pill-btn ghost">📋 提示词库</span>
+              </div>
+            </div>
+            <div class="textarea-v2">
+              描述角色外貌、服装、发型、表情，<br>如：银发少女，蓝眼睛，穿白色连衣裙…
+              <div class="textarea-bottom">
+                <div class="quick-chips-inline">
+                  <span class="quick-chip">主角立绘</span>
+                  <span class="quick-chip">正面全身</span>
+                  <span class="quick-chip">半身像</span>
+                  <span class="quick-chip">表情特写</span>
+                </div>
+                <span class="save-btn">💾 入库</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 反向提示词 -->
+          <div class="neg-section">
+            <div class="prompt-header">
+              <span class="prompt-label" style="font-size:11px; opacity:0.75">反向提示词（选填）</span>
+              <div class="prompt-actions">
+                <span class="pill-btn accent" style="font-size:9px; padding:3px 10px">✦ 创作助理</span>
+                <span class="pill-btn ghost" style="font-size:9px; padding:3px 10px">📋 提示词库</span>
+              </div>
+            </div>
+            <div class="neg-textarea">
+              不想出现的元素，如：模糊、变形、低质量…
+              <div class="textarea-bottom" style="justify-content:flex-end">
+                <span class="save-btn" style="font-size:9px">💾 入库</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 参考图 -->
+          <div class="ref-section">
+            <div class="ref-header">
+              <span class="ref-label">参考图</span>
+              <span class="ref-count">(0/5)</span>
+            </div>
+            <div class="ref-grid">
+              <div class="ref-add">
+                <span class="plus">+</span>
+                <span>添加</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 内联配置条 -->
+          <div class="config-bar">
+            <span class="config-bar-label">比例</span>
+            <div class="config-bar-pills">
+              <span class="ratio-pill inactive">智能</span>
+              <span class="ratio-pill inactive">1:1</span>
+              <span class="ratio-pill active">3:4</span>
+              <span class="ratio-pill inactive">9:16</span>
+              <span class="ratio-pill inactive">2:3</span>
+            </div>
+            <div class="separator"></div>
+            <div class="res-toggle">
+              <span class="res-btn active">2K</span>
+              <span class="res-btn inactive">4K</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分割线 -->
+        <div class="v2-divider"></div>
+
+        <!-- 右栏 -->
+        <div class="v2-right">
+          <div class="right-header">
+            <span class="right-title">生成预览</span>
+            <div class="count-pills">
+              <span class="count-pill active">1</span>
+              <span class="count-pill inactive">2</span>
+              <span class="count-pill inactive">4</span>
+            </div>
+          </div>
+
+          <div class="preview-area">
+            <div class="preview-content">
+              <div class="preview-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)"
+                  stroke-width="1.5" opacity="0.5">
+                  <rect x="3" y="3" width="18" height="18" rx="3" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+              </div>
+              <div class="preview-text">生成结果将在此显示</div>
+              <div class="preview-sub">支持多张流式预览 · 点击可查看大图</div>
+              <div class="preview-steps">
+                <div class="step">
+                  <span class="step-num">1</span>
+                  <span>输入提示词</span>
+                </div>
+                <div class="step">
+                  <span class="step-num">2</span>
+                  <span>选择参数</span>
+                </div>
+                <div class="step">
+                  <span class="step-num">3</span>
+                  <span>开始生成</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="v2-footer">
+        <div class="footer-left">
+          <span class="model-tag">🤖 Flux · Schnell</span>
+          <span class="est-time">预计 15-30s</span>
+        </div>
+        <div class="footer-right">
+          <span class="btn-cancel">取消</span>
+          <div class="btn-gen">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2L15 8.5L22 9.5L17 14.5L18 21.5L12 18L6 21.5L7 14.5L2 9.5L9 8.5L12 2Z" />
+            </svg>
+            开始生成
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 细节改进卡片 -->
+  <div class="details-grid">
+    <div class="detail-card">
+      <h4>🏗️ 布局结构</h4>
+      <ul>
+        <li><span class="ck">✓</span> 双栏 1:1 等宽，消除空间浪费</li>
+        <li><span class="ck">✓</span> 弹窗宽度 900.w → 1020.w，给两栏留更多余量</li>
+        <li><span class="ck">✓</span> 预览区纵向拉满，充分利用右栏空间</li>
+        <li><span class="ck">✓</span> 配置区用「分组 + 间距」代替平铺式罗列</li>
+      </ul>
+    </div>
+    <div class="detail-card">
+      <h4>🎨 视觉层次</h4>
+      <ul>
+        <li><span class="ck">✓</span> Header 渐变背景 + 图标发光，强化品牌调性</li>
+        <li><span class="ck">✓</span> 内联配置条替代折叠高级选项，减少交互步骤</li>
+        <li><span class="ck">✓</span> 快捷词内嵌输入框底部，一体化视觉</li>
+        <li><span class="ck">✓</span> 生成按钮渐变 + 发光 + 悬停微动效</li>
+      </ul>
+    </div>
+    <div class="detail-card">
+      <h4>💡 交互体验</h4>
+      <ul>
+        <li><span class="ck">✓</span> 空状态增加步骤引导 1→2→3</li>
+        <li><span class="ck">✓</span> Footer 展示当前模型 + 预估时间</li>
+        <li><span class="ck">✓</span> 输出数量与预览区标题行合并</li>
+        <li><span class="ck">✓</span> 预览区径向渐变营造纵深感</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 代码变更摘要 -->
+  <div class="code-changes">
+    <h3>实现所需的代码变更</h3>
+    <div class="change-list">
+      <div class="change-item">
+        <span class="change-file">image_gen_view.dart</span>
+        <span class="change-desc">弹窗最大宽度 900.w → 1020.w；左栏 360.w → Expanded 等宽分配；移除 SizedBox(width: 360.w) 硬编码</span>
+      </div>
+      <div class="change-item">
+        <span class="change-file">image_gen_input_panel.dart</span>
+        <span class="change-desc">移除高级选项折叠逻辑（showAdvanced），将 RatioPicker 以内联配置条形式常驻；快捷提示词从外部 Wrap 移入 TextField
+          底部区域</span>
+      </div>
+      <div class="change-item">
+        <span class="change-file">image_gen_result_panel.dart</span>
+        <span class="change-desc">OutputCountBar 从独立区块改为标题行右侧紧凑排列；标题文案「输出数量」→「生成预览」</span>
+      </div>
+      <div class="change-item">
+        <span class="change-file">image_gen_header.dart</span>
+        <span class="change-desc">Container 增加渐变背景；图标容器增加 gradient + boxShadow 发光效果；新增步骤提示文本</span>
+      </div>
+      <div class="change-item">
+        <span class="change-file">image_gen_footer.dart</span>
+        <span class="change-desc">左侧新增模型信息标签 + 预估耗时；生成按钮增加渐变背景和阴影；Footer 增加底部渐变背景</span>
+      </div>
+      <div class="change-item">
+        <span class="change-file">gen_result_grid.dart</span>
+        <span class="change-desc">_EmptyResultArea 增加步骤引导（1→2→3）；预览区增加径向渐变背景效果</span>
+      </div>
+      <div class="change-item">
+        <span class="change-file">prompt_field_with_assistant.dart</span>
+        <span class="change-desc">快捷提示词 Wrap 移入 TextField 的 contentPadding 底部区域（使用 Stack + Positioned）</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 40px"></div>
+
+</body>
+
+</html>

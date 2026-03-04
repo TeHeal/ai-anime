@@ -23,7 +23,7 @@ class VoiceGenResultPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    final content = SingleChildScrollView(
       padding: EdgeInsets.all(Spacing.mid.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -50,6 +50,10 @@ class VoiceGenResultPanel extends StatelessWidget {
         ],
       ),
     );
+    // 无结果时用固定高度紧凑显示，有结果时再撑满
+    return ctrl.resultAudioUrl.isEmpty && !ctrl.isDone
+        ? SizedBox(height: 220.h, child: content)
+        : content;
   }
 
   Widget _buildResultActions(BuildContext context) {

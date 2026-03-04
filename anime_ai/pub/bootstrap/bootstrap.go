@@ -15,6 +15,7 @@ import (
 	"anime_ai/module/auth"
 	"anime_ai/module/assets/character"
 	"anime_ai/module/composite"
+	"anime_ai/module/dashboard"
 	"anime_ai/module/download"
 	"anime_ai/module/episode"
 	"anime_ai/module/file"
@@ -34,6 +35,7 @@ import (
 	"anime_ai/module/storyboard"
 	"anime_ai/module/assets/style"
 	"anime_ai/module/task"
+	"anime_ai/module/team"
 	"anime_ai/module/usage"
 	"anime_ai/pub/config"
 	"anime_ai/pub/crossmodule"
@@ -45,7 +47,7 @@ import (
 	"anime_ai/pub/realtime"
 	"anime_ai/pub/review_ai"
 	"anime_ai/pub/review_record"
-	"anime_ai/pub/route"
+	"anime_ai/route"
 	"anime_ai/pub/scheduler"
 	"anime_ai/pub/skeleton"
 	"anime_ai/pub/storage"
@@ -85,10 +87,14 @@ func New(cfg *config.Config) (*App, error) {
 	}
 
 	// Logger
+	var loggerErr error
 	if cfg.App.Mode == "debug" {
-		d.logger, _ = zap.NewDevelopment()
+		d.logger, loggerErr = zap.NewDevelopment()
 	} else {
-		d.logger, _ = zap.NewProduction()
+		d.logger, loggerErr = zap.NewProduction()
+	}
+	if loggerErr != nil {
+		return nil, fmt.Errorf("初始化 logger 失败: %w", loggerErr)
 	}
 
 	// 存储
@@ -211,10 +217,11 @@ func New(cfg *config.Config) (*App, error) {
 	}
 	d.styleHandler = style.NewHandler(styleSvc)
 
-	// 资产版本
+	// 资产版本（collector 依赖 character/location/prop Service，projectLock 依赖 project.Service）
 	assetVersionData := asset_version.NewDBData(db.New(pool))
-	collector := asset_version.NewConfirmedAssetCollector(characterData, locationStore, propStore)
-	assetVersionSvc := asset_version.NewService(assetVersionData, d.projectData, collector)
+	projectLockReader := project.ProjectLockReaderAdapter(projectSvc)
+	collector := asset_version.NewConfirmedAssetCollector(characterSvc, locationSvc, propSvc, d.logger)
+	assetVersionSvc := asset_version.NewService(assetVersionData, projectLockReader, collector)
 	frozenAssetChecker := asset_version.NewFrozenCheckerAdapter(assetVersionSvc)
 	d.assetVersionHandler = asset_version.NewHandler(assetVersionSvc)
 	characterSvc.SetFrozenAssetChecker(frozenAssetChecker)
@@ -233,7 +240,7 @@ func New(cfg *config.Config) (*App, error) {
 	// 镜图
 	shotImageStore := shot_image.NewDBShotImageStore(db.New(pool))
 	log.Println("使用 PostgreSQL 镜图存储")
-	reviewRecorder := review_record.NewDBRecorder(db.New(pool))
+	reviewRecorder := review_record.NewDBRecorderWithLogger(db.New(pool), d.logger)
 	var shotImageSvc *shot_image.Service
 	if resolver, ok := d.projectVerifier.(crossmodule.ProjectMemberResolver); ok {
 		shotImageSvc = shot_image.NewServiceWithResolver(shotImageStore, shotReader, shotLocker, d.projectVerifier, resolver, reviewRecorder)
@@ -251,6 +258,7 @@ func New(cfg *config.Config) (*App, error) {
 		AIReviewer:         aiReviewer,
 	})
 	shotImageSvc.SetScriptLockChecker(d.scriptLockCheck)
+	shotImageSvc.SetLogger(d.logger)
 	d.shotImageHandler = shot_image.NewHandler(shotImageSvc)
 
 	// 镜头视频
@@ -277,6 +285,13 @@ func New(cfg *config.Config) (*App, error) {
 	orgSvc := organization.NewService(orgData)
 	d.orgHandler = organization.NewHandler(orgSvc)
 	log.Println("组织模块已启用")
+
+	// 团队
+	teamData := team.NewDBData(db.New(pool))
+	orgChecker := team.NewOrgCheckerAdapter(orgSvc)
+	teamSvc := team.NewService(teamData, orgChecker)
+	d.teamHandler = team.NewHandler(teamSvc)
+	log.Println("团队模块已启用")
 
 	// 任务
 	taskData := task.NewDBData(db.New(pool))
@@ -320,7 +335,7 @@ func New(cfg *config.Config) (*App, error) {
 		ShotLocker:     shotLocker,
 		RealtimeHub:    realtimeHub,
 		TaskNotifier:   taskNotifier,
-		UsageRecorder:  provider_usage.NewDBRecorder(db.New(pool)),
+		UsageRecorder:  provider_usage.NewDBRecorderWithLogger(db.New(pool), d.logger),
 	}
 	imageHandler := worker.NewImageTaskHandler(d.logger, imageTaskDeps)
 
@@ -331,7 +346,7 @@ func New(cfg *config.Config) (*App, error) {
 		RealtimeHub:      realtimeHub,
 		TaskNotifier:     taskNotifier,
 		ShotVideoUpdater: shotVideoStore,
-		UsageRecorder:    provider_usage.NewDBRecorder(db.New(pool)),
+		UsageRecorder:    provider_usage.NewDBRecorderWithLogger(db.New(pool), d.logger),
 	}
 	videoHandler := worker.NewVideoTaskHandler(d.logger, videoTaskDeps)
 
@@ -340,7 +355,7 @@ func New(cfg *config.Config) (*App, error) {
 		Storage:       d.store,
 		RealtimeHub:   realtimeHub,
 		TaskNotifier:  taskNotifier,
-		UsageRecorder: provider_usage.NewDBRecorder(db.New(pool)),
+		UsageRecorder: provider_usage.NewDBRecorderWithLogger(db.New(pool), d.logger),
 	}
 	ttsHandler := worker.NewTTSTaskHandler(d.logger, ttsTaskDeps)
 
@@ -445,15 +460,29 @@ func New(cfg *config.Config) (*App, error) {
 	if d.store != nil {
 		resourceSvc.SetStorage(d.store)
 	}
-	d.resourceHandler = resource.NewHandler(resourceSvc)
+	d.resourceHandler = resource.NewHandler(resourceSvc, realtimeHub)
 	d.aiHandler = ai.NewHandler(resourceSvc)
 	log.Println("素材库模块已启用")
+
+	// 仪表盘
+	dashboardSvc := dashboard.NewService(
+		episodeSvc,
+		sceneStore,
+		characterSvc,
+		locationSvc,
+		shotStore,
+		shotImageStore,
+		d.projectVerifier,
+	)
+	d.dashboardHandler = dashboard.NewHandler(dashboardSvc)
+	log.Println("仪表盘模块已启用")
 
 	routeCfg := &route.Config{
 		AIHandler:           d.aiHandler,
 		AuthHandler:         d.authHandler,
 		NotificationHandler: d.notificationHandler,
 		OrgHandler:          d.orgHandler,
+		TeamHandler:         d.teamHandler,
 		TaskHandler:         d.taskHandler,
 		ProjectHandler:      d.projectHandler,
 		AssetVersionHandler: d.assetVersionHandler,
@@ -476,6 +505,7 @@ func New(cfg *config.Config) (*App, error) {
 		UsageHandler:        d.usageHandler,
 		ScheduleHandler:     d.scheduleHandler,
 		ResourceHandler:     d.resourceHandler,
+		DashboardHandler:    d.dashboardHandler,
 		WSHandler:           d.wsHandler,
 		AsynqClient:        d.asynqClient,
 		JWTSecret:          cfg.App.Secret,

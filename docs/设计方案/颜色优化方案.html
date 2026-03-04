@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜色优化方案 - AI 漫剧创作平台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      /* Current */
+      --c-primary: #8B5CF6;
+      --c-secondary: #A78BFA;
+      --c-bg: #0F0F1A;
+      --c-surface: #1A1A2E;
+      --c-on-surface: #E4E4E7;
+      --c-muted: #A3A3A3;
+      --c-muted-dark: #737373;
+      --c-border: #2A2A40;
+      --c-success: #22C55E;
+      --c-error: #EF4444;
+
+      /* Proposed */
+      --p-primary: #9061F9;
+      --p-primary-hover: #A78BFA;
+      --p-primary-pressed: #7C3AED;
+      --p-primary-subtle: rgba(144, 97, 249, 0.12);
+      --p-accent-warm: #F59E0B;
+      --p-bg: #0C0C18;
+      --p-surface: #151525;
+      --p-surface-container: #1A1A2E;
+      --p-surface-high: #20203A;
+      --p-surface-highest: #282848;
+      --p-on-surface: #E2E2F0;
+      --p-muted: #9898B0;
+      --p-muted-dark: #6A6A82;
+      --p-muted-darker: #4A4A60;
+      --p-border: #2A2A44;
+      --p-divider: #222238;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+      background: #0A0A14;
+      color: #E2E2F0;
+      padding: 32px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #E2E2F0, #9061F9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 32px 0 16px;
+      color: #9061F9;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 20px 0 10px;
+      color: #E2E2F0;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #6A6A82;
+      margin-bottom: 32px;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .col-label {
+      text-align: center;
+      padding: 6px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .label-current {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+    }
+
+    .label-proposed {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22C55E;
+    }
+
+    /* Color swatches */
+    .swatch-group {
+      margin-bottom: 20px;
+    }
+
+    .swatch-group-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: #6A6A82;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .swatch-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      border-radius: 8px;
+      min-width: 80px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .swatch-color {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .swatch-name {
+      font-size: 10px;
+      color: #9898B0;
+      text-align: center;
+    }
+
+    .swatch-hex {
+      font-size: 9px;
+      color: #6A6A82;
+      font-family: monospace;
+    }
+
+    /* Demo cards */
+    .demo-section {
+      margin-bottom: 28px;
+    }
+
+    .demo-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    /* Current demo */
+    .demo-card-current {
+      flex: 1;
+      padding: 16px;
+      border-radius: 12px;
+      background: #1A1A2E;
+      border: 1px solid #2A2A40;
+    }
+
+    .demo-card-current .card-inner {
+      padding: 12px;
+      border-radius: 8px;
+      background: #16162A;
+      border: 1px solid #2A2A3C;
+      margin-top: 10px;
+    }
+
+    .demo-card-current .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #E4E4E7;
+    }
+
+    .demo-card-current .card-sub {
+      font-size: 12px;
+      color: #A3A3A3;
+      margin-top: 4px;
+    }
+
+    .demo-card-current .card-muted {
+      font-size: 11px;
+      color: #737373;
+      margin-top: 2px;
+    }
+
+    .demo-card-current .btn-primary {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: #8B5CF6;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .demo-card-current .border-sample {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #2A2A40;
+      font-size: 10px;
+      color: #737373;
+    }
+
+    .demo-card-current .divider-sample {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid #2A2A3C;
+      font-size: 10px;
+      color: #737373;
+    }
+
+    /* Proposed demo */
+    .demo-card-proposed {
+      flex: 1;
+      padding: 16px;
+      border-radius: 12px;
+      background: #1A1A2E;
+      border: 1px solid #2A2A44;
+    }
+
+    .demo-card-proposed .card-inner {
+      padding: 12px;
+      border-radius: 8px;
+      background: #20203A;
+      border: 1px solid #2A2A44;
+      margin-top: 10px;
+    }
+
+    .demo-card-proposed .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #E2E2F0;
+    }
+
+    .demo-card-proposed .card-sub {
+      font-size: 12px;
+      color: #9898B0;
+      margin-top: 4px;
+    }
+
+    .demo-card-proposed .card-muted {
+      font-size: 11px;
+      color: #6A6A82;
+      margin-top: 2px;
+    }
+
+    .demo-card-proposed .btn-primary {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: #9061F9;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .demo-card-proposed .btn-primary:hover {
+      background: #A78BFA;
+    }
+
+    .demo-card-proposed .border-sample {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #2A2A44;
+      font-size: 10px;
+      color: #6A6A82;
+    }
+
+    .demo-card-proposed .divider-sample {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid #222238;
+      font-size: 10px;
+      color: #6A6A82;
+    }
+
+    /* Text comparison */
+    .text-demo {
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .text-demo.current-bg {
+      background: #0F0F1A;
+    }
+
+    .text-demo.proposed-bg {
+      background: #0C0C18;
+    }
+
+    .text-line {
+      padding: 3px 0;
+    }
+
+    /* Summary */
+    .callout {
+      padding: 20px;
+      border-radius: 12px;
+      background: #151525;
+      border: 1px solid #2A2A44;
+      border-left: 3px solid #9061F9;
+      margin-top: 32px;
+    }
+
+    .callout h3 {
+      color: #9061F9;
+      margin: 0 0 12px;
+    }
+
+    .callout ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .callout li {
+      font-size: 13px;
+      color: #9898B0;
+      line-height: 2;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .callout li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #9061F9;
+    }
+
+    .callout li strong {
+      color: #E2E2F0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 8px 12px;
+      color: #9898B0;
+      border-bottom: 1px solid #2A2A44;
+      font-weight: 500;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    td code {
+      background: rgba(144, 97, 249, 0.1);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+      color: #A78BFA;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>颜色优化方案</h1>
+  <div class="subtitle">AI 漫剧智能创作平台 — 从通用 Tailwind 色板升级为影视创作级色彩系统</div>
+
+  <h2>一、主色：提升鲜明度</h2>
+  <p style="font-size:13px;color:#9898B0;margin-bottom:16px">当前 primary #8B5CF6 在深色背景上稍显闷，建议微调至 #9061F9 —
+    稍提亮度和蓝调，在深背景上更鲜明，同时新增 hover/pressed 态。</p>
+
+  <div class="swatch-group">
+    <div class="swatch-group-title">当前 → 建议</div>
+    <div class="swatch-row">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#8B5CF6"></div>
+        <div class="swatch-name">当前 primary</div>
+        <div class="swatch-hex">#8B5CF6</div>
+      </div>
+      <div class="swatch" style="font-size:20px;display:flex;align-items:center;border:none;background:none">→</div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#9061F9"></div>
+        <div class="swatch-name">建议 primary</div>
+        <div class="swatch-hex">#9061F9</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#A78BFA"></div>
+        <div class="swatch-name">hover 态</div>
+        <div class="swatch-hex">#A78BFA</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#7C3AED"></div>
+        <div class="swatch-name">pressed 态</div>
+        <div class="swatch-hex">#7C3AED</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:rgba(144,97,249,0.12)"></div>
+        <div class="swatch-name">subtle 底色</div>
+        <div class="swatch-hex">12% alpha</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>二、灰度：从中性灰转为蓝灰（与背景和谐）</h2>
+  <p style="font-size:13px;color:#9898B0;margin-bottom:16px">背景带蓝紫调，但当前 muted 用的是中性灰（Tailwind
+    neutral），在紫蓝背景上微妙"脱节"。建议统一为蓝灰调。</p>
+
+  <div class="comparison">
+    <div>
+      <div class="col-label label-current">当前灰度（中性灰）</div>
+      <div class="text-demo current-bg">
+        <div class="text-line" style="color:#E4E4E7;font-size:15px">主文字 onSurface #E4E4E7</div>
+        <div class="text-line" style="color:#D4D4D4;font-size:13px">次要文字 mutedLight #D4D4D4</div>
+        <div class="text-line" style="color:#A3A3A3;font-size:13px">辅助文字 muted #A3A3A3</div>
+        <div class="text-line" style="color:#737373;font-size:12px">弱辅助 mutedDark #737373</div>
+        <div class="text-line" style="color:#525252;font-size:11px">最弱 mutedDarker #525252</div>
+      </div>
+    </div>
+    <div>
+      <div class="col-label label-proposed">建议灰度（蓝灰调）</div>
+      <div class="text-demo proposed-bg">
+        <div class="text-line" style="color:#E2E2F0;font-size:15px">主文字 onSurface #E2E2F0</div>
+        <div class="text-line" style="color:#C8C8DA;font-size:13px">次要文字 mutedLight #C8C8DA</div>
+        <div class="text-line" style="color:#9898B0;font-size:13px">辅助文字 muted #9898B0</div>
+        <div class="text-line" style="color:#6A6A82;font-size:12px">弱辅助 mutedDark #6A6A82</div>
+        <div class="text-line" style="color:#4A4A60;font-size:11px">最弱 mutedDarker #4A4A60</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>三、表面层级：修正排序</h2>
+  <p style="font-size:13px;color:#9898B0;margin-bottom:16px">当前 surfaceContainer 比 surface
+    暗，导致容器元素看起来"凹陷"。建议修正为标准的从暗到亮递增。</p>
+
+  <table>
+    <tr>
+      <th>令牌</th>
+      <th>当前色值</th>
+      <th>当前亮度</th>
+      <th>建议色值</th>
+      <th>建议亮度</th>
+      <th>变化</th>
+    </tr>
+    <tr>
+      <td><code>background</code></td>
+      <td>#0F0F1A</td>
+      <td>15</td>
+      <td>#0C0C18</td>
+      <td>12</td>
+      <td>微调暗</td>
+    </tr>
+    <tr>
+      <td><code>surface</code></td>
+      <td>#1A1A2E</td>
+      <td>26</td>
+      <td>#151525</td>
+      <td>21</td>
+      <td>拉低，为容器让出空间</td>
+    </tr>
+    <tr>
+      <td><code>surfaceContainer</code></td>
+      <td>#16162A</td>
+      <td>22</td>
+      <td>#1A1A2E</td>
+      <td>26</td>
+      <td>提亮，高于 surface</td>
+    </tr>
+    <tr>
+      <td><code>surfaceContainerHigh</code></td>
+      <td>#1E1E30</td>
+      <td>30</td>
+      <td>#20203A</td>
+      <td>32</td>
+      <td>微调</td>
+    </tr>
+    <tr>
+      <td><code>surfaceContainerHighest</code></td>
+      <td>#252540</td>
+      <td>37</td>
+      <td>#282848</td>
+      <td>40</td>
+      <td>微调</td>
+    </tr>
+  </table>
+
+  <p style="font-size:12px;color:#6A6A82;margin-bottom:12px">修正后的亮度递增：background(12) < surface(21) <
+      surfaceContainer(26) < High(32) < Highest(40) ✓</p>
+
+      <h2>四、边框：拉开 border 与 divider 的区分度</h2>
+      <div class="comparison">
+        <div>
+          <div class="col-label label-current">当前</div>
+          <div style="padding:12px;background:#1A1A2E;border-radius:8px">
+            <div style="padding:8px 0;border-bottom:1px solid #2A2A40;font-size:12px;color:#737373">border #2A2A40</div>
+            <div style="padding:8px 0;border-bottom:1px solid #2A2A3C;font-size:12px;color:#737373">divider #2A2A3C ←
+              几乎一样</div>
+          </div>
+        </div>
+        <div>
+          <div class="col-label label-proposed">建议</div>
+          <div style="padding:12px;background:#151525;border-radius:8px">
+            <div style="padding:8px 0;border-bottom:1px solid #2A2A44;font-size:12px;color:#6A6A82">border #2A2A44
+              (更亮，用于卡片/面板)</div>
+            <div style="padding:8px 0;border-bottom:1px solid #222238;font-size:12px;color:#6A6A82">divider #222238
+              (更暗，用于内部分割)</div>
+          </div>
+        </div>
+      </div>
+
+      <h2>五、实际卡片对比</h2>
+      <div class="demo-row">
+        <div>
+          <div class="col-label label-current" style="margin-bottom:8px">当前效果</div>
+          <div class="demo-card-current">
+            <div class="card-title">生成配置</div>
+            <div class="card-sub">2D漫风，色调偏暗，无失真无穿帮</div>
+            <div class="card-inner">
+              <div class="card-muted">嵌套容器（surfaceContainer 比 surface 暗 → 凹陷感）</div>
+            </div>
+            <div class="btn-primary">✦ 批量生成</div>
+            <div class="border-sample">border #2A2A40</div>
+            <div class="divider-sample">divider #2A2A3C ← 和上面几乎一样</div>
+          </div>
+        </div>
+        <div>
+          <div class="col-label label-proposed" style="margin-bottom:8px">优化效果</div>
+          <div class="demo-card-proposed">
+            <div class="card-title">生成配置</div>
+            <div class="card-sub">2D漫风，色调偏暗，无失真无穿帮</div>
+            <div class="card-inner">
+              <div class="card-muted">嵌套容器（surfaceContainer 比 surface 亮 → 浮起感）</div>
+            </div>
+            <div class="btn-primary">✦ 批量生成</div>
+            <div class="border-sample">border #2A2A44（更亮，清晰可辨）</div>
+            <div class="divider-sample">divider #222238（更暗，轻柔分割）</div>
+          </div>
+        </div>
+      </div>
+
+      <h2>六、完整色值对照表</h2>
+      <table>
+        <tr>
+          <th>令牌</th>
+          <th>当前</th>
+          <th>建议</th>
+          <th>改动说明</th>
+        </tr>
+        <tr>
+          <td><code>primary</code></td>
+          <td>#8B5CF6</td>
+          <td>#9061F9</td>
+          <td>微提亮度+蓝调，深色背景上更鲜明</td>
+        </tr>
+        <tr>
+          <td><code>secondary</code></td>
+          <td>#A78BFA</td>
+          <td>#A78BFA</td>
+          <td>不变（作为 hover 态复用）</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="color:#6A6A82;font-size:11px">── 新增 ──</td>
+        </tr>
+        <tr>
+          <td><code>primaryHover</code></td>
+          <td>—</td>
+          <td>#A78BFA</td>
+          <td>新增 hover 态</td>
+        </tr>
+        <tr>
+          <td><code>primaryPressed</code></td>
+          <td>—</td>
+          <td>#7C3AED</td>
+          <td>新增 pressed 态</td>
+        </tr>
+        <tr>
+          <td><code>primarySubtle</code></td>
+          <td>—</td>
+          <td>primary @ 12%</td>
+          <td>新增 subtle 背景</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="color:#6A6A82;font-size:11px">── 背景表面 ──</td>
+        </tr>
+        <tr>
+          <td><code>background</code></td>
+          <td>#0F0F1A</td>
+          <td>#0C0C18</td>
+          <td>微调更深</td>
+        </tr>
+        <tr>
+          <td><code>surface</code></td>
+          <td>#1A1A2E</td>
+          <td>#151525</td>
+          <td>拉低，为容器让出空间</td>
+        </tr>
+        <tr>
+          <td><code>surfaceContainer</code></td>
+          <td>#16162A</td>
+          <td>#1A1A2E</td>
+          <td>提亮至原 surface 值，高于新 surface</td>
+        </tr>
+        <tr>
+          <td><code>surfaceContainerHigh</code></td>
+          <td>#1E1E30</td>
+          <td>#20203A</td>
+          <td>微提亮度+蓝调</td>
+        </tr>
+        <tr>
+          <td><code>surfaceContainerHighest</code></td>
+          <td>#252540</td>
+          <td>#282848</td>
+          <td>微提亮度+蓝调</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="color:#6A6A82;font-size:11px">── 文字灰度 ──</td>
+        </tr>
+        <tr>
+          <td><code>onSurface</code></td>
+          <td>#E4E4E7</td>
+          <td>#E2E2F0</td>
+          <td>加蓝调，与背景和谐</td>
+        </tr>
+        <tr>
+          <td><code>mutedLight</code></td>
+          <td>#D4D4D4</td>
+          <td>#C8C8DA</td>
+          <td>加蓝调</td>
+        </tr>
+        <tr>
+          <td><code>muted</code></td>
+          <td>#A3A3A3</td>
+          <td>#9898B0</td>
+          <td>加蓝调</td>
+        </tr>
+        <tr>
+          <td><code>mutedDark</code></td>
+          <td>#737373</td>
+          <td>#6A6A82</td>
+          <td>加蓝调</td>
+        </tr>
+        <tr>
+          <td><code>mutedDarker</code></td>
+          <td>#525252</td>
+          <td>#4A4A60</td>
+          <td>加蓝调</td>
+        </tr>
+        <tr>
+          <td><code>mutedDarkest</code></td>
+          <td>#6B7280</td>
+          <td>#5A5A72</td>
+          <td>保留蓝灰但纳入递减序列</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="color:#6A6A82;font-size:11px">── 边框 ──</td>
+        </tr>
+        <tr>
+          <td><code>border</code></td>
+          <td>#2A2A40</td>
+          <td>#2A2A44</td>
+          <td>微提亮，卡片/面板边框更清晰</td>
+        </tr>
+        <tr>
+          <td><code>divider</code></td>
+          <td>#2A2A3C</td>
+          <td>#222238</td>
+          <td>调暗，与 border 拉开差距</td>
+        </tr>
+      </table>
+
+      <div class="callout">
+        <h3>改动风险评估</h3>
+        <ul>
+          <li><strong>主色微调 (8B→90)</strong>：差异极小，视觉上稍亮，200+ 处引用全部自动生效，零代码改动</li>
+          <li><strong>灰度蓝调化</strong>：所有 muted 引用自动生效，但可能影响某些精心调色的组件，需视觉回归</li>
+          <li><strong>表面层级修正</strong>：<strong>影响最大</strong>。surface 和 surfaceContainer 互换后，62+ 处 surfaceContainer
+            的元素会从"凹陷"变为"浮起"，52+ 处 surface 的面板会变暗。需要全局视觉回归</li>
+          <li><strong>边框调整</strong>：border 微提亮 + divider 调暗，116 处引用自动生效，风险低</li>
+        </ul>
+      </div>
+
+</body>
+
+</html>

@@ -82,6 +82,7 @@ func (s *Service) SetStorage(store storage.Storage) {
 }
 
 var validModalities = map[string]bool{"visual": true, "audio": true, "text": true}
+var validSortBy = map[string]bool{"newest": true, "oldest": true, "name_asc": true, "name_desc": true}
 var validLibraryTypes = map[string]bool{
 	"style": true, "character": true, "scene": true, "prop": true,
 	"expression": true, "pose": true, "effect": true, "voice": true, "prompt": true,
@@ -210,6 +211,13 @@ func (s *Service) List(ctx context.Context, userID string, req ListRequest) (*Li
 	if err := validateLibraryType(req.LibraryType); err != nil {
 		return nil, err
 	}
+	sortBy := req.SortBy
+	if sortBy == "" {
+		sortBy = "newest"
+	}
+	if !validSortBy[sortBy] {
+		return nil, fmt.Errorf("%w: 无效的排序方式 %s", pkg.ErrBadRequest, sortBy)
+	}
 	page := req.Page
 	if page < 1 {
 		page = 1
@@ -222,6 +230,8 @@ func (s *Service) List(ctx context.Context, userID string, req ListRequest) (*Li
 		Modality:    req.Modality,
 		LibraryType: req.LibraryType,
 		TagsOverlap: TagsToOverlapJSON(req.Tags),
+		Search:      strings.TrimSpace(req.Search),
+		SortBy:      sortBy,
 		Offset:      int32((page - 1) * pageSize),
 		Limit:       int32(pageSize),
 	}

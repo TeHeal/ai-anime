@@ -146,7 +146,7 @@ class BlockItemState extends State<BlockItem> {
             ),
           ),
           SizedBox(
-            width: 28,
+            width: 28.w,
             child: Text(
               seqNum,
               style: AppTextStyles.h4.copyWith(
@@ -299,7 +299,7 @@ class BlockItemState extends State<BlockItem> {
                         .map(
                           (a) => PopupMenuItem<AiAction>(
                             value: a,
-                            height: 36,
+                            height: 36.h,
                             child: Row(
                               children: [
                                 Icon(

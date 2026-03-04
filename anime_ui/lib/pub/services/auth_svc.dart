@@ -37,4 +37,15 @@ class AuthService {
     final resp = await dio.get('/auth/me');
     return extractDataObject(resp, User.fromJson);
   }
+
+  /// 修改当前用户密码
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await dio.put(
+      '/auth/password',
+      data: {'old_password': oldPassword, 'new_password': newPassword},
+    );
+  }
 }

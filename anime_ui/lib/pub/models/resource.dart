@@ -68,4 +68,12 @@ abstract class Resource with _$Resource {
   }
 
   bool get hasThumbnail => thumbnailUrl.isNotEmpty;
+
+  /// 音色类素材的音频 URL（从 metadata.audioUrl 或 metadata.audio_url 读取）
+  String get audioUrl {
+    final m = metadata;
+    return (m['audioUrl'] as String?) ??
+        (m['audio_url'] as String?) ??
+        '';
+  }
 }

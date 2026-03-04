@@ -4,11 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/generation_center/filter_toolbar.dart';
-import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';
 
-/// 生成中心任务区域通用布局：标题行 + 筛选栏 + 内容区
+/// 生成中心任务区域通用布局：Header + Filter + Content 三层带状结构
 ///
-/// 各模块（script、shot_images、shots）传入 filters、headerTrailing、child
+/// 各模块（script、shot_images、shots）传入 filters、headerTrailing、child。
+/// 三层各自带有独立的 padding 和底部边框，增强视觉层级。
 class TaskSectionLayout extends StatelessWidget {
   const TaskSectionLayout({
     super.key,
@@ -45,69 +45,133 @@ class TaskSectionLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StyledCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(Spacing.sm.r),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.25),
-                      AppColors.primary.withValues(alpha: 0.08),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-                ),
-                child: Icon(
-                  AppIcons.magicStick,
-                  size: 18.r,
-                  color: AppColors.primary,
-                ),
-              ),
-              SizedBox(width: Spacing.md.w),
-              Text(
-                title,
-                style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
-              ),
-              SizedBox(width: Spacing.md.w),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Spacing.sm.w,
-                  vertical: Spacing.tinyGap.h,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-                ),
-                child: Text(
-                  '$count $countLabel',
-                  style: AppTextStyles.tiny.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              if (headerTrailing case Widget w) w,
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(RadiusTokens.card.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowOverlay.withValues(alpha: 0.2),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
           ),
-          SizedBox(height: Spacing.lg.h),
-          FilterToolbar(
-            filters: filters,
-            activeFilter: activeFilter,
-            onFilterChanged: onFilterChanged,
-            groups: groups,
-            activeGroup: activeGroup,
-            onGroupChanged: onGroupChanged,
-          ),
-          SizedBox(height: Spacing.lg.h),
-          child,
         ],
       ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(RadiusTokens.card.r),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            _buildFilter(),
+            _buildContent(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 顶部标题栏：图标 + 标题 + 数量徽章 + 右侧操作
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.cardPadding.w,
+        vertical: Spacing.lg.h,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.06),
+            Colors.transparent,
+          ],
+        ),
+        border: const Border(
+          bottom: BorderSide(color: AppColors.border),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(Spacing.sm.r),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.25),
+                  AppColors.primary.withValues(alpha: 0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+            ),
+            child: Icon(
+              AppIcons.magicStick,
+              size: 18.r,
+              color: AppColors.primary,
+            ),
+          ),
+          SizedBox(width: Spacing.md.w),
+          Text(
+            title,
+            style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+          ),
+          SizedBox(width: Spacing.md.w),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: Spacing.sm.w,
+              vertical: Spacing.tinyGap.h,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+            ),
+            child: Text(
+              '$count $countLabel',
+              style: AppTextStyles.tiny.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const Spacer(),
+          if (headerTrailing case Widget w) w,
+        ],
+      ),
+    );
+  }
+
+  /// 筛选栏：状态筛选 + 分组，背景稍深于 header
+  Widget _buildFilter() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.cardPadding.w,
+        vertical: Spacing.sm.h,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceContainer,
+        border: Border(
+          bottom: BorderSide(color: AppColors.border),
+        ),
+      ),
+      child: FilterToolbar(
+        bare: true,
+        filters: filters,
+        activeFilter: activeFilter,
+        onFilterChanged: onFilterChanged,
+        groups: groups,
+        activeGroup: activeGroup,
+        onGroupChanged: onGroupChanged,
+      ),
+    );
+  }
+
+  /// 内容区域：任务卡片网格
+  Widget _buildContent() {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.cardPadding.w,
+        vertical: Spacing.lg.h,
+      ),
+      child: child,
     );
   }
 }

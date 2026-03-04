@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 
-/// Reusable search text field with consistent dark-theme styling.
+/// 可复用的搜索输入框，统一深色主题样式。
 class AppSearchField extends StatelessWidget {
   const AppSearchField({
     super.key,
@@ -14,6 +14,8 @@ class AppSearchField extends StatelessWidget {
     this.width = 220,
     this.height = 36,
     this.accentColor,
+    /// 可选：自定义填充色。不传则用 surfaceMutedDarker；传入 inputFill 可更亮（如筛选栏）
+    this.fillColor,
   });
 
   final TextEditingController controller;
@@ -22,10 +24,13 @@ class AppSearchField extends StatelessWidget {
   final double width;
   final double height;
   final Color? accentColor;
+  final Color? fillColor;
 
   @override
   Widget build(BuildContext context) {
     final accent = accentColor ?? AppColors.primary;
+    final fill = fillColor ?? AppColors.surfaceMutedDarker;
+    final borderColor = fillColor != null ? AppColors.inputBorder : AppColors.surfaceMutedDark;
 
     return SizedBox(
       width: width.w,
@@ -44,11 +49,11 @@ class AppSearchField extends StatelessWidget {
             color: AppColors.mutedDark,
           ),
           filled: true,
-          fillColor: AppColors.surfaceMutedDarker,
+          fillColor: fill,
           contentPadding: EdgeInsets.symmetric(vertical: 0.h),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-            borderSide: const BorderSide(color: AppColors.surfaceMutedDark),
+            borderSide: BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(RadiusTokens.md.r),

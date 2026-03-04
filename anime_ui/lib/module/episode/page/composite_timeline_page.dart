@@ -9,6 +9,8 @@ import 'package:anime_ui/pub/services/episode_svc.dart';
 import 'package:anime_ui/pub/services/package_svc.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/const/actions.dart' show AppActions;
+import 'package:anime_ui/pub/widgets/permission_gate.dart';
 import 'package:anime_ui/pub/widgets/secondary_btn.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
@@ -244,14 +246,20 @@ class _EpisodeRowState extends State<_EpisodeRow> {
                     ),
                   ),
                 ),
-                SecondaryBtn(
-                  label: _exporting ? '导出中…' : '导出成片',
-                  onPressed: _exporting ? null : _createExport,
+                PermissionGate(
+                  action: AppActions.compositeExport,
+                  child: SecondaryBtn(
+                    label: _exporting ? '导出中…' : '导出成片',
+                    onPressed: _exporting ? null : _createExport,
+                  ),
                 ),
                 SizedBox(width: Spacing.sm.w),
-                SecondaryBtn(
-                  label: _packaging ? '打包中…' : '按集打包',
-                  onPressed: _packaging ? null : _requestPackage,
+                PermissionGate(
+                  action: AppActions.compositeExport,
+                  child: SecondaryBtn(
+                    label: _packaging ? '打包中…' : '按集打包',
+                    onPressed: _packaging ? null : _requestPackage,
+                  ),
                 ),
               ],
             ),

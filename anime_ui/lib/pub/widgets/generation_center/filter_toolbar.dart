@@ -27,7 +27,10 @@ class GroupChipData {
   const GroupChipData({required this.key, required this.label});
 }
 
-/// Reusable filter toolbar with status chips and optional group chips.
+/// 可复用的筛选工具栏，包含状态筛选 chips 和可选分组 chips。
+///
+/// [bare] 为 true 时不渲染外层 Container（由调用方自行控制装饰），
+/// 仅返回内部 Row 内容，适用于嵌入到自定义带状布局中。
 class FilterToolbar extends StatelessWidget {
   final List<FilterChipData> filters;
   final String activeFilter;
@@ -35,6 +38,7 @@ class FilterToolbar extends StatelessWidget {
   final List<GroupChipData> groups;
   final String activeGroup;
   final ValueChanged<String>? onGroupChanged;
+  final bool bare;
 
   const FilterToolbar({
     super.key,
@@ -44,10 +48,43 @@ class FilterToolbar extends StatelessWidget {
     this.groups = const [],
     this.activeGroup = '',
     this.onGroupChanged,
+    this.bare = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final content = Row(
+      children: [
+        Icon(AppIcons.tune, size: 15.r, color: AppColors.mutedDark),
+        SizedBox(width: Spacing.sm.w),
+        for (int i = 0; i < filters.length; i++) ...[
+          _buildFilterChip(filters[i]),
+          if (i < filters.length - 1) SizedBox(width: Spacing.sm.w),
+        ],
+        if (groups.isNotEmpty) ...[
+          // 筛选 chips 与分组 chips 之间的竖线分隔
+          Container(
+            width: 1,
+            height: 18.h,
+            margin: EdgeInsets.symmetric(horizontal: Spacing.sm.w),
+            color: AppColors.border,
+          ),
+          const Spacer(),
+          Text(
+            '分组:',
+            style: AppTextStyles.caption.copyWith(color: AppColors.mutedDark),
+          ),
+          SizedBox(width: Spacing.sm.w),
+          for (int i = 0; i < groups.length; i++) ...[
+            _buildGroupChip(groups[i]),
+            if (i < groups.length - 1) SizedBox(width: Spacing.xs.w),
+          ],
+        ],
+      ],
+    );
+
+    if (bare) return content;
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: Spacing.gridGap.w,
@@ -57,28 +94,7 @@ class FilterToolbar extends StatelessWidget {
         color: AppColors.surfaceContainer,
         borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
       ),
-      child: Row(
-        children: [
-          Icon(AppIcons.tune, size: 15.r, color: AppColors.mutedDark),
-          SizedBox(width: Spacing.sm.w),
-          for (int i = 0; i < filters.length; i++) ...[
-            _buildFilterChip(filters[i]),
-            if (i < filters.length - 1) SizedBox(width: Spacing.sm.w),
-          ],
-          if (groups.isNotEmpty) ...[
-            const Spacer(),
-            Text(
-              '分组:',
-              style: AppTextStyles.caption.copyWith(color: AppColors.mutedDark),
-            ),
-            SizedBox(width: Spacing.sm.w),
-            for (int i = 0; i < groups.length; i++) ...[
-              _buildGroupChip(groups[i]),
-              if (i < groups.length - 1) SizedBox(width: Spacing.xs.w),
-            ],
-          ],
-        ],
-      ),
+      child: content,
     );
   }
 

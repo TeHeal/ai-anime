@@ -7,7 +7,6 @@ import 'package:anime_ui/pub/const/app_const.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/widgets/dashed_border_painter.dart';
 import 'package:anime_ui/pub/widgets/gradient_app_bar_bottom.dart';
 import 'package:anime_ui/pub/widgets/starfield_background.dart';
 import 'package:anime_ui/pub/models/project.dart';
@@ -16,8 +15,12 @@ import 'package:anime_ui/pub/providers/lock_provider.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/project_svc.dart';
 import 'package:anime_ui/pub/widgets/user_menu.dart';
-import 'dialogs.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
+import 'package:anime_ui/module/project/widgets/new_project_card.dart';
+import 'package:anime_ui/module/project/dialogs/project_members_dialog.dart';
+import 'package:anime_ui/module/project/widgets/project_card.dart';
+import 'package:anime_ui/pub/widgets/app_dialog.dart';
+import 'dialogs.dart';
 
 /// 项目列表页 — 新建、打开、编辑、删除项目，仪表盘入口
 class ProjectsPage extends ConsumerWidget {
@@ -135,7 +138,7 @@ class ProjectsPage extends ConsumerWidget {
                     child: Text(
                       '我的项目',
                       style: AppTextStyles.displayLarge.copyWith(
-                        color: Colors.white,
+                        color: AppColors.onPrimary,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.5,
                       ),
@@ -171,7 +174,7 @@ class ProjectsPage extends ConsumerWidget {
       SizedBox(
         width: cardWidth.w,
         height: cardHeight.h,
-        child: _NewProjectCard(onTap: () => _createProject(context, ref)),
+        child: NewProjectCard(onTap: () => _createProject(context, ref)),
       ),
       ...List.generate(projects.length, (i) {
         return TweenAnimationBuilder<double>(
@@ -192,11 +195,12 @@ class ProjectsPage extends ConsumerWidget {
           child: SizedBox(
             width: cardWidth.w,
             height: cardHeight.h,
-            child: _ProjectCard(
+            child: ProjectCard(
               project: projects[i],
               onTap: () => _openProject(context, ref, projects[i]),
               onEdit: () => _editProject(context, ref, projects[i]),
               onDelete: () => _deleteProject(context, ref, projects[i]),
+              onMembers: () => _manageMembers(context, projects[i]),
             ),
           ),
         );
@@ -274,7 +278,6 @@ class ProjectsPage extends ConsumerWidget {
         ref.invalidate(projectListProvider);
         if (context.mounted) {
           showToast(context, '项目「${project.name}」已删除');
-
         }
       } catch (e) {
         if (context.mounted) {
@@ -283,483 +286,14 @@ class ProjectsPage extends ConsumerWidget {
       }
     }
   }
-}
 
-/// 新建项目卡片 — 动漫风格：霓虹虚线边框 + 脉冲光环 + 悬浮光晕 + 渐变底色
-class _NewProjectCard extends StatefulWidget {
-  const _NewProjectCard({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  State<_NewProjectCard> createState() => _NewProjectCardState();
-}
-
-class _NewProjectCardState extends State<_NewProjectCard>
-    with SingleTickerProviderStateMixin {
-  bool _hovered = false;
-  late final AnimationController _glowCtrl;
-  late final Animation<double> _glowAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _glowCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat(reverse: true);
-    _glowAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _glowCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedBuilder(
-          animation: _glowAnim,
-          builder: (context, child) {
-            final glowVal = _glowAnim.value;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              transform: _hovered
-                  ? (Matrix4.translationValues(0, -6, 0)
-                      ..setEntry(0, 0, 1.03)
-                      ..setEntry(1, 1, 1.03)
-                      ..setEntry(2, 2, 1.03))
-                  : Matrix4.identity(),
-              child: CustomPaint(
-                painter: DashedBorderPainter(
-                  color: _hovered
-                      ? AppColors.primary
-                      : Color.lerp(
-                          AppColors.mutedDarker,
-                          AppColors.primary.withValues(alpha: 0.5),
-                          glowVal,
-                        )!,
-                  borderRadius: RadiusTokens.xxl,
-                  dashLength: 10,
-                  gapLength: 6,
-                  strokeWidth: _hovered ? 2.0 : 1.5,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
-                    gradient: RadialGradient(
-                      center: const Alignment(0, -0.3),
-                      radius: 1.2,
-                      colors: _hovered
-                          ? [
-                              AppColors.primary.withValues(alpha: 0.1),
-                              AppColors.primary.withValues(alpha: 0.03),
-                              AppColors.surface.withValues(alpha: 0.15),
-                            ]
-                          : [
-                              AppColors.surface.withValues(alpha: 0.25),
-                              AppColors.surface.withValues(alpha: 0.1),
-                            ],
-                    ),
-                    boxShadow: [
-                      if (_hovered)
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 32.r,
-                          spreadRadius: 4.r,
-                        ),
-                      BoxShadow(
-                        color: AppColors.primary.withValues(
-                          alpha: 0.04 + 0.06 * glowVal,
-                        ),
-                        blurRadius: 16.r,
-                        spreadRadius: 1.r,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 带脉冲光环的加号图标
-                        _buildPulsingIcon(glowVal),
-                        SizedBox(height: Spacing.md.h),
-                        Text(
-                          '新建项目',
-                          style: AppTextStyles.labelLarge.copyWith(
-                            color: _hovered
-                                ? AppColors.primary
-                                : AppColors.onSurface.withValues(alpha: 0.75),
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          '开始全新创作',
-                          style: AppTextStyles.caption.copyWith(
-                            color: _hovered
-                                ? AppColors.primary.withValues(alpha: 0.6)
-                                : AppColors.mutedDark,
-                            fontSize: 11.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+  void _manageMembers(BuildContext context, Project project) {
+    AppDialog.show(
+      context,
+      builder: (_, close) => ProjectMembersDialog(
+        projectId: project.id!,
+        onClose: close,
       ),
-    );
-  }
-
-  Widget _buildPulsingIcon(double glowVal) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // 外层呼吸光环
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: (_hovered ? 72 : 64).w,
-          height: (_hovered ? 72 : 64).h,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.1 + 0.15 * glowVal),
-              width: 1.5.r,
-            ),
-          ),
-        ),
-        // 内层图标容器
-        Container(
-          width: 48.w,
-          height: 48.h,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primary.withValues(alpha: _hovered ? 0.25 : 0.12),
-                AppColors.info.withValues(alpha: _hovered ? 0.15 : 0.06),
-              ],
-            ),
-            boxShadow: _hovered
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 12.r,
-                    ),
-                  ]
-                : [],
-          ),
-          child: Icon(
-            AppIcons.add,
-            size: 24.r,
-            color: _hovered
-                ? AppColors.primary
-                : AppColors.onSurface.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// 项目卡片 — 动漫风格：霓虹顶部渐变条 + 悬浮光晕 + 角标装饰 + 彩色阴影
-class _ProjectCard extends StatefulWidget {
-  const _ProjectCard({
-    required this.project,
-    required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final Project project;
-  final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  State<_ProjectCard> createState() => _ProjectCardState();
-}
-
-class _ProjectCardState extends State<_ProjectCard> {
-  bool _hovered = false;
-
-  /// 根据项目名生成稳定的主题色
-  Color get _themeColor {
-    final hash = widget.project.name.hashCode.abs();
-    final hues = [
-      AppColors.primary,
-      AppColors.info,
-      const Color(0xFF8B5CF6),
-      const Color(0xFFEC4899),
-      const Color(0xFF06B6D4),
-      const Color(0xFFF59E0B),
-    ];
-    return hues[hash % hues.length];
-  }
-
-  String _formatDate(DateTime? dt) {
-    if (dt == null) return '';
-    final now = DateTime.now();
-    final diff = now.difference(dt);
-    if (diff.inMinutes < 1) return '刚刚';
-    if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
-    if (diff.inDays < 1) return '${diff.inHours}小时前';
-    if (diff.inDays < 7) return '${diff.inDays}天前';
-    return '${dt.month}月${dt.day}日';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = _themeColor;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOutCubic,
-          transform: _hovered
-              ? (Matrix4.translationValues(0, -6, 0)
-                  ..setEntry(0, 0, 1.03)
-                  ..setEntry(1, 1, 1.03)
-                  ..setEntry(2, 2, 1.03))
-              : Matrix4.identity(),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: _hovered
-                  ? [
-                      AppColors.surfaceContainerHigh,
-                      accent.withValues(alpha: 0.06),
-                      AppColors.surfaceContainerHighest,
-                    ]
-                  : [
-                      AppColors.surfaceContainerHigh,
-                      AppColors.surfaceContainerHighest,
-                    ],
-            ),
-            border: Border.all(
-              color: _hovered
-                  ? accent.withValues(alpha: 0.5)
-                  : accent.withValues(alpha: 0.1),
-              width: _hovered ? 1.5 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: _hovered ? 0.25 : 0.08),
-                blurRadius: _hovered ? 28.r : 8.r,
-                spreadRadius: _hovered ? 3.r : 0,
-              ),
-              if (_hovered)
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.1),
-                  blurRadius: 48.r,
-                  spreadRadius: -4.r,
-                ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 顶部霓虹渐变条
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 280),
-                  height: _hovered ? 4.h : 3.h,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        accent,
-                        accent.withValues(alpha: 0.8),
-                        AppColors.info,
-                      ],
-                    ),
-                    boxShadow: _hovered
-                        ? [
-                            BoxShadow(
-                              color: accent.withValues(alpha: 0.4),
-                              blurRadius: 8.r,
-                              offset: Offset(0, 2.h),
-                            ),
-                          ]
-                        : [],
-                  ),
-                ),
-                // 内容区
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      Spacing.lg.w,
-                      Spacing.md.h,
-                      Spacing.lg.w,
-                      Spacing.md.h,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(accent),
-                        const Spacer(),
-                        // 项目名称（居中显示）
-                        Center(
-                          child: Text(
-                            widget.project.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.h4.copyWith(
-                              color: _hovered
-                                  ? AppColors.onSurface
-                                  : AppColors.onSurface.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        _buildFooter(accent),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(Color accent) {
-    return Row(
-      children: [
-        // 项目图标（带渐变背景）
-        Container(
-          padding: EdgeInsets.all(6.r),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                accent.withValues(alpha: 0.25),
-                accent.withValues(alpha: 0.08),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          ),
-          child: Icon(
-            AppIcons.movieFilter,
-            color: accent.withValues(alpha: 0.9),
-            size: 16.r,
-          ),
-        ),
-        const Spacer(),
-        // 菜单按钮
-        SizedBox(
-          width: 28.w,
-          height: 28.h,
-          child: PopupMenuButton<String>(
-            icon: Icon(
-              AppIcons.moreVert,
-              color: _hovered
-                  ? AppColors.mutedLight
-                  : AppColors.mutedDark,
-              size: 16.r,
-            ),
-            padding: EdgeInsets.zero,
-            color: AppColors.surface,
-            onSelected: (v) {
-              if (v == 'edit') widget.onEdit();
-              if (v == 'delete') widget.onDelete();
-            },
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'edit',
-                child: Row(
-                  children: [
-                    Icon(AppIcons.editOutline, size: 16.r, color: AppColors.muted),
-                    SizedBox(width: Spacing.sm.w),
-                    Text('编辑名称',
-                      style: AppTextStyles.bodyMedium
-                          .copyWith(color: AppColors.mutedLight)),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(AppIcons.delete, size: 16.r, color: AppColors.error),
-                    SizedBox(width: Spacing.sm.w),
-                    Text('删除',
-                      style: AppTextStyles.bodyMedium
-                          .copyWith(color: AppColors.error)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFooter(Color accent) {
-    return Row(
-      children: [
-        Icon(
-          AppIcons.inProgress,
-          size: 11.r,
-          color: AppColors.mutedDarker,
-        ),
-        SizedBox(width: 4.w),
-        Text(
-          _formatDate(widget.project.updatedAt),
-          style: AppTextStyles.tiny.copyWith(
-            color: AppColors.mutedDark,
-            fontSize: 10.sp,
-          ),
-        ),
-        const Spacer(),
-        // 悬浮箭头指示
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 200),
-          opacity: _hovered ? 1.0 : 0.4,
-          child: Container(
-            padding: EdgeInsets.all(4.r),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: _hovered ? 0.15 : 0.05),
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-            ),
-            child: Icon(
-              AppIcons.chevronRight,
-              size: 12.r,
-              color: _hovered ? accent : AppColors.mutedDarker,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

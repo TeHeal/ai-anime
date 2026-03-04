@@ -72,6 +72,7 @@ class _ModelSelectorState extends State<ModelSelector> {
 
   List<ModelCatalogItem> _models = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -94,8 +95,8 @@ class _ModelSelectorState extends State<ModelSelector> {
         widget.onChanged(best);
       }
     } catch (e, st) {
-      debugPrint('ModelSelector._load: $e');
-      debugPrint(st.toString());
+      debugPrint('ModelSelector._load: $e\n$st');
+      _error = '模型加载失败';
     }
     if (mounted) setState(() => _loading = false);
   }
@@ -109,6 +110,18 @@ class _ModelSelectorState extends State<ModelSelector> {
 
   @override
   Widget build(BuildContext context) {
+    if (_error != null && _models.isEmpty && !_loading) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text(
+          _error!,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+            fontSize: 12,
+          ),
+        ),
+      );
+    }
     return switch (widget.style) {
       ModelSelectorStyle.chips => ModelSelectorChips(
           models: _models,

@@ -6,6 +6,8 @@ import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_network_image.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/const/actions.dart' show AppActions;
+import 'package:anime_ui/pub/widgets/permission_gate.dart';
 import 'package:anime_ui/pub/widgets/task_status/mini_action_button.dart';
 import 'package:anime_ui/pub/widgets/task_status/status_badge.dart';
 
@@ -357,34 +359,46 @@ class _ShotImageTaskCardState extends State<ShotImageTaskCard>
 
   Widget _buildAction() {
     return switch (widget.status) {
-      ShotImageStatus.completed => MiniActionButton(
-        label: '审核',
-        icon: AppIcons.arrowForward,
-        color: AppColors.success,
-        onTap: widget.onReview,
+      ShotImageStatus.completed => PermissionGate(
+        action: AppActions.shotImageReview,
+        child: MiniActionButton(
+          label: '审核',
+          icon: AppIcons.arrowForward,
+          color: AppColors.success,
+          onTap: widget.onReview,
+        ),
       ),
       ShotImageStatus.generating => SizedBox(
         width: 16.w,
         height: 16.h,
         child: const CircularProgressIndicator(strokeWidth: 2),
       ),
-      ShotImageStatus.failed => MiniActionButton(
-        label: '重试',
-        icon: AppIcons.refresh,
-        color: AppColors.warning,
-        onTap: widget.onGenerate,
+      ShotImageStatus.failed => PermissionGate(
+        action: AppActions.shotImageGenerate,
+        child: MiniActionButton(
+          label: '重试',
+          icon: AppIcons.refresh,
+          color: AppColors.warning,
+          onTap: widget.onGenerate,
+        ),
       ),
-      ShotImageStatus.rejected => MiniActionButton(
-        label: '重跑',
-        icon: AppIcons.refresh,
-        color: AppColors.warning,
-        onTap: widget.onGenerate,
+      ShotImageStatus.rejected => PermissionGate(
+        action: AppActions.shotImageGenerate,
+        child: MiniActionButton(
+          label: '重跑',
+          icon: AppIcons.refresh,
+          color: AppColors.warning,
+          onTap: widget.onGenerate,
+        ),
       ),
-      ShotImageStatus.notStarted => MiniActionButton(
-        label: '生成',
-        icon: AppIcons.magicStick,
-        color: AppColors.primary,
-        onTap: widget.onGenerate,
+      ShotImageStatus.notStarted => PermissionGate(
+        action: AppActions.shotImageGenerate,
+        child: MiniActionButton(
+          label: '生成',
+          icon: AppIcons.magicStick,
+          color: AppColors.primary,
+          onTap: widget.onGenerate,
+        ),
       ),
     };
   }

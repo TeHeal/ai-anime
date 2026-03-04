@@ -285,7 +285,7 @@ class DraftContent extends StatelessWidget {
     }
     if (trimmed.startsWith('**') && trimmed.contains('日') ||
         trimmed.contains('夜')) {
-      return Colors.cyan;
+      return AppColors.info;
     }
     if (trimmed.startsWith('△')) return AppColors.success;
     if (trimmed.startsWith('●')) return AppColors.warning;

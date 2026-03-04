@@ -63,8 +63,8 @@ class BlockItemAiSuggestion extends StatelessWidget {
               if (isLoading) ...[
                 const SizedBox(width: Spacing.sm),
                 SizedBox(
-                  width: 12,
-                  height: 12,
+                  width: 12.r,
+                  height: 12.r,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
                     color: accent,

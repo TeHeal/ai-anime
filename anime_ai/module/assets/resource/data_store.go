@@ -128,18 +128,27 @@ func (d *DBData) List(ctx context.Context, userID string, opts ListDataOpts) ([]
 	if !userUUID.Valid {
 		return nil, 0, pkg.ErrNotFound
 	}
-	var mod, lib pgtype.Text
+	var mod, lib, search pgtype.Text
 	if opts.Modality != "" {
 		mod = pgtype.Text{String: opts.Modality, Valid: true}
 	}
 	if opts.LibraryType != "" {
 		lib = pgtype.Text{String: opts.LibraryType, Valid: true}
 	}
+	if opts.Search != "" {
+		search = pgtype.Text{String: opts.Search, Valid: true}
+	}
+	sortBy := interface{}(opts.SortBy)
+	if sortBy == "" {
+		sortBy = "newest"
+	}
 	listArg := db.ListResourcesByUserParams{
 		UserID:      userUUID,
 		Modality:    mod,
 		LibraryType: lib,
 		TagsOverlap: opts.TagsOverlap,
+		Search:      search,
+		SortBy:      sortBy,
 		Offset:      opts.Offset,
 		Limit:       opts.Limit,
 	}
@@ -152,6 +161,7 @@ func (d *DBData) List(ctx context.Context, userID string, opts ListDataOpts) ([]
 		Modality:    mod,
 		LibraryType: lib,
 		TagsOverlap: opts.TagsOverlap,
+		Search:      search,
 	}
 	total, err := d.q.CountResourcesByUser(ctx, countArg)
 	if err != nil {

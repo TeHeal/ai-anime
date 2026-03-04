@@ -1,6 +1,7 @@
 package character
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -178,6 +179,22 @@ func (s *Service) ListByProject(projectIDStr, userIDStr string) ([]Character, er
 		}
 	}
 	return s.data.ListCharactersByProject(projectIDStr)
+}
+
+// ListConfirmedCharacterIDs 列出项目内已确认角色的 ID（供跨模块 collector 使用，不校验用户权限）
+func (s *Service) ListConfirmedCharacterIDs(ctx context.Context, projectID string) ([]string, error) {
+	_ = ctx // 预留，Data 层当前无 context
+	chars, err := s.data.ListCharactersByProject(projectID)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, ch := range chars {
+		if ch.Status == CharacterStatusConfirmed && ch.ID != "" {
+			ids = append(ids, ch.ID)
+		}
+	}
+	return ids, nil
 }
 
 // checkAssetEditForProject 校验项目内资产编辑权限（projectIDStr/userIDStr 为字符串）

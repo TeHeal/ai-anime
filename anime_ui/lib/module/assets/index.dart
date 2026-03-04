@@ -7,5 +7,5 @@ export 'characters/characters_page.dart';
 export 'locations/locations_page.dart';
 export 'props/props_page.dart';
 export 'resources/resources_page.dart';
-export 'styles/style_library_view.dart';
+export 'styles/style_library_page.dart';
 export 'versions_page.dart';

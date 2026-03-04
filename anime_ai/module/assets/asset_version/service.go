@@ -4,24 +4,23 @@ import (
 	"context"
 	"encoding/json"
 
-	"anime_ai/module/project"
 	"anime_ai/pub/crossmodule"
 	"anime_ai/pub/pkg"
 )
 
 // Service 资产版本业务逻辑层
 type Service struct {
-	data      Data
-	project   project.Data
-	collector crossmodule.ConfirmedAssetCollector
+	data             Data
+	projectLock      crossmodule.ProjectLockReader
+	collector        crossmodule.ConfirmedAssetCollector
 }
 
-// NewService 创建 Service
-func NewService(data Data, projectData project.Data, collector crossmodule.ConfirmedAssetCollector) *Service {
+// NewService 创建 Service（依赖 ProjectLockReader 与 ConfirmedAssetCollector，遵循「模块间禁止直接引用 Data」）
+func NewService(data Data, projectLock crossmodule.ProjectLockReader, collector crossmodule.ConfirmedAssetCollector) *Service {
 	return &Service{
-		data:      data,
-		project:   projectData,
-		collector: collector,
+		data:        data,
+		projectLock: projectLock,
+		collector:   collector,
 	}
 }
 
@@ -32,7 +31,7 @@ func (s *Service) List(ctx context.Context, projectID string, limit, offset int)
 
 // Freeze 冻结资产：只收集已确认的角色、场景、道具，写入版本，并锁定 assets
 func (s *Service) Freeze(ctx context.Context, projectID string) (*AssetVersion, error) {
-	ids, err := s.collector.Collect(projectID)
+	ids, err := s.collector.Collect(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +46,11 @@ func (s *Service) Freeze(ctx context.Context, projectID string) (*AssetVersion, 
 	}
 	statsJSON := string(statsBytes)
 
-	// 获取当前最新版本号
-	latest, _ := s.data.GetLatestFreeze(ctx, projectID)
+	// 获取当前最新版本号（err 时从 1 开始）
+	latest, err := s.data.GetLatestFreeze(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
 	version := 1
 	if latest != nil {
 		version = latest.Version + 1
@@ -59,7 +61,7 @@ func (s *Service) Freeze(ctx context.Context, projectID string) (*AssetVersion, 
 		return nil, err
 	}
 
-	if err := s.project.UpdateLockPhase(projectID, "assets", true); err != nil {
+	if err := s.projectLock.UpdateLockPhase(projectID, "assets", true); err != nil {
 		return nil, err
 	}
 	return av, nil
@@ -67,7 +69,7 @@ func (s *Service) Freeze(ctx context.Context, projectID string) (*AssetVersion, 
 
 // Unfreeze 解冻资产
 func (s *Service) Unfreeze(ctx context.Context, projectID string) error {
-	return s.project.UpdateLockPhase(projectID, "assets", false)
+	return s.projectLock.UpdateLockPhase(projectID, "assets", false)
 }
 
 // ImpactItem 解冻影响项
@@ -90,7 +92,7 @@ func (s *Service) GetLatestFreeze(ctx context.Context, projectID string) (*Asset
 
 // IsAssetInFrozenVersion 判断资产是否在最新冻结版本中（实现 FrozenAssetChecker 的核心逻辑）
 func (s *Service) IsAssetInFrozenVersion(ctx context.Context, projectID, assetType, assetID string) (bool, error) {
-	p, err := s.project.FindByIDOnly(projectID)
+	p, err := s.projectLock.FindByIDOnly(projectID)
 	if err != nil {
 		return false, err
 	}
@@ -129,7 +131,7 @@ func contains(ids []string, id string) bool {
 // NoopCollector 空实现（无 DB 或未注入时使用）
 type NoopCollector struct{}
 
-func (NoopCollector) Collect(projectID string) (*crossmodule.ConfirmedAssetIDs, error) {
+func (NoopCollector) Collect(ctx context.Context, projectID string) (*crossmodule.ConfirmedAssetIDs, error) {
 	return &crossmodule.ConfirmedAssetIDs{}, nil
 }
 

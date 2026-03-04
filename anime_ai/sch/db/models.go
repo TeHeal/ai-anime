@@ -452,6 +452,7 @@ type TeamMember struct {
 	TeamID    pgtype.UUID        `json:"team_id"`
 	UserID    pgtype.UUID        `json:"user_id"`
 	Role      string             `json:"role"`
+	JobRoles  []byte             `json:"job_roles"`
 	JoinedAt  pgtype.Timestamptz `json:"joined_at"`
 }
 

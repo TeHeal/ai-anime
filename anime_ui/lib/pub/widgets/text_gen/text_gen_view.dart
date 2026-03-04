@@ -37,6 +37,7 @@ class _TextGenViewState extends State<TextGenView> {
   ModelCatalogItem? _selectedTargetModel;
   List<ModelCatalogItem> _imageModels = [];
   bool _loadingModels = false;
+  String? _modelLoadError;
 
   TextGenConfig get config => widget.config;
   Color get accent => config.accentColor;
@@ -56,8 +57,8 @@ class _TextGenViewState extends State<TextGenView> {
     try {
       _imageModels = await ModelCatalogService().list(service: 'image');
     } catch (e, st) {
-      debugPrint('TextGenView._loadTargetModels: $e');
-      debugPrint(st.toString());
+      debugPrint('TextGenView._loadTargetModels: $e\n$st');
+      _modelLoadError = '模型加载失败';
     }
     if (mounted) setState(() => _loadingModels = false);
   }
@@ -133,9 +134,9 @@ class _TextGenViewState extends State<TextGenView> {
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: 780.w,
-              maxHeight: 640.h,
-              minWidth: 520.w,
+              maxWidth: 660.w,
+              maxHeight: 520.h,
+              minWidth: 440.w,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -146,7 +147,10 @@ class _TextGenViewState extends State<TextGenView> {
                   onClose: widget.onClose,
                 ),
                 Flexible(
-                  child: Row(
+                  fit: FlexFit.loose,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: 260.h),
+                    child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
@@ -159,6 +163,7 @@ class _TextGenViewState extends State<TextGenView> {
                           selectedTargetModel: _selectedTargetModel,
                           imageModels: _imageModels,
                           loadingModels: _loadingModels,
+                          modelLoadError: _modelLoadError,
                           accent: accent,
                           onLanguageChanged: (v) =>
                               setState(() => _selectedLanguage = v),
@@ -179,6 +184,7 @@ class _TextGenViewState extends State<TextGenView> {
                       ),
                     ],
                   ),
+                ),
                 ),
                 TextGenFooter(
                   config: config,

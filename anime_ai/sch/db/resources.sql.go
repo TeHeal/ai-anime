@@ -55,6 +55,11 @@ WHERE user_id = $1 AND deleted_at IS NULL
   AND ($2::text IS NULL OR modality = $2)
   AND ($3::text IS NULL OR library_type = $3)
   AND ($4::jsonb IS NULL OR tags_json && $4::jsonb)
+  AND ($5::text IS NULL OR $5::text = '' OR (
+    name ILIKE '%' || $5 || '%'
+    OR description ILIKE '%' || $5 || '%'
+    OR tags_json::text ILIKE '%' || $5 || '%'
+  ))
 `
 
 type CountResourcesByUserParams struct {
@@ -62,6 +67,7 @@ type CountResourcesByUserParams struct {
 	Modality    pgtype.Text `json:"modality"`
 	LibraryType pgtype.Text `json:"library_type"`
 	TagsOverlap []byte      `json:"tags_overlap"`
+	Search      pgtype.Text `json:"search"`
 }
 
 func (q *Queries) CountResourcesByUser(ctx context.Context, arg CountResourcesByUserParams) (int64, error) {
@@ -70,6 +76,7 @@ func (q *Queries) CountResourcesByUser(ctx context.Context, arg CountResourcesBy
 		arg.Modality,
 		arg.LibraryType,
 		arg.TagsOverlap,
+		arg.Search,
 	)
 	var column_1 int64
 	err := row.Scan(&column_1)
@@ -206,8 +213,17 @@ WHERE user_id = $1 AND deleted_at IS NULL
   AND ($2::text IS NULL OR modality = $2)
   AND ($3::text IS NULL OR library_type = $3)
   AND ($4::jsonb IS NULL OR tags_json && $4::jsonb)
-ORDER BY updated_at DESC
-LIMIT $6 OFFSET $5
+  AND ($5::text IS NULL OR $5::text = '' OR (
+    name ILIKE '%' || $5 || '%'
+    OR description ILIKE '%' || $5 || '%'
+    OR tags_json::text ILIKE '%' || $5 || '%'
+  ))
+ORDER BY
+  CASE WHEN COALESCE($6, 'newest') = 'oldest' THEN updated_at END ASC NULLS LAST,
+  CASE WHEN COALESCE($6, 'newest') = 'newest' THEN updated_at END DESC NULLS LAST,
+  CASE WHEN $6 = 'name_asc' THEN name END ASC NULLS LAST,
+  CASE WHEN $6 = 'name_desc' THEN name END DESC NULLS LAST
+LIMIT $8 OFFSET $7
 `
 
 type ListResourcesByUserParams struct {
@@ -215,6 +231,8 @@ type ListResourcesByUserParams struct {
 	Modality    pgtype.Text `json:"modality"`
 	LibraryType pgtype.Text `json:"library_type"`
 	TagsOverlap []byte      `json:"tags_overlap"`
+	Search      pgtype.Text `json:"search"`
+	SortBy      interface{} `json:"sort_by"`
 	Offset      int32       `json:"offset"`
 	Limit       int32       `json:"limit"`
 }
@@ -225,6 +243,8 @@ func (q *Queries) ListResourcesByUser(ctx context.Context, arg ListResourcesByUs
 		arg.Modality,
 		arg.LibraryType,
 		arg.TagsOverlap,
+		arg.Search,
+		arg.SortBy,
 		arg.Offset,
 		arg.Limit,
 	)

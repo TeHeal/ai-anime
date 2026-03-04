@@ -32,33 +32,34 @@ class GenResultGrid extends StatelessWidget {
       return _EmptyResultArea(accent: accent);
     }
 
-    // 确定网格列数
     final crossAxisCount = outputCount == 1 ? 1 : 2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (isGenerating && results.isEmpty)
-          _GeneratingPlaceholder(accent: accent, progress: progress),
+          Expanded(
+            child: _GeneratingPlaceholder(accent: accent, progress: progress),
+          ),
         if (results.isNotEmpty)
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: Spacing.sm.w,
-              mainAxisSpacing: Spacing.sm.h,
-              childAspectRatio: 1,
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: Spacing.sm.w,
+                mainAxisSpacing: Spacing.sm.h,
+                childAspectRatio: 1,
+              ),
+              itemCount: results.length,
+              itemBuilder: (_, i) {
+                final result = results[i];
+                return _ResultCell(
+                  url: result.url,
+                  accent: accent,
+                  onTap: () => onImageTap?.call(result.url),
+                );
+              },
             ),
-            itemCount: results.length,
-            itemBuilder: (_, i) {
-              final result = results[i];
-              return _ResultCell(
-                url: result.url,
-                accent: accent,
-                onTap: () => onImageTap?.call(result.url),
-              );
-            },
           ),
         if (isGenerating && results.isNotEmpty)
           Padding(
@@ -75,6 +76,7 @@ class GenResultGrid extends StatelessWidget {
   }
 }
 
+/// 空状态预览区 — 径向渐变背景 + 步骤引导
 class _EmptyResultArea extends StatelessWidget {
   const _EmptyResultArea({required this.accent});
   final Color accent;
@@ -82,34 +84,107 @@ class _EmptyResultArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 180.h,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-        border: Border.all(color: accent.withValues(alpha: 0.08)),
+        gradient: RadialGradient(
+          center: const Alignment(0, 0.2),
+          radius: 0.9,
+          colors: [
+            accent.withValues(alpha: 0.06),
+            AppColors.surfaceContainerHigh,
+          ],
+        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            AppIcons.gallery,
-            size: 36.r,
-            color: accent.withValues(alpha: 0.2),
+          // 图标容器
+          Container(
+            width: 52.r,
+            height: 52.r,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+              border: Border.all(color: accent.withValues(alpha: 0.1)),
+            ),
+            child: Icon(
+              AppIcons.gallery,
+              size: 24.r,
+              color: accent.withValues(alpha: 0.3),
+            ),
           ),
           SizedBox(height: Spacing.lg.h),
           Text(
             '生成结果将在此显示',
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.mutedDarker,
+              color: AppColors.mutedDark,
             ),
           ),
           SizedBox(height: Spacing.xs.h),
           Text(
-            '支持多张流式预览',
-            style: AppTextStyles.tiny.copyWith(color: AppColors.surfaceMuted),
+            '支持多张流式预览 · 点击可查看大图',
+            style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDarker),
+          ),
+          // 步骤引导
+          SizedBox(height: Spacing.xl.h),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _StepHint(num: '1', label: '输入提示词', accent: accent),
+              SizedBox(width: Spacing.mid.w),
+              _StepHint(num: '2', label: '选择参数', accent: accent),
+              SizedBox(width: Spacing.mid.w),
+              _StepHint(num: '3', label: '开始生成', accent: accent),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _StepHint extends StatelessWidget {
+  const _StepHint({
+    required this.num,
+    required this.label,
+    required this.accent,
+  });
+
+  final String num;
+  final String label;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 18.r,
+          height: 18.r,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(6.r),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Center(
+            child: Text(
+              num,
+              style: AppTextStyles.tiny.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 10.sp,
+                color: AppColors.mutedDark,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: Spacing.iconGapSm.w),
+        Text(
+          label,
+          style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDarker),
+        ),
+      ],
     );
   }
 }
@@ -152,7 +227,6 @@ class _GeneratingPlaceholderState extends State<_GeneratingPlaceholder>
     return AnimatedBuilder(
       animation: _pulse,
       builder: (_, _) => Container(
-        height: 180.h,
         decoration: BoxDecoration(
           color: widget.accent.withValues(alpha: _pulse.value * 0.08),
           borderRadius: BorderRadius.circular(RadiusTokens.xl.r),

@@ -85,8 +85,8 @@ class RealtimeWSService {
           if (data is Map<String, dynamic>) {
             _eventController.add(data);
           }
-        } catch (_) {
-          debugPrint('WS raw message: $message');
+        } catch (e) {
+          debugPrint('WS 消息解析失败: $e (raw: $message)');
         }
       },
       onDone: () {

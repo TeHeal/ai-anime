@@ -6,6 +6,7 @@ import (
 	"anime_ai/module/auth"
 	"anime_ai/module/assets/character"
 	"anime_ai/module/composite"
+	"anime_ai/module/dashboard"
 	"anime_ai/module/download"
 	"anime_ai/module/episode"
 	"anime_ai/module/file"
@@ -25,6 +26,7 @@ import (
 	"anime_ai/module/storyboard"
 	"anime_ai/module/assets/style"
 	"anime_ai/module/task"
+	"anime_ai/module/team"
 	"anime_ai/module/usage"
 	"anime_ai/pub/config"
 	"anime_ai/pub/crossmodule"
@@ -72,6 +74,7 @@ type deps struct {
 	shotVideoHandler    *shot_video.Handler
 	notificationHandler *notification.Handler
 	orgHandler          *organization.Handler
+	teamHandler         *team.Handler
 	taskHandler         *task.Handler
 	compositeHandler    *composite.Handler
 	timelineHandler     *composite.TimelineHandler
@@ -81,6 +84,7 @@ type deps struct {
 	usageHandler        *usage.Handler
 	scheduleHandler     *schedule.Handler
 	resourceHandler     *resource.Handler
+	dashboardHandler    *dashboard.Handler
 	wsHandler           *realtime.WSHandler
 
 	projectReader       middleware.ProjectReader

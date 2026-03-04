@@ -305,7 +305,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 child: Text(
                   projectName.isNotEmpty ? projectName : '项目驾驶舱',
                   style: AppTextStyles.h2.copyWith(
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

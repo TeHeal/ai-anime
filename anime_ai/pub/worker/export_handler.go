@@ -70,7 +70,9 @@ func (h *ExportTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 	}
 
 	// 更新为导出中
-	_ = h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusExporting, "", "")
+	if err := h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusExporting, "", ""); err != nil {
+		h.log.Warn("更新导出状态失败", zap.String("composite_task_id", payload.CompositeTaskID), zap.Error(err))
+	}
 	h.broadcastProgress(payload, 5, "exporting")
 
 	tmpDir, err := os.MkdirTemp("", "export-*")
@@ -221,7 +223,9 @@ func (h *ExportTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 	h.broadcastProgress(payload, 95, "exporting")
 
 	// 更新任务状态为完成
-	_ = h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusDone, outputURL, "")
+	if err := h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusDone, outputURL, ""); err != nil {
+		h.log.Warn("更新导出完成状态失败", zap.String("composite_task_id", payload.CompositeTaskID), zap.Error(err))
+	}
 
 	// 广播完成事件
 	h.broadcastComplete(payload, outputURL)
@@ -285,7 +289,9 @@ func (h *ExportTaskHandler) fail(ctx context.Context, payload ExportTaskPayload,
 		zap.String("composite_task_id", payload.CompositeTaskID),
 		zap.String("error", errMsg),
 	)
-	_ = h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusFailed, "", errMsg)
+	if err := h.deps.CompositeUpdater.UpdateStatus(ctx, payload.CompositeTaskID, crossmodule.CompositeStatusFailed, "", errMsg); err != nil {
+		h.log.Warn("更新导出失败状态失败", zap.String("composite_task_id", payload.CompositeTaskID), zap.Error(err))
+	}
 	h.broadcastError(payload, errMsg)
 }
 

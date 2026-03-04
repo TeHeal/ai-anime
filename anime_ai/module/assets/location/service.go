@@ -1,6 +1,7 @@
 package location
 
 import (
+	"context"
 	"fmt"
 
 	"anime_ai/pub/auth"
@@ -117,6 +118,22 @@ func (s *Service) List(projectID, userID string) ([]Location, error) {
 		return nil, err
 	}
 	return s.store.ListByProject(projectID)
+}
+
+// ListConfirmedLocationIDs 列出项目内已确认场景的 ID（供跨模块 collector 使用，不校验用户权限）
+func (s *Service) ListConfirmedLocationIDs(ctx context.Context, projectID string) ([]string, error) {
+	_ = ctx // 预留，Store 层当前无 context
+	locs, err := s.store.ListByProject(projectID)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, loc := range locs {
+		if loc.Status == "confirmed" && loc.ID != "" {
+			ids = append(ids, loc.ID)
+		}
+	}
+	return ids, nil
 }
 
 // Get 获取场景详情

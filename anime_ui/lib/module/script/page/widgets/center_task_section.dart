@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/const/actions.dart' show AppActions;
+import 'package:anime_ui/pub/providers/permission_provider.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
 import 'package:anime_ui/pub/widgets/generation_center/batch_action_bar.dart';
@@ -84,7 +86,7 @@ class CenterTaskSection extends ConsumerWidget {
           key: 'notStarted',
           label: '待生成',
           count: statusCounts[EpisodeScriptStatus.notStarted] ?? 0,
-          color: AppColors.onSurface,
+          color: AppColors.muted,
         ),
         FilterChipData(
           key: 'generating',
@@ -137,7 +139,8 @@ class CenterTaskSection extends ConsumerWidget {
                     .toList(),
               ),
               onBatchAction: () => _batchGenerate(context, ref),
-              batchEnabled: generatingCount == 0,
+              batchEnabled: generatingCount == 0 &&
+                  (ref.watch(projectPermissionsProvider).value?.can(AppActions.aiGenerate) ?? true),
             )
           : null,
       child: filtered.isEmpty && validEpisodes.isEmpty
@@ -196,12 +199,12 @@ class CenterTaskSection extends ConsumerWidget {
 
   Widget _buildEmptyState() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 60), // 保持 60 作为空状态视觉
+      padding: EdgeInsets.symmetric(vertical: 60.h),
       child: Column(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 64.r,
+            height: 64.r,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
@@ -234,7 +237,7 @@ class CenterTaskSection extends ConsumerWidget {
 
   Widget _buildNoMatchState(ScriptCenterUiNotifier uiNotifier) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: EdgeInsets.symmetric(vertical: 40.h),
       child: Center(
         child: Column(
           children: [

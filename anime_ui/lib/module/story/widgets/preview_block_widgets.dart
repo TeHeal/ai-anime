@@ -143,7 +143,7 @@ class _PreviewBlockItemState extends State<PreviewBlockItem> {
                       if (_editing) ...[
                         const SizedBox(width: Spacing.sm),
                         SizedBox(
-                          width: 80,
+                          width: 80.w,
                           child: TextField(
                             controller: _charCtrl,
                             style: AppTextStyles.labelMedium,
@@ -167,7 +167,7 @@ class _PreviewBlockItemState extends State<PreviewBlockItem> {
                         ),
                         const SizedBox(width: Spacing.sm),
                         SizedBox(
-                          width: 70,
+                          width: 70.w,
                           child: TextField(
                             controller: _emotionCtrl,
                             style: AppTextStyles.labelMedium,
@@ -298,8 +298,8 @@ class _PreviewTypeDropdown extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 8.r,
+                  height: 8.r,
                   decoration: BoxDecoration(color: c, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: Spacing.sm),

@@ -1,10 +1,10 @@
 class Team {
-  final int id;
-  final int orgId;
+  final String id;
+  final String orgId;
   final String name;
   final String description;
 
-  Team({
+  const Team({
     required this.id,
     required this.orgId,
     required this.name,
@@ -12,9 +12,9 @@ class Team {
   });
 
   factory Team.fromJson(Map<String, dynamic> json) => Team(
-        id: json['id'] as int,
-        orgId: json['org_id'] as int,
-        name: json['name'] as String,
+        id: json['id'] as String? ?? '',
+        orgId: json['orgId'] as String? ?? '',
+        name: json['name'] as String? ?? '',
         description: json['description'] as String? ?? '',
       );
 }

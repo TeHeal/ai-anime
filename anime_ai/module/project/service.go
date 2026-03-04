@@ -305,3 +305,13 @@ func (s *Service) IsLocked(projectID, phase string) (bool, error) {
 		return false, nil
 	}
 }
+
+// UpdateLockPhase 更新指定阶段锁定状态（供跨模块使用，不校验用户权限）
+func (s *Service) UpdateLockPhase(projectID, phase string, locked bool) error {
+	return s.data.UpdateLockPhase(projectID, phase, locked)
+}
+
+// FindByIDOnly 按项目 ID 获取项目（供跨模块使用，不校验用户权限）
+func (s *Service) FindByIDOnly(projectID string) (*Project, error) {
+	return s.data.FindByIDOnly(projectID)
+}

@@ -6,6 +6,7 @@ import (
 
 	"anime_ai/pub/auth"
 	"anime_ai/pub/crossmodule"
+	"go.uber.org/zap"
 )
 
 // 审核状态常量（README §状态机：review → ai_reviewing → ai_approved/ai_rejected → approved/rejected）
@@ -78,7 +79,9 @@ func (s *Service) executeAIReview(shotID, projectID string) error {
 	ctx := context.Background()
 	approved, comment, err := s.reviewFlowCfg.AIReviewer.ReviewImage(ctx, imageURL, projectID, "")
 	if err != nil {
-		_ = s.shotReader.UpdateShotReview(shotID, ReviewStatusReview, "AI 审核异常，回退到人工审核")
+		if rollbackErr := s.shotReader.UpdateShotReview(shotID, ReviewStatusReview, "AI 审核异常，回退到人工审核"); rollbackErr != nil {
+			s.log().Warn("AI 审核异常后回退状态失败", zap.String("shot_id", shotID), zap.Error(rollbackErr))
+		}
 		return nil
 	}
 	var finalStatus string
@@ -95,7 +98,9 @@ func (s *Service) executeAIReview(shotID, projectID string) error {
 	}
 	// AI 审核拒绝时自动触发重生成（README 2.2 审核闭环）
 	if finalStatus == ReviewStatusRejected {
-		_ = s.triggerRegeneration(shotID, projectID, "", comment)
+		if err := s.triggerRegeneration(shotID, projectID, "", comment); err != nil {
+			s.log().Warn("触发镜图重生成失败", zap.String("shot_id", shotID), zap.Error(err))
+		}
 	}
 	return nil
 }
@@ -115,7 +120,9 @@ func (s *Service) executeAIFirstReview(shotID, projectID string) error {
 	ctx := context.Background()
 	approved, comment, err := s.reviewFlowCfg.AIReviewer.ReviewImage(ctx, imageURL, projectID, "")
 	if err != nil {
-		_ = s.shotReader.UpdateShotReview(shotID, ReviewStatusReview, "AI 审核异常，回退到人工审核")
+		if rollbackErr := s.shotReader.UpdateShotReview(shotID, ReviewStatusReview, "AI 审核异常，回退到人工审核"); rollbackErr != nil {
+			s.log().Warn("AI 审核异常后回退状态失败", zap.String("shot_id", shotID), zap.Error(rollbackErr))
+		}
 		return nil
 	}
 	var aiStatus string

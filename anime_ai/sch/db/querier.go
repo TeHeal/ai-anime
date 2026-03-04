@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	AddOrgMember(ctx context.Context, arg AddOrgMemberParams) (OrgMember, error)
+	AddTeamMember(ctx context.Context, arg AddTeamMemberParams) (TeamMember, error)
 	ApplyStyleToCharacters(ctx context.Context, arg ApplyStyleToCharactersParams) ([]pgtype.UUID, error)
 	ApplyStyleToLocations(ctx context.Context, arg ApplyStyleToLocationsParams) ([]pgtype.UUID, error)
 	ApplyStyleToProps(ctx context.Context, arg ApplyStyleToPropsParams) ([]pgtype.UUID, error)
@@ -64,6 +65,7 @@ type Querier interface {
 	CreateStyle(ctx context.Context, arg CreateStyleParams) (Style, error)
 	// 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
+	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteOrganization(ctx context.Context, id pgtype.UUID) error
 	DeleteSchedule(ctx context.Context, id pgtype.UUID) error
@@ -95,6 +97,8 @@ type Querier interface {
 	GetShotVideoByShotPrimary(ctx context.Context, shotID pgtype.UUID) (ShotVideo, error)
 	GetStyleByID(ctx context.Context, id pgtype.UUID) (Style, error)
 	GetTaskByID(ctx context.Context, id pgtype.UUID) (Task, error)
+	GetTeamByID(ctx context.Context, id pgtype.UUID) (Team, error)
+	GetTeamMember(ctx context.Context, arg GetTeamMemberParams) (TeamMember, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	ListAssetVersionsByProject(ctx context.Context, arg ListAssetVersionsByProjectParams) ([]AssetVersion, error)
@@ -138,11 +142,14 @@ type Querier interface {
 	ListTasksByProjectAndType(ctx context.Context, arg ListTasksByProjectAndTypeParams) ([]Task, error)
 	ListTasksByProjectTypeAndStatus(ctx context.Context, arg ListTasksByProjectTypeAndStatusParams) ([]Task, error)
 	ListTasksByUser(ctx context.Context, arg ListTasksByUserParams) ([]Task, error)
+	ListTeamMembers(ctx context.Context, teamID pgtype.UUID) ([]ListTeamMembersRow, error)
+	ListTeamsByOrg(ctx context.Context, orgID pgtype.UUID) ([]Team, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	MarkAllAsReadByUser(ctx context.Context, userID pgtype.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	ReleaseExpiredShotLocks(ctx context.Context) error
 	RemoveOrgMember(ctx context.Context, arg RemoveOrgMemberParams) error
+	RemoveTeamMember(ctx context.Context, arg RemoveTeamMemberParams) error
 	SetProjectDefault(ctx context.Context, arg SetProjectDefaultParams) error
 	SoftDeleteCharacter(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteCompositeTask(ctx context.Context, id pgtype.UUID) error
@@ -166,6 +173,7 @@ type Querier interface {
 	SoftDeleteShotVideosByShot(ctx context.Context, shotID pgtype.UUID) error
 	SoftDeleteShotsByProject(ctx context.Context, projectID pgtype.UUID) error
 	SoftDeleteStyle(ctx context.Context, id pgtype.UUID) error
+	SoftDeleteTeam(ctx context.Context, id pgtype.UUID) error
 	SoftDeleteUser(ctx context.Context, id pgtype.UUID) error
 	// 尝试加锁：仅当未锁、或本人持有、或超时(1h)时可加锁
 	TryLockShot(ctx context.Context, arg TryLockShotParams) (pgtype.UUID, error)
@@ -209,6 +217,8 @@ type Querier interface {
 	UpdateTaskProgress(ctx context.Context, arg UpdateTaskProgressParams) (Task, error)
 	UpdateTaskResult(ctx context.Context, arg UpdateTaskResultParams) (Task, error)
 	UpdateTaskStatus(ctx context.Context, arg UpdateTaskStatusParams) (Task, error)
+	UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, error)
+	UpdateTeamMember(ctx context.Context, arg UpdateTeamMemberParams) (TeamMember, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

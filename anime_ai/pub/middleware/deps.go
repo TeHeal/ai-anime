@@ -16,7 +16,8 @@ type ProjectReader interface {
 
 // ProjectMemberInfo 项目成员信息
 type ProjectMemberInfo struct {
-	Role string
+	Role     string
+	JobRoles []string
 }
 
 // ProjectMemberReader 项目成员读取接口
@@ -26,7 +27,8 @@ type ProjectMemberReader interface {
 
 // TeamMemberInfo 团队成员信息
 type TeamMemberInfo struct {
-	Role string
+	Role     string
+	JobRoles []string
 }
 
 // TeamMemberReader 团队成员读取接口

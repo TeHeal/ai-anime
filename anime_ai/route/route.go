@@ -6,6 +6,7 @@ import (
 	"anime_ai/module/assets/asset_version"
 	"anime_ai/module/assets/character"
 	"anime_ai/module/composite"
+	"anime_ai/module/dashboard"
 	"anime_ai/module/download"
 	"anime_ai/module/episode"
 	"anime_ai/module/file"
@@ -14,6 +15,7 @@ import (
 	"anime_ai/module/notification"
 	"anime_ai/module/organization"
 	"anime_ai/module/package_task"
+	"anime_ai/module/team"
 	"anime_ai/module/project"
 	"anime_ai/module/assets/prop"
 	"anime_ai/module/assets/resource"
@@ -41,6 +43,7 @@ type Config struct {
 	AuthHandler          *modauth.Handler
 	NotificationHandler  *notification.Handler
 	OrgHandler           *organization.Handler
+	TeamHandler          *team.Handler
 	TaskHandler          *task.Handler
 	ProjectHandler       *project.Handler
 	AssetVersionHandler  *asset_version.Handler
@@ -53,6 +56,7 @@ type Config struct {
 	ResourceHandler      *resource.Handler
 	StyleHandler         *style.Handler
 	StoryboardHandler    *storyboard.Handler
+	DashboardHandler     *dashboard.Handler
 	ShotHandler          *shot.Handler
 	ShotImageHandler     *shot_image.Handler
 	ShotVideoHandler     *shot_video.Handler
@@ -119,6 +123,20 @@ func Register(r *gin.Engine, cfg *Config) {
 				orgs.POST("/:orgId/members", cfg.OrgHandler.AddMember)
 				orgs.GET("/:orgId/members", cfg.OrgHandler.ListMembers)
 				orgs.DELETE("/:orgId/members/:userId", cfg.OrgHandler.RemoveMember)
+				if cfg.TeamHandler != nil {
+					teams := orgs.Group("/:orgId/teams")
+					{
+						teams.POST("", cfg.TeamHandler.Create)
+						teams.GET("", cfg.TeamHandler.List)
+						teams.GET("/:teamId", cfg.TeamHandler.Get)
+						teams.PUT("/:teamId", cfg.TeamHandler.Update)
+						teams.DELETE("/:teamId", cfg.TeamHandler.Delete)
+						teams.POST("/:teamId/members", cfg.TeamHandler.AddMember)
+						teams.GET("/:teamId/members", cfg.TeamHandler.ListMembers)
+						teams.PUT("/:teamId/members/:userId", cfg.TeamHandler.UpdateMember)
+						teams.DELETE("/:teamId/members/:userId", cfg.TeamHandler.RemoveMember)
+					}
+				}
 			}
 		}
 		if cfg.TaskHandler != nil {
@@ -141,7 +159,11 @@ func Register(r *gin.Engine, cfg *Config) {
 						cfg.TeamMemberReader,
 					))
 				}
-				projectScoped.GET("", cfg.ProjectHandler.Get)
+			projectScoped.GET("", cfg.ProjectHandler.Get)
+			projectScoped.GET("/my-permissions", cfg.ProjectHandler.MyPermissions)
+			if cfg.DashboardHandler != nil {
+					projectScoped.GET("/dashboard", cfg.DashboardHandler.Get)
+				}
 				projectScoped.PUT("", middleware.RequireAction(auth.ActionEdit), cfg.ProjectHandler.Update)
 				projectScoped.DELETE("", middleware.RequireAction(auth.ActionProjectDelete), cfg.ProjectHandler.Delete)
 				projectScoped.GET("/props", cfg.ProjectHandler.GetProps)

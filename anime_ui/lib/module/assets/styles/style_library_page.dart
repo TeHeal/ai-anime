@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -12,26 +11,22 @@ import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
-import 'package:anime_ui/pub/data/preset_styles_data.dart';
-import 'package:anime_ui/pub/services/file_svc.dart';
 import 'package:anime_ui/pub/widgets/image_gen/image_gen_trigger.dart';
 
 import 'providers/styles.dart';
 import 'widgets/style_toolbar.dart';
+import 'widgets/preset_style_section.dart';
 
-/// 风格库视图：自定义风格网格、默认风格
-class StyleLibraryView extends ConsumerStatefulWidget {
-  const StyleLibraryView({super.key});
+/// 风格库页面：自定义风格网格、当前默认风格、精选预设风格
+class StyleLibraryPage extends ConsumerStatefulWidget {
+  const StyleLibraryPage({super.key});
 
   @override
-  ConsumerState<StyleLibraryView> createState() => _StyleLibraryViewState();
+  ConsumerState<StyleLibraryPage> createState() => _StyleLibraryPageState();
 }
 
-class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
+class _StyleLibraryPageState extends ConsumerState<StyleLibraryPage> {
   static const _accent = AppColors.primary;
-
-  String? _selectedPresetCategory;
-  bool _applyingPreset = false;
 
   @override
   void initState() {
@@ -57,7 +52,8 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
             child: Center(
               child: Text(
                 '加载失败: $e',
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: AppColors.error),
               ),
             ),
           ),
@@ -66,12 +62,12 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
       data: (styles) {
         final defaultStyle =
             styles.where((s) => s.isProjectDefault).firstOrNull;
-        final nameSearch = ref.watch(styleNameSearchProvider).trim().toLowerCase();
+        final nameSearch =
+            ref.watch(styleNameSearchProvider).trim().toLowerCase();
         final filteredStyles = nameSearch.isEmpty
             ? styles
             : styles
-                .where((s) =>
-                    s.name.toLowerCase().contains(nameSearch))
+                .where((s) => s.name.toLowerCase().contains(nameSearch))
                 .toList();
 
         return Column(
@@ -87,7 +83,7 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
                     SizedBox(height: Spacing.xxl.h),
                     _buildCurrentStyle(defaultStyle),
                     SizedBox(height: Spacing.xxl.h),
-                    _buildPresetSection(styles),
+                    PresetStyleSection(existingStyles: styles),
                   ],
                 ),
               ),
@@ -97,6 +93,8 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
       },
     );
   }
+
+  // ── 工具方法 ──
 
   List<String> _parseRefImages(String jsonStr) {
     if (jsonStr.isEmpty) return [];
@@ -112,7 +110,12 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
     }
   }
 
-  Widget _styleThumbnail(Style style, {double size = 48, double radius = 10}) {
+  /// 风格缩略图，[size] 和 [radius] 需传入 ScreenUtil 缩放值（如 44.r）
+  Widget _styleThumbnail(
+    Style style, {
+    required double size,
+    required double radius,
+  }) {
     final urls = _parseRefImages(style.referenceImagesJson);
     final thumb = style.thumbnailUrl.isNotEmpty
         ? resolveFileUrl(style.thumbnailUrl)
@@ -120,10 +123,10 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
 
     if (thumb != null && thumb.isNotEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(radius.r),
+        borderRadius: BorderRadius.circular(radius),
         child: SizedBox(
-          width: size.r,
-          height: size.r,
+          width: size,
+          height: size,
           child: Image.network(
             thumb,
             fit: BoxFit.cover,
@@ -135,21 +138,46 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
     return _iconPlaceholder(size, radius);
   }
 
+  /// 图标占位，[size] 和 [radius] 需传入 ScreenUtil 缩放值
   Widget _iconPlaceholder(double size, double radius) {
     return Container(
-      width: size.r,
-      height: size.r,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: AppColors.surfaceMutedDark,
-        borderRadius: BorderRadius.circular(radius.r),
+        borderRadius: BorderRadius.circular(radius),
       ),
       child: Icon(
         AppIcons.brush,
-        size: (size * 0.45).r,
+        size: size * 0.45,
         color: AppColors.muted,
       ),
     );
   }
+
+  void _openLightbox(BuildContext context, String url) {
+    showImageViewer(
+      context,
+      CachedNetworkImageProvider(resolveFileUrl(url)),
+      swipeDismissible: true,
+      doubleTapZoomable: true,
+    );
+  }
+
+  Widget _cardPlaceholder() {
+    return Container(
+      color: AppColors.surfaceMutedDark,
+      child: Center(
+        child: Icon(
+          AppIcons.brush,
+          size: 32.r,
+          color: AppColors.muted,
+        ),
+      ),
+    );
+  }
+
+  // ── 当前统一风格卡片 ──
 
   Widget _buildCurrentStyle(Style? defaultStyle) {
     if (defaultStyle == null) return const SizedBox.shrink();
@@ -168,7 +196,7 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
         children: [
           Row(
             children: [
-              _styleThumbnail(defaultStyle, size: 44, radius: 10),
+              _styleThumbnail(defaultStyle, size: 44.r, radius: 10.r),
               SizedBox(width: Spacing.md.w),
               Expanded(
                 child: Column(
@@ -209,7 +237,8 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
             SizedBox(height: Spacing.sm.h),
             Text(
               defaultStyle.description,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -227,12 +256,13 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
                   child: GestureDetector(
                     onTap: () => _openLightbox(context, refUrls[i]),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+                      borderRadius:
+                          BorderRadius.circular(RadiusTokens.sm.r),
                       child: Image.network(
                         refUrls[i],
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
-                            _iconPlaceholder(56, 6),
+                            _iconPlaceholder(56.r, 6.r),
                       ),
                     ),
                   ),
@@ -250,14 +280,7 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
     );
   }
 
-  void _openLightbox(BuildContext context, String url) {
-    showImageViewer(
-      context,
-      CachedNetworkImageProvider(resolveFileUrl(url)),
-      swipeDismissible: true,
-      doubleTapZoomable: true,
-    );
-  }
+  // ── 自定义风格网格 ──
 
   Widget _buildCustomStyleGrid(List<Style> allStyles, Style? defaultStyle) {
     return Column(
@@ -279,32 +302,25 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
             ),
             child: Column(
               children: [
-                Icon(
-                  AppIcons.brush,
-                  size: 40.r,
-                  color: AppColors.muted,
-                ),
+                Icon(AppIcons.brush, size: 40.r, color: AppColors.muted),
                 SizedBox(height: Spacing.md.h),
                 Text(
                   '还没有添加风格',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.muted,
-                  ),
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(color: AppColors.muted),
                 ),
                 SizedBox(height: Spacing.xs.h),
                 Text(
                   '从下方预设风格中选择，或通过上传/AI 生成添加',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.mutedDark,
-                  ),
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.mutedDark),
                 ),
                 SizedBox(height: Spacing.mid.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () =>
-                          showStyleFormDialog(context, ref),
+                      onPressed: () => showStyleFormDialog(context, ref),
                       icon: Icon(AppIcons.upload, size: 18.r),
                       label: const Text('上传风格图'),
                     ),
@@ -340,9 +356,9 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
 
     return GestureDetector(
       onTap: () {
-        ref.read(assetStylesProvider.notifier).update(
-              style.copyWith(isProjectDefault: true),
-            );
+        ref
+            .read(assetStylesProvider.notifier)
+            .update(style.copyWith(isProjectDefault: true));
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
@@ -415,8 +431,8 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         InkWell(
-                          onTap: () =>
-                              showStyleFormDialog(context, ref, existing: style),
+                          onTap: () => showStyleFormDialog(context, ref,
+                              existing: style),
                           child: Icon(
                             AppIcons.edit,
                             size: 14.r,
@@ -462,228 +478,5 @@ class _StyleLibraryViewState extends ConsumerState<StyleLibraryView> {
       );
     }
     return _cardPlaceholder();
-  }
-
-  Widget _cardPlaceholder() {
-    return Container(
-      color: AppColors.surfaceMutedDark,
-      child: Center(
-        child: Icon(
-          AppIcons.brush,
-          size: 32.r,
-          color: AppColors.muted,
-        ),
-      ),
-    );
-  }
-
-  // ── 精选预设风格 ──
-
-  Widget _buildPresetSection(List<Style> existingStyles) {
-    final existingNames = existingStyles.map((s) => s.name).toSet();
-    final filteredPresets = _selectedPresetCategory == null
-        ? kPresetStyles
-        : kPresetStyles
-            .where((p) => p.category == _selectedPresetCategory)
-            .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '精选预设风格',
-          style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
-        ),
-        SizedBox(height: Spacing.xs.h),
-        Text(
-          '点击预设风格可添加到项目中使用',
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
-        ),
-        SizedBox(height: Spacing.lg.h),
-        _buildCategoryTabs(),
-        SizedBox(height: Spacing.lg.h),
-        Wrap(
-          spacing: Spacing.md.w,
-          runSpacing: Spacing.md.h,
-          children: filteredPresets
-              .map((p) => _buildPresetCard(
-                    p,
-                    alreadyAdded: existingNames.contains(p.name),
-                  ))
-              .toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryTabs() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildCategoryChip(null, '全部'),
-          ...kPresetCategories.map((c) => _buildCategoryChip(c, c)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryChip(String? category, String label) {
-    final selected = _selectedPresetCategory == category;
-    return Padding(
-      padding: EdgeInsets.only(right: Spacing.sm.w),
-      child: FilterChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => setState(() => _selectedPresetCategory = category),
-        selectedColor: _accent.withValues(alpha: 0.2),
-        checkmarkColor: _accent,
-        labelStyle: AppTextStyles.labelMedium.copyWith(
-          color: selected ? _accent : AppColors.muted,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-        ),
-        side: BorderSide(
-          color: selected ? _accent.withValues(alpha: 0.4) : AppColors.border,
-        ),
-        backgroundColor: AppColors.surface,
-      ),
-    );
-  }
-
-  Widget _buildPresetCard(PresetStyle preset, {required bool alreadyAdded}) {
-    return GestureDetector(
-      onTap: alreadyAdded || _applyingPreset
-          ? null
-          : () => _addPresetToProject(preset),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: 150.w,
-        decoration: BoxDecoration(
-          color: alreadyAdded
-              ? _accent.withValues(alpha: 0.08)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-          border: Border.all(
-            color: alreadyAdded
-                ? _accent.withValues(alpha: 0.4)
-                : AppColors.border,
-            width: alreadyAdded ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(RadiusTokens.lg.r),
-                  ),
-                  child: SizedBox(
-                    width: 150.w,
-                    height: 110.h,
-                    child: Image.asset(
-                      preset.thumbnailPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Image.asset(
-                        preset.assetPath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _cardPlaceholder(),
-                      ),
-                    ),
-                  ),
-                ),
-                if (alreadyAdded)
-                  Positioned(
-                    top: Spacing.xs.h,
-                    right: Spacing.xs.w,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Spacing.sm.w,
-                        vertical: Spacing.xxs.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _accent,
-                        borderRadius:
-                            BorderRadius.circular(RadiusTokens.sm.r),
-                      ),
-                      child: Text(
-                        '已添加',
-                        style: AppTextStyles.labelTiny.copyWith(
-                          color: AppColors.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Spacing.sm.w,
-                vertical: Spacing.sm.h,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    preset.name,
-                    style: AppTextStyles.labelMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: alreadyAdded ? _accent : AppColors.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: Spacing.xs.h),
-                  Text(
-                    preset.description,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.muted,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _addPresetToProject(PresetStyle preset) async {
-    setState(() => _applyingPreset = true);
-    try {
-      final bytes = await rootBundle.load(preset.assetPath);
-      final fileBytes = bytes.buffer.asUint8List();
-      final filename = preset.assetPath.split('/').last;
-
-      final svc = FileService();
-      final url = await svc.upload(
-        fileBytes,
-        filename,
-        category: 'style_reference',
-      );
-
-      final refJson = jsonEncode([{'url': url}]);
-
-      ref.read(assetStylesProvider.notifier).add(Style(
-            name: preset.name,
-            description: preset.description,
-            referenceImagesJson: refJson,
-            thumbnailUrl: url,
-          ));
-
-      if (mounted) {
-        showToast(context, '已添加风格「${preset.name}」');
-      }
-    } catch (e) {
-      if (mounted) {
-        showToast(context, '添加失败: $e', isError: true);
-      }
-    } finally {
-      if (mounted) setState(() => _applyingPreset = false);
-    }
   }
 }

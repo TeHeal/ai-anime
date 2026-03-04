@@ -179,7 +179,7 @@ class _ScriptTreeNavState extends State<ScriptTreeNav> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 260,
+      width: 260.w,
       color: AppColors.surfaceContainer,
       child: Column(
         children: [
@@ -296,7 +296,7 @@ class _TreeNodeTile extends StatelessWidget {
           onSecondaryTap(TapDownDetails(globalPosition: offset));
         },
         child: Container(
-          height: 34,
+          height: 34.h,
           color: isSelected
               ? AppColors.primary.withValues(alpha: 0.18)
               : Colors.transparent,

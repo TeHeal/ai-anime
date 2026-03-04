@@ -351,7 +351,7 @@ class _SideNavState extends State<SideNav> {
                       child: Icon(
                         AppIcons.autoAwesome,
                         size: Spacing.xl.r,
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                       ),
                     ),
                   )
@@ -364,7 +364,7 @@ class _SideNavState extends State<SideNav> {
                         child: Icon(
                           AppIcons.autoAwesome,
                           size: Spacing.xl.r,
-                          color: Colors.white,
+                          color: AppColors.onSurface,
                         ),
                       ),
                       SizedBox(width: Spacing.iconGapMd.w),

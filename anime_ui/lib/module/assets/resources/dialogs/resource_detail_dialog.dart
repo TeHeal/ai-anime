@@ -6,10 +6,20 @@ import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
+import 'package:anime_ui/pub/services/audio_playback_svc.dart'
+    show AudioPlaybackService, formatDuration;
+import 'package:anime_ui/pub/widgets/image_lightbox.dart';
 
 import '../models/resource_category.dart';
 import '../providers/provider.dart';
 import 'resource_form_dialog.dart';
+
+/// 音色类素材（voice/voiceover/sfx/music）在详情弹窗中显示播放区
+bool _isAudioResourceWithUrl(Resource r) {
+  if (r.modality != 'audio') return false;
+  const types = ['voice', 'voiceover', 'sfx', 'music'];
+  return types.contains(r.libraryType) && r.audioUrl.isNotEmpty;
+}
 
 void showResourceDetailDialog(
   BuildContext context,
@@ -61,14 +71,21 @@ class _ResourceDetailDialog extends ConsumerWidget {
                   children: [
                     if (resource.hasThumbnail &&
                         resource.modality == 'visual') ...[
-                      ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(RadiusTokens.lg.r),
-                        child: Image.network(
-                          resolveFileUrl(resource.thumbnailUrl),
-                          fit: BoxFit.contain,
-                          width: double.infinity,
-                          errorBuilder: (_, Object? e, StackTrace? s) => const SizedBox.shrink(),
+                      GestureDetector(
+                        onTap: () => showImageLightbox(
+                          context,
+                          imageUrl: resource.thumbnailUrl,
+                        ),
+                        child: ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(RadiusTokens.lg.r),
+                          child: Image.network(
+                            resolveFileUrl(resource.thumbnailUrl),
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                            errorBuilder: (_, Object? e, StackTrace? s) =>
+                                const SizedBox.shrink(),
+                          ),
                         ),
                       ),
                       SizedBox(height: Spacing.lg.h),
@@ -90,6 +107,13 @@ class _ResourceDetailDialog extends ConsumerWidget {
                           ),
                         ),
                       ),
+                    if (_isAudioResourceWithUrl(resource)) ...[
+                      SizedBox(height: Spacing.lg.h),
+                      _VoicePlayerSection(
+                        resource: resource,
+                        accentColor: accentColor,
+                      ),
+                    ],
                     if (resource.description.isNotEmpty) ...[
                       SizedBox(height: Spacing.md.h),
                       Text(
@@ -311,6 +335,216 @@ class _ResourceDetailDialog extends ConsumerWidget {
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 音色播放区：播放、进度、波形
+class _VoicePlayerSection extends StatelessWidget {
+  const _VoicePlayerSection({
+    required this.resource,
+    required this.accentColor,
+  });
+
+  final Resource resource;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final playback = AudioPlaybackService.instance;
+    return ListenableBuilder(
+      listenable: playback,
+      builder: (context, _) {
+        final isPlaying = playback.isPlayingUrl(resource.audioUrl);
+        return Container(
+          padding: EdgeInsets.all(Spacing.lg.r),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '试听',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: Spacing.md.h),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (isPlaying) {
+                        playback.stop();
+                      } else {
+                        playback.play(resource.audioUrl);
+                      }
+                    },
+                    child: Container(
+                      width: 48.w,
+                      height: 48.h,
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(
+                          alpha: isPlaying ? 0.3 : 0.15,
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: accentColor.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Icon(
+                        isPlaying ? AppIcons.stop : AppIcons.playArrow,
+                        size: 26.r,
+                        color: accentColor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Spacing.gridGap.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isPlaying ? '正在播放…' : '点击播放试听',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        if (resource.metadata['gender'] != null ||
+                            resource.metadata['provider'] != null)
+                          Padding(
+                            padding: EdgeInsets.only(top: Spacing.xxs.h),
+                            child: Wrap(
+                              spacing: Spacing.sm.w,
+                              children: [
+                                if (resource.metadata['gender'] != null)
+                                  _MetadataChip(
+                                    label: resource.metadata['gender'].toString(),
+                                    accentColor: accentColor,
+                                  ),
+                                if (resource.metadata['provider'] != null)
+                                  _MetadataChip(
+                                    label: resource.metadata['provider'].toString(),
+                                    accentColor: accentColor,
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  _buildMiniWaveform(isPlaying),
+                ],
+              ),
+              if (isPlaying && playback.duration.inMilliseconds > 0) ...[
+                SizedBox(height: Spacing.md.h),
+                Row(
+                  children: [
+                    Text(
+                      formatDuration(playback.position),
+                      style: AppTextStyles.labelTinySmall.copyWith(
+                        color: AppColors.mutedDark,
+                      ),
+                    ),
+                    SizedBox(width: Spacing.sm.w),
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderThemeData(
+                          trackHeight: Spacing.progressBarHeight.r,
+                          thumbShape: RoundSliderThumbShape(
+                            enabledThumbRadius: 5.r,
+                          ),
+                          activeTrackColor: accentColor,
+                          inactiveTrackColor: accentColor.withValues(alpha: 0.15),
+                          thumbColor: accentColor,
+                          overlayShape: RoundSliderOverlayShape(
+                            overlayRadius: 10.r,
+                          ),
+                        ),
+                        child: Slider(
+                          value: playback.progress,
+                          onChanged: (v) {
+                            final dur = playback.duration;
+                            playback.seek(
+                              Duration(
+                                milliseconds:
+                                    (v * dur.inMilliseconds).toInt(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: Spacing.sm.w),
+                    Text(
+                      formatDuration(playback.duration),
+                      style: AppTextStyles.labelTinySmall.copyWith(
+                        color: AppColors.mutedDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMiniWaveform(bool active) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(8, (i) {
+        final h = active
+            ? (8.0 + (i * 5) % 16)
+            : (6.0 + (i * 3) % 10);
+        return Container(
+          width: 3.w,
+          height: h.h,
+          margin: EdgeInsets.symmetric(horizontal: Spacing.xxs.w),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: active ? 0.7 : 0.25),
+            borderRadius: BorderRadius.circular((RadiusTokens.xs / 2).r),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _MetadataChip extends StatelessWidget {
+  const _MetadataChip({
+    required this.label,
+    required this.accentColor,
+  });
+
+  final String label;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.inputGapSm.w,
+        vertical: Spacing.xxs.h,
+      ),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.caption.copyWith(
+          color: accentColor.withValues(alpha: 0.9),
+        ),
       ),
     );
   }

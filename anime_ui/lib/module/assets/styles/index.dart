@@ -2,4 +2,4 @@
 library;
 
 export 'providers/styles.dart';
-export 'style_library_view.dart';
+export 'style_library_page.dart';

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成中心 - 布局改进方案</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0F0F1A;
+      --surface: #1A1A2E;
+      --surface-container: #1E1E32;
+      --surface-high: #232340;
+      --primary: #8B5CF6;
+      --primary-dim: rgba(139, 92, 246, 0.12);
+      --primary-glow: rgba(139, 92, 246, 0.06);
+      --on-surface: #E4E4E7;
+      --muted: #71717A;
+      --muted-dark: #52525B;
+      --border: rgba(255, 255, 255, 0.06);
+      --success: #22C55E;
+      --success-dim: rgba(34, 197, 94, 0.12);
+      --warning: #F97316;
+      --warning-dim: rgba(249, 115, 22, 0.12);
+      --error: #EF4444;
+      --error-dim: rgba(239, 68, 68, 0.12);
+      --info: #3B82F6;
+      --accent-import: #F59E0B;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--on-surface);
+      padding: 24px 32px;
+      min-height: 100vh;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 10px;
+      margin-top: 28px;
+      opacity: 0.8;
+    }
+
+    /* ========== CONFIG SECTION ========== */
+    .config-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .config-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.04), transparent);
+    }
+
+    .config-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(139, 92, 246, 0.08));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-right: 12px;
+    }
+
+    .config-title {
+      font-size: 16px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .config-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .switch-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      background: rgba(139, 92, 246, 0.1);
+      font-size: 12px;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    .switch-track {
+      width: 32px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--primary);
+      position: relative;
+    }
+
+    .switch-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: white;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      transition: all 0.2s;
+    }
+
+    .btn-import {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: var(--accent-import);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-import:hover {
+      background: rgba(245, 158, 11, 0.2);
+    }
+
+    .btn-icon-sm {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-container);
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .btn-icon-sm:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .config-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 18px 22px;
+    }
+
+    .config-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .config-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field-label {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .field-input {
+      background: var(--surface-container);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--on-surface);
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .field-input:focus {
+      outline: none;
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+
+    .field-input::placeholder {
+      color: var(--muted-dark);
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-row .field-input {
+      flex: 1;
+    }
+
+    .field-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .field-action.primary {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+    }
+
+    .field-action.primary:hover {
+      background: rgba(139, 92, 246, 0.25);
+    }
+
+    .field-action.muted {
+      background: var(--surface-high);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    /* ========== PROGRESS SUMMARY ========== */
+    .progress-summary {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 14px 22px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 4px;
+    }
+
+    .progress-ring-wrapper {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      flex-shrink: 0;
+    }
+
+    .progress-ring-wrapper svg {
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-wrapper .ring-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+
+    .progress-bar-segmented {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .progress-bar-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--surface-container);
+      display: flex;
+      overflow: hidden;
+    }
+
+    .progress-bar-track .seg {
+      height: 100%;
+      transition: width 0.4s ease;
+    }
+
+    .seg.completed {
+      background: var(--success);
+    }
+
+    .seg.generating {
+      background: var(--primary);
+    }
+
+    .seg.failed {
+      background: var(--error);
+    }
+
+    .progress-stats {
+      display: flex;
+      gap: 16px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--on-surface);
+      font-size: 13px;
+    }
+
+    /* ========== TASK SECTION ========== */
+    .task-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .task-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(139, 92, 246, 0.08));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-right: 12px;
+    }
+
+    .task-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .task-badge {
+      margin-left: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .task-header-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-select-all {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: var(--surface-container);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-select-all:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-batch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-batch:hover {
+      filter: brightness(1.1);
+    }
+
+    .task-filter-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 22px;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(30, 30, 50, 0.5);
+    }
+
+    .filter-chip {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--muted);
+      border: 1px solid transparent;
+    }
+
+    .filter-chip:hover {
+      color: var(--on-surface);
+      background: var(--surface-high);
+    }
+
+    .filter-chip.active {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--primary);
+      border-color: rgba(139, 92, 246, 0.3);
+      font-weight: 600;
+    }
+
+    .filter-divider {
+      width: 1px;
+      height: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 0 6px;
+    }
+
+    .group-chips {
+      margin-left: auto;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .group-label {
+      font-size: 11px;
+      color: var(--muted-dark);
+      margin-right: 4px;
+    }
+
+    .group-chip {
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--muted-dark);
+      transition: all 0.15s;
+    }
+
+    .group-chip:hover {
+      color: var(--on-surface);
+    }
+
+    .group-chip.active {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* ========== TASK GRID ========== */
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      padding: 18px 22px;
+    }
+
+    .task-card {
+      position: relative;
+      background: var(--surface-container);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 14px 12px 17px;
+      cursor: pointer;
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+
+    .task-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: 3px 0 0 3px;
+      transition: all 0.2s;
+    }
+
+    .task-card.status-pending::before {
+      background: var(--muted-dark);
+    }
+
+    .task-card.status-completed::before {
+      background: var(--success);
+    }
+
+    .task-card.status-generating::before {
+      background: var(--primary);
+    }
+
+    .task-card.status-failed::before {
+      background: var(--error);
+    }
+
+    .task-card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .task-card.selected {
+      border-color: rgba(139, 92, 246, 0.5);
+      background: rgba(139, 92, 246, 0.04);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .card-index {
+      min-width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status-pending .card-index {
+      background: rgba(113, 113, 122, 0.15);
+      color: var(--muted);
+    }
+
+    .status-completed .card-index {
+      background: var(--success-dim);
+      color: var(--success);
+    }
+
+    .status-generating .card-index {
+      background: var(--primary-dim);
+      color: var(--primary);
+    }
+
+    .status-failed .card-index {
+      background: var(--error-dim);
+      color: var(--error);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 500;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-checkbox {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1.5px solid var(--muted-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .selected .card-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .card-progress {
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.04);
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .card-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    .status-completed .card-progress-fill {
+      background: var(--success);
+      width: 100%;
+    }
+
+    .status-generating .card-progress-fill {
+      background: var(--primary);
+    }
+
+    .status-pending .card-progress-fill {
+      background: var(--muted-dark);
+      width: 0;
+    }
+
+    .status-failed .card-progress-fill {
+      background: var(--error);
+      width: 60%;
+    }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-pending .card-status {
+      color: var(--muted);
+    }
+
+    .status-completed .card-status {
+      color: var(--success);
+    }
+
+    .status-generating .card-status {
+      color: var(--primary);
+    }
+
+    .status-failed .card-status {
+      color: var(--error);
+    }
+
+    .card-action {
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .action-generate {
+      background: rgba(139, 92, 246, 0.12);
+      color: var(--primary);
+    }
+
+    .action-generate:hover {
+      background: rgba(139, 92, 246, 0.22);
+    }
+
+    .action-review {
+      background: rgba(34, 197, 94, 0.12);
+      color: var(--success);
+    }
+
+    .action-review:hover {
+      background: rgba(34, 197, 94, 0.22);
+    }
+
+    .action-retry {
+      background: rgba(249, 115, 22, 0.12);
+      color: var(--warning);
+    }
+
+    .action-retry:hover {
+      background: rgba(249, 115, 22, 0.22);
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(139, 92, 246, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ========== ANNOTATION TAGS ========== */
+    .anno {
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+
+    .anno-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-right: 4px;
+    }
+
+    .anno-tag.new {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success);
+    }
+
+    .anno-tag.improved {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--info);
+    }
+
+    .anno-tag.removed {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--error);
+    }
+
+    .anno-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ========== SUMMARY ========== */
+    .callout {
+      margin-top: 36px;
+      padding: 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      border-left: 3px solid var(--primary);
+    }
+
+    .callout h3 {
+      font-size: 15px;
+      margin-bottom: 14px;
+      color: var(--primary);
+    }
+
+    .callout ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .callout li {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 2;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .callout li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+    }
+
+    .callout li strong {
+      color: var(--on-surface);
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, var(--on-surface), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page-title">生成中心 — 布局改进方案</div>
+  <div class="page-subtitle">以下为改进后的完整布局 Mockup，关键变化标注于各区域旁</div>
+
+  <!-- ====== IMPROVED: CONFIG SECTION ====== -->
+  <div class="section-label">① 配置区 — 全宽 + 内联导入</div>
+  <div class="config-section">
+    <div class="config-header">
+      <div class="config-icon">⚙</div>
+      <div class="config-title">生成配置</div>
+      <div class="config-actions">
+        <div class="switch-pill">
+          <span>上下集衔接</span>
+          <div class="switch-track">
+            <div class="switch-thumb"></div>
+          </div>
+        </div>
+        <div class="btn-import">📤 导入脚本</div>
+        <div class="btn-icon-sm" title="折叠配置">▾</div>
+      </div>
+    </div>
+    <div class="config-body">
+      <div class="config-field full">
+        <div class="field-label">✦ 全局提示词</div>
+        <div class="field-row">
+          <input class="field-input" value="2D漫风，色调偏暗，无失真无穿帮" placeholder="描述画面整体风格…">
+          <div class="field-action primary">✨ 创作助理</div>
+          <div class="field-action muted">📚 入库</div>
+        </div>
+      </div>
+      <div class="config-field">
+        <div class="field-label">✦ 默认反向提示词</div>
+        <div class="field-row">
+          <input class="field-input" value="失真、穿帮、模糊、低质量" placeholder="失真，穿帮，模糊…">
+          <div class="field-action primary">✨ 创作助理</div>
+        </div>
+      </div>
+      <div class="config-field">
+        <div class="field-label">🎬 制作适配说明</div>
+        <input class="field-input" value="对话用空镜，动作用加镜/推拉镜" placeholder="对话用空镜，动作用加镜/推拉镜">
+      </div>
+    </div>
+  </div>
+  <div class="anno">
+    <span class="anno-tag improved">改进</span>
+    <span class="anno-desc">配置区全宽展开，导入按钮内联到标题行右侧，省去独立导入卡片。header / body 分离，折叠时只显示 header 一行。双列布局令配置更紧凑。</span>
+  </div>
+
+  <!-- ====== NEW: PROGRESS SUMMARY ====== -->
+  <div class="section-label">② 进度总览条 — 全新区块</div>
+  <div class="progress-summary">
+    <div class="progress-ring-wrapper">
+      <svg width="54" height="54" viewBox="0 0 54 54">
+        <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="5" />
+        <circle cx="27" cy="27" r="22" fill="none" stroke="#22C55E" stroke-width="5" stroke-dasharray="83 55.3"
+          stroke-linecap="round" />
+        <circle cx="27" cy="27" r="22" fill="none" stroke="#8B5CF6" stroke-width="5" stroke-dasharray="13.4 124.8"
+          stroke-dashoffset="-83" stroke-linecap="round" />
+        <circle cx="27" cy="27" r="22" fill="none" stroke="#EF4444" stroke-width="5" stroke-dasharray="7.7 130.5"
+          stroke-dashoffset="-96.4" stroke-linecap="round" />
+      </svg>
+      <div class="ring-text">60%</div>
+    </div>
+    <div class="progress-bar-segmented">
+      <div style="display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:14px;font-weight:600">整体进度</span>
+        <span style="font-size:12px;color:var(--muted)">72 集 · 43 已完成</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="seg completed" style="width:59.7%"></div>
+        <div class="seg generating" style="width:9.7%"></div>
+        <div class="seg failed" style="width:5.6%"></div>
+      </div>
+      <div class="progress-stats">
+        <div class="stat-item">
+          <div class="stat-dot" style="background:var(--success)"></div>
+          已完成 <span class="stat-value">43</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-dot" style="background:var(--primary)"></div>
+          生成中 <span class="stat-value">7</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-dot" style="background:var(--error)"></div>
+          失败 <span class="stat-value">4</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-dot" style="background:var(--muted-dark)"></div>
+          待生成 <span class="stat-value">18</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="anno">
+    <span class="anno-tag new">新增</span>
+    <span class="anno-desc">进度总览条：环形图 + 分段进度条 + 分状态计数，用户一眼掌握全局进度，无需心算。</span>
+  </div>
+
+  <!-- ====== IMPROVED: TASK SECTION ====== -->
+  <div class="section-label">③ 任务区 — 结构化标题行 + 状态色带卡片</div>
+  <div class="task-section">
+    <div class="task-header">
+      <div class="task-icon">✦</div>
+      <div class="task-title">生成任务</div>
+      <div class="task-badge">72 集</div>
+      <div class="task-header-actions">
+        <div class="btn-select-all">☐ 全选</div>
+        <div class="btn-batch">✦ 批量生成 (0)</div>
+      </div>
+    </div>
+    <div class="task-filter-bar">
+      <div class="filter-chip active">全部 72</div>
+      <div class="filter-chip">待生成 18</div>
+      <div class="filter-chip">生成中 7</div>
+      <div class="filter-chip">已完成 43</div>
+      <div class="filter-chip">失败 4</div>
+      <div class="filter-divider"></div>
+      <div class="group-chips">
+        <span class="group-label">分组</span>
+        <div class="group-chip active">全部</div>
+        <div class="group-chip">1–10</div>
+        <div class="group-chip">11–20</div>
+        <div class="group-chip">21–30</div>
+        <div class="group-chip">31–40</div>
+        <div class="group-chip">41–50</div>
+        <div class="group-chip">51–60</div>
+        <div class="group-chip">61–72</div>
+      </div>
+    </div>
+    <div class="task-grid">
+      <div class="task-card status-completed">
+        <div class="card-top">
+          <div class="card-index">1</div>
+          <div class="card-title">第1集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">✓ 已完成 · 28镜头</div>
+          <div class="card-action action-review">审核 →</div>
+        </div>
+      </div>
+      <div class="task-card status-completed">
+        <div class="card-top">
+          <div class="card-index">2</div>
+          <div class="card-title">第2集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">✓ 已完成 · 24镜头</div>
+          <div class="card-action action-review">审核 →</div>
+        </div>
+      </div>
+      <div class="task-card status-generating">
+        <div class="card-top">
+          <div class="card-index">3</div>
+          <div class="card-title">第3集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill" style="width:65%"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">
+            <div class="spinner"></div>&nbsp;生成中 65%
+          </div>
+        </div>
+      </div>
+      <div class="task-card status-failed">
+        <div class="card-top">
+          <div class="card-index">4</div>
+          <div class="card-title">第4集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">✕ 失败</div>
+          <div class="card-action action-retry">↻ 重试</div>
+        </div>
+      </div>
+      <div class="task-card status-pending">
+        <div class="card-top">
+          <div class="card-index">5</div>
+          <div class="card-title">第5集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">○ 待生成</div>
+          <div class="card-action action-generate">✦ 生成</div>
+        </div>
+      </div>
+      <div class="task-card status-completed selected">
+        <div class="card-top">
+          <div class="card-index">6</div>
+          <div class="card-title">第6集</div>
+          <div class="card-checkbox">✓</div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">✓ 已完成 · 32镜头</div>
+          <div class="card-action action-review">审核 →</div>
+        </div>
+      </div>
+      <div class="task-card status-pending">
+        <div class="card-top">
+          <div class="card-index">7</div>
+          <div class="card-title">第7集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">○ 待生成</div>
+          <div class="card-action action-generate">✦ 生成</div>
+        </div>
+      </div>
+      <div class="task-card status-generating">
+        <div class="card-top">
+          <div class="card-index">8</div>
+          <div class="card-title">第8集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill" style="width:30%"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">
+            <div class="spinner"></div>&nbsp;生成中 30%
+          </div>
+        </div>
+      </div>
+      <div class="task-card status-completed">
+        <div class="card-top">
+          <div class="card-index">9</div>
+          <div class="card-title">第9集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">✓ 已完成 · 19镜头</div>
+          <div class="card-action action-review">审核 →</div>
+        </div>
+      </div>
+      <div class="task-card status-pending">
+        <div class="card-top">
+          <div class="card-index">10</div>
+          <div class="card-title">第10集</div>
+          <div class="card-checkbox"></div>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-status">○ 待生成</div>
+          <div class="card-action action-generate">✦ 生成</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="anno">
+    <span class="anno-tag improved">改进</span>
+    <span class="anno-desc">卡片左侧 3px 状态色带（绿=完成、紫=生成中、红=失败、灰=待生成），扫视即可辨别状态；hover 微浮起 + 阴影扩散；筛选栏独立成带状区域，视觉层级更清晰。</span>
+  </div>
+
+  <!-- ====== SUMMARY ====== -->
+  <div class="callout">
+    <h3>核心改进总结</h3>
+    <ul>
+      <li><strong>配置区全宽 + 内联导入</strong>：取消独立导入卡片，导入按钮放在配置标题行右侧，释放 25% 的横向空间</li>
+      <li><strong>新增进度总览条</strong>：环形图 + 分段进度条 + 分状态计数，用户一眼掌握全局进度</li>
+      <li><strong>结构化任务区标题</strong>：标题行（含批量操作）与筛选栏分离为两个水平带，信息层级更清晰</li>
+      <li><strong>卡片状态色带</strong>：左侧 3px 竖条按状态着色，扫视即可辨别状态分布</li>
+      <li><strong>卡片交互升级</strong>：hover 微浮动 + 阴影扩散，选中态背景 + 紫色边框 + 复选框高亮</li>
+      <li><strong>配置区 header/body 分离</strong>：header 固定展示，body 可折叠，折叠后只占一行，任务区获得更多视口</li>
+      <li><strong>筛选/分组共存一行</strong>：状态 Chip 左对齐、分组 Chip 右对齐，用竖线分隔，避免混淆</li>
+    </ul>
+  </div>
+
+</body>
+
+</html>

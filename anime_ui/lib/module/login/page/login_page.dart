@@ -60,12 +60,15 @@ class _LoginPageState extends State<LoginPage> {
       await container.read(authProvider.notifier).fetchCurrentUser();
       if (mounted) context.go(Routes.projects);
     } on DioException catch (e) {
+      if (!mounted) return;
       setState(
         () => _error = e.response?.data?['message'] as String? ?? '网络错误，请稍后重试',
       );
     } on ApiException catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.message);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = '登录失败: $e');
     } finally {
       if (mounted) setState(() => _loading = false);

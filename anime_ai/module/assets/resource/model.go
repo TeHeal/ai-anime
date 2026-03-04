@@ -51,8 +51,10 @@ type ListRequest struct {
 	Modality    string   `form:"modality"`
 	LibraryType string   `form:"libraryType"`
 	Tags        []string `form:"tags"`
-	Page       int      `form:"page"`
-	PageSize   int      `form:"pageSize"`
+	Search      string   `form:"search"`
+	SortBy      string   `form:"sortBy"`
+	Page        int      `form:"page"`
+	PageSize    int      `form:"pageSize"`
 }
 
 // ListResponse 列表响应

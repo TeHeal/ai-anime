@@ -54,7 +54,7 @@ class ProgressOverview extends StatelessWidget {
                 child: Text(
                   '整体进度',
                   style: AppTextStyles.labelLarge.copyWith(
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -71,7 +71,7 @@ class ProgressOverview extends StatelessWidget {
                   child: Text(
                     '${value.toInt()}%',
                     style: AppTextStyles.h1.copyWith(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: FontWeight.w800,
                     ),
                   ),

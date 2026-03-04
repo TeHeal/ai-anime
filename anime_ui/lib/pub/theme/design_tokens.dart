@@ -9,3 +9,4 @@ export 'text.dart';
 export '../const/radius.dart';
 export '../const/spacing.dart';
 export '../const/breakpoints.dart';
+export '../const/motion.dart';

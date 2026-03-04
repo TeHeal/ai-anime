@@ -11,6 +11,7 @@ import 'package:anime_ui/pub/services/script_ai_svc.dart';
 import 'package:anime_ui/pub/models/ai_action.dart';
 import 'creation_assistant_pill_button.dart';
 import 'tiny_btn.dart';
+import 'inline_quick_chip.dart';
 import 'prompt_field_neg.dart';
 import 'prompt_field_ai_suggestion.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
@@ -449,67 +450,65 @@ class _PromptFieldWithAssistantState
                 color: AppColors.onSurface,
               ),
               maxLines: widget.maxLines,
-              decoration: widget.onSaveToLibrary != null
-                  ? (inputDeco.copyWith(
-                      contentPadding: EdgeInsets.only(
-                        left: 12.w,
-                        top: 10.h,
-                        right: 70.w,
-                        bottom: 36.h,
-                      ),
-                    ))
-                  : inputDeco,
+              decoration: inputDeco.copyWith(
+                contentPadding: EdgeInsets.only(
+                  left: 12.w,
+                  top: 10.h,
+                  right: 12.w,
+                  // 快捷词内嵌时需留出底部空间
+                  bottom: widget.quickPrompts.isNotEmpty ? 36.h : 12.h,
+                ),
+              ),
             ),
-            if (widget.onSaveToLibrary != null)
+            // 底部工具栏：快捷提示词 + 入库按钮
+            if (widget.quickPrompts.isNotEmpty || widget.onSaveToLibrary != null)
               Positioned(
+                left: 8.w,
                 right: 8.w,
-                bottom: 8.h,
-                child: TinyBtn(
-                  icon: AppIcons.save,
-                  label: '入库',
-                  accent: widget.accent,
-                  onTap: () => _saveToLibrary(_effectiveMainCtrl, false),
+                bottom: 6.h,
+                child: Row(
+                  children: [
+                    if (widget.quickPrompts.isNotEmpty)
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: widget.quickPrompts.map((p) {
+                              return Padding(
+                                padding: EdgeInsets.only(right: 4.w),
+                                child: InlineQuickChip(
+                                  label: p,
+                                  accent: widget.accent,
+                                  onTap: () {
+                                    final current = _effectiveMainCtrl.text;
+                                    final next = current.isEmpty
+                                        ? p
+                                        : '$current, $p';
+                                    _effectiveMainCtrl.text = next;
+                                    if (_isControlled) {
+                                      widget.onChanged!(next);
+                                    }
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                    if (widget.onSaveToLibrary != null)
+                      TinyBtn(
+                        icon: AppIcons.save,
+                        label: '入库',
+                        accent: widget.accent,
+                        onTap: () => _saveToLibrary(_effectiveMainCtrl, false),
+                      ),
+                  ],
                 ),
               ),
           ],
         ),
 
         if (_aiSuggestion != null || _aiLoading) _buildAiSuggestion(),
-
-        if (widget.quickPrompts.isNotEmpty) ...[
-          SizedBox(height: Spacing.sm.h),
-          Wrap(
-            spacing: Spacing.sm.w,
-            runSpacing: Spacing.sm.h,
-            children: widget.quickPrompts.map((p) {
-              return GestureDetector(
-                onTap: () {
-                  final current = _effectiveMainCtrl.text;
-                  final next = current.isEmpty ? p : '$current, $p';
-                  _effectiveMainCtrl.text = next;
-                  if (_isControlled) widget.onChanged!(next);
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.sm.w,
-                    vertical: Spacing.xs.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: widget.accent.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-                    border: Border.all(
-                      color: widget.accent.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Text(
-                    p,
-                    style: AppTextStyles.tiny.copyWith(color: widget.accent),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
 
         if (_effectiveNegCtrl != null) ...[
           SizedBox(height: Spacing.lg.h),
@@ -550,3 +549,4 @@ class _PromptFieldWithAssistantState
     );
   }
 }
+

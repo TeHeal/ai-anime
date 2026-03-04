@@ -17,6 +17,8 @@ type ListDataOpts struct {
 	Modality    string
 	LibraryType string
 	TagsOverlap []byte // JSON 数组，如 ["a","b"]，用于 && 重叠筛选
+	Search      string // 模糊匹配 name、description、tags_json
+	SortBy      string // newest、oldest、name_asc、name_desc
 	Offset      int32
 	Limit       int32
 }

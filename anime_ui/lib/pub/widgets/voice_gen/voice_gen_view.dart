@@ -153,8 +153,10 @@ class _VoiceGenViewState extends State<VoiceGenView>
         _previewTextCtrl.text = text;
       }
     } catch (e, st) {
-      debugPrint('VoiceGenView._generatePreviewText: $e');
-      debugPrint(st.toString());
+      debugPrint('VoiceGenView._generatePreviewText: $e\n$st');
+      if (mounted) {
+        showToast(context, '生成预览文本失败', isError: true);
+      }
     } finally {
       if (mounted) setState(() => _isGeneratingPreviewText = false);
     }
@@ -186,9 +188,9 @@ class _VoiceGenViewState extends State<VoiceGenView>
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: 860.w,
-              maxHeight: 680.h,
-              minWidth: 560.w,
+              maxWidth: 700.w,
+              maxHeight: 560.h,
+              minWidth: 480.w,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -206,7 +208,10 @@ class _VoiceGenViewState extends State<VoiceGenView>
                     accent: accent,
                   ),
                 Flexible(
-                  child: Row(
+                  fit: FlexFit.loose,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: 280.h),
+                    child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
@@ -238,6 +243,7 @@ class _VoiceGenViewState extends State<VoiceGenView>
                       ),
                     ],
                   ),
+                ),
                 ),
                 VoiceGenFooter(
                   ctrl: _ctrl,

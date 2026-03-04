@@ -7,45 +7,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/widgets/image_gen/image_gen_config.dart';
-import 'package:anime_ui/pub/widgets/image_gen/image_gen_dialog.dart';
-import 'package:anime_ui/pub/widgets/text_gen/text_gen_config.dart';
-import 'package:anime_ui/pub/widgets/text_gen/text_gen_dialog.dart';
-import 'package:anime_ui/pub/widgets/voice_gen/voice_gen_config.dart';
-import 'package:anime_ui/pub/widgets/voice_gen/voice_gen_dialog.dart';
 
 import '../models/resource_category.dart';
 import '../models/resource_meta_schema.dart';
 import '../providers/provider.dart';
-import '../widgets/meta_field_editor.dart';
+import '../widgets/resource_form_fields.dart';
 import '../widgets/upload_area.dart';
 
-/// 添加模式：上传、AI 生成、手动填写
-enum AddMode { upload, aiGenerate, manual }
-
-extension ResourceLibraryAddModes on ResourceLibraryType {
-  List<AddMode> get availableAddModes => switch (this) {
-        ResourceLibraryType.character ||
-        ResourceLibraryType.scene ||
-        ResourceLibraryType.prop ||
-        ResourceLibraryType.expression ||
-        ResourceLibraryType.pose ||
-        ResourceLibraryType.effect =>
-          [AddMode.upload, AddMode.aiGenerate],
-        ResourceLibraryType.voice => [AddMode.upload, AddMode.aiGenerate],
-        ResourceLibraryType.voiceover => [AddMode.upload],
-        ResourceLibraryType.sfx => [AddMode.upload],
-        ResourceLibraryType.music => [AddMode.upload],
-        ResourceLibraryType.prompt ||
-        ResourceLibraryType.styleGuide ||
-        ResourceLibraryType.dialogueTemplate ||
-        ResourceLibraryType.scriptSnippet =>
-          [AddMode.aiGenerate, AddMode.manual],
-      };
-
-  List<AddMode> get uploadModes =>
-      availableAddModes.where((m) => m != AddMode.aiGenerate).toList();
-}
+export 'batch_upload_dialog.dart' show showResourceBatchUploadDialog;
+export 'resource_ai_generate.dart' show showResourceAiGenerateDialog;
 
 Future<T?> showResourceFormDialog<T>(
   BuildContext context,
@@ -79,81 +49,6 @@ void showResourceUploadDialog(
     libraryType: libraryType,
     accentColor: accentColor,
     initialMode: AddMode.upload,
-  );
-}
-
-void showResourceAiGenerateDialog(
-  BuildContext context,
-  WidgetRef ref, {
-  required ResourceLibraryType libraryType,
-  required Color accentColor,
-}) {
-  if (libraryType.modality == ResourceModality.audio) {
-    VoiceGenDialog.show(
-      context,
-      ref,
-      config: VoiceGenConfig.voiceLibrary(
-        accentColor: accentColor,
-        onSaved: (_) async {
-          ref.read(resourceListProvider.notifier).load();
-        },
-      ),
-    );
-    return;
-  }
-
-  if (libraryType.modality == ResourceModality.text) {
-    final config = switch (libraryType) {
-      ResourceLibraryType.styleGuide => TextGenConfig.styleGuide(
-          accentColor: accentColor,
-          onComplete: (_) async {
-            ref.read(resourceListProvider.notifier).load();
-          },
-        ),
-      ResourceLibraryType.dialogueTemplate => TextGenConfig.dialogue(
-          accentColor: accentColor,
-          onComplete: (_) async {
-            ref.read(resourceListProvider.notifier).load();
-          },
-        ),
-      _ => TextGenConfig.newPrompt(
-          accentColor: accentColor,
-          category: libraryType.name,
-          onComplete: (_) async {
-            ref.read(resourceListProvider.notifier).load();
-          },
-        ),
-    };
-    TextGenDialog.show(context, ref, config: config);
-    return;
-  }
-
-  ImageGenDialog.show(
-    context,
-    ref,
-    config: ImageGenConfig.forLibraryType(
-      libraryType.name,
-      accentColor: accentColor,
-      onSaved: (urls, mode, {prompt = '', negativePrompt = ''}) async {
-        final notifier = ref.read(resourceListProvider.notifier);
-        for (final url in urls) {
-          await notifier.addResource(
-            Resource(
-              name:
-                  '${libraryType.label}-${DateTime.now().millisecondsSinceEpoch}',
-              libraryType: libraryType.name,
-              modality: libraryType.modality.name,
-              thumbnailUrl: url,
-              metadataJson: jsonEncode({
-                'prompt': prompt,
-                'negativePrompt': negativePrompt,
-              }),
-            ),
-          );
-        }
-        ref.read(resourceListProvider.notifier).load();
-      },
-    ),
   );
 }
 
@@ -304,6 +199,9 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
     _tagInputCtrl.clear();
   }
 
+  bool get _isVisual =>
+      widget.libraryType.modality == ResourceModality.visual;
+
   @override
   Widget build(BuildContext context) {
     final modes = widget.libraryType.uploadModes;
@@ -313,7 +211,10 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
         borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
       ),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 600.w, maxHeight: 700.h),
+        constraints: BoxConstraints(
+          maxWidth: _isVisual ? 700.w : 560.w,
+          maxHeight: 700.h,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -336,7 +237,12 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
 
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.fromLTRB(Spacing.xl.w, Spacing.lg.h, Spacing.md.w, Spacing.md.h),
+      padding: EdgeInsets.fromLTRB(
+        Spacing.xl.w,
+        Spacing.lg.h,
+        Spacing.md.w,
+        Spacing.md.h,
+      ),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
@@ -389,7 +295,8 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
         indicatorColor: accent,
         labelColor: accent,
         unselectedLabelColor: AppColors.muted,
-        labelStyle: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w600),
+        labelStyle:
+            AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w600),
         tabs: modes.map((m) {
           return Tab(
             child: Row(
@@ -418,13 +325,21 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
   }
 
   Widget _buildModeBody(AddMode mode) {
+    final isVisualUpload = mode == AddMode.upload && _isVisual;
     return SingleChildScrollView(
-      padding: EdgeInsets.all(Spacing.xl.w),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.xl.w,
+        vertical: Spacing.lg.h,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (mode == AddMode.upload) _buildUploadSection(),
-          _buildBasicFields(),
+          if (isVisualUpload)
+            _buildVisualUploadRow()
+          else ...[
+            if (mode == AddMode.upload) _buildUploadSection(),
+            _buildBasicFields(),
+          ],
           _buildTagSection(),
           if (schema.isNotEmpty) _buildSchemaSection(),
         ],
@@ -432,25 +347,77 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
     );
   }
 
+  /// 视觉类素材双栏布局：左侧上传预览 + 右侧名称/描述
+  Widget _buildVisualUploadRow() {
+    return Padding(
+      padding: EdgeInsets.only(bottom: Spacing.lg.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 220.w,
+            child: ResourceUploadArea(
+              accentColor: accent,
+              fileType: UploadFileType.image,
+              currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
+              onUploaded: (url) => setState(() => _uploadedUrl = url),
+              height: 200.h,
+            ),
+          ),
+          SizedBox(width: Spacing.lg.w),
+          Expanded(child: _buildBasicFields()),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEditBody() {
-    final isVisual = widget.libraryType.modality == ResourceModality.visual;
     final isAudio = widget.libraryType.modality == ResourceModality.audio;
     return SingleChildScrollView(
-      padding: EdgeInsets.all(Spacing.xl.w),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.xl.w,
+        vertical: Spacing.lg.h,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isVisual || isAudio)
-            ResourceUploadArea(
-              accentColor: accent,
-              fileType:
-                  isAudio ? UploadFileType.audio : UploadFileType.image,
-              currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
-              label: isAudio ? '点击替换音频' : '点击替换图片',
-              onUploaded: (url) => setState(() => _uploadedUrl = url),
+          if (_isVisual) ...[
+            Padding(
+              padding: EdgeInsets.only(bottom: Spacing.lg.h),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 220.w,
+                    child: ResourceUploadArea(
+                      accentColor: accent,
+                      fileType: UploadFileType.image,
+                      currentUrl:
+                          _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
+                      label: '点击替换图片',
+                      onUploaded: (url) =>
+                          setState(() => _uploadedUrl = url),
+                      height: 200.h,
+                    ),
+                  ),
+                  SizedBox(width: Spacing.lg.w),
+                  Expanded(child: _buildBasicFields()),
+                ],
+              ),
             ),
-          if (isVisual || isAudio) SizedBox(height: Spacing.lg.h),
-          _buildBasicFields(),
+          ] else ...[
+            if (isAudio) ...[
+              ResourceUploadArea(
+                accentColor: accent,
+                fileType: UploadFileType.audio,
+                currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
+                label: '点击替换音频',
+                onUploaded: (url) => setState(() => _uploadedUrl = url),
+              ),
+              SizedBox(height: Spacing.lg.h),
+            ],
+            _buildBasicFields(),
+          ],
           _buildTagSection(),
           if (schema.isNotEmpty) _buildSchemaSection(),
         ],
@@ -459,21 +426,15 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
   }
 
   Widget _buildUploadSection() {
-    final isAudio =
-        widget.libraryType.modality == ResourceModality.audio;
+    final isAudio = widget.libraryType.modality == ResourceModality.audio;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: SizedBox(
-            width: 200.w,
-            child: ResourceUploadArea(
-              accentColor: accent,
-              fileType: isAudio ? UploadFileType.audio : UploadFileType.image,
-              currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
-              onUploaded: (url) => setState(() => _uploadedUrl = url),
-            ),
-          ),
+        ResourceUploadArea(
+          accentColor: accent,
+          fileType: isAudio ? UploadFileType.audio : UploadFileType.image,
+          currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
+          onUploaded: (url) => setState(() => _uploadedUrl = url),
         ),
         SizedBox(height: Spacing.lg.h),
       ],
@@ -481,148 +442,42 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
   }
 
   Widget _buildBasicFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '名称',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
-          controller: _nameCtrl,
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
-          decoration: InputDecoration(
-            hintText: '输入素材名称',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-            filled: true,
-            fillColor: AppColors.inputBackground,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              borderSide: BorderSide(color: AppColors.inputBorder),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Spacing.md.w,
-              vertical: Spacing.sm.h,
-            ),
-          ),
-        ),
-        SizedBox(height: Spacing.md.h),
-        Text(
-          '描述',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
-          controller: _descCtrl,
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: widget.libraryType == ResourceLibraryType.prompt
-                ? '输入提示词内容…'
-                : '输入素材描述…',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-            filled: true,
-            fillColor: AppColors.inputBackground,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              borderSide: BorderSide(color: AppColors.inputBorder),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Spacing.md.w,
-              vertical: Spacing.sm.h,
-            ),
-          ),
-        ),
-        SizedBox(height: Spacing.lg.h),
-      ],
+    return ResourceBasicFields(
+      nameController: _nameCtrl,
+      descController: _descCtrl,
+      accentColor: accent,
+      libraryType: widget.libraryType,
     );
   }
 
   Widget _buildTagSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '标签',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: Spacing.xs.h),
-        Wrap(
-          spacing: Spacing.xs.w,
-          runSpacing: Spacing.xs.h,
-          children: [
-            ..._tags.map((tag) => Chip(
-                  label: Text(tag, style: AppTextStyles.caption),
-                  deleteIcon: Icon(AppIcons.close, size: 14.r, color: accent),
-                  onDeleted: () => setState(() => _tags.remove(tag)),
-                  backgroundColor: accent.withValues(alpha: 0.1),
-                  side: BorderSide(color: accent.withValues(alpha: 0.2)),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                )),
-            SizedBox(
-              width: 120.w,
-              height: 32.h,
-              child: TextField(
-                controller: _tagInputCtrl,
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-                decoration: InputDecoration(
-                  hintText: '+ 添加标签',
-                  hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: Spacing.sm.w,
-                    vertical: 0,
-                  ),
-                  border: InputBorder.none,
-                ),
-                onSubmitted: _addTag,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: Spacing.lg.h),
-      ],
+    return ResourceTagEditor(
+      tags: _tags,
+      tagInputController: _tagInputCtrl,
+      accentColor: accent,
+      onTagAdded: _addTag,
+      onTagRemoved: (tag) => setState(() => _tags.remove(tag)),
     );
   }
 
   Widget _buildSchemaSection() {
-    final availableValues = ref.read(availableMetaValuesProvider);
-    final editableFields = schema.where((f) => !f.readOnly).toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '元数据',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: Spacing.sm.h),
-        ...editableFields.map((f) => MetaFieldEditor(
-              field: f,
-              value: _metaValues[f.key] ?? '',
-              accentColor: accent,
-              extraOptions: availableValues[f.key],
-              onChanged: (v) => setState(() => _metaValues[f.key] = v),
-            )),
-      ],
+    return ResourceSchemaSection(
+      schema: schema,
+      metaValues: _metaValues,
+      accentColor: accent,
+      availableValues: ref.read(availableMetaValuesProvider),
+      onChanged: (key, value) => setState(() => _metaValues[key] = value),
     );
   }
 
   Widget _buildFooter() {
     return Container(
-      padding: EdgeInsets.fromLTRB(Spacing.xl.w, Spacing.md.h, Spacing.xl.w, Spacing.lg.h),
+      padding: EdgeInsets.fromLTRB(
+        Spacing.xl.w,
+        Spacing.md.h,
+        Spacing.xl.w,
+        Spacing.lg.h,
+      ),
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
@@ -631,25 +486,52 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
         children: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: Spacing.lg.w,
+                vertical: Spacing.sm.h,
+              ),
+            ),
             child: Text(
               '取消',
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.muted),
             ),
           ),
           SizedBox(width: Spacing.md.w),
           FilledButton(
             onPressed: _saving ? null : _save,
-            style: FilledButton.styleFrom(backgroundColor: accent),
+            style: FilledButton.styleFrom(
+              backgroundColor: accent,
+              disabledBackgroundColor: accent.withValues(alpha: 0.3),
+              padding: EdgeInsets.symmetric(
+                horizontal: Spacing.xl.w,
+                vertical: Spacing.sm.h,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+              ),
+            ),
             child: _saving
                 ? SizedBox(
                     width: 16.w,
                     height: 16.h,
-                    child: CircularProgressIndicator(
+                    child: const CircularProgressIndicator(
                       strokeWidth: 2,
                       color: AppColors.onPrimary,
                     ),
                   )
-                : Text(isEdit ? '保存' : '创建'),
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isEdit ? AppIcons.save : AppIcons.add,
+                        size: 16.r,
+                      ),
+                      SizedBox(width: Spacing.xs.w),
+                      Text(isEdit ? '保存' : '创建'),
+                    ],
+                  ),
           ),
         ],
       ),

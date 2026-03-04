@@ -170,7 +170,7 @@ final goRouter = GoRouter(
             GoRoute(
               path: Routes.assetsStyles,
               pageBuilder: (context, state) =>
-                  sharedAxisPage(child: const StyleLibraryView(), state: state),
+                  sharedAxisPage(child: const StyleLibraryPage(), state: state),
             ),
             GoRoute(
               path: Routes.assetsVersions,

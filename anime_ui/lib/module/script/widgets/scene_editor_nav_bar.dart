@@ -33,7 +33,7 @@ class SceneEditorNavBar extends StatelessWidget {
         : '—';
 
     return Container(
-      height: 48,
+      height: 48.h,
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,

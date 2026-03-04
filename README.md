@@ -290,22 +290,126 @@ Project（项目）
 
 ---
 
-### 4. 用户与部署（角色与权限参考）
+### 4. 用户与部署（角色与权限）
 
+#### 4.1 工种角色（JobRole）
 
-| 角色        | 职责                            |
-| --------- | ----------------------------- |
-| **导演**    | 创意方向、分镜审定、最终审核（脚本/镜图/镜头全环节）   |
-| **分镜师**   | 分镜脚本、镜头指令、与剧本/镜图联动、分镜审定（脚本阶段） |
-| **设计师**   | 角色设定、形象生成、场景、道具、风格资产、小传、参考包   |
-| **原画师**   | 镜图生成、镜图                       |
-| **镜头师**   | 镜头视频生成、镜头                     |
-| **后期**    | 成片剪辑、音频、字幕、导出                 |
-| **审核**    | 各环节 QA 审核、批量审核、退回             |
-| **平台管理员** | 用户、组织、任务配置、AI 配置              |
-
+| 角色        | 代码标识         | 职责                            |
+| --------- | -------------- | ----------------------------- |
+| **导演**    | `director`     | 创意方向、分镜审定、最终审核（脚本/镜图/镜头全环节）   |
+| **分镜师**   | `storyboarder` | 分镜脚本、镜头指令、与剧本/镜图联动、分镜审定（脚本阶段） |
+| **设计师**   | `designer`     | 角色设定、形象生成、场景、道具、风格资产、小传、参考包   |
+| **原画师**   | `key_animator`  | 镜图生成、镜图                       |
+| **镜头师**   | `shot_artist`   | 镜头视频生成、镜头                     |
+| **后期**    | `post`          | 成片剪辑、音频、字幕、导出                 |
+| **审核**    | `reviewer`      | 各环节 QA 审核、批量审核、退回             |
+| **平台管理员** | `admin`         | 用户、组织、任务配置、AI 配置              |
 
 **多角色**：用户可拥有多个角色，权限取并集。小团队可一人兼任（如导演+审核），大团队可设专职审核。
+
+#### 4.2 权限体系架构（已实现）
+
+**双层角色模型**：
+
+```
+全局角色 (users.role)                → admin / member  （平台级）
+项目工种 (project_members.job_roles) → ["director","designer",...] （项目级，精细控制）
+```
+
+**权限判断链路**（`pub/auth/context.go` → `Identity.Can()`）：
+
+```
+请求 → JWTAuth → ProjectContext 中间件 → RequireAction 中间件
+                      │
+                      ├─ 系统管理员 → 全部放行
+                      ├─ 项目创建者 → owner + ["director"]
+                      ├─ project_members → role + job_roles
+                      └─ team_members   → role + job_roles（团队级默认）
+```
+
+**权限继承优先级**（从高到低）：
+
+| 优先级 | 来源 | 说明 |
+| ----- | --- | --- |
+| 1 | `users.role == "admin"` | 系统管理员，一切放行 |
+| 2 | `projects.user_id` | 项目创建者，等同 director |
+| 3 | `project_members.job_roles` | 项目级精确控制（最高优先） |
+| 4 | `team_members.job_roles` | 团队级默认（项目无记录时回退） |
+| 5 | 无记录 | 403 禁止访问 |
+
+#### 4.3 工种 → Action 映射
+
+| 工种 | 可执行的操作 |
+| --- | --- |
+| **导演** | 全部（项目 CRUD、内容编辑、AI 生成、审核、成员管理、脚本/镜图/视频/成片/资产全链路） |
+| **分镜师** | 项目查看、内容编辑、AI 生成、脚本编辑/审核、镜图编辑/生成、资产编辑 |
+| **设计师** | 项目查看、内容编辑、AI 生成、镜图编辑/生成、资产编辑 |
+| **原画师** | 项目查看、内容编辑、AI 生成、镜图编辑/生成/审核 |
+| **镜头师** | 项目查看、内容编辑、AI 生成、视频编辑/生成/审核 |
+| **后期** | 项目查看、内容编辑、成片编辑/导出 |
+| **审核** | 项目查看、脚本审核、镜图审核、视频审核 |
+
+完整映射见 `anime_ai/pub/auth/rbac.go` → `jobRoleToActions`。
+
+#### 4.4 组织 → 团队 → 项目协作模型
+
+```
+Organization（组织）
+  ├── OrgMember（组织成员：owner / admin / member）
+  └── Team（团队）
+        ├── TeamMember（团队成员：role + job_roles）
+        └── Project（项目，通过 team_id 关联）
+              └── ProjectMember（项目成员：role + job_roles，可覆盖团队默认）
+```
+
+**后端 API 已全部就绪**：
+
+| 模块 | 路由 | 状态 |
+| --- | --- | --- |
+| 组织管理 | `POST/GET /orgs`, `GET/PUT /:orgId`, 成员 CRUD | ✅ |
+| 团队管理 | `POST/GET /orgs/:orgId/teams`, `GET/PUT/DELETE /:teamId`, 成员 CRUD（含 jobRoles） | ✅ |
+| 项目成员 | `POST/GET /projects/:id/members`, `PUT /:userId` (role), `PUT /:userId/job-roles`, `DELETE` | ✅ |
+| 权限查询 | `GET /projects/:id/my-permissions` → effectiveRole / jobRoles / allowedActions | ✅ |
+
+#### 4.5 前端权限控制
+
+**PermissionGate**（`pub/widgets/permission_gate.dart`）：声明式权限门控 Widget。
+
+```dart
+// 隐藏模式（默认）：无权限时按钮不显示
+PermissionGate(
+  action: AppActions.shotImageGenerate,
+  child: FilledButton(onPressed: _generate, child: Text('生成')),
+)
+
+// 禁用模式：无权限时按钮变灰
+PermissionGate(
+  action: AppActions.compositeExport,
+  disableInsteadOfHide: true,
+  child: FilledButton(onPressed: _export, child: Text('导出成片')),
+)
+
+// 多 Action（任一满足即显示）
+PermissionGate(
+  actions: [AppActions.scriptEdit, AppActions.aiGenerate],
+  child: ...,
+)
+```
+
+**已接入的模块**：
+
+| 模块 | 控制点 | Action |
+| --- | --- | --- |
+| 脚本中心 | 生成/重试按钮、批量生成 | `ai.generate` |
+| 脚本中心 | 审核按钮 | `script.review` |
+| 镜图中心 | 生成/重试/重跑按钮 | `shot_image.generate` |
+| 镜图中心 | 审核按钮 | `shot_image.review` |
+| 镜头中心 | 生成/重试按钮 | `shot_video.generate` |
+| 成片导出 | 导出成片/按集打包 | `composite.export` |
+
+**扩展方式**：新增权限控制只需用 `PermissionGate` 包裹目标按钮，无需修改后端。Action 常量定义在 `pub/const/actions.dart`（`AppActions`）。
+
+#### 4.6 部署
 
 **部署**：支持多规模部署（单机/集群），支持公开注册。
 

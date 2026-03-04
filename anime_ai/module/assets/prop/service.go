@@ -1,6 +1,7 @@
 package prop
 
 import (
+	"context"
 	"fmt"
 
 	"anime_ai/pub/auth"
@@ -87,6 +88,22 @@ func (s *Service) List(projectID, userID string) ([]Prop, error) {
 		return nil, err
 	}
 	return s.store.ListByProject(projectID)
+}
+
+// ListConfirmedPropIDs 列出项目内已确认道具的 ID（供跨模块 collector 使用，不校验用户权限）
+func (s *Service) ListConfirmedPropIDs(ctx context.Context, projectID string) ([]string, error) {
+	_ = ctx // 预留，Store 层当前无 context
+	props, err := s.store.ListByProject(projectID)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, p := range props {
+		if p.Status == "confirmed" && p.ID != "" {
+			ids = append(ids, p.ID)
+		}
+	}
+	return ids, nil
 }
 
 // Get 获取道具详情

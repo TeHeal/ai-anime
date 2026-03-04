@@ -38,15 +38,15 @@ class ResourceService {
   }) async {
     final params = <String, dynamic>{
       'page': page,
-      'page_size': pageSize,
+      'pageSize': pageSize,
     };
     if (modality != null && modality.isNotEmpty) params['modality'] = modality;
     if (libraryType != null && libraryType.isNotEmpty) {
-      params['library_type'] = libraryType;
+      params['libraryType'] = libraryType;
     }
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (tags != null && tags.isNotEmpty) params['tags'] = tags;
-    if (sortBy != null && sortBy.isNotEmpty) params['sort_by'] = sortBy;
+    if (sortBy != null && sortBy.isNotEmpty) params['sortBy'] = sortBy;
 
     final resp = await dio.get('/resources', queryParameters: params);
     final data = extractData<Map<String, dynamic>>(resp);
@@ -58,7 +58,7 @@ class ResourceService {
       items: items,
       total: data['total'] as int? ?? 0,
       page: data['page'] as int? ?? 1,
-      pageSize: data['page_size'] as int? ?? pageSize,
+      pageSize: data['pageSize'] as int? ?? pageSize,
     );
   }
 
@@ -210,12 +210,6 @@ class ResourceService {
     });
     final data = extractData<Map<String, dynamic>>(resp);
     return data['text'] as String? ?? '';
-  }
-
-  Future<Resource> syncVoiceResource(String resourceId) async {
-    final resp = await dio.post('/resources/$resourceId/sync-voice');
-    final data = extractData<Map<String, dynamic>>(resp);
-    return Resource.fromJson(data['resource'] as Map<String, dynamic>);
   }
 
   /// LLM prompt generation -> resource (synchronous)

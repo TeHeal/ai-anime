@@ -67,7 +67,9 @@ func (h *PackageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 		return nil
 	}
 
-	_ = h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusPackaging, "", "")
+	if err := h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusPackaging, "", ""); err != nil {
+		h.log.Warn("更新打包状态失败", zap.String("package_task_id", payload.PackageTaskID), zap.Error(err))
+	}
 
 	// 占位：实际需根据 Config 收集镜图/镜头/成片，打包 ZIP
 	// 当前创建空 ZIP 占位
@@ -88,11 +90,15 @@ func (h *PackageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 	select {
 	case <-time.After(1 * time.Second):
 	case <-ctx.Done():
-		_ = h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusFailed, "", "任务取消")
+		if err := h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusFailed, "", "任务取消"); err != nil {
+			h.log.Warn("更新打包失败状态失败", zap.String("package_task_id", payload.PackageTaskID), zap.Error(err))
+		}
 		return ctx.Err()
 	}
 
-	_ = h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusDone, outputURL, "")
+	if err := h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusDone, outputURL, ""); err != nil {
+		h.log.Warn("更新打包完成状态失败", zap.String("package_task_id", payload.PackageTaskID), zap.Error(err))
+	}
 
 	h.log.Info("按集打包任务完成",
 		zap.String("package_task_id", payload.PackageTaskID),

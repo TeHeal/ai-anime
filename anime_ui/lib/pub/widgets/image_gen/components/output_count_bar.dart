@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 
-/// 输出数量选择条（1 / 2 / 4 / 6 张）
+/// 输出数量选择（紧凑横排药丸，嵌入标题行）
 class OutputCountBar extends StatelessWidget {
   const OutputCountBar({
     super.key,
@@ -24,32 +24,20 @@ class OutputCountBar extends StatelessWidget {
     final available = _options.where((n) => n <= maxCount).toList();
     if (available.length <= 1) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '输出数量',
-          style: AppTextStyles.labelMedium.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.onSurface.withValues(alpha: 0.6),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: available.map((n) {
+        final selected = value == n;
+        return Padding(
+          padding: EdgeInsets.only(left: Spacing.xs.w),
+          child: _CountChip(
+            count: n,
+            selected: selected,
+            accent: accent,
+            onTap: () => onChanged(n),
           ),
-        ),
-        SizedBox(height: Spacing.sm.h),
-        Row(
-          children: available.map((n) {
-            final selected = value == n;
-            return Padding(
-              padding: EdgeInsets.only(right: Spacing.sm.w),
-              child: _CountChip(
-                count: n,
-                selected: selected,
-                accent: accent,
-                onTap: () => onChanged(n),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 }
@@ -86,27 +74,27 @@ class _CountChipState extends State<_CountChip> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          width: Spacing.thumbnailSize.w,
-          height: 36.h,
+          width: 32.w,
+          height: 28.h,
           decoration: BoxDecoration(
             color: selected
                 ? accent.withValues(alpha: 0.15)
                 : _hovered
-                ? accent.withValues(alpha: 0.06)
-                : AppColors.surfaceContainer,
+                    ? accent.withValues(alpha: 0.06)
+                    : AppColors.surfaceContainer,
             borderRadius: BorderRadius.circular(RadiusTokens.md.r),
             border: Border.all(
               color: selected
                   ? accent.withValues(alpha: 0.5)
                   : _hovered
-                  ? accent.withValues(alpha: 0.25)
-                  : AppColors.border,
+                      ? accent.withValues(alpha: 0.25)
+                      : AppColors.border,
             ),
           ),
           child: Center(
             child: Text(
               '${widget.count}',
-              style: AppTextStyles.bodySmall.copyWith(
+              style: AppTextStyles.tiny.copyWith(
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected
                     ? accent

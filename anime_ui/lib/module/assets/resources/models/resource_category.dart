@@ -14,6 +14,12 @@ enum ResourceModality {
   final Color color;
 }
 
+/// 素材添加方式
+enum AddMode { upload, batchUpload, aiGenerate, manual }
+
+/// 资源生成任务状态（用于卡片实时反馈覆盖层）
+enum ResourceTaskStatus { generating, completed, failed }
+
 /// 子库类型（风格已为独立顶级 Tab，不在此枚举）
 enum ResourceLibraryType {
   character('角色库', AppIcons.person, ResourceModality.visual),
@@ -39,4 +45,34 @@ enum ResourceLibraryType {
   /// 素材页展示用：按模态返回子库列表
   static List<ResourceLibraryType> forModalityInResources(ResourceModality m) =>
       values.where((v) => v.modality == m).toList();
+
+  /// 上传相关的添加方式（排除 AI 生成）
+  List<AddMode> get uploadModes =>
+      availableAddModes.where((m) => m != AddMode.aiGenerate).toList();
+
+  /// 各子库支持的添加方式
+  List<AddMode> get availableAddModes => switch (this) {
+        // 视觉类：支持上传 + 批量上传 + AI 生成
+        ResourceLibraryType.character ||
+        ResourceLibraryType.scene ||
+        ResourceLibraryType.prop ||
+        ResourceLibraryType.expression ||
+        ResourceLibraryType.pose ||
+        ResourceLibraryType.effect =>
+          [AddMode.upload, AddMode.batchUpload, AddMode.aiGenerate],
+        // 音色库：支持上传（样本）+ AI 生成
+        ResourceLibraryType.voice =>
+          [AddMode.upload, AddMode.aiGenerate],
+        // 配音/音效/音乐：仅上传
+        ResourceLibraryType.voiceover ||
+        ResourceLibraryType.sfx ||
+        ResourceLibraryType.music =>
+          [AddMode.upload, AddMode.batchUpload],
+        // 文本类：支持 AI 生成 + 手动填写
+        ResourceLibraryType.prompt ||
+        ResourceLibraryType.styleGuide ||
+        ResourceLibraryType.dialogueTemplate ||
+        ResourceLibraryType.scriptSnippet =>
+          [AddMode.aiGenerate, AddMode.manual],
+      };
 }

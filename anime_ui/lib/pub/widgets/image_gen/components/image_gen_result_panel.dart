@@ -8,7 +8,7 @@ import '../image_gen_controller.dart';
 import 'gen_result_grid.dart';
 import 'output_count_bar.dart';
 
-/// 图生右侧结果面板
+/// 图生右侧结果面板 — 输出数量合并到标题行
 class ImageGenResultPanel extends StatelessWidget {
   const ImageGenResultPanel({
     super.key,
@@ -29,27 +29,55 @@ class ImageGenResultPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: EdgeInsets.all(Spacing.mid.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          OutputCountBar(
-            value: ctrl.outputCount,
-            maxCount: config.maxOutputCount,
-            accent: accent,
-            onChanged: ctrl.setOutputCount,
+          // 标题行：「生成预览」+ 输出数量选择紧凑排列
+          Row(
+            children: [
+              Text(
+                '生成预览',
+                style: AppTextStyles.labelMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.muted,
+                ),
+              ),
+              const Spacer(),
+              OutputCountBar(
+                value: ctrl.outputCount,
+                maxCount: config.maxOutputCount,
+                accent: accent,
+                onChanged: ctrl.setOutputCount,
+              ),
+            ],
           ),
-          if (config.maxOutputCount > 1) SizedBox(height: Spacing.lg.h),
+          SizedBox(height: Spacing.md.h),
 
-          GenResultGrid(
-            results: ctrl.results,
-            isGenerating: ctrl.isGenerating,
-            progress: ctrl.progress,
-            accent: accent,
-            outputCount: ctrl.outputCount,
-            onImageTap: onImageTap,
-          ),
+          // 空状态用固定高度紧凑显示，有结果时再撑满
+          ctrl.results.isEmpty && !ctrl.isGenerating
+              ? SizedBox(
+                  height: 180.h,
+                  child: GenResultGrid(
+                    results: ctrl.results,
+                    isGenerating: ctrl.isGenerating,
+                    progress: ctrl.progress,
+                    accent: accent,
+                    outputCount: ctrl.outputCount,
+                    onImageTap: onImageTap,
+                  ),
+                )
+              : Expanded(
+                  child: GenResultGrid(
+                    results: ctrl.results,
+                    isGenerating: ctrl.isGenerating,
+                    progress: ctrl.progress,
+                    accent: accent,
+                    outputCount: ctrl.outputCount,
+                    onImageTap: onImageTap,
+                  ),
+                ),
 
           if (ctrl.hasError && ctrl.errorMsg != null) ...[
             SizedBox(height: Spacing.md.h),

@@ -24,7 +24,11 @@ type AudioTrack struct {
 var log *zap.Logger
 
 func init() {
-	log, _ = zap.NewProduction()
+	var err error
+	log, err = zap.NewProduction()
+	if err != nil {
+		panic("ffmpeg: 初始化 logger 失败: " + err.Error())
+	}
 }
 
 // SetLogger 设置日志实例（由调用方注入）

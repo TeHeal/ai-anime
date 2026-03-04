@@ -13,7 +13,7 @@ import '../image_gen_controller.dart';
 import 'ratio_picker.dart';
 import 'ref_image_grid.dart';
 
-/// 图生左侧输入面板
+/// 图生左侧输入面板 — 比例/分辨率以内联配置条常驻，不再折叠
 class ImageGenInputPanel extends StatelessWidget {
   const ImageGenInputPanel({
     super.key,
@@ -22,8 +22,6 @@ class ImageGenInputPanel extends StatelessWidget {
     required this.ref,
     required this.promptCtrl,
     required this.negPromptCtrl,
-    required this.showAdvanced,
-    required this.onToggleAdvanced,
     required this.onPromptLibraryTap,
   });
 
@@ -32,8 +30,6 @@ class ImageGenInputPanel extends StatelessWidget {
   final WidgetRef ref;
   final TextEditingController promptCtrl;
   final TextEditingController negPromptCtrl;
-  final bool showAdvanced;
-  final VoidCallback onToggleAdvanced;
   final void Function(ValueChanged<String>) onPromptLibraryTap;
 
   Color get accent => config.accentColor;
@@ -57,10 +53,35 @@ class ImageGenInputPanel extends StatelessWidget {
             SizedBox(height: Spacing.lg.h),
           ],
 
-          _buildAdvancedToggle(context),
-          if (showAdvanced) ...[
-            SizedBox(height: Spacing.md.h),
-            _buildAdvancedContent(context),
+          // 内联配置条：比例 + 分辨率常驻
+          _InlineConfigBar(ctrl: ctrl, config: config, accent: accent),
+
+          // 模型选择器（紧凑内联）
+          SizedBox(height: Spacing.md.h),
+          ModelSelector(
+            serviceType: 'image',
+            accent: accent,
+            selected: ctrl.selectedModel,
+            style: ModelSelectorStyle.dialog,
+            onChanged: ctrl.setModel,
+          ),
+
+          if (ctrl.sizeValidationError != null) ...[
+            SizedBox(height: Spacing.sm.h),
+            Row(
+              children: [
+                Icon(
+                  AppIcons.warning,
+                  size: (AppTextStyles.bodySmall.fontSize ?? 13).r,
+                  color: AppColors.warning,
+                ),
+                SizedBox(width: Spacing.xs.w),
+                Text(
+                  ctrl.sizeValidationError!,
+                  style: AppTextStyles.tiny.copyWith(color: AppColors.warning),
+                ),
+              ],
+            ),
           ],
         ],
       ),
@@ -91,67 +112,40 @@ class ImageGenInputPanel extends StatelessWidget {
       },
     );
   }
+}
 
-  Widget _buildAdvancedToggle(BuildContext context) {
-    return GestureDetector(
-      onTap: onToggleAdvanced,
-      child: Row(
-        children: [
-          Icon(
-            showAdvanced ? AppIcons.expandMore : AppIcons.chevronRight,
-            size: (AppTextStyles.bodySmall.fontSize ?? 13).r,
-            color: AppColors.mutedDark,
-          ),
-          SizedBox(width: Spacing.inputGapSm.w),
-          Text(
-            '高级选项（比例 / 模型）',
-            style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.mutedDark,
-            ),
-          ),
-        ],
+/// 内联配置条：比例选择 + 分辨率切换，以紧凑横条样式常驻
+class _InlineConfigBar extends StatelessWidget {
+  const _InlineConfigBar({
+    required this.ctrl,
+    required this.config,
+    required this.accent,
+  });
+
+  final ImageGenController ctrl;
+  final ImageGenConfig config;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.md.w,
+        vertical: Spacing.sm.h,
       ),
-    );
-  }
-
-  Widget _buildAdvancedContent(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RatioPicker(
-          selectedRatio: ctrl.ratio,
-          selectedResolution: ctrl.resolution,
-          allowedRatios: config.allowedRatios,
-          accent: accent,
-          onRatioChanged: ctrl.setRatio,
-          onResolutionChanged: ctrl.setResolution,
-        ),
-        SizedBox(height: Spacing.gridGap.h),
-        ModelSelector(
-          serviceType: 'image',
-          accent: accent,
-          selected: ctrl.selectedModel,
-          style: ModelSelectorStyle.dialog,
-          onChanged: ctrl.setModel,
-        ),
-        if (ctrl.sizeValidationError != null) ...[
-          SizedBox(height: Spacing.sm.h),
-          Row(
-            children: [
-              Icon(
-                AppIcons.warning,
-                size: (AppTextStyles.bodySmall.fontSize ?? 13).r,
-                color: AppColors.warning,
-              ),
-              SizedBox(width: Spacing.xs.w),
-              Text(
-                ctrl.sizeValidationError!,
-                style: AppTextStyles.tiny.copyWith(color: AppColors.warning),
-              ),
-            ],
-          ),
-        ],
-      ],
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: RatioPicker(
+        selectedRatio: ctrl.ratio,
+        selectedResolution: ctrl.resolution,
+        allowedRatios: config.allowedRatios,
+        accent: accent,
+        onRatioChanged: ctrl.setRatio,
+        onResolutionChanged: ctrl.setResolution,
+      ),
     );
   }
 }

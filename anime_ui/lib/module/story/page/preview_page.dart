@@ -136,9 +136,9 @@ class _StoryPreviewPageState extends ConsumerState<StoryPreviewPage> {
           trailing: ElevatedButton.icon(
             onPressed: isConfirming ? null : _confirmImport,
             icon: isConfirming
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
+                ? SizedBox(
+                    width: 16.r,
+                    height: 16.r,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       color: AppColors.onSurface,

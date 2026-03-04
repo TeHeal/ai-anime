@@ -81,7 +81,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                         ).createShader(bounds),
                         child: Icon(
                           AppIcons.movieFilter,
-                          color: Colors.white,
+                          color: AppColors.onSurface,
                           size: 28.r,
                         ),
                       ),
@@ -104,7 +104,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                     headerBrand,
                     style: AppTextStyles.bodyXLarge.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       letterSpacing: 0.5,
                     ),
                   ),

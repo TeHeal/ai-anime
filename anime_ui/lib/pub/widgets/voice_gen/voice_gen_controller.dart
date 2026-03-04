@@ -64,6 +64,9 @@ class VoiceGenController extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('VoiceGenController.uploadSample error: $e');
+      errorMsg = '上传失败: ${e.toString().replaceFirst('Exception: ', '')}';
+      status = VoiceGenState.error;
+      notifyListeners();
     }
   }
 

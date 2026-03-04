@@ -40,7 +40,7 @@ func (a *projectMemberReaderAdapter) FindByProjectAndUser(projectIDStr, userIDSt
 	if err != nil {
 		return nil, err
 	}
-	return &middleware.ProjectMemberInfo{Role: m.Role}, nil
+	return &middleware.ProjectMemberInfo{Role: m.Role, JobRoles: m.JobRoles}, nil
 }
 
 // NoopTeamMemberReader 空实现，团队成员功能尚未完成时使用

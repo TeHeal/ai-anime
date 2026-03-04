@@ -4,17 +4,19 @@ import (
 	"errors"
 
 	"anime_ai/pub/pkg"
+	"anime_ai/pub/realtime"
 	"github.com/gin-gonic/gin"
 )
 
 // Handler 素材库 HTTP 接口层
 type Handler struct {
-	svc *Service
+	svc         *Service
+	realtimeHub *realtime.Hub
 }
 
 // NewHandler 创建 Handler
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, realtimeHub *realtime.Hub) *Handler {
+	return &Handler{svc: svc, realtimeHub: realtimeHub}
 }
 
 func (h *Handler) getResourceID(c *gin.Context) (string, bool) {
@@ -46,6 +48,9 @@ func (h *Handler) Create(c *gin.Context) {
 		}
 		pkg.HandleError(c, err)
 		return
+	}
+	if h.realtimeHub != nil {
+		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource")
 	}
 	pkg.Created(c, res)
 }
@@ -188,6 +193,9 @@ func (h *Handler) GenerateVoice(c *gin.Context) {
 		pkg.HandleError(c, err)
 		return
 	}
+	if h.realtimeHub != nil {
+		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_voice")
+	}
 	pkg.Created(c, map[string]any{"resource": res, "task_id": ""})
 }
 
@@ -211,6 +219,9 @@ func (h *Handler) GenerateVoiceDesign(c *gin.Context) {
 		}
 		pkg.HandleError(c, err)
 		return
+	}
+	if h.realtimeHub != nil {
+		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_voice_design")
 	}
 	pkg.Created(c, map[string]any{"resource": res, "taskId": ""})
 }
@@ -259,6 +270,9 @@ func (h *Handler) GeneratePrompt(c *gin.Context) {
 		pkg.HandleError(c, err)
 		return
 	}
+	if h.realtimeHub != nil {
+		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_prompt")
+	}
 	pkg.Created(c, res)
 }
 
@@ -286,6 +300,9 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 		}
 		pkg.HandleError(c, err)
 		return
+	}
+	if h.realtimeHub != nil {
+		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_image")
 	}
 	pkg.Created(c, res)
 }

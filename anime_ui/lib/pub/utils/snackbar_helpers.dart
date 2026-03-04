@@ -97,13 +97,13 @@ class _ToastCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(_icon, color: Colors.white, size: 18.r),
+              Icon(_icon, color: AppColors.onPrimary, size: 18.r),
               SizedBox(width: Spacing.sm.w),
               Expanded(
                 child: Text(
                   message,
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: Colors.white,
+                    color: AppColors.onPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 2,
@@ -115,7 +115,7 @@ class _ToastCard extends StatelessWidget {
                 onTap: onClose,
                 child: Icon(
                   AppIcons.close,
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.onPrimary.withValues(alpha: 0.7),
                   size: 16.r,
                 ),
               ),

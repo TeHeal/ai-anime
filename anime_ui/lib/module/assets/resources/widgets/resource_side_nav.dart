@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/const/motion.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import '../models/resource_category.dart';
 import '../providers/provider.dart';
@@ -16,7 +17,7 @@ class ResourceSideNav extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final libraries = ResourceLibraryType.forModalityInResources(modality);
     final selected = ref.watch(selectedLibraryTypeProvider);
-    final allResources = ref.watch(resourceListProvider).value ?? [];
+    final counts = ref.watch(resourceCountsProvider);
 
     return Container(
       width: Spacing.listPanelMinWidth.w,
@@ -31,7 +32,7 @@ class ResourceSideNav extends ConsumerWidget {
         ),
         children: libraries.map((lib) {
           final isSelected = lib == selected;
-          final count = allResources.where((r) => r.libraryType == lib.name).length;
+          final count = counts[lib.name] ?? 0;
 
           return Padding(
             padding: EdgeInsets.only(bottom: Spacing.xxs.h),
@@ -44,7 +45,7 @@ class ResourceSideNav extends ConsumerWidget {
                   ref.read(resourceSearchProvider.notifier).set('');
                 },
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 120),
+                  duration: MotionTokens.durationFast,
                   padding: EdgeInsets.symmetric(
                     horizontal: Spacing.md.w,
                     vertical: Spacing.sm.h,
@@ -54,6 +55,11 @@ class ResourceSideNav extends ConsumerWidget {
                         ? modality.color.withValues(alpha: 0.1)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+                    border: isSelected
+                        ? Border.all(
+                            color: modality.color.withValues(alpha: 0.2),
+                          )
+                        : null,
                   ),
                   child: Row(
                     children: [
@@ -77,11 +83,14 @@ class ResourceSideNav extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      Container(
+                      AnimatedContainer(
+                        duration: MotionTokens.durationFast,
                         padding: EdgeInsets.symmetric(
                           horizontal: Spacing.inputGapSm.w,
                           vertical: Spacing.xxs.h,
                         ),
+                        constraints: BoxConstraints(minWidth: 24.w),
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isSelected
                               ? modality.color.withValues(alpha: 0.15)
@@ -95,6 +104,9 @@ class ResourceSideNav extends ConsumerWidget {
                             color: isSelected
                                 ? modality.color
                                 : AppColors.muted,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),

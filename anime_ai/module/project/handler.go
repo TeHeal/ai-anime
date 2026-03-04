@@ -1,6 +1,7 @@
 package project
 
 import (
+	"anime_ai/pub/auth"
 	"anime_ai/pub/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -348,4 +349,21 @@ func (h *Handler) UnlockPhase(c *gin.Context) {
 	}
 	status, _ := h.svc.GetLockStatus(projectID, userID)
 	pkg.OK(c, status)
+}
+
+// MyPermissions 返回当前用户在该项目的工种和可执行 Action 列表
+func (h *Handler) MyPermissions(c *gin.Context) {
+	id := auth.FromContext(c)
+	actions := auth.EffectivePermissions(id.JobRoles)
+	actionList := make([]string, 0, len(actions))
+	for a := range actions {
+		actionList = append(actionList, string(a))
+	}
+	pkg.OK(c, gin.H{
+		"effectiveRole":  id.EffectiveRole,
+		"jobRoles":       id.JobRoles,
+		"allowedActions": actionList,
+		"isOwner":        id.EffectiveRole == auth.TeamRoleOwner,
+		"isAdmin":        id.IsAdmin(),
+	})
 }

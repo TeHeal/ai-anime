@@ -6,6 +6,8 @@ import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_network_image.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/const/actions.dart' show AppActions;
+import 'package:anime_ui/pub/widgets/permission_gate.dart';
 import 'package:anime_ui/pub/widgets/task_status/mini_action_button.dart';
 
 /// 单个复合生成任务卡片，展示子任务状态矩阵
@@ -226,18 +228,24 @@ class CompositeTaskCard extends StatelessWidget {
         ),
         const Spacer(),
         if (status == CompositeShotStatus.notStarted)
-          MiniActionButton(
-            label: '生成',
-            icon: AppIcons.magicStick,
-            color: AppColors.primary,
-            onTap: onGenerate,
+          PermissionGate(
+            action: AppActions.shotVideoGenerate,
+            child: MiniActionButton(
+              label: '生成',
+              icon: AppIcons.magicStick,
+              color: AppColors.primary,
+              onTap: onGenerate,
+            ),
           ),
         if (status == CompositeShotStatus.failed)
-          MiniActionButton(
-            label: '重试',
-            icon: AppIcons.refresh,
-            color: AppColors.warning,
-            onTap: onGenerate,
+          PermissionGate(
+            action: AppActions.shotVideoGenerate,
+            child: MiniActionButton(
+              label: '重试',
+              icon: AppIcons.refresh,
+              color: AppColors.warning,
+              onTap: onGenerate,
+            ),
           ),
         if (status == CompositeShotStatus.generating)
           SizedBox(

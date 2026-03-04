@@ -417,8 +417,8 @@ class _SceneEditorState extends ConsumerState<SceneEditor> {
         Row(
           children: [
             Container(
-              width: 3,
-              height: 18,
+              width: 3.w,
+              height: 18.h,
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(RadiusTokens.xs.r),

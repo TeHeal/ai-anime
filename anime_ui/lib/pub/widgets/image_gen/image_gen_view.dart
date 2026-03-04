@@ -16,6 +16,10 @@ import 'components/image_gen_result_panel.dart';
 import 'image_gen_config.dart';
 import 'image_gen_controller.dart';
 
+/// 图像生成弹窗视图
+///
+/// 用于角色参考图、风格图、表情图、道具图等场景的 AI 图像生成。
+/// 左侧为提示词、参考图、宽高比等输入区，右侧为生成预览区。
 class ImageGenView extends StatefulWidget {
   const ImageGenView({
     super.key,
@@ -33,10 +37,13 @@ class ImageGenView extends StatefulWidget {
 }
 
 class _ImageGenViewState extends State<ImageGenView> {
+  /// 生成控制器：模式、参考图、输出数量、宽高比等
   late final ImageGenController _ctrl;
+  /// 正向提示词输入框
   late final TextEditingController _promptCtrl;
+  /// 反向提示词输入框
   late final TextEditingController _negPromptCtrl;
-  bool _showAdvanced = false;
+  /// 保存中状态，用于禁用重复点击
   bool _isSaving = false;
 
   ImageGenConfig get config => widget.config;
@@ -49,6 +56,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     _ctrl.setRatio(config.defaultRatio);
     _promptCtrl = TextEditingController();
     _negPromptCtrl = TextEditingController();
+    // 输入框变化时同步到控制器
     _promptCtrl.addListener(() => _ctrl.setPrompt(_promptCtrl.text));
     _negPromptCtrl.addListener(() => _ctrl.setNegPrompt(_negPromptCtrl.text));
   }
@@ -61,6 +69,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     super.dispose();
   }
 
+  /// 执行生成：由控制器校验参数后回调，按 outputCount 并发多张
   Future<void> _generate() async {
     await _ctrl.generate(
       onGenerate:
@@ -82,6 +91,7 @@ class _ImageGenViewState extends State<ImageGenView> {
             final refImgUrl = refImages.isNotEmpty ? refImages.first : '';
             final multiRefImgs = refImages.length > 1 ? refImages : <String>[];
 
+            // 智能模式（ratio 为空）时用 size 参数，否则用 width/height
             String sizeParam = '';
             int? w = width;
             int? h = height;
@@ -116,6 +126,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     );
   }
 
+  /// 单张生成：调用 port 的 generateImage，完成后通过 onResult 回传缩略图 URL
   Future<void> _generateOne({
     required dynamic port,
     required String prompt,
@@ -156,6 +167,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     }
   }
 
+  /// 保存生成结果到目标库，调用 config.onSaved 后关闭弹窗
   Future<void> _saveResults() async {
     if (_ctrl.results.isEmpty) return;
     setState(() => _isSaving = true);
@@ -176,6 +188,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     }
   }
 
+  /// 打开提示词库弹窗，选择后填入输入框
   void _showPromptLibrary(ValueChanged<String> onSelected) {
     final resources =
         widget.ref.read(resourceListPortProvider).resources.value ?? [];
@@ -197,6 +210,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     );
   }
 
+  /// 大图预览：使用 easy_image_viewer 全屏查看
   void _showLightbox(String url) {
     showImageViewer(
       context,
@@ -219,23 +233,28 @@ class _ImageGenViewState extends State<ImageGenView> {
           child: Builder(
             builder: (context) {
               final w = MediaQuery.sizeOf(context).width;
+              // 窄屏（<600px）单栏纵向布局，宽屏左右双栏
               final narrow = w < Breakpoints.md;
+              // 子组件正常显示下的最小占用：不强制撑满，仅设上限防止溢出
               return ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: narrow ? 600.w : 900.w,
-                  maxHeight: 700.h,
-                  minWidth: narrow ? 320.w : 600.w,
+                  maxWidth: narrow ? 520.w : 800.w,
+                  maxHeight: 600.h,
+                  minWidth: narrow ? 320.w : 560.w,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // 标题栏：模式切换、关闭
                     ImageGenHeader(
                       config: config,
                       ctrl: _ctrl,
                       accent: accent,
                       onClose: widget.onClose ?? () => Navigator.pop(context),
                     ),
+                    // 主内容区：不撑满，按内容最小占用（loose 避免多余空白）
                     Flexible(
+                      fit: FlexFit.loose,
                       child: narrow
                           ? SingleChildScrollView(
                               child: Column(
@@ -249,10 +268,6 @@ class _ImageGenViewState extends State<ImageGenView> {
                                       ref: widget.ref,
                                       promptCtrl: _promptCtrl,
                                       negPromptCtrl: _negPromptCtrl,
-                                      showAdvanced: _showAdvanced,
-                                      onToggleAdvanced: () => setState(
-                                        () => _showAdvanced = !_showAdvanced,
-                                      ),
                                       onPromptLibraryTap: _showPromptLibrary,
                                     ),
                                   ),
@@ -274,21 +289,18 @@ class _ImageGenViewState extends State<ImageGenView> {
                                 ],
                               ),
                             )
-                          : Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: 360.w,
-                                  child: ImageGenInputPanel(
+                          : ConstrainedBox(
+                              constraints: BoxConstraints(minHeight: 260.h),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: ImageGenInputPanel(
                                     config: config,
                                     ctrl: _ctrl,
                                     ref: widget.ref,
                                     promptCtrl: _promptCtrl,
                                     negPromptCtrl: _negPromptCtrl,
-                                    showAdvanced: _showAdvanced,
-                                    onToggleAdvanced: () => setState(
-                                      () => _showAdvanced = !_showAdvanced,
-                                    ),
                                     onPromptLibraryTap: _showPromptLibrary,
                                   ),
                                 ),
@@ -305,7 +317,9 @@ class _ImageGenViewState extends State<ImageGenView> {
                                 ),
                               ],
                             ),
-                    ),
+                            ),
+                            ),
+                    // 底部操作栏：取消、开始生成
                     ImageGenFooter(
                       ctrl: _ctrl,
                       accent: accent,

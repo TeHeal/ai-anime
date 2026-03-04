@@ -171,6 +171,20 @@ func (h *Hub) BroadcastTaskError(userID string, projectID *string, taskID string
 	})
 }
 
+// BroadcastResourceCreated 推送素材创建完成事件（素材页订阅 resource_created 刷新列表）
+func (h *Hub) BroadcastResourceCreated(userID string, resourceID string, resourceType string) {
+	h.Broadcast(Event{
+		Type:      "resource_created",
+		UserIDStr: userID,
+		TaskID:    resourceID,
+		Timestamp: time.Now(),
+		Payload: map[string]any{
+			"resource_id":   resourceID,
+			"resource_type": resourceType,
+		},
+	})
+}
+
 func ptrToStr(p *string) string {
 	if p == nil {
 		return ""

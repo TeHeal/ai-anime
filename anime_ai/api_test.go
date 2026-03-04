@@ -20,7 +20,7 @@ import (
 	"anime_ai/module/shot"
 	"anime_ai/module/shot_image"
 	"anime_ai/module/storyboard"
-	"anime_ai/pub/route"
+	"anime_ai/route"
 	"github.com/gin-gonic/gin"
 )
 

@@ -3,6 +3,8 @@ package resource
 import (
 	"anime_ai/pub/pkg"
 	"context"
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -52,8 +54,35 @@ func (d *MemData) List(ctx context.Context, userID string, opts ListDataOpts) ([
 		if opts.LibraryType != "" && r.LibraryType != opts.LibraryType {
 			continue
 		}
+		// search 模糊匹配 name、description、tags_json
+		if opts.Search != "" {
+			kw := strings.ToLower(opts.Search)
+			nameOk := strings.Contains(strings.ToLower(r.Name), kw)
+			descOk := strings.Contains(strings.ToLower(r.Description), kw)
+			tagsOk := strings.Contains(strings.ToLower(r.TagsJSON), kw)
+			if !nameOk && !descOk && !tagsOk {
+				continue
+			}
+		}
 		out = append(out, *r)
 	}
+	// 排序
+	sortBy := opts.SortBy
+	if sortBy == "" {
+		sortBy = "newest"
+	}
+	sort.Slice(out, func(i, j int) bool {
+		switch sortBy {
+		case "oldest":
+			return out[i].UpdatedAt.Before(out[j].UpdatedAt)
+		case "name_asc":
+			return strings.Compare(out[i].Name, out[j].Name) < 0
+		case "name_desc":
+			return strings.Compare(out[i].Name, out[j].Name) > 0
+		default: // newest
+			return out[i].UpdatedAt.After(out[j].UpdatedAt)
+		}
+	})
 	total := int64(len(out))
 	// 简单分页
 	start := int(opts.Offset)

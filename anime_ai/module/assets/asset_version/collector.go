@@ -1,63 +1,66 @@
 package asset_version
 
 import (
-	"anime_ai/module/assets/character"
-	"anime_ai/module/assets/location"
-	"anime_ai/module/assets/prop"
+	"context"
+	"fmt"
+
 	"anime_ai/pub/crossmodule"
+	"go.uber.org/zap"
 )
 
 // NewConfirmedAssetCollector 创建已确认资产收集器（供 Freeze 时使用）
+// 依赖 character/location/prop 的 Service 接口，遵循「模块间禁止直接引用 Data」
 func NewConfirmedAssetCollector(
-	charData character.Data,
-	locStore location.Store,
-	propStore prop.Store,
+	charLister crossmodule.ConfirmedCharacterLister,
+	locLister crossmodule.ConfirmedLocationLister,
+	propLister crossmodule.ConfirmedPropLister,
+	logger *zap.Logger,
 ) crossmodule.ConfirmedAssetCollector {
 	return &confirmedAssetCollector{
-		charData: charData,
-		locStore: locStore,
-		propStore: propStore,
+		charLister: charLister,
+		locLister:  locLister,
+		propLister: propLister,
+		logger:     logger,
 	}
 }
 
 // confirmedAssetCollector 收集项目内已确认的角色、场景、道具 ID
 type confirmedAssetCollector struct {
-	charData character.Data
-	locStore location.Store
-	propStore prop.Store
+	charLister crossmodule.ConfirmedCharacterLister
+	locLister  crossmodule.ConfirmedLocationLister
+	propLister crossmodule.ConfirmedPropLister
+	logger     *zap.Logger
 }
 
-func (c *confirmedAssetCollector) Collect(projectID string) (*crossmodule.ConfirmedAssetIDs, error) {
+func (c *confirmedAssetCollector) Collect(ctx context.Context, projectID string) (*crossmodule.ConfirmedAssetIDs, error) {
 	out := &crossmodule.ConfirmedAssetIDs{}
-	if c.charData != nil {
-		chars, err := c.charData.ListCharactersByProject(projectID)
-		if err == nil {
-			for _, ch := range chars {
-				if ch.ProjectID != nil && *ch.ProjectID == projectID && ch.Status == character.CharacterStatusConfirmed && ch.ID != "" {
-					out.CharacterIDs = append(out.CharacterIDs, ch.ID)
-				}
-			}
+
+	charIDs, err := c.charLister.ListConfirmedCharacterIDs(ctx, projectID)
+	if err != nil {
+		if c.logger != nil {
+			c.logger.Warn("收集已确认角色失败", zap.String("projectID", projectID), zap.Error(err))
 		}
+		return nil, fmt.Errorf("收集已确认角色失败: %w", err)
 	}
-	if c.locStore != nil {
-		locs, err := c.locStore.ListByProject(projectID)
-		if err == nil {
-			for _, loc := range locs {
-				if loc.Status == "confirmed" && loc.ID != "" {
-					out.LocationIDs = append(out.LocationIDs, loc.ID)
-				}
-			}
+	out.CharacterIDs = charIDs
+
+	locIDs, err := c.locLister.ListConfirmedLocationIDs(ctx, projectID)
+	if err != nil {
+		if c.logger != nil {
+			c.logger.Warn("收集已确认场景失败", zap.String("projectID", projectID), zap.Error(err))
 		}
+		return nil, fmt.Errorf("收集已确认场景失败: %w", err)
 	}
-	if c.propStore != nil {
-		props, err := c.propStore.ListByProject(projectID)
-		if err == nil {
-			for _, p := range props {
-				if p.Status == "confirmed" && p.ID != "" {
-					out.PropIDs = append(out.PropIDs, p.ID)
-				}
-			}
+	out.LocationIDs = locIDs
+
+	propIDs, err := c.propLister.ListConfirmedPropIDs(ctx, projectID)
+	if err != nil {
+		if c.logger != nil {
+			c.logger.Warn("收集已确认道具失败", zap.String("projectID", projectID), zap.Error(err))
 		}
+		return nil, fmt.Errorf("收集已确认道具失败: %w", err)
 	}
+	out.PropIDs = propIDs
+
 	return out, nil
 }

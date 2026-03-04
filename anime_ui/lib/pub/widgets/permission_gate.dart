@@ -1,45 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anime_ui/pub/providers/auth_provider.dart';
+import 'package:anime_ui/pub/providers/permission_provider.dart';
 
-/// Shows [child] only if the current user's effective role meets or exceeds
-/// [requiredRole]. Otherwise shows [fallback] (defaults to nothing).
+/// 权限门控 Widget — 仅在用户拥有指定 Action 权限时显示子组件
 ///
-/// Role hierarchy (highest → lowest): owner > director > editor > viewer
+/// 用法：
+/// ```dart
+/// PermissionGate(
+///   action: Actions.scriptEdit,
+///   child: FilledButton(onPressed: _save, child: Text('保存')),
+/// )
+/// ```
+///
+/// 多 Action（任一满足即显示）：
+/// ```dart
+/// PermissionGate(
+///   actions: [Actions.shotImageGenerate, Actions.aiGenerate],
+///   child: FilledButton(onPressed: _generate, child: Text('生成')),
+/// )
+/// ```
 class PermissionGate extends ConsumerWidget {
-  final String requiredRole;
+  /// 单个 Action（与 actions 二选一）
+  final String? action;
+
+  /// 多个 Action（任一满足即显示）
+  final List<String>? actions;
+
+  /// 有权限时显示的子组件
   final Widget child;
+
+  /// 无权限时的替代组件（默认不显示）
   final Widget? fallback;
+
+  /// 无权限时是否禁用（而非隐藏），适用于按钮
+  final bool disableInsteadOfHide;
 
   const PermissionGate({
     super.key,
-    required this.requiredRole,
+    this.action,
+    this.actions,
     required this.child,
     this.fallback,
-  });
-
-  static const _roleRank = <String, int>{
-    'owner': 4,
-    'director': 3,
-    'editor': 2,
-    'viewer': 1,
-  };
-
-  static bool hasPermission(String userRole, String requiredRole) {
-    final userRank = _roleRank[userRole] ?? 0;
-    final requiredRank = _roleRank[requiredRole] ?? 0;
-    return userRank >= requiredRank;
-  }
+    this.disableInsteadOfHide = false,
+  }) : assert(action != null || actions != null);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.watch(authProvider);
-    final userRole = auth.user?.role ?? 'viewer';
+    final permsAsync = ref.watch(projectPermissionsProvider);
 
-    if (hasPermission(userRole, requiredRole)) {
-      return child;
-    }
-    return fallback ?? const SizedBox.shrink();
+    return permsAsync.when(
+      data: (perms) {
+        final allowed = action != null
+            ? perms.can(action!)
+            : perms.canAny(actions!);
+
+        if (allowed) return child;
+
+        if (disableInsteadOfHide) {
+          return AbsorbPointer(
+            child: Opacity(opacity: 0.4, child: child),
+          );
+        }
+
+        return fallback ?? const SizedBox.shrink();
+      },
+      // 加载中：默认显示（避免闪烁）
+      loading: () => child,
+      // 出错：默认显示（向下兼容）
+      error: (_, __) => child,
+    );
   }
 }

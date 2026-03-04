@@ -87,7 +87,7 @@ class _CenterImportCardState extends ConsumerState<CenterImportCard> {
           style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
         ),
         content: SizedBox(
-          width: 340,
+          width: 340.w,
           child: ListView.separated(
             shrinkWrap: true,
             itemCount: episodes.length,
@@ -102,8 +102,8 @@ class _CenterImportCardState extends ConsumerState<CenterImportCard> {
                   ),
                   hoverColor: AppColors.primary.withValues(alpha: 0.1),
                   leading: Container(
-                    width: 32,
-                    height: 32,
+                    width: 32.r,
+                    height: 32.r,
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(RadiusTokens.md.r),

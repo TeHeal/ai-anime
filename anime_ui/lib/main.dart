@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
-import 'package:anime_ui/pub/const/font_scale.dart';
 import 'package:anime_ui/pub/providers/storage_provider.dart';
 import 'package:anime_ui/pub/services/api_svc.dart';
 import 'package:anime_ui/pub/services/storage_svc.dart';
@@ -33,7 +32,7 @@ void main() async {
         designSize: const Size(1920, 1080),
         minTextAdapt: true,
         splitScreenMode: true,
-        fontSizeResolver: FontScale.resolve,
+        enableScaleText: () => false,
         builder: (context, child) => const App(),
       ),
     ),

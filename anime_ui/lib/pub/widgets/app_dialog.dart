@@ -24,6 +24,7 @@ abstract final class AppDialog {
   }) {
     return showDialog<T>(
       context: context,
+      barrierColor: Colors.transparent,
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.surface,
         shape: shape,

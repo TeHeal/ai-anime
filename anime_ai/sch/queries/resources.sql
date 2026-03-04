@@ -30,7 +30,16 @@ WHERE user_id = sqlc.arg('user_id') AND deleted_at IS NULL
   AND (sqlc.narg('modality')::text IS NULL OR modality = sqlc.narg('modality'))
   AND (sqlc.narg('library_type')::text IS NULL OR library_type = sqlc.narg('library_type'))
   AND (sqlc.narg('tags_overlap')::jsonb IS NULL OR tags_json && sqlc.narg('tags_overlap')::jsonb)
-ORDER BY updated_at DESC
+  AND (sqlc.narg('search')::text IS NULL OR sqlc.narg('search')::text = '' OR (
+    name ILIKE '%' || sqlc.arg('search') || '%'
+    OR description ILIKE '%' || sqlc.arg('search') || '%'
+    OR tags_json::text ILIKE '%' || sqlc.arg('search') || '%'
+  ))
+ORDER BY
+  CASE WHEN COALESCE(sqlc.arg('sort_by'), 'newest') = 'oldest' THEN updated_at END ASC NULLS LAST,
+  CASE WHEN COALESCE(sqlc.arg('sort_by'), 'newest') = 'newest' THEN updated_at END DESC NULLS LAST,
+  CASE WHEN sqlc.arg('sort_by') = 'name_asc' THEN name END ASC NULLS LAST,
+  CASE WHEN sqlc.arg('sort_by') = 'name_desc' THEN name END DESC NULLS LAST
 LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
 
 -- name: CountResourcesByUser :one
@@ -38,7 +47,12 @@ SELECT COUNT(*)::bigint FROM resources
 WHERE user_id = sqlc.arg('user_id') AND deleted_at IS NULL
   AND (sqlc.narg('modality')::text IS NULL OR modality = sqlc.narg('modality'))
   AND (sqlc.narg('library_type')::text IS NULL OR library_type = sqlc.narg('library_type'))
-  AND (sqlc.narg('tags_overlap')::jsonb IS NULL OR tags_json && sqlc.narg('tags_overlap')::jsonb);
+  AND (sqlc.narg('tags_overlap')::jsonb IS NULL OR tags_json && sqlc.narg('tags_overlap')::jsonb)
+  AND (sqlc.narg('search')::text IS NULL OR sqlc.narg('search')::text = '' OR (
+    name ILIKE '%' || sqlc.arg('search') || '%'
+    OR description ILIKE '%' || sqlc.arg('search') || '%'
+    OR tags_json::text ILIKE '%' || sqlc.arg('search') || '%'
+  ));
 
 -- name: UpdateResource :one
 UPDATE resources

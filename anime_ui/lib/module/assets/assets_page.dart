@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:anime_ui/pub/const/motion.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/object_tab_bar.dart';
@@ -34,7 +35,17 @@ class AssetsObjectPage extends ConsumerWidget {
           currentRoute: currentRoute,
           onTabTap: (path) => context.go(path),
         ),
-        Expanded(child: child),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: MotionTokens.durationMedium,
+            switchInCurve: MotionTokens.curveDecelerate,
+            switchOutCurve: MotionTokens.curveDecelerate,
+            child: KeyedSubtree(
+              key: ValueKey(currentRoute),
+              child: child,
+            ),
+          ),
+        ),
       ],
     );
   }

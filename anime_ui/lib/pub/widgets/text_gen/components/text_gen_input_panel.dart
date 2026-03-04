@@ -18,6 +18,7 @@ class TextGenInputPanel extends StatelessWidget {
     required this.selectedTargetModel,
     required this.imageModels,
     required this.loadingModels,
+    this.modelLoadError,
     required this.accent,
     required this.onLanguageChanged,
     required this.onTargetModelChanged,
@@ -30,6 +31,7 @@ class TextGenInputPanel extends StatelessWidget {
   final ModelCatalogItem? selectedTargetModel;
   final List<ModelCatalogItem> imageModels;
   final bool loadingModels;
+  final String? modelLoadError;
   final Color accent;
   final void Function(String) onLanguageChanged;
   final void Function(ModelCatalogItem?) onTargetModelChanged;
@@ -139,12 +141,16 @@ class TextGenInputPanel extends StatelessWidget {
             Expanded(child: _buildLanguageDropdown(context)),
             SizedBox(width: Spacing.lg.w),
             Expanded(
-              child: ModelSelectorMini(
-                models: imageModels,
-                selected: selectedTargetModel,
-                isLoading: loadingModels,
-                onChanged: onTargetModelChanged,
-              ),
+              child: modelLoadError != null
+                  ? Text(modelLoadError!,
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.error))
+                  : ModelSelectorMini(
+                      models: imageModels,
+                      selected: selectedTargetModel,
+                      isLoading: loadingModels,
+                      onChanged: onTargetModelChanged,
+                    ),
             ),
           ],
         ),

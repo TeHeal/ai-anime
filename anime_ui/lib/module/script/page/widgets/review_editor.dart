@@ -14,6 +14,7 @@ import 'package:anime_ui/module/script/page/widgets/emotion_vector_widget.dart';
 
 part 'review_editor_shared.dart';
 part 'review_editor_sections.dart';
+part 'review_editor_cards.dart';
 part 'review_editor_media.dart';
 
 // ---------------------------------------------------------------------------

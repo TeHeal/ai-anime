@@ -22,7 +22,8 @@ class TextGenResultPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final isCompact = ctrl.status != TextGenStatus.done;
+    final content = Container(
       color: AppColors.background,
       child: switch (ctrl.status) {
         TextGenStatus.idle => _buildIdlePlaceholder(context),
@@ -31,6 +32,10 @@ class TextGenResultPanel extends StatelessWidget {
         TextGenStatus.error => _buildError(context),
       },
     );
+    // 空闲/生成中/错误时用固定高度紧凑显示，有结果时再撑满
+    return isCompact
+        ? SizedBox(height: 200.h, child: content)
+        : content;
   }
 
   Widget _buildIdlePlaceholder(BuildContext context) {

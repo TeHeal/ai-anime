@@ -8,6 +8,7 @@ import (
 	"anime_ai/pub/pkg"
 	"anime_ai/sch/db"
 	"github.com/jackc/pgx/v5/pgtype"
+	"go.uber.org/zap"
 )
 
 // Recorder 用量记录接口，由调用方注入
@@ -19,12 +20,21 @@ type Recorder interface {
 
 // DBRecorder 基于 PostgreSQL 的实现
 type DBRecorder struct {
-	q *db.Queries
+	q      *db.Queries
+	logger *zap.Logger
 }
 
-// NewDBRecorder 创建 DB 用量记录器
+// NewDBRecorder 创建 DB 用量记录器（无 logger，错误不记录）
 func NewDBRecorder(q *db.Queries) *DBRecorder {
 	return &DBRecorder{q: q}
+}
+
+// NewDBRecorderWithLogger 创建带 logger 的 DB 用量记录器，记录失败时打 Warn 日志
+func NewDBRecorderWithLogger(q *db.Queries, logger *zap.Logger) *DBRecorder {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	return &DBRecorder{q: q, logger: logger}
 }
 
 // RecordImage 记录文生图用量
@@ -48,8 +58,11 @@ func (r *DBRecorder) RecordImage(ctx context.Context, projectID, userID, provide
 		MetaJson:     json.RawMessage("{}"),
 	})
 	if err != nil {
-		// 记录失败不阻塞主流程，仅打日志（调用方可选注入 logger）
-		_ = err
+		logger := r.logger
+		if logger == nil {
+			logger = zap.NewNop()
+		}
+		logger.Warn("provider_usage RecordImage 失败", zap.String("serviceType", "image"), zap.String("projectID", projectID), zap.Error(err))
 	}
 }
 
@@ -74,7 +87,11 @@ func (r *DBRecorder) RecordVideo(ctx context.Context, projectID, userID, provide
 		MetaJson:     json.RawMessage("{}"),
 	})
 	if err != nil {
-		_ = err
+		logger := r.logger
+		if logger == nil {
+			logger = zap.NewNop()
+		}
+		logger.Warn("provider_usage RecordVideo 失败", zap.String("serviceType", "video"), zap.String("projectID", projectID), zap.Error(err))
 	}
 }
 
@@ -99,6 +116,10 @@ func (r *DBRecorder) RecordChat(ctx context.Context, projectID, userID, provider
 		MetaJson:     json.RawMessage("{}"),
 	})
 	if err != nil {
-		_ = err
+		logger := r.logger
+		if logger == nil {
+			logger = zap.NewNop()
+		}
+		logger.Warn("provider_usage RecordChat 失败", zap.String("serviceType", "chat"), zap.String("projectID", projectID), zap.Error(err))
 	}
 }

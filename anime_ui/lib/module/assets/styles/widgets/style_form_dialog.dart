@@ -69,7 +69,9 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
             _refImageUrls.add(url);
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('解析参考图 JSON 失败: $e');
+      }
     }
   }
 

@@ -20,8 +20,7 @@ class LockNotifier extends Notifier<LockStatus> {
       final status = await _svc.getStatus(pid);
       state = status;
     } catch (e, st) {
-      debugPrint('LockNotifier.refresh: $e');
-      debugPrint(st.toString());
+      debugPrint('LockNotifier.load: $e\n$st');
     }
   }
 
@@ -33,8 +32,7 @@ class LockNotifier extends Notifier<LockStatus> {
       state = status;
       return true;
     } catch (e, st) {
-      debugPrint('LockNotifier.lockPhase: $e');
-      debugPrint(st.toString());
+      debugPrint('LockNotifier.lockPhase: $e\n$st');
       return false;
     }
   }
@@ -47,8 +45,7 @@ class LockNotifier extends Notifier<LockStatus> {
       state = status;
       return true;
     } catch (e, st) {
-      debugPrint('LockNotifier.unlockPhase: $e');
-      debugPrint(st.toString());
+      debugPrint('LockNotifier.unlockPhase: $e\n$st');
       return false;
     }
   }

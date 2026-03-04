@@ -12,6 +12,7 @@ import (
 	"anime_ai/pub/tasktypes"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"go.uber.org/zap"
 )
 
 // Service 镜图业务逻辑层
@@ -25,6 +26,7 @@ type Service struct {
 	scriptLockChecker crossmodule.ScriptLockChecker
 	reviewFlowCfg     *ReviewFlowConfig
 	asynqClient       *asynq.Client
+	logger            *zap.Logger
 }
 
 // SetAsynqClient 设置 Asynq 客户端（供 main.go 注入）
@@ -68,6 +70,18 @@ func (s *Service) SetReviewFlowConfig(cfg *ReviewFlowConfig) {
 // SetScriptLockChecker 配置脚本锁定检查器（README 2.2/2.4 阶段门禁）
 func (s *Service) SetScriptLockChecker(c crossmodule.ScriptLockChecker) {
 	s.scriptLockChecker = c
+}
+
+// SetLogger 注入 logger，用于记录错误日志（审核流程、重生成等）
+func (s *Service) SetLogger(l *zap.Logger) {
+	s.logger = l
+}
+
+func (s *Service) log() *zap.Logger {
+	if s.logger != nil {
+		return s.logger
+	}
+	return zap.L()
 }
 
 func (s *Service) verifyProject(projectID, userID string) error {
@@ -164,7 +178,12 @@ func (s *Service) Delete(id, userID string) error {
 	}
 	var reviewStatus string
 	if s.shotReader != nil {
-		_, _, reviewStatus, _ = s.shotReader.GetShot(img.ShotID)
+		_, _, reviewStatus, err = s.shotReader.GetShot(img.ShotID)
+		if err != nil {
+			s.log().Warn("获取镜头审核状态失败，使用空状态继续删除",
+				zap.String("shot_id", img.ShotID), zap.Error(err))
+			reviewStatus = ""
+		}
 	}
 	if err := s.checkResourceAction(img.ProjectID, userID, auth.ResourceShotImage, reviewStatus, auth.ActionShotImageEdit); err != nil {
 		return err
@@ -221,7 +240,9 @@ func (s *Service) UpdateImageReview(shotID, userID string, status, comment strin
 	}
 	// 审核拒绝时自动触发重生成（README 2.2 审核闭环）
 	if status == ReviewStatusRejected && s.shouldAutoRetry(projectID) {
-		_ = s.triggerRegeneration(shotID, projectID, userID, comment)
+		if err := s.triggerRegeneration(shotID, projectID, userID, comment); err != nil {
+			s.log().Warn("触发镜图重生成失败", zap.String("shot_id", shotID), zap.Error(err))
+		}
 	}
 	return nil
 }
