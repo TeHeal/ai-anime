@@ -2,8 +2,6 @@ package character
 
 import (
 	"fmt"
-
-	"anime_ai/pub/pkg"
 )
 
 // CreateSnapshotRequest 创建快照请求
@@ -41,12 +39,12 @@ type UpdateSnapshotRequest struct {
 }
 
 // CreateSnapshot 创建角色快照
-func (s *Service) CreateSnapshot(userID uint, userIDStr string, req CreateSnapshotRequest) (*CharacterSnapshot, error) {
+func (s *Service) CreateSnapshot(userIDStr string, req CreateSnapshotRequest) (*CharacterSnapshot, error) {
 	c, err := s.data.FindCharacterByID(req.CharacterID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if err := s.checkAssetEditForProject(req.ProjectID, userIDStr); err != nil {
@@ -81,12 +79,12 @@ func (s *Service) GetSnapshot(id uint) (*CharacterSnapshot, error) {
 }
 
 // UpdateSnapshot 更新快照
-func (s *Service) UpdateSnapshot(id uint, userID uint, req UpdateSnapshotRequest) (*CharacterSnapshot, error) {
+func (s *Service) UpdateSnapshot(id uint, userIDStr string, req UpdateSnapshotRequest) (*CharacterSnapshot, error) {
 	snap, err := s.data.FindSnapshotByID(id)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.checkAssetEditForProject(snap.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+	if err := s.checkAssetEditForProject(snap.ProjectID, userIDStr); err != nil {
 		return nil, err
 	}
 	applySnapshotUpdate(snap, req)
@@ -137,12 +135,12 @@ func applySnapshotUpdate(s *CharacterSnapshot, req UpdateSnapshotRequest) {
 }
 
 // DeleteSnapshot 删除快照
-func (s *Service) DeleteSnapshot(id uint, userID uint) error {
+func (s *Service) DeleteSnapshot(id uint, userIDStr string) error {
 	snap, err := s.data.FindSnapshotByID(id)
 	if err != nil {
 		return err
 	}
-	if err := s.checkAssetEditForProject(snap.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+	if err := s.checkAssetEditForProject(snap.ProjectID, userIDStr); err != nil {
 		return err
 	}
 	return s.data.DeleteSnapshot(id)

@@ -29,7 +29,11 @@ func parseCharID(s string) (string, error) {
 
 // Create 创建角色
 func (h *Handler) Create(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.Unauthorized(c, "未登录或无效用户")
+		return
+	}
 
 	var req CreateCharacterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,7 +41,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	char, err := h.svc.Create(userID, req)
+	char, err := h.svc.Create(userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -52,9 +56,9 @@ func (h *Handler) Get(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
-	char, err := h.svc.Get(id, userID)
+	char, err := h.svc.Get(id, userIDStr)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -88,9 +92,13 @@ func (h *Handler) ListByProject(c *gin.Context) {
 
 // ListLibrary 列出角色库
 func (h *Handler) ListLibrary(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.Unauthorized(c, "未登录或无效用户")
+		return
+	}
 
-	chars, err := h.svc.ListLibrary(userID)
+	chars, err := h.svc.ListLibrary(userIDStr)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -105,7 +113,7 @@ func (h *Handler) Update(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req UpdateCharacterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -113,7 +121,7 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
-	char, err := h.svc.Update(id, userID, req)
+	char, err := h.svc.Update(id, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -128,9 +136,9 @@ func (h *Handler) Delete(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
-	if err := h.svc.Delete(id, userID); err != nil {
+	if err := h.svc.Delete(id, userIDStr); err != nil {
 		pkg.HandleError(c, err)
 		return
 	}
@@ -144,9 +152,9 @@ func (h *Handler) Confirm(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
-	char, err := h.svc.Confirm(id, userID)
+	char, err := h.svc.Confirm(id, userIDStr)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -180,7 +188,11 @@ func (h *Handler) BatchConfirm(c *gin.Context) {
 
 // BatchSetStyle 批量设置风格
 func (h *Handler) BatchSetStyle(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.Unauthorized(c, "未登录或无效用户")
+		return
+	}
 
 	var req struct {
 		IDs   []string `json:"ids" binding:"required"`
@@ -191,7 +203,7 @@ func (h *Handler) BatchSetStyle(c *gin.Context) {
 		return
 	}
 
-	count, err := h.svc.BatchSetStyle(req.IDs, userID, req.Style)
+	count, err := h.svc.BatchSetStyle(req.IDs, userIDStr, req.Style)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -201,7 +213,11 @@ func (h *Handler) BatchSetStyle(c *gin.Context) {
 
 // BatchAIComplete 批量 AI 补全
 func (h *Handler) BatchAIComplete(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.Unauthorized(c, "未登录或无效用户")
+		return
+	}
 
 	var req struct {
 		IDs []string `json:"ids" binding:"required"`
@@ -211,7 +227,7 @@ func (h *Handler) BatchAIComplete(c *gin.Context) {
 		return
 	}
 
-	count, err := h.svc.BatchAIComplete(req.IDs, userID)
+	count, err := h.svc.BatchAIComplete(req.IDs, userIDStr)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -226,7 +242,7 @@ func (h *Handler) AddVariant(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req AddVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -234,7 +250,7 @@ func (h *Handler) AddVariant(c *gin.Context) {
 		return
 	}
 
-	char, err := h.svc.AddVariant(charID, userID, req)
+	char, err := h.svc.AddVariant(charID, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -254,7 +270,7 @@ func (h *Handler) UpdateVariant(c *gin.Context) {
 		pkg.BadRequest(c, "无效的变体索引")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req UpdateVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -262,7 +278,7 @@ func (h *Handler) UpdateVariant(c *gin.Context) {
 		return
 	}
 
-	char, err := h.svc.UpdateVariant(charID, userID, idx, req)
+	char, err := h.svc.UpdateVariant(charID, userIDStr, idx, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -282,9 +298,9 @@ func (h *Handler) DeleteVariant(c *gin.Context) {
 		pkg.BadRequest(c, "无效的变体索引")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
-	char, err := h.svc.DeleteVariant(charID, userID, idx)
+	char, err := h.svc.DeleteVariant(charID, userIDStr, idx)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -299,7 +315,7 @@ func (h *Handler) AddReferenceImage(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req AddReferenceImageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -307,7 +323,7 @@ func (h *Handler) AddReferenceImage(c *gin.Context) {
 		return
 	}
 
-	char, err := h.svc.AddReferenceImage(charID, userID, req)
+	char, err := h.svc.AddReferenceImage(charID, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -327,9 +343,9 @@ func (h *Handler) DeleteReferenceImage(c *gin.Context) {
 		pkg.BadRequest(c, "无效的参考图索引")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
-	char, err := h.svc.DeleteReferenceImage(charID, userID, idx)
+	char, err := h.svc.DeleteReferenceImage(charID, userIDStr, idx)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -344,7 +360,7 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req struct {
 		Provider string `json:"provider"`
@@ -352,7 +368,7 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 	}
 	_ = c.ShouldBindJSON(&req)
 
-	char, err := h.svc.GenerateImage(id, userID, req.Provider, req.Model)
+	char, err := h.svc.GenerateImage(id, userIDStr, req.Provider, req.Model)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -367,12 +383,12 @@ func (h *Handler) GenerateCandidates(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req GenerateCandidatesRequest
 	_ = c.ShouldBindJSON(&req)
 
-	resp, err := h.svc.GenerateCandidates(charID, userID, req)
+	resp, err := h.svc.GenerateCandidates(charID, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -387,9 +403,9 @@ func (h *Handler) GetCandidates(c *gin.Context) {
 		pkg.BadRequest(c, "缺少 taskId 参数")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
-	resp, err := h.svc.GetCandidates(taskID, userID)
+	resp, err := h.svc.GetCandidates(taskID, userIDStr)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -404,7 +420,7 @@ func (h *Handler) SelectCandidate(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req SelectCandidateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -412,7 +428,7 @@ func (h *Handler) SelectCandidate(c *gin.Context) {
 		return
 	}
 
-	char, err := h.svc.SelectCandidate(charID, userID, req)
+	char, err := h.svc.SelectCandidate(charID, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -427,7 +443,7 @@ func (h *Handler) UpdateBio(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req struct {
 		Bio string `json:"bio"`
@@ -437,7 +453,7 @@ func (h *Handler) UpdateBio(c *gin.Context) {
 		return
 	}
 
-	char, err := h.svc.UpdateBio(charID, userID, req.Bio)
+	char, err := h.svc.UpdateBio(charID, userIDStr, req.Bio)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -480,12 +496,12 @@ func (h *Handler) RegenerateBio(c *gin.Context) {
 		pkg.BadRequest(c, "无效的角色 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req ExtractBioRequest
 	_ = c.ShouldBindJSON(&req)
 
-	char, err := h.svc.RegenerateBio(c.Request.Context(), charID, userID, req)
+	char, err := h.svc.RegenerateBio(c.Request.Context(), charID, userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return

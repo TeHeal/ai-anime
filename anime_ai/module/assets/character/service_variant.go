@@ -3,8 +3,6 @@ package character
 import (
 	"encoding/json"
 	"fmt"
-
-	"anime_ai/pub/pkg"
 )
 
 // Variant 变体结构
@@ -49,16 +47,16 @@ func (s *Service) saveVariants(c *Character, v []Variant) error {
 }
 
 // AddVariant 添加变体
-func (s *Service) AddVariant(charID string, userID uint, req AddVariantRequest) (*Character, error) {
+func (s *Service) AddVariant(charID string, userIDStr string, req AddVariantRequest) (*Character, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
@@ -78,16 +76,16 @@ func (s *Service) AddVariant(charID string, userID uint, req AddVariantRequest) 
 }
 
 // UpdateVariant 更新变体
-func (s *Service) UpdateVariant(charID string, userID uint, idx int, req UpdateVariantRequest) (*Character, error) {
+func (s *Service) UpdateVariant(charID string, userIDStr string, idx int, req UpdateVariantRequest) (*Character, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
@@ -114,16 +112,16 @@ func (s *Service) UpdateVariant(charID string, userID uint, idx int, req UpdateV
 }
 
 // DeleteVariant 删除变体
-func (s *Service) DeleteVariant(charID string, userID uint, idx int) (*Character, error) {
+func (s *Service) DeleteVariant(charID string, userIDStr string, idx int) (*Character, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
