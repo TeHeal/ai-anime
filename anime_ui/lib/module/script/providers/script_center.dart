@@ -7,6 +7,54 @@ import 'package:anime_ui/pub/models/storyboard_script.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
 import 'package:anime_ui/pub/services/storyboard_svc.dart';
 import 'package:anime_ui/pub/services/task_svc.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
+import 'package:anime_ui/pub/models/character.dart';
+
+// ---------------------------------------------------------------------------
+// 分镜生成结果 → 审核用 ShotV4 转换（用于生成确认后回填前端列表）
+// ---------------------------------------------------------------------------
+
+/// 将 ConfirmShotInput 列表转为 ShotV4 列表，保证审核页有数据可编辑；角色名/ID 原样带入，审核时可再选资产绑定。
+List<ShotV4> confirmShotsToShotV4List(List<ConfirmShotInput> shots) {
+  return [
+    for (var i = 0; i < shots.length; i++) ...[
+      _oneConfirmShotToShotV4(shots[i], shotNumber: i + 1),
+    ],
+  ];
+}
+
+ShotV4 _oneConfirmShotToShotV4(ConfirmShotInput s, {required int shotNumber}) {
+  return ShotV4(
+    shotNumber: shotNumber,
+    duration: s.duration.toDouble(),
+    sceneDescription: s.prompt,
+    dialogue: s.dialogue,
+    characterName: s.characterName,
+    characterId: s.characterId ?? '',
+    emotionDescription: s.emotion,
+    transition: s.transition,
+    negativePrompt: s.negativePrompt,
+    cameraScale: s.cameraType.isNotEmpty ? s.cameraType : '全景',
+    cameraMovement: s.cameraAngle.isNotEmpty ? s.cameraAngle : '固定',
+    aiPrompt: s.stylePrompt,
+    reviewStatus: 'pending',
+  );
+}
+
+/// 用资产角色列表按名称回填镜头的 characterId（仅当名称唯一匹配时填充，避免误绑）。
+List<ShotV4> backfillCharacterIds(List<ShotV4> shots, List<Character> characters) {
+  if (characters.isEmpty) return shots;
+  return shots.map((s) {
+    if (s.characterId.isNotEmpty || s.characterName.isEmpty) return s;
+    final name = s.characterName.trim();
+    if (name.isEmpty) return s;
+    final matches = characters.where((c) => (c.name).trim() == name).toList();
+    if (matches.length != 1) return s;
+    final id = matches.first.id?.toString();
+    if (id == null || id.isEmpty) return s;
+    return s.copyWith(characterId: id);
+  }).toList();
+}
 
 // ---------------------------------------------------------------------------
 // 生成配置
@@ -115,6 +163,13 @@ class EpisodeStatesNotifier extends Notifier<Map<String, EpisodeGenerateState>> 
                 )
                 .toList();
             await _svc.confirm(pid, shots);
+            var shotV4List = confirmShotsToShotV4List(shots);
+            final characters = ref.read(assetCharactersProvider).value ?? [];
+            shotV4List = backfillCharacterIds(shotV4List, characters);
+            ref.read(episodeShotsMapProvider.notifier).setShots(
+                  episodeId,
+                  shotV4List,
+                );
             _update(
               episodeId,
               (s) => s.copyWith(
@@ -138,10 +193,21 @@ class EpisodeStatesNotifier extends Notifier<Map<String, EpisodeGenerateState>> 
           }
         }
       } on Exception catch (e) {
-        if (e.toString().contains('异步任务不可用') ||
-            e.toString().contains('generate-sync')) {
+        // 异步任务未实现或任务不存在（占位 task_id 导致 404）时，回退到同步拆镜
+        final msg = e.toString();
+        if (msg.contains('异步任务不可用') ||
+            msg.contains('generate-sync') ||
+            msg.contains('404') ||
+            msg.contains('任务不存在')) {
           final result = await _svc.generateSync(pid, episodeId: episodeId.toString());
           await _svc.confirm(pid, result.shots);
+          var shotV4List = confirmShotsToShotV4List(result.shots);
+          final characters = ref.read(assetCharactersProvider).value ?? [];
+          shotV4List = backfillCharacterIds(shotV4List, characters);
+          ref.read(episodeShotsMapProvider.notifier).setShots(
+                episodeId,
+                shotV4List,
+              );
           _update(
             episodeId,
             (s) => s.copyWith(

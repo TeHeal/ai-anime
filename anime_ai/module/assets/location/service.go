@@ -223,6 +223,35 @@ func (s *Service) Confirm(locID, projectID, userID string) (*Location, error) {
 	return loc, nil
 }
 
+// BatchConfirm 批量确认场景
+func (s *Service) BatchConfirm(projectID, userID string, ids []string) ([]*Location, error) {
+	if err := s.checkAssetEdit(projectID, userID); err != nil {
+		return nil, err
+	}
+	var out []*Location
+	for _, id := range ids {
+		if s.frozenAssetChecker != nil {
+			inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(projectID, "location", id)
+			if err == nil && inFrozen {
+				continue
+			}
+		}
+		loc, err := s.Get(id, projectID, userID)
+		if err != nil {
+			continue
+		}
+		loc.Status = "confirmed"
+		if err := s.store.Update(loc); err != nil {
+			return out, fmt.Errorf("更新场景 %s 状态失败: %w", id, err)
+		}
+		out = append(out, loc)
+	}
+	if len(ids) > 0 && len(out) == 0 {
+		return nil, pkg.NewBizError("无场景可确认：请确认所选场景存在且资产未冻结")
+	}
+	return out, nil
+}
+
 // Delete 删除场景
 func (s *Service) Delete(locID, projectID, userID string) error {
 	if err := s.checkAssetEdit(projectID, userID); err != nil {

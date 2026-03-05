@@ -29,7 +29,12 @@ SELECT * FROM resources
 WHERE user_id = sqlc.arg('user_id') AND deleted_at IS NULL
   AND (sqlc.narg('modality')::text IS NULL OR modality = sqlc.narg('modality'))
   AND (sqlc.narg('library_type')::text IS NULL OR library_type = sqlc.narg('library_type'))
-  AND (sqlc.narg('tags_overlap')::jsonb IS NULL OR tags_json && sqlc.narg('tags_overlap')::jsonb)
+  AND (sqlc.narg('tags_overlap')::jsonb IS NULL OR EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements_text(tags_json) AS a,
+         jsonb_array_elements_text(sqlc.narg('tags_overlap')::jsonb) AS b
+    WHERE a.value = b.value
+  ))
   AND (sqlc.narg('search')::text IS NULL OR sqlc.narg('search')::text = '' OR (
     name ILIKE '%' || sqlc.arg('search') || '%'
     OR description ILIKE '%' || sqlc.arg('search') || '%'
@@ -47,7 +52,12 @@ SELECT COUNT(*)::bigint FROM resources
 WHERE user_id = sqlc.arg('user_id') AND deleted_at IS NULL
   AND (sqlc.narg('modality')::text IS NULL OR modality = sqlc.narg('modality'))
   AND (sqlc.narg('library_type')::text IS NULL OR library_type = sqlc.narg('library_type'))
-  AND (sqlc.narg('tags_overlap')::jsonb IS NULL OR tags_json && sqlc.narg('tags_overlap')::jsonb)
+  AND (sqlc.narg('tags_overlap')::jsonb IS NULL OR EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements_text(tags_json) AS a,
+         jsonb_array_elements_text(sqlc.narg('tags_overlap')::jsonb) AS b
+    WHERE a.value = b.value
+  ))
   AND (sqlc.narg('search')::text IS NULL OR sqlc.narg('search')::text = '' OR (
     name ILIKE '%' || sqlc.arg('search') || '%'
     OR description ILIKE '%' || sqlc.arg('search') || '%'

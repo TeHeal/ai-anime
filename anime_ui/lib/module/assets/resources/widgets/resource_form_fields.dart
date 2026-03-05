@@ -34,14 +34,18 @@ class ResourceSchemaSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final editableFields = schema.where((f) => !f.readOnly).toList();
     final shortFields = editableFields
-        .where((f) =>
-            f.type != MetaFieldType.text ||
-            (f.key != 'prompt' && f.key != 'negativePrompt'))
+        .where(
+          (f) =>
+              f.type != MetaFieldType.text ||
+              (f.key != 'prompt' && f.key != 'negativePrompt'),
+        )
         .toList();
     final longFields = editableFields
-        .where((f) =>
-            f.type == MetaFieldType.text &&
-            (f.key == 'prompt' || f.key == 'negativePrompt'))
+        .where(
+          (f) =>
+              f.type == MetaFieldType.text &&
+              (f.key == 'prompt' || f.key == 'negativePrompt'),
+        )
         .toList();
 
     void openPromptLibrary(void Function(String) setText) {
@@ -71,27 +75,27 @@ class ResourceSchemaSection extends ConsumerWidget {
                 spacing: Spacing.md.w,
                 runSpacing: 0,
                 children: shortFields
-                    .map((f) => SizedBox(
-                          width: shortFields.length == 1
-                              ? constraints.maxWidth
-                              : halfWidth,
-                          child: MetaFieldEditor(
-                            field: f,
-                            value: metaValues[f.key] ?? '',
-                            accentColor: accentColor,
-                            extraOptions: availableValues?[f.key],
-                            onChanged: (v) => onChanged(f.key, v),
-                          ),
-                        ))
+                    .map(
+                      (f) => SizedBox(
+                        width: shortFields.length == 1
+                            ? constraints.maxWidth
+                            : halfWidth,
+                        child: MetaFieldEditor(
+                          field: f,
+                          value: metaValues[f.key] ?? '',
+                          accentColor: accentColor,
+                          extraOptions: availableValues?[f.key],
+                          onChanged: (v) => onChanged(f.key, v),
+                        ),
+                      ),
+                    )
                     .toList(),
               );
             },
           ),
         ...longFields.map((f) {
           final isNeg = f.key == 'negativePrompt';
-          final defaultHint = isNeg
-              ? '不想出现的元素，如：模糊、变形、低质量…'
-              : '描述画面风格、色调、氛围…';
+          final defaultHint = isNeg ? '不想出现的元素，如：模糊、变形、低质量…' : '描述画面风格、色调、氛围…';
           final defaultLabel = isNeg ? '反向提示词（选填）' : '提示词';
           return Padding(
             padding: EdgeInsets.only(top: isNeg ? Spacing.md.h : 0),
@@ -107,15 +111,15 @@ class ResourceSchemaSection extends ConsumerWidget {
               maxLines: isNeg ? 2 : 3,
               onLibraryTap: openPromptLibrary,
               onSaveToLibrary: (text, name, {required bool isNegative}) async {
-                await ref.read(resourceListProvider.notifier).addResource(
+                await ref
+                    .read(resourceListProvider.notifier)
+                    .addResource(
                       Resource(
                         name: name,
                         libraryType: 'prompt',
                         modality: 'text',
                         description: text,
-                        metadataJson: isNegative
-                            ? '{"negative": true}'
-                            : '{}',
+                        metadataJson: isNegative ? '{"negative": true}' : '{}',
                       ),
                     );
                 if (context.mounted) {

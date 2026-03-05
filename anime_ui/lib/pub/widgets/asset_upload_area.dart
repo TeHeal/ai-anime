@@ -61,6 +61,9 @@ class AssetUploadArea extends StatefulWidget {
   /// 上传分类标识
   final String uploadCategory;
 
+  /// 当文件名称更新时回调
+  final void Function(String fileName)? onFileNameChanged;
+
   @override
   State<AssetUploadArea> createState() => _AssetUploadAreaState();
 }
@@ -69,6 +72,18 @@ class _AssetUploadAreaState extends State<AssetUploadArea> {
   bool _isHovered = false;
   bool _isUploading = false;
   String? _uploadedFileName;
+  Uint8List? _localImageBytes;
+
+  @override
+  void didUpdateWidget(AssetUploadArea oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 如果外部将 URL 置空，则清空本地缓存
+    if ((widget.currentUrl == null || widget.currentUrl!.isEmpty) &&
+        (oldWidget.currentUrl != null && oldWidget.currentUrl!.isNotEmpty)) {
+      _localImageBytes = null;
+      _uploadedFileName = null;
+    }
+  }
 
   Color get _accent =>
       widget.accentColor ??
@@ -100,7 +115,12 @@ class _AssetUploadAreaState extends State<AssetUploadArea> {
     final file = result.files.first;
     if (file.bytes == null) return;
 
-    setState(() => _isUploading = true);
+    setState(() {
+      _isUploading = true;
+      if (widget.fileType == UploadFileType.image) {
+        _localImageBytes = file.bytes;
+      }
+    });
     try {
       await _notifyFileInfo(file.name, file.bytes!);
 
@@ -115,6 +135,14 @@ class _AssetUploadAreaState extends State<AssetUploadArea> {
       );
       _uploadedFileName = file.name;
       widget.onUploaded?.call(url);
+      
+      // 回调文件名，以便自动填充名称字段
+      if (widget.onFileNameChanged != null) {
+        final name = file.name.contains('.') 
+            ? file.name.substring(0, file.name.lastIndexOf('.'))
+            : file.name;
+        widget.onFileNameChanged!(name);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -293,17 +321,22 @@ class _AssetUploadAreaState extends State<AssetUploadArea> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-                child: Image.network(
-                  resolveFileUrl(widget.currentUrl!),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Center(
-                    child: Icon(
-                      AppIcons.gallery,
-                      size: 36.r,
-                      color: _accent.withValues(alpha: 0.4),
-                    ),
-                  ),
-                ),
+                child: _localImageBytes != null
+                    ? Image.memory(
+                        _localImageBytes!,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.network(
+                        resolveFileUrl(widget.currentUrl!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Center(
+                          child: Icon(
+                            AppIcons.gallery,
+                            size: 36.r,
+                            color: _accent.withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ),
               ),
               if (_isHovered)
                 Container(
@@ -332,7 +365,13 @@ class _AssetUploadAreaState extends State<AssetUploadArea> {
                 right: Spacing.xs.w,
                 child: _MiniIconBtn(
                   icon: AppIcons.close,
-                  onTap: () => widget.onUploaded?.call(''),
+                  onTap: () {
+                    setState(() {
+                      _localImageBytes = null;
+                      _uploadedFileName = null;
+                    });
+                    widget.onUploaded?.call('');
+                  },
                   tooltip: '移除',
                 ),
               ),

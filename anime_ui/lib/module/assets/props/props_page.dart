@@ -16,6 +16,7 @@ import 'package:anime_ui/module/assets/props/widgets/prop_edit_dialog.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_list_panel.dart';
 import 'package:anime_ui/module/assets/props/widgets/prop_toolbar.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
+import 'package:anime_ui/pub/services/api_svc.dart' show ApiException;
 
 /// 道具页
 class AssetsPropsPage extends ConsumerStatefulWidget {
@@ -115,10 +116,71 @@ class _AssetsPropsPageState extends ConsumerState<AssetsPropsPage> {
                         width: panelW,
                         child: PropListPanel(
                           props: props,
-                          onBatchConfirm: (ids) {
-                            ref
-                                .read(assetPropsProvider.notifier)
-                                .batchConfirm(ids);
+                          onBatchConfirm: (ids) async {
+                            // 1. 检查不完整项
+                            final allProps =
+                                ref.read(assetPropsProvider).value ?? [];
+                            final selectedProps =
+                                allProps.where((p) => ids.contains(p.id)).toList();
+                            final incompleteCount = selectedProps.where((p) {
+                              return p.imageUrl.isEmpty || p.appearance.isEmpty;
+                            }).length;
+
+                            if (incompleteCount > 0) {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: AppColors.surfaceMutedDarker,
+                                  title: Text(
+                                    '批量确认',
+                                    style: AppTextStyles.h4
+                                        .copyWith(color: AppColors.onSurface),
+                                  ),
+                                  content: Text(
+                                    '选中的 ${ids.length} 个道具中，有 $incompleteCount 个信息不完整（缺少图片或描述）。\n\n确认后仍可补充，是否继续？',
+                                    style: AppTextStyles.bodyMedium
+                                        .copyWith(color: AppColors.muted),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text('取消'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      style: FilledButton.styleFrom(
+                                          backgroundColor: AppColors.warning),
+                                      child: const Text('强制确认'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed != true) return;
+                            }
+
+                            // 2. 执行批量确认
+                            try {
+                              final n = await ref
+                                  .read(assetPropsProvider.notifier)
+                                  .batchConfirm(ids);
+                              if (!context.mounted) return;
+                              if (n == 0 && ids.isNotEmpty) {
+                                showToast(
+                                  context,
+                                  '未成功确认任何道具，请检查权限或是否已冻结',
+                                  isError: true,
+                                );
+                              } else if (n > 0) {
+                                showToast(context, '已确认 $n 个');
+                              }
+                            } catch (e, _) {
+                              if (context.mounted) {
+                                final msg = e is ApiException
+                                    ? e.message
+                                    : '批量确认失败';
+                                showToast(context, msg, isError: true);
+                              }
+                            }
                           },
                         ),
                       ),

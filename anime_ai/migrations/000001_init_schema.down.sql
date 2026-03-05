@@ -1,2 +1,4 @@
--- 初始化 schema 回滚需手动执行，此处留空
--- 生产环境不建议回滚完整 schema
+-- 回滚：清空 public schema
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO public;

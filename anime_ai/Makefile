@@ -1,4 +1,4 @@
-.PHONY: run build test test-integration migrate tidy clean
+.PHONY: run build test test-integration migrate migrate-down migrate-reset tidy clean
 
 run:
 	go run .
@@ -6,6 +6,14 @@ run:
 # 执行数据库迁移（读取 config.yaml）
 migrate:
 	go run ./cmd/migrate
+
+# 回滚所有迁移
+migrate-down:
+	go run ./cmd/migrate down
+
+# 重新生成数据库（清空 public schema 后重新执行迁移）
+migrate-reset:
+	go run ./cmd/migrate reset
 
 build:
 	CGO_ENABLED=0 go build -o bin/server .

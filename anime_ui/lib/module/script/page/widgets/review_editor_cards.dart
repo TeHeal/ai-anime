@@ -1,331 +1,211 @@
 part of 'review_editor.dart';
 
 // ---------------------------------------------------------------------------
-// 画面提示词、角色、情绪卡片
+// 各内容分区
 // ---------------------------------------------------------------------------
 
-Widget _buildScenePromptCard(
-  BuildContext context,
-  WidgetRef ref,
+/// 画面描述（核心区域） + 角色站位 & 音频设计
+Widget _buildSceneSection(
   ShotV4 shot,
   bool editing,
   ReviewUiNotifier notifier,
 ) {
-  return Container(
-    decoration: BoxDecoration(
-      color: AppColors.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-      border: Border.all(color: AppColors.border),
+  return Padding(
+    padding: EdgeInsets.fromLTRB(
+      Spacing.xl.w, Spacing.lg.h, Spacing.xl.w, Spacing.md.h,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader('2. 画面 & 提示词'),
-        const Divider(height: 1, color: AppColors.divider),
-        Padding(
-          padding: EdgeInsets.all(Spacing.lg.r),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              editing
-                  ? _editField(
-                      '画面描述',
-                      shot.sceneDescription,
-                      fullWidth: true,
-                      maxLines: 3,
-                      onChanged: (v) => notifier.updateCurrentShot(
-                        (s) => s.copyWith(sceneDescription: v),
-                      ),
-                    )
-                  : _readField('画面描述', shot.sceneDescription, fullWidth: true),
-              SizedBox(height: Spacing.md.h),
-              editing
-                  ? _editField(
-                      '角色站位',
-                      shot.characterPosition,
-                      fullWidth: true,
-                      onChanged: (v) => notifier.updateCurrentShot(
-                        (s) => s.copyWith(characterPosition: v),
-                      ),
-                    )
-                  : _readField('角色站位', shot.characterPosition, fullWidth: true),
-            ],
+        _labeledBlock(
+          icon: AppIcons.image,
+          label: '画面描述',
+          value: shot.sceneDescription,
+          editing: editing,
+          accentColor: AppColors.primary,
+          hint: '描述场景、道具、氛围、光影…',
+          maxLines: 4,
+          onChanged: (v) => notifier.updateCurrentShot(
+            (s) => s.copyWith(sceneDescription: v),
           ),
         ),
-        Container(
-          decoration: const BoxDecoration(
-            border: Border(
-              left: BorderSide(color: AppColors.primary, width: 4),
-              top: BorderSide(color: AppColors.divider),
-            ),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(Spacing.lg.r),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'AI 提示词',
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: AppColors.primary,
-                  ),
+        SizedBox(height: Spacing.md.h),
+
+        // 角色站位 & 音频设计并排
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = Breakpoints.isMdOrUp(constraints.maxWidth);
+            final items = [
+              _labeledBlock(
+                icon: AppIcons.person,
+                label: '角色站位',
+                value: shot.characterPosition,
+                editing: editing,
+                accentColor: AppColors.categoryCharacter,
+                hint: '角色位置、动作…',
+                onChanged: (v) => notifier.updateCurrentShot(
+                  (s) => s.copyWith(characterPosition: v),
                 ),
-                SizedBox(height: Spacing.sm.h),
-                editing
-                    ? PromptFieldWithAssistant(
-                        value: shot.aiPrompt,
-                        onChanged: (v) => notifier.updateCurrentShot(
-                          (s) => s.copyWith(aiPrompt: v),
-                        ),
-                        hint:
-                            '描述角色外貌、服装、发型、表情，如：银发少女，蓝眼睛，穿白色连衣裙…',
-                        accent: AppColors.primary,
-                        label: '提示词',
-                        maxLines: 4,
-                        onLibraryTap: (setText) {
-                          final promptsAsync =
-                              ref.read(promptResourcesProvider);
-                          promptsAsync.when(
-                            data: (prompts) => showPromptLibrary(
-                              context,
-                              prompts: prompts,
-                              accent: AppColors.primary,
-                              onSelected: setText,
-                            ),
-                            loading: () => showToast(
-                              context,
-                              '正在加载提示词库…',
-                              isInfo: true,
-                            ),
-                            error: (e, _) => showToast(
-                              context,
-                              '提示词库加载失败',
-                              isError: true,
-                            ),
-                          );
-                        },
-                        onSaveToLibrary:
-                            (text, name, {required bool isNegative}) async {
-                          await ref
-                              .read(resourceListProvider.notifier)
-                              .addResource(
-                                Resource(
-                                  name: name,
-                                  libraryType: 'prompt',
-                                  modality: 'text',
-                                  description: text,
-                                ),
-                              );
-                          if (context.mounted) {
-                            showToast(context, '已保存到提示词库');
-                          }
-                        },
-                      )
-                    : _promptBlock(shot.aiPrompt),
+              ),
+              _labeledBlock(
+                icon: AppIcons.sound,
+                label: '音频设计',
+                value: shot.audioDesignText,
+                editing: editing,
+                accentColor: AppColors.categoryVoice,
+                hint: '音效与氛围描述…',
+                onChanged: (v) {
+                  notifier.updateCurrentShot((s) {
+                    s.audioDesignText = v;
+                    return s;
+                  });
+                },
+              ),
+            ];
+            if (wide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: items[0]),
+                  SizedBox(width: Spacing.md.w),
+                  Expanded(child: items[1]),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                items[0],
                 SizedBox(height: Spacing.md.h),
-                editing
-                    ? PromptFieldWithAssistant(
-                        value: shot.negativePrompt,
-                        onChanged: (v) => notifier.updateCurrentShot(
-                          (s) => s.copyWith(negativePrompt: v),
-                        ),
-                        hint: '不想出现的元素，如：模糊、变形、低质量…',
-                        accent: AppColors.primary,
-                        label: '反向提示词（选填）',
-                        negOnly: true,
-                        maxLines: 2,
-                        onLibraryTap: (setText) {
-                          final promptsAsync =
-                              ref.read(promptResourcesProvider);
-                          promptsAsync.when(
-                            data: (prompts) => showPromptLibrary(
-                              context,
-                              prompts: prompts,
-                              accent: AppColors.primary,
-                              onSelected: setText,
-                            ),
-                            loading: () => showToast(
-                              context,
-                              '正在加载提示词库…',
-                              isInfo: true,
-                            ),
-                            error: (e, _) => showToast(
-                              context,
-                              '提示词库加载失败',
-                              isError: true,
-                            ),
-                          );
-                        },
-                        onSaveToLibrary:
-                            (text, name, {required bool isNegative}) async {
-                          await ref
-                              .read(resourceListProvider.notifier)
-                              .addResource(
-                                Resource(
-                                  name: name,
-                                  libraryType: 'prompt',
-                                  modality: 'text',
-                                  description: text,
-                                  metadataJson:
-                                      isNegative ? '{"negative": true}' : '{}',
-                                ),
-                              );
-                          if (context.mounted) {
-                            showToast(context, '已保存到提示词库');
-                          }
-                        },
-                      )
-                    : _negativeBlock(shot.negativePrompt),
+                items[1],
               ],
-            ),
-          ),
+            );
+          },
         ),
       ],
     ),
   );
 }
 
-Widget _promptBlock(String text) {
-  return Container(
-    width: double.infinity,
-    padding: EdgeInsets.all(Spacing.md.r),
-    decoration: BoxDecoration(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-    ),
-    child: SelectableText(
-      text.isNotEmpty ? text : '—',
-      style: AppTextStyles.bodySmall.copyWith(
-        color: text.isNotEmpty
-            ? AppColors.onSurface.withValues(alpha: 0.75)
-            : AppColors.onSurface.withValues(alpha: 0.5),
-        fontFamily: 'monospace',
-        height: 1.5,
-      ),
-    ),
-  );
-}
-
-Widget _negativeBlock(String text) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Container(
-        margin: EdgeInsets.only(top: Spacing.xs.h),
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.sm.w,
-          vertical: Spacing.xs.h,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
-        ),
-        child: Text(
-          '反向提示词',
-          style: AppTextStyles.tiny.copyWith(
-            color: AppColors.error.withValues(alpha: 0.8),
-          ),
-        ),
-      ),
-      SizedBox(width: Spacing.sm.w),
-      Expanded(
-        child: Text(
-          text.isNotEmpty ? text : '—',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: text.isNotEmpty
-                ? AppColors.onSurface.withValues(alpha: 0.6)
-                : AppColors.onSurface.withValues(alpha: 0.5),
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _buildCharacterCard(
+/// 台词与角色
+Widget _buildDialogueCharacterSection(
   ShotV4 shot,
   bool editing,
   List<Character> characters,
   ReviewUiNotifier notifier,
 ) {
-  final matchedChar = characters
-      .where(
-        (c) =>
-            c.name == shot.characterName ||
-            (shot.characterId.isNotEmpty &&
-                c.id?.toString() == shot.characterId),
-      )
+  // 优先按 characterId 精确匹配，再按 characterName 匹配（避免同名角色匹配错人）
+  Character? matchedChar;
+  if (shot.characterId.isNotEmpty) {
+    matchedChar = characters
+        .where((c) => c.id?.toString() == shot.characterId)
+        .firstOrNull;
+  }
+  matchedChar ??= characters
+      .where((c) => c.name == shot.characterName)
       .firstOrNull;
   final hasWarning =
       shot.characterName.isNotEmpty &&
       matchedChar == null &&
       characters.isNotEmpty;
 
-  return Container(
-    decoration: BoxDecoration(
-      color: AppColors.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-      border: Border.all(
-        color: hasWarning
-            ? AppColors.warning.withValues(alpha: 0.5)
-            : AppColors.border,
-      ),
+  return Padding(
+    padding: EdgeInsets.fromLTRB(
+      Spacing.xl.w, Spacing.md.h, Spacing.xl.w, Spacing.md.h,
     ),
-    child: Column(
+    child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader(
-          '3. 角色',
-          trailing: hasWarning
-              ? Tooltip(
-                  message: '角色未在资产栏中找到',
-                  child: Icon(
-                    AppIcons.warning,
-                    size: 14.r,
-                    color: AppColors.warning,
-                  ),
-                )
-              : null,
-        ),
-        const Divider(height: 1, color: AppColors.divider),
-        Padding(
-          padding: EdgeInsets.all(Spacing.lg.r),
-          child: Row(
+        // 左侧：角色头像
+        _characterAvatar(matchedChar),
+        SizedBox(width: Spacing.md.w),
+        // 右侧：角色信息 + 台词
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: Spacing.barHeight.w,
-                height: Spacing.barHeight.h,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: matchedChar != null && matchedChar.imageUrl.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-                        child: AppNetworkImage(
-                          url: resolveFileUrl(matchedChar.imageUrl),
-                          fit: BoxFit.cover,
+              // 角色行
+              editing
+                  ? _buildCharacterEdit(shot, characters, notifier)
+                  : _buildCharacterPreview(shot, matchedChar, hasWarning),
+              // 台词
+              if (shot.dialogue.isNotEmpty || editing) ...[
+                SizedBox(height: Spacing.sm.h),
+                editing
+                    ? _accentTextBlock(
+                        value: shot.dialogue,
+                        editing: true,
+                        accentColor: AppColors.info,
+                        hint: '「角色对白或旁白…」',
+                        maxLines: 2,
+                        onChanged: (v) => notifier.updateCurrentShot(
+                          (s) => s.copyWith(dialogue: v),
                         ),
                       )
-                    : Icon(
-                        AppIcons.person,
-                        size: 20.r,
-                        color: AppColors.onSurface.withValues(alpha: 0.5),
-                      ),
-              ),
-              SizedBox(width: Spacing.md.w),
-              Expanded(
-                child: editing
-                    ? _buildCharacterEdit(shot, characters, notifier)
-                    : _buildCharacterPreview(shot, matchedChar),
-              ),
+                    : _dialogueBubble(shot.dialogue),
+              ],
             ],
           ),
         ),
       ],
+    ),
+  );
+}
+
+Widget _characterAvatar(Character? matchedChar) {
+  return Container(
+    width: 36.w,
+    height: 36.h,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          AppColors.primary.withValues(alpha: 0.2),
+          AppColors.info.withValues(alpha: 0.15),
+        ],
+      ),
+      borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+      border: Border.all(
+        color: AppColors.primary.withValues(alpha: 0.25),
+      ),
+    ),
+    child: matchedChar != null && matchedChar.imageUrl.isNotEmpty
+        ? ClipRRect(
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            child: AppNetworkImage(
+              url: resolveFileUrl(matchedChar.imageUrl),
+              fit: BoxFit.cover,
+            ),
+          )
+        : Icon(
+            AppIcons.person,
+            size: 16.r,
+            color: AppColors.primary.withValues(alpha: 0.5),
+          ),
+  );
+}
+
+Widget _dialogueBubble(String text) {
+  if (text.isEmpty) return const SizedBox.shrink();
+  return Container(
+    width: double.infinity,
+    padding: EdgeInsets.symmetric(
+      horizontal: Spacing.md.w,
+      vertical: Spacing.sm.h,
+    ),
+    decoration: BoxDecoration(
+      color: AppColors.info.withValues(alpha: 0.05),
+      borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+      border: const Border(
+        left: BorderSide(color: AppColors.info, width: 3),
+      ),
+    ),
+    child: Text(
+      '「$text」',
+      style: AppTextStyles.bodySmall.copyWith(
+        color: AppColors.onSurface.withValues(alpha: 0.9),
+        height: 1.5,
+      ),
     ),
   );
 }
@@ -335,97 +215,101 @@ Widget _buildCharacterEdit(
   List<Character> characters,
   ReviewUiNotifier notifier,
 ) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (characters.isNotEmpty)
-        DropdownButtonFormField<String>(
-          initialValue: characters.any((c) => c.name == shot.characterName)
-              ? shot.characterName
-              : null,
-          decoration: InputDecoration(
-            isDense: true,
-            labelText: '角色',
-            labelStyle: AppTextStyles.labelMedium,
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Spacing.md.w,
-              vertical: Spacing.sm.h,
-            ),
-            border: const OutlineInputBorder(),
-          ),
-          dropdownColor: AppColors.surfaceContainer,
-          items: [
-            DropdownMenuItem(
-              value: '',
-              child: Text('无', style: AppTextStyles.labelMedium),
-            ),
-            ...characters.map(
-              (c) => DropdownMenuItem(
-                value: c.name,
-                child: Text(c.name, style: AppTextStyles.labelMedium),
-              ),
-            ),
-          ],
-          onChanged: (v) {
-            final char = characters.where((c) => c.name == v).firstOrNull;
-            notifier.updateCurrentShot(
-              (s) => s.copyWith(
-                characterName: v ?? '',
-                characterId: char?.id?.toString() ?? '',
-              ),
-            );
-          },
-        )
-      else
-        _editField(
-          '角色',
-          shot.characterName,
-          onChanged: (v) =>
-              notifier.updateCurrentShot((s) => s.copyWith(characterName: v)),
+  if (characters.isNotEmpty) {
+    // 当前 shot 的显示值：必须在 items 中存在，否则用「无」避免非法 value
+    final valueInList = characters.any((c) => c.name == shot.characterName)
+        ? shot.characterName
+        : '';
+    return DropdownButtonFormField<String>(
+      key: ValueKey('character-${shot.shotNumber}'),
+      initialValue: valueInList,
+      decoration: InputDecoration(
+        isDense: true,
+        labelText: '角色',
+        labelStyle: AppTextStyles.tiny.copyWith(color: AppColors.muted),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: Spacing.md.w,
+          vertical: Spacing.sm.h,
         ),
-      SizedBox(height: Spacing.sm.h),
-      _editField(
-        '角色ID',
-        shot.characterId,
-        onChanged: (v) =>
-            notifier.updateCurrentShot((s) => s.copyWith(characterId: v)),
-      ),
-    ],
-  );
-}
-
-Widget _buildCharacterPreview(ShotV4 shot, Character? matchedChar) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        shot.characterName.isNotEmpty ? shot.characterName : '未指定角色',
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontWeight: FontWeight.w600,
-          color: shot.characterName.isNotEmpty
-              ? AppColors.onSurface
-              : AppColors.onSurface.withValues(alpha: 0.5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+          borderSide: const BorderSide(color: AppColors.inputBorder),
+        ),
+        filled: true,
+        fillColor: AppColors.inputBackground,
       ),
-      if (shot.characterId.isNotEmpty) ...[
-        SizedBox(height: Spacing.xs.h),
-        Text(
-          'ID: ${shot.characterId}',
-          style: AppTextStyles.tiny.copyWith(
-            color: AppColors.onSurface.withValues(alpha: 0.55),
+      dropdownColor: AppColors.surfaceContainerHighest,
+      items: [
+        DropdownMenuItem(
+          value: '',
+          child: Text('无', style: AppTextStyles.labelMedium),
+        ),
+        ...characters.map(
+          (c) => DropdownMenuItem(
+            value: c.name,
+            child: Text(c.name, style: AppTextStyles.labelMedium),
           ),
         ),
       ],
+      onChanged: (v) {
+        final char = characters.where((c) => c.name == v).firstOrNull;
+        notifier.updateCurrentShot(
+          (s) => s.copyWith(
+            characterName: v ?? '',
+            characterId: char?.id?.toString() ?? '',
+          ),
+        );
+      },
+    );
+  }
+  return _compactField(
+    '角色',
+    shot.characterName,
+    onChanged: (v) =>
+        notifier.updateCurrentShot((s) => s.copyWith(
+          characterName: v,
+          characterId: '',
+        )),
+  );
+}
+
+Widget _buildCharacterPreview(
+  ShotV4 shot,
+  Character? matchedChar,
+  bool hasWarning,
+) {
+  return Row(
+    children: [
+      Text(
+        shot.characterName.isNotEmpty ? shot.characterName : '未指定角色',
+        style: AppTextStyles.bodySmall.copyWith(
+          fontWeight: FontWeight.w600,
+          color: shot.characterName.isNotEmpty
+              ? AppColors.onSurface
+              : AppColors.mutedDark,
+        ),
+      ),
       if (matchedChar != null) ...[
-        SizedBox(height: Spacing.xs.h),
-        Wrap(
-          spacing: Spacing.sm.w,
-          children: [
-            if (matchedChar.roleType.isNotEmpty)
-              _tinyTag(matchedChar.roleType, AppColors.info),
-            if (matchedChar.importance.isNotEmpty)
-              _tinyTag(matchedChar.importance, AppColors.tagAmber),
-          ],
+        SizedBox(width: Spacing.sm.w),
+        if (matchedChar.roleType.isNotEmpty)
+          _tinyTag(matchedChar.roleType, AppColors.info),
+        if (matchedChar.importance.isNotEmpty) ...[
+          SizedBox(width: Spacing.xs.w),
+          _tinyTag(matchedChar.importance, AppColors.tagAmber),
+        ],
+      ],
+      if (hasWarning) ...[
+        SizedBox(width: Spacing.sm.w),
+        Tooltip(
+          message: '角色未在资产栏中找到',
+          child: Icon(
+            AppIcons.warning,
+            size: 12.r,
+            color: AppColors.warning,
+          ),
         ),
       ],
     ],
@@ -436,10 +320,10 @@ Widget _tinyTag(String label, Color color) {
   return Container(
     padding: EdgeInsets.symmetric(
       horizontal: Spacing.sm.w,
-      vertical: Spacing.dividerHeight.h,
+      vertical: Spacing.xxs.h,
     ),
     decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.15),
+      color: color.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
     ),
     child: Text(
@@ -452,65 +336,71 @@ Widget _tinyTag(String label, Color color) {
   );
 }
 
-Widget _buildEmotionCard(ShotV4 shot, bool editing, ReviewUiNotifier notifier) {
-  final hasVector = shot.emotionVector.isNotEmpty;
-  final hasDesc = shot.emotionDescription.isNotEmpty;
-  if (!hasVector && !hasDesc && !editing) return const SizedBox.shrink();
+/// 情绪 + 备注合并为一行（宽屏并排，窄屏纵排）
+Widget _buildFooterFields(
+  ShotV4 shot,
+  bool editing,
+  ReviewUiNotifier notifier,
+) {
+  final hasEmotion = shot.emotionDescription.isNotEmpty || editing;
+  final hasNotes = shot.notes.isNotEmpty || editing;
+  if (!hasEmotion && !hasNotes) return const SizedBox.shrink();
 
-  return Container(
-    decoration: BoxDecoration(
-      color: AppColors.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-      border: Border.all(color: AppColors.border),
+  final emotionWidget = hasEmotion
+      ? _labeledBlock(
+          icon: AppIcons.magicStick,
+          label: '情绪',
+          value: shot.emotionDescription,
+          editing: editing,
+          accentColor: AppColors.categoryStyle,
+          hint: '情绪与氛围描述…',
+          onChanged: (v) => notifier.updateCurrentShot(
+            (s) => s.copyWith(emotionDescription: v),
+          ),
+        )
+      : null;
+
+  final notesWidget = hasNotes
+      ? _labeledBlock(
+          icon: AppIcons.document,
+          label: '备注',
+          value: shot.notes,
+          editing: editing,
+          accentColor: AppColors.mutedDark,
+          hint: '补充说明…',
+          onChanged: (v) => notifier.updateCurrentShot(
+            (s) => s.copyWith(notes: v),
+          ),
+        )
+      : null;
+
+  return Padding(
+    padding: EdgeInsets.fromLTRB(
+      Spacing.xl.w, Spacing.md.h, Spacing.xl.w, Spacing.md.h,
     ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader('4. 情绪'),
-        const Divider(height: 1, color: AppColors.divider),
-        Padding(
-          padding: EdgeInsets.all(Spacing.lg.r),
-          child: Column(
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = Breakpoints.isMdOrUp(constraints.maxWidth);
+        if (wide && emotionWidget != null && notesWidget != null) {
+          return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              editing
-                  ? _editField(
-                      '情绪描述',
-                      shot.emotionDescription,
-                      fullWidth: true,
-                      onChanged: (v) => notifier.updateCurrentShot(
-                        (s) => s.copyWith(emotionDescription: v),
-                      ),
-                    )
-                  : _readField(
-                      '情绪描述',
-                      shot.emotionDescription,
-                      fullWidth: true,
-                    ),
-              if (hasVector || editing) ...[
-                SizedBox(height: Spacing.md.h),
-                Text(
-                  '情绪向量 (IndexTTS2)',
-                  style: AppTextStyles.tiny.copyWith(
-                    color: AppColors.onSurface.withValues(alpha: 0.55),
-                  ),
-                ),
-                SizedBox(height: Spacing.sm.h),
-                EmotionVectorWidget(
-                  vector: shot.emotionVector,
-                  editing: editing,
-                  onChanged: (newVec) {
-                    notifier.updateCurrentShot((s) {
-                      s.emotionVector = newVec;
-                      return s;
-                    });
-                  },
-                ),
-              ],
+              Expanded(child: emotionWidget),
+              SizedBox(width: Spacing.md.w),
+              Expanded(child: notesWidget),
             ],
-          ),
-        ),
-      ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ?emotionWidget,
+            if (emotionWidget != null && notesWidget != null)
+              SizedBox(height: Spacing.md.h),
+            ?notesWidget,
+          ],
+        );
+      },
     ),
   );
 }

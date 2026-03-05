@@ -146,8 +146,10 @@ func (s *Service) CreateSkeleton(projectIDStr, userIDStr, name string) (*Charact
 		return nil, err
 	}
 	projID := projectIDStr
+	// 将 userIDStr 统一为 UUID 格式：若为数字则转确定性 UUID，否则原样使用
+	normalizedUID := normalizeUserID(userIDStr)
 	c := &Character{
-		UserID:    userIDStr,
+		UserID:    normalizedUID,
 		ProjectID: &projID,
 		Name:      name,
 		Status:    CharacterStatusSkeleton,
@@ -366,26 +368,58 @@ func (s *Service) Confirm(id string, userID uint) (*Character, error) {
 	return c, nil
 }
 
-// BatchConfirm 批量确认
-func (s *Service) BatchConfirm(ids []string, userID uint) error {
+// BatchConfirm 批量确认，返回已更新的角色列表（与单条 Confirm 返回单条一致，前端直接合并 state，无需 refetch）
+// 若传入非空 ids 但全部被跳过（权限/冻结等），返回业务错误便于前端提示
+// 注意：内部调用 BatchConfirmWithUserStr，因 JWT 可能存 user_id 为 UUID 字符串，GetUint 会得 0 导致匹配失败
+func (s *Service) BatchConfirm(ids []string, userID uint) ([]*Character, error) {
 	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+	if userIDStr == "" {
+		userIDStr = pkg.UintToStr(userID)
+	}
+	return s.BatchConfirmWithUserStr(ids, userIDStr)
+}
+
+// BatchConfirmWithUserStr 批量确认（接收 userID 字符串，兼容 JWT 存 UUID 的场景）
+func (s *Service) BatchConfirmWithUserStr(ids []string, userIDStr string) ([]*Character, error) {
+	var out []*Character
 	for _, id := range ids {
 		c, err := s.data.FindCharacterByID(id)
 		if err != nil {
 			continue
 		}
-		if !userIDMatches(c.UserID, userID) {
+		if !userIDMatchesStr(c.UserID, userIDStr) {
 			continue
 		}
 		if c.ProjectID != nil && *c.ProjectID != "" {
 			if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 				continue
 			}
+			if s.frozenAssetChecker != nil {
+				inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(*c.ProjectID, "character", id)
+				if err == nil && inFrozen {
+					continue
+				}
+			}
 		}
 		c.Status = CharacterStatusConfirmed
-		_ = s.data.UpdateCharacter(c)
+		if err := s.data.UpdateCharacter(c); err != nil {
+			return out, fmt.Errorf("更新角色 %s 状态失败: %w", id, err)
+		}
+		out = append(out, c)
 	}
-	return nil
+	if len(ids) > 0 && len(out) == 0 {
+		return nil, pkg.NewBizError("无角色可确认：请确认所选角色属于当前项目、您有编辑权限且资产未冻结")
+	}
+	return out, nil
+}
+
+// normalizeUserID 将 userIDStr 统一为 UUID 格式：若为纯数字则通过 UintToUUID 转为确定性 UUID，
+// 否则原样返回。避免数字字符串存入 DB 后被 ParseUUID 回退为零 UUID 导致权限校验失败。
+func normalizeUserID(userIDStr string) string {
+	if n, err := strconv.ParseUint(userIDStr, 10, 64); err == nil {
+		return pkg.UUIDString(pkg.UintToUUID(uint(n)))
+	}
+	return userIDStr
 }
 
 // userIDMatches 判断角色 UserID 是否匹配给定 userID（uint）

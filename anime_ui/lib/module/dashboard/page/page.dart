@@ -28,12 +28,20 @@ class DashboardPage extends ConsumerStatefulWidget {
 }
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
+  final _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(dashboardProvider.notifier).load();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _enterEpisode(DashboardEpisode ep) {
@@ -43,7 +51,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       0 => '${Routes.assetsCharacters}$epParam',
       1 => '${Routes.assetsCharacters}$epParam',
       2 => '${Routes.scriptCenter}$epParam',
-      3 => Routes.shotImagesCenter,
+      3 => Routes.shotImagesWorkshop,
       4 => Routes.shotsCenter,
       5 => Routes.episodeTimeline,
       _ => '${Routes.assetsCharacters}$epParam',
@@ -198,11 +206,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  /// 使用 Scrollbar 包裹，Web 端便于发现可滚动内容
+  /// 使用 Scrollbar 包裹，Web 端便于发现可滚动内容；显式传入 controller 避免与 PrimaryScrollController 时序问题。
   Widget _buildBodyWithScrollbar({required List<Widget> slivers}) {
     return Scrollbar(
+      controller: _scrollController,
       thumbVisibility: true,
       child: CustomScrollView(
+        controller: _scrollController,
         slivers: slivers,
       ),
     );

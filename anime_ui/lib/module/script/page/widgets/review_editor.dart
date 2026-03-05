@@ -3,23 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/models/character.dart';
-import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
-import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/app_network_image.dart';
-import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
-import 'package:anime_ui/module/assets/resources/providers/provider.dart';
 import 'package:anime_ui/module/script/providers/review_ui.dart';
-import 'package:anime_ui/module/script/page/widgets/emotion_vector_widget.dart';
 
 part 'review_editor_shared.dart';
 part 'review_editor_sections.dart';
 part 'review_editor_cards.dart';
-part 'review_editor_media.dart';
 
 // ---------------------------------------------------------------------------
 // 中栏：审核编辑器
@@ -40,72 +34,112 @@ class ReviewEditor extends ConsumerWidget {
     final characters = ref.watch(assetCharactersProvider).value ?? [];
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(Spacing.xl.r),
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.xl.w,
+        vertical: Spacing.lg.h,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildEditorHeader(shot, allShots, idx, editing, uiNotifier),
-          SizedBox(height: Spacing.xl.h),
-
-          _section('1. 基础信息', _buildBasicInfo(shot, editing, uiNotifier)),
           SizedBox(height: Spacing.md.h),
 
-          _buildScenePromptCard(context, ref, shot, editing, uiNotifier),
-          SizedBox(height: Spacing.md.h),
-
-          _buildCharacterCard(shot, editing, characters, uiNotifier),
-          SizedBox(height: Spacing.md.h),
-
-          _buildEmotionCard(shot, editing, uiNotifier),
-          SizedBox(height: Spacing.md.h),
-
-          _buildCollapsibleCard(
-            title: '5. 音频',
-            icon: AppIcons.music,
-            expanded: uiState.audioExpanded,
-            onToggle: uiNotifier.toggleAudioExpanded,
-            badge: _audioBadge(shot),
-            child: _buildAudioContent(shot, editing, uiNotifier),
-          ),
-          const SizedBox(height: Spacing.md),
-
-          _buildCollapsibleCard(
-            title: '6. 图像',
-            icon: AppIcons.image,
-            expanded: uiState.imageExpanded,
-            onToggle: uiNotifier.toggleImageExpanded,
-            badge: shot.image?.enabled == true ? _enabledDot() : null,
-            child: _buildImageFull(shot, editing),
-          ),
-          const SizedBox(height: Spacing.md),
-
-          _buildCollapsibleCard(
-            title: '7. 视频',
-            icon: AppIcons.video,
-            expanded: uiState.videoExpanded,
-            onToggle: uiNotifier.toggleVideoExpanded,
-            badge: shot.video?.enabled == true ? _enabledDot() : null,
-            child: _buildVideoFull(shot, editing),
-          ),
-
-          if (shot.notes.isNotEmpty || editing) ...[
-            SizedBox(height: Spacing.md.h),
-            _section(
-              '8. 备注',
-              editing
-                  ? _editField(
-                      '',
-                      shot.notes,
-                      fullWidth: true,
-                      onChanged: (v) => uiNotifier.updateCurrentShot(
-                        (s) => s.copyWith(notes: v),
-                      ),
-                    )
-                  : _readField('', shot.notes, fullWidth: true),
+          // ── 主卡片 ──
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainer,
+              borderRadius: BorderRadius.circular(RadiusTokens.card.r),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadowOverlay.withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 顶部渐变条
+                Container(
+                  height: 2.h,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(RadiusTokens.card.r),
+                    ),
+                    gradient: LinearGradient(
+                      colors: _headerGradient(shot.priority),
+                    ),
+                  ),
+                ),
+
+                // 属性 Chip 行
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    Spacing.xl.w, Spacing.md.h, Spacing.xl.w, Spacing.sm.h,
+                  ),
+                  child: _buildAttributeChips(shot, editing, uiNotifier),
+                ),
+
+                _thinDivider(),
+
+                // 画面描述 + 站位 + 音频设计
+                _buildSceneSection(shot, editing, uiNotifier),
+
+                // 台词与角色
+                if (shot.dialogue.isNotEmpty ||
+                    shot.characterName.isNotEmpty ||
+                    editing) ...[
+                  _thinDivider(),
+                  _buildDialogueCharacterSection(
+                    shot, editing, characters, uiNotifier,
+                  ),
+                ],
+
+                // 情绪 + 备注（合并）
+                if (shot.emotionDescription.isNotEmpty ||
+                    shot.notes.isNotEmpty ||
+                    editing) ...[
+                  _thinDivider(),
+                  _buildFooterFields(shot, editing, uiNotifier),
+                ],
+
+                SizedBox(height: Spacing.sm.h),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+List<Color> _headerGradient(String priority) {
+  if (priority.contains('P0')) {
+    return [AppColors.error, AppColors.warning];
+  } else if (priority.contains('P1')) {
+    return [AppColors.warning, AppColors.tagAmber];
+  }
+  return AppColors.accentGradient;
+}
+
+Widget _thinDivider() {
+  return Padding(
+    padding: EdgeInsets.symmetric(horizontal: Spacing.xl.w),
+    child: Container(
+      height: 1,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.divider.withValues(alpha: 0),
+            AppColors.divider,
+            AppColors.divider.withValues(alpha: 0),
+          ],
+        ),
+      ),
+    ),
+  );
 }

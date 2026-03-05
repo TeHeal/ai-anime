@@ -5,7 +5,7 @@ class AdminService {
   /// 获取所有用户列表
   Future<List<dynamic>> listUsers() async {
     final resp = await dio.get('/admin/users');
-    return extractData<List<dynamic>>(resp);
+    return extractData<List<dynamic>>(resp, defaultValue: []);
   }
 
   /// 创建新用户

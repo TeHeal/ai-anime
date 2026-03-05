@@ -70,6 +70,7 @@ CREATE TABLE team_members (
     team_id UUID NOT NULL REFERENCES teams(id),
     user_id UUID NOT NULL REFERENCES users(id),
     role VARCHAR(16) NOT NULL DEFAULT 'viewer',
+    job_roles JSONB NOT NULL DEFAULT '[]',
     joined_at TIMESTAMPTZ
 );
 

@@ -1,2 +1,0 @@
-ALTER TABLE schedules DROP COLUMN IF EXISTS action;
-ALTER TABLE schedules DROP COLUMN IF EXISTS config_json;

@@ -233,8 +233,8 @@ class StoryboardService {
       '/projects/$projectId/storyboard/generate',
       data: {
         'episode_id': episodeId,
-        'provider': ?provider,
-        'model': ?model,
+        if (provider != null) 'provider': provider,
+        if (model != null) 'model': model,
       },
     );
     return extractDataObject(resp, Task.fromJson);
@@ -251,8 +251,8 @@ class StoryboardService {
       '/projects/$projectId/storyboard/generate-sync',
       data: {
         'episode_id': episodeId,
-        'provider': ?provider,
-        'model': ?model,
+        if (provider != null) 'provider': provider,
+        if (model != null) 'model': model,
       },
     );
     final data = extractData<Map<String, dynamic>>(resp);
@@ -274,8 +274,8 @@ class StoryboardService {
       '/projects/$projectId/storyboard/preview',
       data: {
         'scene_id': sceneId,
-        'provider': ?provider,
-        'model': ?model,
+        if (provider != null) 'provider': provider,
+        if (model != null) 'model': model,
       },
     );
     final data = extractData<Map<String, dynamic>>(resp);
@@ -296,7 +296,7 @@ class StoryboardService {
         'shots': shots.map((s) => s.toJson()).toList(),
       },
     );
-    final data = extractData<List<dynamic>>(resp);
+    final data = extractData<List<dynamic>>(resp, defaultValue: []);
     return data.cast<Map<String, dynamic>>();
   }
 }

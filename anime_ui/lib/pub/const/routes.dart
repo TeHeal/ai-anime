@@ -43,13 +43,15 @@ abstract final class Routes {
   static const String scriptEdit = scriptReview;
   static const String scriptVersions = scriptReview;
 
-  // ④ 镜图 Shot Images (replaces storyboard)
+  // ④ 镜图 Shot Images (4 Tab: 提示词工坊 / 快速验证 / 正式出图 / 审核编辑)
+  static const String shotImagesWorkshop = '$shotImages/workshop';
+  static const String shotImagesProof = '$shotImages/proof';
   static const String shotImagesCenter = '$shotImages/center';
   static const String shotImagesReview = '$shotImages/review';
 
   // ④-legacy (storyboard → shotImages redirect)
   static const String storyboard = shotImages;
-  static const String storyboardSketch = shotImagesCenter;
+  static const String storyboardSketch = shotImagesWorkshop;
   static const String storyboardComposition = shotImagesCenter;
   static const String storyboardReview = shotImagesReview;
   static const String storyboardApprove = shotImagesReview;
@@ -79,7 +81,7 @@ abstract final class Routes {
     story: storyImport,
     assets: assetsOverview,
     script: scriptCenter,
-    shotImages: shotImagesCenter,
+    shotImages: shotImagesWorkshop,
     shots: shotsCenter,
     episode: episodeTimeline,
   };

@@ -51,6 +51,20 @@ class ShotImageConfig {
     );
   }
 
+  /// 快速验证模式配置：低分辨率、单张
+  ShotImageConfig toProofConfig() {
+    return ShotImageConfig(
+      globalPrompt: globalPrompt,
+      negativePrompt: negativePrompt,
+      provider: provider,
+      model: model,
+      outputCount: 1,
+      aspectRatio: aspectRatio,
+      cardMode: false,
+      includeAdjacent: false,
+    );
+  }
+
   /// 折叠态摘要
   String get summaryLabel {
     final parts = <String>[];
@@ -161,6 +175,38 @@ class ShotImageStatesNotifier extends Notifier<Map<String, ShotImageState>> {
     final pid = ref.read(currentProjectProvider).value?.id;
     if (pid == null) return;
     final config = ref.read(shotImageConfigProvider);
+
+    final updated = Map<String, ShotImageState>.from(state);
+    for (final id in shotIds) {
+      updated[id] = ShotImageState(
+        shotId: id,
+        status: ShotImageStatus.generating,
+      );
+    }
+    state = updated;
+
+    try {
+      await ref
+          .read(shotImageServiceProvider)
+          .batchGenerate(pid, shotIds: shotIds, config: config.toJson());
+    } catch (e) {
+      final failed = Map<String, ShotImageState>.from(state);
+      for (final id in shotIds) {
+        failed[id] = ShotImageState(
+          shotId: id,
+          status: ShotImageStatus.failed,
+          error: e.toString(),
+        );
+      }
+      state = failed;
+    }
+  }
+
+  /// 快速验证出图 — 使用低成本配置
+  Future<void> proofGenerate(List<String> shotIds) async {
+    final pid = ref.read(currentProjectProvider).value?.id;
+    if (pid == null) return;
+    final config = ref.read(shotImageConfigProvider).toProofConfig();
 
     final updated = Map<String, ShotImageState>.from(state);
     for (final id in shotIds) {

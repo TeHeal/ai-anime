@@ -94,10 +94,24 @@ class AssetLocationsNotifier extends Notifier<AsyncValue<List<Location>>> {
     }
   }
 
-  /// 批量确认：逐条调用 confirm
-  Future<void> batchConfirm(List<String> ids) async {
-    for (final id in ids) {
-      await confirm(id);
+  /// 批量确认：调用批量接口
+  Future<int> batchConfirm(List<String> ids) async {
+    final pid = _projectId;
+    if (pid == null) return 0;
+    try {
+      final updatedList = await _svc.batchConfirm(pid, ids);
+      if (updatedList.isEmpty) return 0;
+
+      final idSet = updatedList.map((l) => l.id).whereType<String>().toSet();
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((l) => l.id != null && idSet.contains(l.id!)
+            ? updatedList.firstWhere((u) => u.id == l.id)
+            : l).toList(),
+      );
+      return updatedList.length;
+    } catch (e, _) {
+      rethrow;
     }
   }
 }

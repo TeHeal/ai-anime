@@ -8,6 +8,8 @@ import 'package:anime_ui/pub/widgets/asset_form_shell.dart';
 import 'package:anime_ui/pub/widgets/asset_input_field.dart';
 import 'package:anime_ui/pub/widgets/asset_section_label.dart';
 
+import 'package:anime_ui/pub/widgets/asset_upload_area.dart';
+
 /// 道具新建/编辑对话框
 class PropEditDialog extends StatefulWidget {
   const PropEditDialog({
@@ -29,6 +31,7 @@ class _PropEditDialogState extends State<PropEditDialog> {
   late final TextEditingController _name;
   late final TextEditingController _appearance;
   late bool _isKeyProp;
+  String _imageUrl = '';
 
   @override
   void initState() {
@@ -37,6 +40,7 @@ class _PropEditDialogState extends State<PropEditDialog> {
     _appearance =
         TextEditingController(text: widget.initial?.appearance ?? '');
     _isKeyProp = widget.initial?.isKeyProp ?? false;
+    _imageUrl = widget.initial?.imageUrl ?? '';
   }
 
   @override
@@ -52,6 +56,7 @@ class _PropEditDialogState extends State<PropEditDialog> {
       name: _name.text.trim(),
       appearance: _appearance.text.trim(),
       isKeyProp: _isKeyProp,
+      imageUrl: _imageUrl,
     );
     widget.onSave(prop);
     Navigator.pop(context);
@@ -73,6 +78,20 @@ class _PropEditDialogState extends State<PropEditDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            AssetUploadArea(
+              fileType: UploadFileType.image,
+              currentUrl: _imageUrl,
+              onUploaded: (url) => setState(() => _imageUrl = url),
+              onFileNameChanged: (fileName) {
+                if (_name.text.isEmpty) {
+                  setState(() => _name.text = fileName);
+                }
+              },
+              uploadCategory: 'prop',
+              label: _imageUrl.isEmpty ? '上传道具参考图' : '点击替换参考图',
+              height: 160.h,
+            ),
+            SizedBox(height: Spacing.md.h),
             AssetInputField(
               label: '道具名称',
               controller: _name,

@@ -190,6 +190,35 @@ func (s *Service) Confirm(propID, projectID, userID string) (*Prop, error) {
 	return p, nil
 }
 
+// BatchConfirm 批量确认道具
+func (s *Service) BatchConfirm(projectID, userID string, ids []string) ([]*Prop, error) {
+	if err := s.checkAssetEdit(projectID, userID); err != nil {
+		return nil, err
+	}
+	var out []*Prop
+	for _, id := range ids {
+		if s.frozenAssetChecker != nil {
+			inFrozen, err := s.frozenAssetChecker.IsAssetInFrozenVersion(projectID, "prop", id)
+			if err == nil && inFrozen {
+				continue
+			}
+		}
+		p, err := s.Get(id, projectID, userID)
+		if err != nil {
+			continue
+		}
+		p.Status = "confirmed"
+		if err := s.store.Update(p); err != nil {
+			return out, fmt.Errorf("更新道具 %s 状态失败: %w", id, err)
+		}
+		out = append(out, p)
+	}
+	if len(ids) > 0 && len(out) == 0 {
+		return nil, pkg.NewBizError("无道具可确认：请确认所选道具存在且资产未冻结")
+	}
+	return out, nil
+}
+
 // Delete 删除道具
 func (s *Service) Delete(propID, projectID, userID string) error {
 	if err := s.checkAssetEdit(projectID, userID); err != nil {

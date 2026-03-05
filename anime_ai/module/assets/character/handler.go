@@ -156,7 +156,11 @@ func (h *Handler) Confirm(c *gin.Context) {
 
 // BatchConfirm 批量确认
 func (h *Handler) BatchConfirm(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
+	if userIDStr == "" {
+		pkg.Unauthorized(c, "未登录或无效用户")
+		return
+	}
 
 	var req struct {
 		IDs []string `json:"ids" binding:"required"`
@@ -166,11 +170,12 @@ func (h *Handler) BatchConfirm(c *gin.Context) {
 		return
 	}
 
-	if err := h.svc.BatchConfirm(req.IDs, userID); err != nil {
+	chars, err := h.svc.BatchConfirmWithUserStr(req.IDs, userIDStr)
+	if err != nil {
 		pkg.HandleError(c, err)
 		return
 	}
-	pkg.OK(c, nil)
+	pkg.OK(c, chars)
 }
 
 // BatchSetStyle 批量设置风格

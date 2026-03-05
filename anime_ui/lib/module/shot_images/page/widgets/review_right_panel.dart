@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/models/shot.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
@@ -10,7 +11,7 @@ import 'package:anime_ui/pub/widgets/review_layout/review_status_panel.dart';
 
 /// 镜图审核右侧面板
 class ReviewRightPanel extends ConsumerWidget {
-  final dynamic shot;
+  final StoryboardShot? shot;
 
   const ReviewRightPanel({super.key, required this.shot});
 

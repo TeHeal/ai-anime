@@ -217,6 +217,12 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
     }
   }
 
+  void _handleFileNameChanged(String fileName) {
+    if (_nameCtrl.text.trim().isEmpty) {
+      _nameCtrl.text = fileName;
+    }
+  }
+
   void _addTag(String tag) {
     tag = tag.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
@@ -433,6 +439,7 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
           textPreview: _textPreview,
           onUploaded: (url) => setState(() => _uploadedUrl = url),
           onFileInfo: _applyFileInfo,
+          onFileNameChanged: _handleFileNameChanged,
           onTextContent: (content) {
             setState(() => _textPreview = content);
             if (_descCtrl.text.trim().isEmpty) {

@@ -13,9 +13,6 @@ class ReviewUiState {
   final String filterStatus;
   final bool editModeOverride;
   final bool editModeManuallySet;
-  final bool audioExpanded;
-  final bool imageExpanded;
-  final bool videoExpanded;
 
   const ReviewUiState({
     this.selectedEpisodeId,
@@ -23,9 +20,6 @@ class ReviewUiState {
     this.filterStatus = 'all',
     this.editModeOverride = false,
     this.editModeManuallySet = false,
-    this.audioExpanded = true,
-    this.imageExpanded = false,
-    this.videoExpanded = false,
   });
 
   ReviewUiState copyWith({
@@ -34,9 +28,6 @@ class ReviewUiState {
     String? filterStatus,
     bool? editModeOverride,
     bool? editModeManuallySet,
-    bool? audioExpanded,
-    bool? imageExpanded,
-    bool? videoExpanded,
   }) {
     return ReviewUiState(
       selectedEpisodeId: selectedEpisodeId != null
@@ -48,9 +39,6 @@ class ReviewUiState {
       filterStatus: filterStatus ?? this.filterStatus,
       editModeOverride: editModeOverride ?? this.editModeOverride,
       editModeManuallySet: editModeManuallySet ?? this.editModeManuallySet,
-      audioExpanded: audioExpanded ?? this.audioExpanded,
-      imageExpanded: imageExpanded ?? this.imageExpanded,
-      videoExpanded: videoExpanded ?? this.videoExpanded,
     );
   }
 }
@@ -87,18 +75,6 @@ class ReviewUiNotifier extends Notifier<ReviewUiState> {
       editModeOverride: editing,
       editModeManuallySet: true,
     );
-  }
-
-  void toggleAudioExpanded() {
-    state = state.copyWith(audioExpanded: !state.audioExpanded);
-  }
-
-  void toggleImageExpanded() {
-    state = state.copyWith(imageExpanded: !state.imageExpanded);
-  }
-
-  void toggleVideoExpanded() {
-    state = state.copyWith(videoExpanded: !state.videoExpanded);
   }
 
   void navigateShot(int delta) {

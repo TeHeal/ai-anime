@@ -70,6 +70,14 @@ class LocationService {
     return extractDataObject(resp, Location.fromJson);
   }
 
+  Future<List<Location>> batchConfirm(Object projectId, List<String> ids) async {
+    final resp = await dio.post(
+      '/projects/${projectId.toString()}/locations/batch-confirm',
+      data: {'ids': ids},
+    );
+    return extractDataList(resp, Location.fromJson);
+  }
+
   Future<void> delete(Object projectId, Object locId) async {
     await dio.delete('/projects/${projectId.toString()}/locations/${locId.toString()}');
   }

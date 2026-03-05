@@ -518,6 +518,8 @@ func New(cfg *config.Config) (*App, error) {
 		ProjectMemberReader: d.projectMemberReader,
 		TeamMemberReader:    d.teamMemberReader,
 		LockChecker:        d.lockChecker,
+		StaticBaseURL:      cfg.Storage.BaseURL,
+		StaticRoot:         cfg.Storage.LocalRoot,
 	}
 
 	port := os.Getenv("APP_APP_PORT")

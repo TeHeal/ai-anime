@@ -51,6 +51,17 @@ class _ShotImageReviewPageState extends ConsumerState<ShotImageReviewPage> {
 
   List<StoryboardShot> _allShots() => ref.watch(shotsProvider).value ?? [];
 
+  /// 按审核状态筛选
+  List<StoryboardShot> _filterShots(List<StoryboardShot> shots, String filter) {
+    return switch (filter) {
+      '待审' => shots.where((s) => s.reviewStatus == 'pending').toList(),
+      '通过' => shots.where((s) => s.reviewStatus == 'approved').toList(),
+      '修改' => shots.where((s) => s.reviewStatus == 'needsRevision').toList(),
+      '退回' => shots.where((s) => s.reviewStatus == 'rejected').toList(),
+      _ => shots,
+    };
+  }
+
   StoryboardShot? _currentShot(String? selectedShotId) {
     final shots = _allShots();
     if (selectedShotId == null && shots.isNotEmpty) return shots.first;
@@ -126,6 +137,9 @@ class _ShotImageReviewPageState extends ConsumerState<ShotImageReviewPage> {
         .where((s) => s.reviewStatus == 'approved')
         .length;
 
+    // 按筛选条件过滤侧边栏列表
+    final filteredShots = _filterShots(allShots, uiState.filterStatus);
+
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: _handleKeyEvent,
@@ -142,7 +156,7 @@ class _ShotImageReviewPageState extends ConsumerState<ShotImageReviewPage> {
           filterOptions: const ['全部', '待审', '通过', '修改', '退回'],
           activeFilter: uiState.filterStatus,
           onFilterChanged: (f) => uiNotifier.setFilterStatus(f),
-          shots: allShots
+          shots: filteredShots
               .map(
                 (s) => ShotNavItem(
                   id: s.id ?? '',

@@ -54,7 +54,12 @@ SELECT COUNT(*)::bigint FROM resources
 WHERE user_id = $1 AND deleted_at IS NULL
   AND ($2::text IS NULL OR modality = $2)
   AND ($3::text IS NULL OR library_type = $3)
-  AND ($4::jsonb IS NULL OR tags_json && $4::jsonb)
+  AND ($4::jsonb IS NULL OR EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements_text(tags_json) AS a,
+         jsonb_array_elements_text($4::jsonb) AS b
+    WHERE a.value = b.value
+  ))
   AND ($5::text IS NULL OR $5::text = '' OR (
     name ILIKE '%' || $5 || '%'
     OR description ILIKE '%' || $5 || '%'
@@ -212,7 +217,12 @@ SELECT id, created_at, updated_at, deleted_at, user_id, name, library_type, moda
 WHERE user_id = $1 AND deleted_at IS NULL
   AND ($2::text IS NULL OR modality = $2)
   AND ($3::text IS NULL OR library_type = $3)
-  AND ($4::jsonb IS NULL OR tags_json && $4::jsonb)
+  AND ($4::jsonb IS NULL OR EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements_text(tags_json) AS a,
+         jsonb_array_elements_text($4::jsonb) AS b
+    WHERE a.value = b.value
+  ))
   AND ($5::text IS NULL OR $5::text = '' OR (
     name ILIKE '%' || $5 || '%'
     OR description ILIKE '%' || $5 || '%'

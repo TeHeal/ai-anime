@@ -111,9 +111,10 @@ class CharacterService {
     return extractDataObject(resp, Character.fromJson);
   }
 
-  Future<void> batchConfirm(List<String> ids) async {
+  Future<List<Character>> batchConfirm(List<String> ids) async {
     final resp = await dio.post('/characters/batch-confirm', data: {'ids': ids});
-    extractData<dynamic>(resp);
+    final data = extractData<List<dynamic>>(resp, defaultValue: []);
+    return data.map((e) => Character.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<int> batchSetStyle(List<String> ids, String style) async {

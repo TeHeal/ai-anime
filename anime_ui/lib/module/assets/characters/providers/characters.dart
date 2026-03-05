@@ -256,12 +256,22 @@ class AssetCharactersNotifier extends Notifier<AsyncValue<List<Character>>> {
     }
   }
 
-  Future<void> batchConfirm(List<String> ids) async {
+  /// 批量确认：用接口返回的已更新角色列表合并到 state，与场景 confirm 行为一致，不 refetch
+  Future<int> batchConfirm(List<String> ids) async {
     try {
-      await _svc.batchConfirm(ids);
-      await load();
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      final updatedList = await _svc.batchConfirm(ids);
+      if (updatedList.isEmpty) return 0;
+      final idSet = updatedList.map((c) => c.id).whereType<String>().toSet();
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id != null && idSet.contains(ch.id!)
+            ? updatedList.firstWhere((u) => u.id == ch.id)
+            : ch).toList(),
+      );
+      return updatedList.length;
+    } catch (e, _) {
+      // 批量确认失败时保留原数据，仅 rethrow 供上层展示 toast
+      rethrow;
     }
   }
 }

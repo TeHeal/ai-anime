@@ -16,6 +16,7 @@ import 'package:anime_ui/module/script/providers/center_ui.dart';
 import 'package:anime_ui/module/script/providers/script_center.dart';
 import 'package:anime_ui/module/script/script_template.dart';
 import 'package:anime_ui/module/script/template_download.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 
 /// 脚本导入卡片 — 独立于配置卡片，与镜图导入保持一致布局
 ///
@@ -83,9 +84,11 @@ class _CenterImportCardState extends ConsumerState<CenterImportCard> {
       final selectedEp = await _showImportPreviewDialog(script, episodes);
       if (selectedEp == null || selectedEp.id == null) return;
 
+      final characters = ref.read(assetCharactersProvider).value ?? [];
+      final shotsToSet = backfillCharacterIds(script.shots, characters);
       ref
           .read(episodeShotsMapProvider.notifier)
-          .setShots(selectedEp.id!, script.shots);
+          .setShots(selectedEp.id!, shotsToSet);
       ref
           .read(episodeStatesProvider.notifier)
           .markCompleted(selectedEp.id!, script.shots.length);

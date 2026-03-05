@@ -1,96 +1,47 @@
 part of 'review_editor.dart';
 
 // ---------------------------------------------------------------------------
-// 通用表单组件（section、readField、editField、dropdown 等）
+// 原子级 UI 组件
 // ---------------------------------------------------------------------------
 
-Widget _section(String title, Widget child) {
+/// 预览模式下的图标 + 值胶囊
+Widget _iconChip(IconData icon, String value) {
   return Container(
-    decoration: BoxDecoration(
-      color: AppColors.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-      border: Border.all(color: AppColors.border),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader(title),
-        const Divider(height: 1, color: AppColors.divider),
-        Padding(padding: EdgeInsets.all(Spacing.lg.r), child: child),
-      ],
-    ),
-  );
-}
-
-Widget _sectionHeader(String title, {Widget? trailing}) {
-  return Padding(
     padding: EdgeInsets.symmetric(
-      horizontal: Spacing.lg.w,
-      vertical: Spacing.md.h,
+      horizontal: Spacing.chipPaddingH.w,
+      vertical: Spacing.chipPaddingV.h,
+    ),
+    decoration: BoxDecoration(
+      color: AppColors.surfaceVariant,
+      borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+      border: Border.all(
+        color: AppColors.border.withValues(alpha: 0.5),
+      ),
     ),
     child: Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
+        Icon(icon, size: 12.r, color: AppColors.muted),
+        SizedBox(width: Spacing.xs.w),
         Text(
-          title,
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.onSurface,
+          value.isNotEmpty ? value : '—',
+          style: AppTextStyles.labelMedium.copyWith(
+            color: value.isNotEmpty ? AppColors.onSurface : AppColors.mutedDark,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        if (trailing != null) ...[SizedBox(width: Spacing.sm.w), trailing],
       ],
     ),
   );
 }
 
-Widget _readField(String label, String value, {bool fullWidth = false}) {
+/// 只读属性展示（编辑模式下的时间轴等不可编辑字段）
+Widget _readOnlyChip(String label, String value) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (label.isNotEmpty)
-        Text(
-          label,
-          style: AppTextStyles.tiny.copyWith(
-            color: AppColors.onSurface.withValues(alpha: 0.5),
-          ),
-        ),
-      if (label.isNotEmpty) SizedBox(height: Spacing.xs.h),
-      Container(
-        width: fullWidth ? double.infinity : null,
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.md.w,
-          vertical: Spacing.badgeGap.h,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceVariant,
-          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Text(
-          value.isNotEmpty ? value : '—',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: value.isNotEmpty
-                ? AppColors.onSurface
-                : AppColors.onSurface.withValues(alpha: 0.5),
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _readChip(String label, String value) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        label,
-        style: AppTextStyles.tiny.copyWith(
-          color: AppColors.onSurface.withValues(alpha: 0.5),
-        ),
-      ),
+      Text(label, style: AppTextStyles.tiny.copyWith(color: AppColors.muted)),
       SizedBox(height: Spacing.xs.h),
       Container(
         padding: EdgeInsets.symmetric(
@@ -99,15 +50,12 @@ Widget _readChip(String label, String value) {
         ),
         decoration: BoxDecoration(
           color: AppColors.surfaceVariant,
-          borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
         ),
         child: Text(
-          value.isNotEmpty ? value : '—',
+          value,
           style: AppTextStyles.bodySmall.copyWith(
-            color: value.isNotEmpty
-                ? AppColors.onSurface
-                : AppColors.onSurface.withValues(alpha: 0.5),
-            fontWeight: FontWeight.w500,
+            color: AppColors.mutedLight,
           ),
         ),
       ),
@@ -115,60 +63,51 @@ Widget _readChip(String label, String value) {
   );
 }
 
-Widget _editField(
+/// 紧凑编辑输入框
+Widget _compactField(
   String label,
   String value, {
-  bool fullWidth = false,
-  int maxLines = 1,
-  Color? labelColor,
   ValueChanged<String>? onChanged,
 }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (label.isNotEmpty)
-        Text(
-          label,
-          style: AppTextStyles.tiny.copyWith(
-            color: labelColor ?? AppColors.onSurface.withValues(alpha: 0.5),
+      Text(label, style: AppTextStyles.tiny.copyWith(color: AppColors.muted)),
+      SizedBox(height: Spacing.xs.h),
+      TextFormField(
+        initialValue: value,
+        style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: Spacing.md.w,
+            vertical: Spacing.sm.h,
           ),
-        ),
-      if (label.isNotEmpty) SizedBox(height: Spacing.xs.h),
-      SizedBox(
-        width: fullWidth ? double.infinity : null,
-        child: TextFormField(
-          initialValue: value,
-          maxLines: maxLines,
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Spacing.md.w,
-              vertical: Spacing.sm.h,
-            ),
-            border: const OutlineInputBorder(),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.3),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.6),
-              ),
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceVariant,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
           ),
-          onChanged: onChanged,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            borderSide: const BorderSide(color: AppColors.inputBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            borderSide: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.5),
+            ),
+          ),
+          filled: true,
+          fillColor: AppColors.inputBackground,
         ),
+        onChanged: onChanged,
       ),
     ],
   );
 }
 
-Widget _dropdown(
+/// 紧凑下拉选择
+Widget _compactDropdown(
   String label,
   String value,
   List<String> options, {
@@ -179,12 +118,7 @@ Widget _dropdown(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(
-        label,
-        style: AppTextStyles.tiny.copyWith(
-          color: AppColors.onSurface.withValues(alpha: 0.5),
-        ),
-      ),
+      Text(label, style: AppTextStyles.tiny.copyWith(color: AppColors.muted)),
       SizedBox(height: Spacing.xs.h),
       DropdownButtonFormField<String>(
         initialValue: effectiveValue,
@@ -194,16 +128,17 @@ Widget _dropdown(
             horizontal: Spacing.md.w,
             vertical: Spacing.sm.h,
           ),
-          border: const OutlineInputBorder(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: AppColors.primary.withValues(alpha: 0.3),
-            ),
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            borderSide: const BorderSide(color: AppColors.inputBorder),
           ),
           filled: true,
-          fillColor: AppColors.surfaceVariant,
+          fillColor: AppColors.inputBackground,
         ),
-        dropdownColor: AppColors.surfaceContainer,
+        dropdownColor: AppColors.surfaceContainerHighest,
         items: options
             .map(
               (o) => DropdownMenuItem(
@@ -220,32 +155,111 @@ Widget _dropdown(
   );
 }
 
-Widget _miniField(String label, String value) {
+/// 带左侧装饰线的文本输入区——编辑和预览共享视觉
+Widget _accentTextBlock({
+  required String value,
+  required bool editing,
+  required Color accentColor,
+  String hint = '',
+  int maxLines = 3,
+  ValueChanged<String>? onChanged,
+}) {
+  return Container(
+    decoration: BoxDecoration(
+      border: Border(
+        left: BorderSide(color: accentColor, width: 3),
+      ),
+    ),
+    child: Container(
+      width: double.infinity,
+      padding: editing
+          ? EdgeInsets.zero
+          : EdgeInsets.symmetric(
+              horizontal: Spacing.md.w, vertical: Spacing.md.h),
+      margin: EdgeInsets.only(left: 1.w),
+      decoration: BoxDecoration(
+        color: editing
+            ? AppColors.inputBackground
+            : accentColor.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.horizontal(
+          right: Radius.circular(RadiusTokens.md.r),
+        ),
+      ),
+      child: editing
+          ? TextFormField(
+              initialValue: value,
+              maxLines: maxLines,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.onSurface,
+                height: 1.6,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: hint,
+                hintStyle: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.mutedDarker,
+                ),
+                contentPadding: EdgeInsets.all(Spacing.md.r),
+                border: InputBorder.none,
+              ),
+              onChanged: onChanged,
+            )
+          : Text(
+              value.isNotEmpty ? value : '—',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: value.isNotEmpty
+                    ? AppColors.onSurface
+                    : AppColors.mutedDarker,
+                height: 1.6,
+              ),
+            ),
+    ),
+  );
+}
+
+/// 行内带图标标签 + 装饰线文本块
+Widget _labeledBlock({
+  required IconData icon,
+  required String label,
+  required String value,
+  required bool editing,
+  Color accentColor = AppColors.muted,
+  String hint = '',
+  int maxLines = 1,
+  ValueChanged<String>? onChanged,
+}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(
-        label,
-        style: AppTextStyles.tiny.copyWith(
-          color: AppColors.onSurface.withValues(alpha: 0.5),
-        ),
+      Row(
+        children: [
+          Icon(icon, size: 12.r, color: accentColor),
+          SizedBox(width: Spacing.xs.w),
+          Text(
+            label,
+            style: AppTextStyles.tiny.copyWith(
+              color: accentColor,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
       ),
-      const SizedBox(height: Spacing.xs),
-      Text(
-        value.isNotEmpty ? value : '—',
-        style: AppTextStyles.labelMedium.copyWith(
-          color: value.isNotEmpty
-              ? AppColors.onSurface.withValues(alpha: 0.75)
-              : AppColors.onSurface.withValues(alpha: 0.4),
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+      SizedBox(height: Spacing.xs.h),
+      _accentTextBlock(
+        value: value,
+        editing: editing,
+        accentColor: accentColor,
+        hint: hint,
+        maxLines: maxLines,
+        onChanged: onChanged,
       ),
     ],
   );
 }
 
+/// 优先级徽章
 Widget _priorityBadge(String priority) {
   Color color;
   if (priority.contains('P0')) {
@@ -253,16 +267,16 @@ Widget _priorityBadge(String priority) {
   } else if (priority.contains('P1')) {
     color = AppColors.warning;
   } else {
-    color = AppColors.onSurface;
+    color = AppColors.muted;
   }
   return Container(
     padding: EdgeInsets.symmetric(
       horizontal: Spacing.sm.w,
-      vertical: Spacing.xs.h,
+      vertical: Spacing.xxs.h,
     ),
     decoration: BoxDecoration(
       color: color.withValues(alpha: 0.15),
-      borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+      borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
       border: Border.all(color: color.withValues(alpha: 0.3)),
     ),
     child: Text(
@@ -270,38 +284,8 @@ Widget _priorityBadge(String priority) {
       style: AppTextStyles.tiny.copyWith(
         color: color,
         fontWeight: FontWeight.w600,
+        letterSpacing: 0.3,
       ),
     ),
   );
 }
-Widget _countBadge(int count) {
-  return Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: Spacing.xs.w,
-      vertical: Spacing.dividerHeight.h,
-    ),
-    decoration: BoxDecoration(
-      color: AppColors.primary.withValues(alpha: 0.2),
-      borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-    ),
-    child: Text(
-      '$count',
-      style: AppTextStyles.tiny.copyWith(
-        color: AppColors.primary,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  );
-}
-
-Widget _enabledDot() {
-  return Container(
-    width: 6.w,
-    height: 6.h,
-    decoration: const BoxDecoration(
-      color: AppColors.success,
-      shape: BoxShape.circle,
-    ),
-  );
-}
-

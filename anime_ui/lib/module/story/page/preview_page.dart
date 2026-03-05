@@ -10,6 +10,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/providers/project_provider.dart';
+import 'package:anime_ui/module/script/providers/script.dart';
 import 'package:anime_ui/pub/services/script_parse_svc.dart';
 import 'package:anime_ui/pub/widgets/story_action_bar.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
@@ -182,6 +183,7 @@ class _StoryPreviewPageState extends ConsumerState<StoryPreviewPage> {
     final state = ref.read(parseStateProvider);
     if (state.phase == ParsePhase.done) {
       await ref.read(currentProjectProvider.notifier).refresh();
+      ref.invalidate(episodesProvider);
       if (mounted) {
         context.go(Routes.storyEdit);
       }

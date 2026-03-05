@@ -36,7 +36,8 @@ class StyleFormDialog extends ConsumerStatefulWidget {
     String negativePrompt,
     String refImagesJson,
     String thumbnailUrl,
-  ) onSave;
+  )
+  onSave;
 
   @override
   ConsumerState<StyleFormDialog> createState() => _StyleFormDialogState();
@@ -58,16 +59,16 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
   void initState() {
     super.initState();
     Future.microtask(
-        () => widget.ref.read(resourceListProvider.notifier).load());
+      () => widget.ref.read(resourceListProvider.notifier).load(),
+    );
     _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
-    _descCtrl =
-        TextEditingController(text: widget.existing?.description ?? '');
-    _negCtrl =
-        TextEditingController(text: widget.existing?.negativePrompt ?? '');
+    _descCtrl = TextEditingController(text: widget.existing?.description ?? '');
+    _negCtrl = TextEditingController(
+      text: widget.existing?.negativePrompt ?? '',
+    );
     if (widget.existing?.referenceImagesJson.isNotEmpty == true) {
       try {
-        final list =
-            jsonDecode(widget.existing!.referenceImagesJson) as List;
+        final list = jsonDecode(widget.existing!.referenceImagesJson) as List;
         for (final item in list) {
           final url = (item as Map<String, dynamic>)['url'] as String?;
           if (url != null && url.isNotEmpty) _refImageUrls.add(url);
@@ -196,16 +197,17 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
               maxLines: 2,
               onLibraryTap: (setText) => _showPromptLibrary(setText),
               negOnLibraryTap: (setText) => _showPromptLibrary(setText),
-              onSaveToLibrary:
-                  (text, name, {required bool isNegative}) async {
+              onSaveToLibrary: (text, name, {required bool isNegative}) async {
                 await widget.ref
                     .read(resourceListProvider.notifier)
-                    .addResource(Resource(
-                      name: name,
-                      libraryType: 'prompt',
-                      modality: 'text',
-                      description: text,
-                    ));
+                    .addResource(
+                      Resource(
+                        name: name,
+                        libraryType: 'prompt',
+                        modality: 'text',
+                        description: text,
+                      ),
+                    );
               },
             ),
             SizedBox(height: Spacing.lg.h),
@@ -275,8 +277,11 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
                     width: 72.w,
                     height: 72.h,
                     color: AppColors.surfaceMutedDark,
-                    child: Icon(AppIcons.brush,
-                        size: 24.r, color: AppColors.muted),
+                    child: Icon(
+                      AppIcons.brush,
+                      size: 24.r,
+                      color: AppColors.muted,
+                    ),
                   ),
                 ),
               ),
@@ -320,8 +325,11 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
           ),
           child: Column(
             children: [
-              Icon(AppIcons.upload,
-                  size: 28.r, color: _accent.withValues(alpha: 0.4)),
+              Icon(
+                AppIcons.upload,
+                size: 28.r,
+                color: _accent.withValues(alpha: 0.4),
+              ),
               SizedBox(height: Spacing.sm.h),
               Text(
                 '点击上传风格参考图',
@@ -358,8 +366,10 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
           children: [
             Icon(AppIcons.upload, size: 20.r, color: AppColors.muted),
             SizedBox(height: Spacing.xxs.h),
-            Text('上传',
-                style: AppTextStyles.tiny.copyWith(color: AppColors.muted)),
+            Text(
+              '上传',
+              style: AppTextStyles.tiny.copyWith(color: AppColors.muted),
+            ),
           ],
         ),
       ),

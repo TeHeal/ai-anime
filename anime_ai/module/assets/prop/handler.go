@@ -137,6 +137,31 @@ func (h *Handler) Confirm(c *gin.Context) {
 	pkg.OK(c, p)
 }
 
+// BatchConfirm 批量确认道具
+func (h *Handler) BatchConfirm(c *gin.Context) {
+	projectID := c.Param("id")
+	userID := pkg.GetUserIDStr(c)
+	if projectID == "" || userID == "" {
+		pkg.BadRequest(c, "无效的项目 ID 或用户")
+		return
+	}
+
+	var req struct {
+		IDs []string `json:"ids" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	props, err := h.svc.BatchConfirm(projectID, userID, req.IDs)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+	pkg.OK(c, props)
+}
+
 // Delete 删除道具
 func (h *Handler) Delete(c *gin.Context) {
 	projectID := c.Param("id")

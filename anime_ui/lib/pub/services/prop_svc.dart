@@ -58,6 +58,14 @@ class PropService {
     return extractDataObject(resp, Prop.fromJson);
   }
 
+  Future<List<Prop>> batchConfirm(Object projectId, List<String> ids) async {
+    final resp = await dio.post(
+      '/projects/${projectId.toString()}/asset-props/batch-confirm',
+      data: {'ids': ids},
+    );
+    return extractDataList(resp, Prop.fromJson);
+  }
+
   Future<void> delete(Object projectId, Object propId) async {
     await dio.delete('/projects/${projectId.toString()}/asset-props/${propId.toString()}');
   }

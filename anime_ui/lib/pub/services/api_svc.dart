@@ -29,19 +29,23 @@ final dio = Dio(
 
 /// Extracts `data` field from the unified backend response `{"code":0,"message":"ok","data":...}`.
 /// Throws [ApiException] when code != 0 or HTTP status indicates failure.
-T extractData<T>(Response response) {
+/// When [data] is null and [defaultValue] is provided, returns [defaultValue] instead of throwing.
+T extractData<T>(Response response, {T? defaultValue}) {
   final body = response.data;
   if (body is Map<String, dynamic>) {
     final code = body['code'] as int? ?? -1;
     if (code != 0) {
       throw ApiException(code, body['message'] as String? ?? 'Unknown error');
     }
-    return body['data'] as T;
+    final data = body['data'];
+    if (data == null && defaultValue != null) return defaultValue;
+    return data as T;
   }
   throw ApiException(-1, 'Unexpected response format');
 }
 
 /// Type-safe list extraction — eliminates `List<dynamic>` and `as Map` casts.
+/// When backend returns null for list data (e.g. empty project), treats it as empty list.
 ///
 /// ```dart
 /// final shots = extractDataList(resp, StoryboardShot.fromJson);
@@ -50,7 +54,7 @@ List<T> extractDataList<T>(
   Response response,
   T Function(Map<String, dynamic>) fromJson,
 ) {
-  final raw = extractData<List<dynamic>>(response);
+  final raw = extractData<List<dynamic>>(response, defaultValue: []);
   return raw.map((e) => fromJson(e as Map<String, dynamic>)).toList();
 }
 

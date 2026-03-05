@@ -553,14 +553,25 @@ func (s *Service) GenerateImage(ctx context.Context, userID string, req Generate
 	if err != nil {
 		return nil, fmt.Errorf("图生提交失败: %w", err)
 	}
-	result, err := s.imageGen.Query(ctx, taskID)
-	if err != nil {
-		return nil, fmt.Errorf("图生查询失败: %w", err)
+	// 轮询等待完成（最多 60 秒）
+	var thumbnailURL string
+	for i := 0; i < 30; i++ {
+		time.Sleep(2 * time.Second)
+		result, err = s.imageGen.Query(ctx, taskID)
+		if err != nil {
+			return nil, fmt.Errorf("图生查询失败: %w", err)
+		}
+		if result.Status == "completed" && len(result.URLs) > 0 {
+			thumbnailURL = result.URLs[0]
+			break
+		}
+		if result.Status == "failed" {
+			return nil, fmt.Errorf("%w: 图生失败: %s", pkg.ErrBadRequest, result.Error)
+		}
 	}
-	if result.Status != "completed" || len(result.URLs) == 0 {
-		return nil, fmt.Errorf("%w: 图生失败: %s", pkg.ErrBadRequest, result.Error)
+	if thumbnailURL == "" {
+		return nil, fmt.Errorf("%w: 图生超时", pkg.ErrBadRequest)
 	}
-	thumbnailURL := result.URLs[0]
 	name := req.Name
 	if name == "" {
 		name = "生成图片"

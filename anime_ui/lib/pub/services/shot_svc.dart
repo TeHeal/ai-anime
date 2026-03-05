@@ -101,7 +101,7 @@ class ShotService {
       if (width != null) 'width': width,
       if (height != null) 'height': height,
     });
-    final data = extractData<List<dynamic>>(resp);
+    final data = extractData<List<dynamic>>(resp, defaultValue: []);
     return data.cast<Map<String, dynamic>>();
   }
 
@@ -117,7 +117,7 @@ class ShotService {
       if (width != null) 'width': width,
       if (height != null) 'height': height,
     });
-    final data = extractData<List<dynamic>>(resp);
+    final data = extractData<List<dynamic>>(resp, defaultValue: []);
     return data.cast<Map<String, dynamic>>();
   }
 
@@ -133,7 +133,7 @@ class ShotService {
       if (model != null) 'model': model,
       if (duration != null) 'duration': duration,
     });
-    final data = extractData<List<dynamic>>(resp);
+    final data = extractData<List<dynamic>>(resp, defaultValue: []);
     return data.cast<Map<String, dynamic>>();
   }
 }

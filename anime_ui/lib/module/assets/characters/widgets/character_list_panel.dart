@@ -21,7 +21,7 @@ class CharacterListPanel extends ConsumerStatefulWidget {
   });
 
   final List<Character> characters;
-  final void Function(List<String> ids) onBatchConfirm;
+  final Future<void> Function(List<String> ids) onBatchConfirm;
   final VoidCallback? onBatchStyleDialog;
 
   @override
@@ -166,12 +166,15 @@ class _CharacterListPanelState extends ConsumerState<CharacterListPanel> {
                 OutlinedButton.icon(
                   onPressed: _selectedIds.isEmpty
                       ? null
-                      : () {
-                          widget.onBatchConfirm(_selectedIds.toList());
-                          setState(() {
-                            _selectedIds.clear();
-                            _multiSelect = false;
-                          });
+                      : () async {
+                          final ids = _selectedIds.toList();
+                          await widget.onBatchConfirm(ids);
+                          if (mounted) {
+                            setState(() {
+                              _selectedIds.clear();
+                              _multiSelect = false;
+                            });
+                          }
                         },
                   icon: Icon(AppIcons.check, size: 14.r),
                   label: Text(

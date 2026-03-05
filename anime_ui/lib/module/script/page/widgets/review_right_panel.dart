@@ -10,7 +10,7 @@ import 'package:anime_ui/module/script/providers/review_ui.dart';
 import 'package:anime_ui/module/script/providers/script_center.dart';
 
 // ---------------------------------------------------------------------------
-// 右栏：操作面板 (260px)
+// 右栏：审核操作面板（简洁化重构）
 // ---------------------------------------------------------------------------
 
 class ReviewRightPanel extends ConsumerWidget {
@@ -31,263 +31,33 @@ class ReviewRightPanel extends ConsumerWidget {
     return Container(
       color: AppColors.rightPanelBackground,
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(Spacing.lg.r),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.lg.w,
+          vertical: Spacing.xl.h,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 审核状态
-            Text(
-              '审核状态',
-              style: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
-              ),
-            ),
-            SizedBox(height: Spacing.md.h),
+            // ── 审核状态（紧凑按钮组） ──
             if (shot != null) ...[
-              _reviewRadio(
-                'pending',
-                '待审核',
-                AppColors.muted,
-                shot!.reviewStatus,
-              ),
-              _reviewRadio(
-                'approved',
-                '确认通过',
-                AppColors.success,
-                shot!.reviewStatus,
-              ),
-              _reviewRadio(
-                'needsRevision',
-                '需修改',
-                AppColors.warning,
-                shot!.reviewStatus,
-              ),
-              SizedBox(height: Spacing.md.h),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: shot!.reviewStatus == 'approved'
-                      ? null
-                      : () =>
-                            uiNotifier.setReview(shot!.shotNumber, 'approved'),
-                  icon: Icon(AppIcons.check, size: 16.r),
-                  label: const Text('确认通过'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.success,
-                    padding: EdgeInsets.symmetric(vertical: Spacing.md.h),
-                    textStyle: AppTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: Spacing.sm.h),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: shot!.reviewStatus == 'needsRevision'
-                      ? null
-                      : () => uiNotifier.setReview(
-                          shot!.shotNumber,
-                          'needsRevision',
-                        ),
-                  icon: Icon(
-                    AppIcons.warning,
-                    size: 16.r,
-                    color: AppColors.warning,
-                  ),
-                  label: Text(
-                    '标记需修改',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.warning,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.warning),
-                    padding: EdgeInsets.symmetric(vertical: Spacing.md.h),
-                    textStyle: AppTextStyles.bodySmall,
-                  ),
-                ),
-              ),
+              _buildReviewStatusCard(shot!, uiNotifier),
+              SizedBox(height: Spacing.lg.h),
             ],
 
-            const Divider(height: 24, color: AppColors.divider),
+            // ── 生成任务 ──
+            if (shot != null) ...[
+              _buildTaskTags(shot!),
+              SizedBox(height: Spacing.lg.h),
+            ],
 
-            // 审核备注
-            Text(
-              '审核备注',
-              style: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            TextField(
-              maxLines: 3,
-              style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.onSurface,
-              ),
-              decoration: InputDecoration(
-                hintText: '记录审核意见...',
-                hintStyle: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.mutedDarker,
-                ),
-                isDense: true,
-                contentPadding: EdgeInsets.all(Spacing.md.r),
-                border: const OutlineInputBorder(),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.border),
-                ),
-              ),
-            ),
+            // ── 批量操作 ──
+            _buildBatchActions(context, ref, allShots, uiState),
 
-            const Divider(height: 24, color: AppColors.divider),
+            SizedBox(height: Spacing.xl.h),
 
-            // 生成任务
-            Text(
-              '生成任务',
-              style: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            if (shot != null)
-              Wrap(
-                spacing: 6.w,
-                runSpacing: 6.h,
-                children: ['图像', '视频', 'TTS', 'BGM', '音效', '转场']
-                    .map(
-                      (task) =>
-                          _taskChip(task, shot!.generateTasks.contains(task)),
-                    )
-                    .toList(),
-              ),
-
-            const Divider(height: 24, color: AppColors.divider),
-
-            // 依赖关系
-            Text(
-              '依赖关系',
-              style: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            if (shot?.dependencies != null) ...[
-              Text(
-                '前置镜头: ${shot!.dependencies!.before.isEmpty ? "无" : shot!.dependencies!.before.map((n) => "#$n").join(", ")}',
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.muted,
-                ),
-              ),
-              const SizedBox(height: Spacing.xs),
-              Text(
-                '后置镜头: ${shot!.dependencies!.after.isEmpty ? "无" : shot!.dependencies!.after.map((n) => "#$n").join(", ")}',
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.muted,
-                ),
-              ),
-            ] else
-              Text(
-                '无',
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.mutedDarker,
-                ),
-              ),
-
-            const Divider(height: 24, color: AppColors.divider),
-
-            // 批量操作
-            Text(
-              '批量操作',
-              style: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
-              ),
-            ),
-            SizedBox(height: Spacing.md.h),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: allShots.isEmpty || uiState.selectedEpisodeId == null
-                    ? null
-                    : () {
-                        ref
-                            .read(episodeShotsMapProvider.notifier)
-                            .approveAll(uiState.selectedEpisodeId!);
-                        showToast(context, '本集全部镜头已确认通过');
-                      },
-                icon: Icon(AppIcons.check, size: 16.r),
-                label: const Text('一键全部通过'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: Spacing.md),
-                  textStyle: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: allShots.isEmpty
-                    ? null
-                    : () {
-                        final pending = allShots
-                            .where((s) => s.reviewStatus == 'pending')
-                            .map((s) => s.shotNumber)
-                            .toList();
-                        if (pending.isEmpty) {
-                          showToast(context, '没有待审核的镜头');
-                          return;
-                        }
-                        if (uiState.selectedEpisodeId != null) {
-                          ref
-                              .read(episodeShotsMapProvider.notifier)
-                              .batchApprove(
-                                uiState.selectedEpisodeId!,
-                                pending,
-                              );
-                        }
-                        showToast(context, '${pending.length} 个待审核镜头已确认通过');
-                      },
-                icon: Icon(AppIcons.check, size: 16.r),
-                label: const Text('通过全部待审核'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: Spacing.md),
-                  textStyle: AppTextStyles.labelMedium,
-                ),
-              ),
-            ),
-
-            const Divider(height: 24, color: AppColors.divider),
-
-            // 删除
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: shot == null || uiState.selectedEpisodeId == null
-                    ? null
-                    : () => _confirmDeleteShot(context, ref, shot!, uiState),
-                icon: Icon(AppIcons.delete, size: 14.r, color: AppColors.error),
-                label: Text(
-                  '删除镜头',
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: AppColors.error,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.error),
-                  padding: EdgeInsets.symmetric(vertical: Spacing.sm.h),
-                  textStyle: AppTextStyles.labelMedium,
-                ),
-              ),
-            ),
+            // ── 删除 ──
+            if (shot != null && uiState.selectedEpisodeId != null)
+              _buildDeleteButton(context, ref, shot!, uiState),
           ],
         ),
       ),
@@ -296,8 +66,386 @@ class ReviewRightPanel extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 私有辅助
+// 审核状态卡片
 // ---------------------------------------------------------------------------
+
+Widget _buildReviewStatusCard(ShotV4 shot, ReviewUiNotifier notifier) {
+  final status = shot.reviewStatus;
+  final statusInfo = _statusMeta(status);
+
+  return Container(
+    padding: EdgeInsets.all(Spacing.md.r),
+    decoration: BoxDecoration(
+      color: statusInfo.color.withValues(alpha: 0.06),
+      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+      border: Border.all(
+        color: statusInfo.color.withValues(alpha: 0.2),
+      ),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 当前状态指示
+        Row(
+          children: [
+            Container(
+              width: 8.w,
+              height: 8.h,
+              decoration: BoxDecoration(
+                color: statusInfo.color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: statusInfo.color.withValues(alpha: 0.4),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: Spacing.sm.w),
+            Text(
+              statusInfo.label,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: statusInfo.color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: Spacing.md.h),
+
+        // 操作按钮行
+        Row(
+          children: [
+            Expanded(
+              child: _statusActionBtn(
+                icon: AppIcons.check,
+                label: '通过',
+                color: AppColors.success,
+                active: status == 'approved',
+                onTap: status == 'approved'
+                    ? null
+                    : () => notifier.setReview(shot.shotNumber, 'approved'),
+              ),
+            ),
+            SizedBox(width: Spacing.sm.w),
+            Expanded(
+              child: _statusActionBtn(
+                icon: AppIcons.warning,
+                label: '修改',
+                color: AppColors.warning,
+                active: status == 'needsRevision',
+                onTap: status == 'needsRevision'
+                    ? null
+                    : () => notifier.setReview(
+                        shot.shotNumber, 'needsRevision'),
+              ),
+            ),
+            SizedBox(width: Spacing.sm.w),
+            Expanded(
+              child: _statusActionBtn(
+                icon: AppIcons.clock,
+                label: '待审',
+                color: AppColors.muted,
+                active: status == 'pending',
+                onTap: status == 'pending'
+                    ? null
+                    : () => notifier.setReview(shot.shotNumber, 'pending'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _statusActionBtn({
+  required IconData icon,
+  required String label,
+  required Color color,
+  required bool active,
+  VoidCallback? onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      padding: EdgeInsets.symmetric(
+        vertical: Spacing.sm.h,
+      ),
+      decoration: BoxDecoration(
+        color: active
+            ? color.withValues(alpha: 0.15)
+            : AppColors.surface.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+        border: Border.all(
+          color: active
+              ? color.withValues(alpha: 0.4)
+              : AppColors.border.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 14.r,
+            color: active ? color : AppColors.mutedDark,
+          ),
+          SizedBox(height: Spacing.xxs.h),
+          Text(
+            label,
+            style: AppTextStyles.tiny.copyWith(
+              color: active ? color : AppColors.mutedDark,
+              fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 生成任务标签
+// ---------------------------------------------------------------------------
+
+Widget _buildTaskTags(ShotV4 shot) {
+  const tasks = ['图像', '视频', 'TTS', 'BGM', '音效', '转场'];
+  final active = shot.generateTasks;
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        children: [
+          Icon(AppIcons.bolt, size: 12.r, color: AppColors.mutedDark),
+          SizedBox(width: Spacing.xs.w),
+          Text(
+            '生成任务',
+            style: AppTextStyles.tiny.copyWith(
+              color: AppColors.mutedDark,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+      SizedBox(height: Spacing.sm.h),
+      Wrap(
+        spacing: Spacing.xs.w,
+        runSpacing: Spacing.xs.h,
+        children: tasks.map((t) {
+          final on = active.contains(t);
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: Spacing.sm.w,
+              vertical: Spacing.xxs.h,
+            ),
+            decoration: BoxDecoration(
+              color: on
+                  ? AppColors.primary.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+              border: Border.all(
+                color: on
+                    ? AppColors.primary.withValues(alpha: 0.3)
+                    : AppColors.border.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Text(
+              t,
+              style: AppTextStyles.tiny.copyWith(
+                color: on ? AppColors.primary : AppColors.mutedDarker,
+                fontWeight: on ? FontWeight.w600 : FontWeight.normal,
+                fontSize: 10.sp,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    ],
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 批量操作
+// ---------------------------------------------------------------------------
+
+Widget _buildBatchActions(
+  BuildContext context,
+  WidgetRef ref,
+  List<ShotV4> allShots,
+  ReviewUiState uiState,
+) {
+  final pendingCount = allShots.where((s) => s.reviewStatus == 'pending').length;
+  final totalCount = allShots.length;
+  final approvedCount = allShots.where((s) => s.reviewStatus == 'approved').length;
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // 进度指示
+      if (totalCount > 0) ...[
+        Row(
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+                child: LinearProgressIndicator(
+                  value: totalCount > 0 ? approvedCount / totalCount : 0,
+                  backgroundColor: AppColors.surfaceVariant,
+                  valueColor: const AlwaysStoppedAnimation(AppColors.success),
+                  minHeight: 3.h,
+                ),
+              ),
+            ),
+            SizedBox(width: Spacing.sm.w),
+            Text(
+              '$approvedCount/$totalCount',
+              style: AppTextStyles.tiny.copyWith(
+                color: AppColors.muted,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: Spacing.md.h),
+      ],
+
+      // 按钮组
+      Row(
+        children: [
+          Expanded(
+            child: _batchBtn(
+              label: '全部通过',
+              icon: AppIcons.check,
+              color: AppColors.primary,
+              enabled: allShots.isNotEmpty &&
+                  uiState.selectedEpisodeId != null,
+              onTap: () {
+                ref
+                    .read(episodeShotsMapProvider.notifier)
+                    .approveAll(uiState.selectedEpisodeId!);
+                showToast(context, '本集全部镜头已确认通过');
+              },
+            ),
+          ),
+          SizedBox(width: Spacing.sm.w),
+          Expanded(
+            child: _batchBtn(
+              label: '通过待审 ($pendingCount)',
+              icon: AppIcons.checkOutline,
+              color: AppColors.mutedLight,
+              outlined: true,
+              enabled: pendingCount > 0 &&
+                  uiState.selectedEpisodeId != null,
+              onTap: () {
+                final pending = allShots
+                    .where((s) => s.reviewStatus == 'pending')
+                    .map((s) => s.shotNumber)
+                    .toList();
+                ref
+                    .read(episodeShotsMapProvider.notifier)
+                    .batchApprove(uiState.selectedEpisodeId!, pending);
+                showToast(context, '$pendingCount 个待审核镜头已确认通过');
+              },
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget _batchBtn({
+  required String label,
+  required IconData icon,
+  required Color color,
+  bool outlined = false,
+  required bool enabled,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: enabled ? onTap : null,
+    child: Container(
+      padding: EdgeInsets.symmetric(
+        vertical: Spacing.sm.h,
+        horizontal: Spacing.sm.w,
+      ),
+      decoration: BoxDecoration(
+        color: outlined
+            ? Colors.transparent
+            : (enabled
+                ? color.withValues(alpha: 0.12)
+                : AppColors.surfaceVariant.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+        border: Border.all(
+          color: enabled
+              ? color.withValues(alpha: 0.3)
+              : AppColors.border.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 14.r,
+            color: enabled ? color : AppColors.mutedDarker,
+          ),
+          SizedBox(height: Spacing.xxs.h),
+          Text(
+            label,
+            style: AppTextStyles.tiny.copyWith(
+              color: enabled ? color : AppColors.mutedDarker,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 删除
+// ---------------------------------------------------------------------------
+
+Widget _buildDeleteButton(
+  BuildContext context,
+  WidgetRef ref,
+  ShotV4 shot,
+  ReviewUiState uiState,
+) {
+  return Center(
+    child: GestureDetector(
+      onTap: () => _confirmDeleteShot(context, ref, shot, uiState),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: Spacing.sm.h),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              AppIcons.delete,
+              size: 12.r,
+              color: AppColors.mutedDarker,
+            ),
+            SizedBox(width: Spacing.xs.w),
+            Text(
+              '删除镜头',
+              style: AppTextStyles.tiny.copyWith(
+                color: AppColors.mutedDarker,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
 void _confirmDeleteShot(
   BuildContext context,
@@ -308,7 +456,17 @@ void _confirmDeleteShot(
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('确认删除'),
+      backgroundColor: AppColors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.card.r),
+      ),
+      title: Row(
+        children: [
+          Icon(AppIcons.warning, size: 18.r, color: AppColors.error),
+          SizedBox(width: Spacing.sm.w),
+          const Text('确认删除'),
+        ],
+      ),
       content: Text('确定要删除镜头 #${shot.shotNumber} 吗？此操作不可撤销。'),
       actions: [
         TextButton(
@@ -322,7 +480,9 @@ void _confirmDeleteShot(
                 .read(episodeShotsMapProvider.notifier)
                 .deleteShot(uiState.selectedEpisodeId!, shot.shotNumber);
             ref.read(reviewUiProvider.notifier).selectShot(null);
-            showToast(context, '已删除镜头 #${shot.shotNumber}');
+            if (ctx.mounted) {
+              showToast(context, '已删除镜头 #${shot.shotNumber}');
+            }
           },
           style: FilledButton.styleFrom(backgroundColor: AppColors.error),
           child: const Text('删除'),
@@ -332,59 +492,14 @@ void _confirmDeleteShot(
   );
 }
 
-Widget _reviewRadio(String value, String label, Color color, String current) {
-  final isActive = current == value;
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: Spacing.xxs.h),
-    child: Row(
-      children: [
-        Container(
-          width: Spacing.md.w,
-          height: Spacing.md.h,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive ? color : Colors.transparent,
-            border: Border.all(
-              color: isActive ? color : AppColors.mutedDarker,
-              width: 2,
-            ),
-          ),
-        ),
-        SizedBox(width: Spacing.sm.w),
-        Text(
-          label,
-          style: AppTextStyles.labelMedium.copyWith(
-            color: isActive ? color : AppColors.mutedDark,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-Widget _taskChip(String label, bool active) {
-  return Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: Spacing.md.w,
-      vertical: Spacing.xs.h,
-    ),
-    decoration: BoxDecoration(
-      color: active
-          ? AppColors.primary.withValues(alpha: 0.15)
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-      border: Border.all(
-        color: active
-            ? AppColors.primary.withValues(alpha: 0.5)
-            : AppColors.border,
-      ),
-    ),
-    child: Text(
-      label,
-      style: AppTextStyles.tiny.copyWith(
-        color: active ? AppColors.primary : AppColors.mutedDark,
-        fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-      ),
-    ),
-  );
-}
+// ---------------------------------------------------------------------------
+// 辅助
+// ---------------------------------------------------------------------------
 
+({String label, Color color}) _statusMeta(String status) {
+  return switch (status) {
+    'approved' => (label: '已确认通过', color: AppColors.success),
+    'needsRevision' => (label: '需要修改', color: AppColors.warning),
+    _ => (label: '待审核', color: AppColors.muted),
+  };
+}

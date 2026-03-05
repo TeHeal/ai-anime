@@ -204,10 +204,24 @@ final goRouter = GoRouter(
           ],
         ),
 
-        // ④ 镜图 Shot Images (2 Tab: 生成中心 / 审核编辑)
+        // ④ 镜图 Shot Images (4 Tab: 提示词工坊 / 快速验证 / 正式出图 / 审核编辑)
         ShellRoute(
           builder: (context, state, child) => ShotImagesPage(child: child),
           routes: [
+            GoRoute(
+              path: Routes.shotImagesWorkshop,
+              pageBuilder: (context, state) => sharedAxisPage(
+                child: const ShotImageWorkshopPage(),
+                state: state,
+              ),
+            ),
+            GoRoute(
+              path: Routes.shotImagesProof,
+              pageBuilder: (context, state) => sharedAxisPage(
+                child: const ShotImageProofPage(),
+                state: state,
+              ),
+            ),
             GoRoute(
               path: Routes.shotImagesCenter,
               pageBuilder: (context, state) => sharedAxisPage(

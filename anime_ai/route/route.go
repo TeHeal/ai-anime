@@ -76,10 +76,16 @@ type Config struct {
 	ProjectMemberReader  middleware.ProjectMemberReader
 	TeamMemberReader     middleware.TeamMemberReader
 	LockChecker          middleware.LockChecker
+	StaticBaseURL        string
+	StaticRoot           string
 }
 
 // Register 注册 HTTP 路由
 func Register(r *gin.Engine, cfg *Config) {
+	if cfg.StaticBaseURL != "" && cfg.StaticRoot != "" {
+		r.Static(cfg.StaticBaseURL, cfg.StaticRoot)
+	}
+
 	r.GET("/metrics", gin.WrapH(metrics.Handler()))
 	api := r.Group("/api/v1")
 	{
@@ -266,6 +272,7 @@ func Register(r *gin.Engine, cfg *Config) {
 					projectScoped.PUT("/locations/:locId", middleware.RequireAction(auth.ActionAssetEdit), cfg.LocationHandler.Update)
 					projectScoped.DELETE("/locations/:locId", middleware.RequireAction(auth.ActionAssetEdit), cfg.LocationHandler.Delete)
 					projectScoped.POST("/locations/:locId/confirm", middleware.RequireAction(auth.ActionAssetEdit), cfg.LocationHandler.Confirm)
+					projectScoped.POST("/locations/batch-confirm", middleware.RequireAction(auth.ActionAssetEdit), cfg.LocationHandler.BatchConfirm)
 					projectScoped.POST("/locations/:locId/generate-image", middleware.RequireAction(auth.ActionGenerate), cfg.LocationHandler.GenerateImage)
 				}
 				if cfg.PropHandler != nil {
@@ -275,6 +282,7 @@ func Register(r *gin.Engine, cfg *Config) {
 					projectScoped.PUT("/asset-props/:propId", middleware.RequireAction(auth.ActionAssetEdit), cfg.PropHandler.Update)
 					projectScoped.DELETE("/asset-props/:propId", middleware.RequireAction(auth.ActionAssetEdit), cfg.PropHandler.Delete)
 					projectScoped.POST("/asset-props/:propId/confirm", middleware.RequireAction(auth.ActionAssetEdit), cfg.PropHandler.Confirm)
+					projectScoped.POST("/asset-props/batch-confirm", middleware.RequireAction(auth.ActionAssetEdit), cfg.PropHandler.BatchConfirm)
 				}
 				if cfg.StyleHandler != nil {
 					projectScoped.GET("/styles", cfg.StyleHandler.List)
