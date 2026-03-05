@@ -23,7 +23,6 @@ Future<T?> showResourceFormDialog<T>(
   required ResourceLibraryType libraryType,
   required Color accentColor,
   Resource? initial,
-  AddMode? initialMode,
 }) {
   return showDialog<T>(
     context: context,
@@ -32,7 +31,6 @@ Future<T?> showResourceFormDialog<T>(
       accentColor: accentColor,
       initial: initial,
       ref: ref,
-      initialMode: initialMode,
     ),
   );
 }
@@ -48,7 +46,6 @@ void showResourceUploadDialog(
     ref,
     libraryType: libraryType,
     accentColor: accentColor,
-    initialMode: AddMode.upload,
   );
 }
 
@@ -58,52 +55,50 @@ class _ResourceFormDialog extends ConsumerStatefulWidget {
     required this.accentColor,
     this.initial,
     required this.ref,
-    this.initialMode,
   });
 
   final ResourceLibraryType libraryType;
   final Color accentColor;
   final Resource? initial;
   final WidgetRef ref;
-  final AddMode? initialMode;
 
   @override
   ConsumerState<_ResourceFormDialog> createState() =>
       _ResourceFormDialogState();
 }
 
-class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
-    with SingleTickerProviderStateMixin {
+class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
   @override
   WidgetRef get ref => widget.ref;
-  late TabController _tabCtrl;
   late TextEditingController _nameCtrl;
   late TextEditingController _descCtrl;
   late TextEditingController _tagInputCtrl;
 
   final _metaValues = <String, String>{};
+  final _customMeta = <String, String>{};
   List<String> _tags = [];
   String _uploadedUrl = '';
+  String _textPreview = '';
   bool _saving = false;
 
   bool get isEdit => widget.initial != null;
   Color get accent => widget.accentColor;
   List<MetaFieldDef> get schema =>
       ResourceMetaSchema.forLibrary(widget.libraryType);
+  ResourceModality get _modality => widget.libraryType.modality;
+  bool get _isVisual => _modality == ResourceModality.visual;
+  bool get _isAudio => _modality == ResourceModality.audio;
+  bool get _isText => _modality == ResourceModality.text;
+
+  UploadFileType get _uploadFileType => switch (_modality) {
+        ResourceModality.visual => UploadFileType.image,
+        ResourceModality.audio => UploadFileType.audio,
+        ResourceModality.text => UploadFileType.text,
+      };
 
   @override
   void initState() {
     super.initState();
-    final modes = widget.libraryType.uploadModes;
-    final initialIndex = widget.initialMode != null
-        ? modes.indexOf(widget.initialMode!).clamp(0, modes.length - 1)
-        : 0;
-    _tabCtrl = TabController(
-      length: modes.length,
-      vsync: this,
-      initialIndex: initialIndex,
-    );
-
     final r = widget.initial;
     _nameCtrl = TextEditingController(text: r?.name ?? '');
     _descCtrl = TextEditingController(text: r?.description ?? '');
@@ -116,6 +111,8 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
       for (final entry in meta.entries) {
         if (schema.any((f) => f.key == entry.key)) {
           _metaValues[entry.key] = '${entry.value}';
+        } else {
+          _customMeta[entry.key] = '${entry.value}';
         }
       }
     }
@@ -123,7 +120,6 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
 
   @override
   void dispose() {
-    _tabCtrl.dispose();
     _nameCtrl.dispose();
     _descCtrl.dispose();
     _tagInputCtrl.dispose();
@@ -135,6 +131,11 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
     for (final entry in _metaValues.entries) {
       if (entry.value.isNotEmpty) map[entry.key] = entry.value;
     }
+    for (final entry in _customMeta.entries) {
+      if (entry.key.isNotEmpty && entry.value.isNotEmpty) {
+        map[entry.key] = entry.value;
+      }
+    }
     return map;
   }
 
@@ -143,6 +144,16 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('请输入素材名称')),
+      );
+      return;
+    }
+    // 非编辑模式下，视觉/音频类必须上传文件
+    if (!isEdit && !_isText && _uploadedUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isVisual ? '请先上传图片' : '请先上传音频文件'),
+          backgroundColor: AppColors.warning,
+        ),
       );
       return;
     }
@@ -191,6 +202,17 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
     }
   }
 
+  void _applyFileInfo(UploadFileInfo info) {
+    if (_nameCtrl.text.trim().isEmpty) {
+      _nameCtrl.text = info.fileName;
+    }
+    if (info.resolution != null &&
+        schema.any((f) => f.key == 'resolution')) {
+      _metaValues['resolution'] = info.resolution!;
+      setState(() {});
+    }
+  }
+
   void _addTag(String tag) {
     tag = tag.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
@@ -199,49 +221,41 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
     _tagInputCtrl.clear();
   }
 
-  bool get _isVisual =>
-      widget.libraryType.modality == ResourceModality.visual;
-
   @override
   Widget build(BuildContext context) {
-    final modes = widget.libraryType.uploadModes;
     return Dialog(
       backgroundColor: AppColors.surfaceContainer,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
       ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: _isVisual ? 700.w : 560.w,
-          maxHeight: 700.h,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            if (!isEdit && modes.length > 1) _buildModeTabs(modes),
-            Flexible(
-              child: isEdit
-                  ? _buildEditBody()
-                  : TabBarView(
-                      controller: _tabCtrl,
-                      children: modes.map(_buildModeBody).toList(),
-                    ),
+      child: LayoutBuilder(
+        builder: (context, dialogConstraints) {
+          final isWide = dialogConstraints.maxWidth >= Breakpoints.md;
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: isWide ? 820.w : 620.w,
+              maxHeight: 720.h,
             ),
-            _buildFooter(),
-          ],
-        ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildHeader(),
+                Flexible(child: isWide ? _buildTwoColumnBody() : _buildBody()),
+                _buildFooter(),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
+  // ─────────────────── 头部 ───────────────────
+
   Widget _buildHeader() {
     return Container(
       padding: EdgeInsets.fromLTRB(
-        Spacing.xl.w,
-        Spacing.lg.h,
-        Spacing.md.w,
-        Spacing.md.h,
+        Spacing.xl.w, Spacing.lg.h, Spacing.md.w, Spacing.md.h,
       ),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.border)),
@@ -263,7 +277,7 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
               children: [
                 Text(
                   isEdit ? '编辑素材' : '添加素材',
-                  style: AppTextStyles.h3.copyWith(
+                  style: AppTextStyles.h4.copyWith(
                     color: AppColors.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
@@ -271,7 +285,7 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
                 SizedBox(height: Spacing.xxs.h),
                 Text(
                   widget.libraryType.label,
-                  style: AppTextStyles.bodySmall.copyWith(color: accent),
+                  style: AppTextStyles.caption.copyWith(color: accent),
                 ),
               ],
             ),
@@ -285,47 +299,9 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
     );
   }
 
-  Widget _buildModeTabs(List<AddMode> modes) {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border)),
-      ),
-      child: TabBar(
-        controller: _tabCtrl,
-        indicatorColor: accent,
-        labelColor: accent,
-        unselectedLabelColor: AppColors.muted,
-        labelStyle:
-            AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w600),
-        tabs: modes.map((m) {
-          return Tab(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  m == AddMode.upload
-                      ? AppIcons.upload
-                      : m == AddMode.aiGenerate
-                          ? AppIcons.magicStick
-                          : AppIcons.edit,
-                  size: 16.r,
-                ),
-                SizedBox(width: Spacing.xs.w),
-                Text(m == AddMode.upload
-                    ? '上传文件'
-                    : m == AddMode.aiGenerate
-                        ? 'AI 生成'
-                        : '手动填写'),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
+  // ─────────────────── 表单主体 ───────────────────
 
-  Widget _buildModeBody(AddMode mode) {
-    final isVisualUpload = mode == AddMode.upload && _isVisual;
+  Widget _buildBody() {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
         horizontal: Spacing.xl.w,
@@ -334,149 +310,245 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isVisualUpload)
-            _buildVisualUploadRow()
-          else ...[
-            if (mode == AddMode.upload) _buildUploadSection(),
-            _buildBasicFields(),
-          ],
-          _buildTagSection(),
-          if (schema.isNotEmpty) _buildSchemaSection(),
-        ],
-      ),
-    );
-  }
-
-  /// 视觉类素材双栏布局：左侧上传预览 + 右侧名称/描述
-  Widget _buildVisualUploadRow() {
-    return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.lg.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 220.w,
-            child: ResourceUploadArea(
-              accentColor: accent,
-              fileType: UploadFileType.image,
-              currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
-              onUploaded: (url) => setState(() => _uploadedUrl = url),
-              height: 200.h,
-            ),
+          _buildUploadSection(),
+          SizedBox(height: Spacing.lg.h),
+          _buildNameField(),
+          SizedBox(height: Spacing.md.h),
+          ResourceTagEditor(
+            tags: _tags,
+            tagInputController: _tagInputCtrl,
+            accentColor: accent,
+            onTagAdded: _addTag,
+            onTagRemoved: (tag) => setState(() => _tags.remove(tag)),
           ),
-          SizedBox(width: Spacing.lg.w),
-          Expanded(child: _buildBasicFields()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEditBody() {
-    final isAudio = widget.libraryType.modality == ResourceModality.audio;
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: Spacing.xl.w,
-        vertical: Spacing.lg.h,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_isVisual) ...[
-            Padding(
-              padding: EdgeInsets.only(bottom: Spacing.lg.h),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 220.w,
-                    child: ResourceUploadArea(
-                      accentColor: accent,
-                      fileType: UploadFileType.image,
-                      currentUrl:
-                          _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
-                      label: '点击替换图片',
-                      onUploaded: (url) =>
-                          setState(() => _uploadedUrl = url),
-                      height: 200.h,
-                    ),
-                  ),
-                  SizedBox(width: Spacing.lg.w),
-                  Expanded(child: _buildBasicFields()),
-                ],
-              ),
+          if (schema.isNotEmpty) ...[
+            ResourceSchemaSection(
+              schema: schema,
+              metaValues: _metaValues,
+              accentColor: accent,
+              availableValues: ref.read(availableMetaValuesProvider),
+              onChanged: (key, value) =>
+                  setState(() => _metaValues[key] = value),
             ),
-          ] else ...[
-            if (isAudio) ...[
-              ResourceUploadArea(
-                accentColor: accent,
-                fileType: UploadFileType.audio,
-                currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
-                label: '点击替换音频',
-                onUploaded: (url) => setState(() => _uploadedUrl = url),
-              ),
-              SizedBox(height: Spacing.lg.h),
-            ],
-            _buildBasicFields(),
           ],
-          _buildTagSection(),
-          if (schema.isNotEmpty) _buildSchemaSection(),
+          _buildCustomMetaSection(),
         ],
       ),
     );
   }
 
-  Widget _buildUploadSection() {
-    final isAudio = widget.libraryType.modality == ResourceModality.audio;
-    return Column(
+  // ─────────────────── 双列布局（宽屏） ───────────────────
+
+  Widget _buildTwoColumnBody() {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ResourceUploadArea(
-          accentColor: accent,
-          fileType: isAudio ? UploadFileType.audio : UploadFileType.image,
-          currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
-          onUploaded: (url) => setState(() => _uploadedUrl = url),
+        // 左列：上传 + 名称 + 标签 + 自定义元数据
+        Expanded(
+          flex: 5,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              Spacing.xl.w, Spacing.lg.h, Spacing.md.w, Spacing.lg.h,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildUploadSection(),
+                SizedBox(height: Spacing.lg.h),
+                _buildNameField(),
+                SizedBox(height: Spacing.md.h),
+                ResourceTagEditor(
+                  tags: _tags,
+                  tagInputController: _tagInputCtrl,
+                  accentColor: accent,
+                  onTagAdded: _addTag,
+                  onTagRemoved: (tag) => setState(() => _tags.remove(tag)),
+                ),
+                _buildCustomMetaSection(),
+              ],
+            ),
+          ),
         ),
-        SizedBox(height: Spacing.lg.h),
+        // 分隔线
+        Container(
+          width: 1,
+          color: AppColors.border.withValues(alpha: 0.4),
+        ),
+        // 右列：属性 + 提示词
+        Expanded(
+          flex: 6,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              Spacing.md.w, Spacing.lg.h, Spacing.xl.w, Spacing.lg.h,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (schema.isNotEmpty)
+                  ResourceSchemaSection(
+                    schema: schema,
+                    metaValues: _metaValues,
+                    accentColor: accent,
+                    availableValues: ref.read(availableMetaValuesProvider),
+                    onChanged: (key, value) =>
+                        setState(() => _metaValues[key] = value),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildBasicFields() {
-    return ResourceBasicFields(
-      nameController: _nameCtrl,
-      descController: _descCtrl,
-      accentColor: accent,
-      libraryType: widget.libraryType,
+  // ─────────────────── 上传区 ───────────────────
+
+  Widget _buildUploadSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel('上传文件', required: !isEdit && !_isText),
+        SizedBox(height: Spacing.sm.h),
+        ResourceUploadArea(
+          accentColor: accent,
+          fileType: _uploadFileType,
+          currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
+          label: isEdit
+              ? (_isVisual ? '点击替换图片' : _isAudio ? '点击替换音频' : '点击替换文件')
+              : null,
+          height: _isVisual ? 160.h : null,
+          textPreview: _textPreview,
+          onUploaded: (url) => setState(() => _uploadedUrl = url),
+          onFileInfo: _applyFileInfo,
+          onTextContent: (content) {
+            setState(() => _textPreview = content);
+            if (_descCtrl.text.trim().isEmpty) {
+              _descCtrl.text = content;
+            }
+          },
+        ),
+      ],
     );
   }
 
-  Widget _buildTagSection() {
-    return ResourceTagEditor(
-      tags: _tags,
-      tagInputController: _tagInputCtrl,
-      accentColor: accent,
-      onTagAdded: _addTag,
-      onTagRemoved: (tag) => setState(() => _tags.remove(tag)),
+  // ─────────────────── 名称 ───────────────────
+
+  Widget _buildNameField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel('名称', required: true),
+        SizedBox(height: Spacing.xs.h),
+        TextField(
+          controller: _nameCtrl,
+          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+          decoration: _inputDeco('输入素材名称'),
+        ),
+      ],
     );
   }
 
-  Widget _buildSchemaSection() {
-    return ResourceSchemaSection(
-      schema: schema,
-      metaValues: _metaValues,
-      accentColor: accent,
-      availableValues: ref.read(availableMetaValuesProvider),
-      onChanged: (key, value) => setState(() => _metaValues[key] = value),
+  /// 输入框装饰：深底凹陷 + 圆角微边框
+  InputDecoration _inputDeco(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
+      filled: true,
+      fillColor: AppColors.inputBackground.withValues(alpha: 0.6),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: Spacing.sm.w,
+        vertical: Spacing.sm.h,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.3)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+        borderSide: BorderSide(color: accent.withValues(alpha: 0.6)),
+      ),
     );
   }
+
+  // ─────────────────── 自定义元数据 ───────────────────
+
+  Widget _buildCustomMetaSection() {
+    return ExpansionTile(
+      initiallyExpanded: true,
+      controlAffinity: ListTileControlAffinity.leading,
+      collapsedIconColor: AppColors.muted,
+      iconColor: accent,
+      tilePadding: EdgeInsets.zero,
+      title: Row(
+        children: [
+          Text(
+            '自定义属性',
+            style: AppTextStyles.labelMedium.copyWith(
+              color: AppColors.mutedLight,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (_customMeta.isNotEmpty) ...[
+            SizedBox(width: Spacing.xs.w),
+            Text(
+              '(${_customMeta.length})',
+              style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+            ),
+          ],
+        ],
+      ),
+      children: [
+        Padding(
+          padding: EdgeInsets.only(bottom: Spacing.md.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ..._customMeta.entries.map(
+                (e) => _CustomMetaRow(
+                  key: ValueKey(e.key),
+                  fieldKey: e.key,
+                  fieldValue: e.value,
+                  accentColor: accent,
+                  onUpdate: (k, v) {
+                    setState(() {
+                      _customMeta.remove(e.key);
+                      _customMeta[k] = v;
+                    });
+                  },
+                  onRemove: () => setState(() => _customMeta.remove(e.key)),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  final key =
+                      'field_${DateTime.now().millisecondsSinceEpoch}';
+                  setState(() => _customMeta[key] = '');
+                },
+                icon: Icon(AppIcons.add, size: 14.r, color: accent),
+                label: Text(
+                  '添加字段',
+                  style: AppTextStyles.bodySmall.copyWith(color: accent),
+                ),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.sm.w,
+                    vertical: Spacing.xs.h,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────── 底部 ───────────────────
 
   Widget _buildFooter() {
     return Container(
       padding: EdgeInsets.fromLTRB(
-        Spacing.xl.w,
-        Spacing.md.h,
-        Spacing.xl.w,
-        Spacing.lg.h,
+        Spacing.xl.w, Spacing.md.h, Spacing.xl.w, Spacing.lg.h,
       ),
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: AppColors.border)),
@@ -494,8 +566,7 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
             ),
             child: Text(
               '取消',
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: AppColors.muted),
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
             ),
           ),
           SizedBox(width: Spacing.md.w),
@@ -524,10 +595,7 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        isEdit ? AppIcons.save : AppIcons.add,
-                        size: 16.r,
-                      ),
+                      Icon(isEdit ? AppIcons.save : AppIcons.add, size: 16.r),
                       SizedBox(width: Spacing.xs.w),
                       Text(isEdit ? '保存' : '创建'),
                     ],
@@ -537,4 +605,139 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog>
       ),
     );
   }
+
+  // ─────────────────── 工具方法 ───────────────────
+
+  Widget _buildSectionLabel(String text, {bool required = false}) {
+    return Row(
+      children: [
+        Container(
+          width: 3.w,
+          height: 13.h,
+          decoration: BoxDecoration(
+            color: accent,
+            borderRadius: BorderRadius.circular(2.r),
+          ),
+        ),
+        SizedBox(width: Spacing.sm.w),
+        Text(
+          text,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: AppColors.mutedLight,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        if (required) ...[
+          SizedBox(width: Spacing.xxs.w),
+          Text('*', style: AppTextStyles.labelMedium.copyWith(color: AppColors.error)),
+        ],
+      ],
+    );
+  }
+}
+
+/// 自定义元数据行
+class _CustomMetaRow extends StatefulWidget {
+  const _CustomMetaRow({
+    super.key,
+    required this.fieldKey,
+    required this.fieldValue,
+    required this.accentColor,
+    required this.onUpdate,
+    required this.onRemove,
+  });
+
+  final String fieldKey;
+  final String fieldValue;
+  final Color accentColor;
+  final void Function(String key, String value) onUpdate;
+  final VoidCallback onRemove;
+
+  @override
+  State<_CustomMetaRow> createState() => _CustomMetaRowState();
+}
+
+class _CustomMetaRowState extends State<_CustomMetaRow> {
+  late TextEditingController _keyCtrl;
+  late TextEditingController _valueCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _keyCtrl = TextEditingController(text: widget.fieldKey);
+    _valueCtrl = TextEditingController(text: widget.fieldValue);
+  }
+
+  @override
+  void dispose() {
+    _keyCtrl.dispose();
+    _valueCtrl.dispose();
+    super.dispose();
+  }
+
+  void _sync() {
+    final k = _keyCtrl.text.trim();
+    final v = _valueCtrl.text.trim();
+    if (k.isNotEmpty && (k != widget.fieldKey || v != widget.fieldValue)) {
+      widget.onUpdate(k, v);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: Spacing.sm.h),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: TextField(
+              controller: _keyCtrl,
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+              decoration: _deco('Key'),
+              onChanged: (_) => _sync(),
+            ),
+          ),
+          SizedBox(width: Spacing.sm.w),
+          Expanded(
+            flex: 3,
+            child: TextField(
+              controller: _valueCtrl,
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+              decoration: _deco('Value'),
+              onChanged: (_) => _sync(),
+            ),
+          ),
+          IconButton(
+            icon: Icon(AppIcons.close, size: 16.r, color: AppColors.muted),
+            onPressed: widget.onRemove,
+            tooltip: '移除',
+            style: IconButton.styleFrom(
+              padding: EdgeInsets.all(Spacing.xs.r),
+              minimumSize: Size(28.r, 28.r),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _deco(String hint) => InputDecoration(
+        hintText: hint,
+        hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
+        filled: true,
+        fillColor: AppColors.inputBackground.withValues(alpha: 0.6),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: Spacing.sm.w,
+          vertical: Spacing.sm.h,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+          borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+          borderSide: BorderSide(color: widget.accentColor.withValues(alpha: 0.6)),
+        ),
+      );
 }

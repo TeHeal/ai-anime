@@ -5,6 +5,8 @@ part of 'review_editor.dart';
 // ---------------------------------------------------------------------------
 
 Widget _buildScenePromptCard(
+  BuildContext context,
+  WidgetRef ref,
   ShotV4 shot,
   bool editing,
   ReviewUiNotifier notifier,
@@ -70,26 +72,108 @@ Widget _buildScenePromptCard(
                 ),
                 SizedBox(height: Spacing.sm.h),
                 editing
-                    ? _editField(
-                        '提示词',
-                        shot.aiPrompt,
-                        fullWidth: true,
-                        maxLines: 4,
+                    ? PromptFieldWithAssistant(
+                        value: shot.aiPrompt,
                         onChanged: (v) => notifier.updateCurrentShot(
                           (s) => s.copyWith(aiPrompt: v),
                         ),
+                        hint:
+                            '描述角色外貌、服装、发型、表情，如：银发少女，蓝眼睛，穿白色连衣裙…',
+                        accent: AppColors.primary,
+                        label: '提示词',
+                        maxLines: 4,
+                        onLibraryTap: (setText) {
+                          final promptsAsync =
+                              ref.read(promptResourcesProvider);
+                          promptsAsync.when(
+                            data: (prompts) => showPromptLibrary(
+                              context,
+                              prompts: prompts,
+                              accent: AppColors.primary,
+                              onSelected: setText,
+                            ),
+                            loading: () => showToast(
+                              context,
+                              '正在加载提示词库…',
+                              isInfo: true,
+                            ),
+                            error: (e, _) => showToast(
+                              context,
+                              '提示词库加载失败',
+                              isError: true,
+                            ),
+                          );
+                        },
+                        onSaveToLibrary:
+                            (text, name, {required bool isNegative}) async {
+                          await ref
+                              .read(resourceListProvider.notifier)
+                              .addResource(
+                                Resource(
+                                  name: name,
+                                  libraryType: 'prompt',
+                                  modality: 'text',
+                                  description: text,
+                                ),
+                              );
+                          if (context.mounted) {
+                            showToast(context, '已保存到提示词库');
+                          }
+                        },
                       )
                     : _promptBlock(shot.aiPrompt),
                 SizedBox(height: Spacing.md.h),
                 editing
-                    ? _editField(
-                        '反向提示词',
-                        shot.negativePrompt,
-                        fullWidth: true,
-                        labelColor: AppColors.error.withValues(alpha: 0.8),
+                    ? PromptFieldWithAssistant(
+                        value: shot.negativePrompt,
                         onChanged: (v) => notifier.updateCurrentShot(
                           (s) => s.copyWith(negativePrompt: v),
                         ),
+                        hint: '不想出现的元素，如：模糊、变形、低质量…',
+                        accent: AppColors.primary,
+                        label: '反向提示词（选填）',
+                        negOnly: true,
+                        maxLines: 2,
+                        onLibraryTap: (setText) {
+                          final promptsAsync =
+                              ref.read(promptResourcesProvider);
+                          promptsAsync.when(
+                            data: (prompts) => showPromptLibrary(
+                              context,
+                              prompts: prompts,
+                              accent: AppColors.primary,
+                              onSelected: setText,
+                            ),
+                            loading: () => showToast(
+                              context,
+                              '正在加载提示词库…',
+                              isInfo: true,
+                            ),
+                            error: (e, _) => showToast(
+                              context,
+                              '提示词库加载失败',
+                              isError: true,
+                            ),
+                          );
+                        },
+                        onSaveToLibrary:
+                            (text, name, {required bool isNegative}) async {
+                          await ref
+                              .read(resourceListProvider.notifier)
+                              .addResource(
+                                Resource(
+                                  name: name,
+                                  libraryType: 'prompt',
+                                  modality: 'text',
+                                  description: text,
+                                  metadataJson:
+                                      isNegative ? '{"negative": true}' : '{}',
+                                ),
+                              );
+                          if (context.mounted) {
+                            showToast(context, '已保存到提示词库');
+                          }
+                        },
                       )
                     : _negativeBlock(shot.negativePrompt),
               ],

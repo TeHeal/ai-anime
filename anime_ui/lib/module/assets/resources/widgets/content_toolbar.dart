@@ -66,6 +66,7 @@ class ContentToolbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final modes = libraryType.availableAddModes;
     final hasUpload = modes.contains(AddMode.upload);
+    final hasBatchUpload = modes.contains(AddMode.batchUpload);
     final hasAiGen = modes.contains(AddMode.aiGenerate);
     final isVisual = libraryType.modality == ResourceModality.visual;
     final isAudio = libraryType.modality == ResourceModality.audio;
@@ -140,7 +141,7 @@ class ContentToolbar extends ConsumerWidget {
             tooltip: batchMode ? '退出批量' : '批量选择',
           ),
           const Spacer(),
-          if (hasUpload) ...[
+          if (hasUpload)
             TextButton.icon(
               onPressed: () => showResourceUploadDialog(
                 context,
@@ -152,6 +153,7 @@ class ContentToolbar extends ConsumerWidget {
               label: const Text('上传'),
               style: TextButton.styleFrom(foregroundColor: accentColor),
             ),
+          if (hasBatchUpload)
             TextButton.icon(
               onPressed: () => showResourceBatchUploadDialog(
                 context,
@@ -160,11 +162,11 @@ class ContentToolbar extends ConsumerWidget {
                 accentColor: accentColor,
               ),
               icon: Icon(AppIcons.upload, size: 16.r),
-              label: const Text('批量上传'),
+              label: const Text('批量导入'),
               style: TextButton.styleFrom(foregroundColor: accentColor),
             ),
-          ],
-          if (hasUpload && hasAiGen) SizedBox(width: Spacing.sm.w),
+          if ((hasUpload || hasBatchUpload) && hasAiGen)
+            SizedBox(width: Spacing.sm.w),
           if (hasAiGen && isVisual)
             FilledButton.icon(
               onPressed: () => showResourceAiGenerateDialog(
@@ -180,8 +182,8 @@ class ContentToolbar extends ConsumerWidget {
           if (hasAiGen && isAudio)
             VoiceGenTrigger(
               config: voiceGenConfigForLibrary(accentColor, ref),
-              label: '创建音色',
-              icon: AppIcons.mic,
+              label: 'AI 生成',
+              icon: AppIcons.magicStick,
               style: FilledButton.styleFrom(backgroundColor: accentColor),
             ),
           if (hasAiGen && isText)
@@ -191,9 +193,7 @@ class ContentToolbar extends ConsumerWidget {
                 accentColor,
                 () => ref.read(resourceListProvider.notifier).load(),
               ),
-              label: libraryType == ResourceLibraryType.styleGuide
-                  ? 'AI 生成风格指令'
-                  : 'AI 生成提示词',
+              label: 'AI 生成',
               icon: AppIcons.magicStick,
               style: FilledButton.styleFrom(backgroundColor: accentColor),
             ),

@@ -382,6 +382,18 @@ final resourceListProvider =
       ResourceListNotifier.new,
     );
 
+/// 提示词库资源列表（用于创作助理/提示词库弹窗，跨子库场景）
+final promptResourcesProvider =
+    FutureProvider.autoDispose<List<Resource>>((ref) async {
+  final svc = ref.read(_resourceSvcProvider);
+  final result = await svc.list(
+    libraryType: 'prompt',
+    modality: 'text',
+    pageSize: 200,
+  );
+  return result.items;
+});
+
 /// 各子库资源数量统计（从资源列表本地计算）
 final resourceCountsProvider = Provider<Map<String, int>>((ref) {
   final asyncList = ref.watch(resourceListProvider);

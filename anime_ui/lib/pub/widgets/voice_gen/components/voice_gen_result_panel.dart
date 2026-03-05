@@ -6,7 +6,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import '../voice_gen_controller.dart';
 import 'voice_result_preview.dart';
 
-/// 音色生成右侧结果面板
+/// 音色生成结果面板
 class VoiceGenResultPanel extends StatelessWidget {
   const VoiceGenResultPanel({
     super.key,

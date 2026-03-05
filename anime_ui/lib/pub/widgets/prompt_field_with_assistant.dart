@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter/material.dart';
@@ -160,7 +161,9 @@ class _PromptFieldWithAssistantState
 
   void _runAssistantAction(AiAction action, TextEditingController ctrl) {
     final content = ctrl.text.trim();
-    if (content.isEmpty && action != AiAction.continueWrite) {
+    final allowEmpty =
+        action == AiAction.continueWrite || action == AiAction.randomPrompt;
+    if (content.isEmpty && !allowEmpty) {
       showToast(context, '请先输入提示词内容', isInfo: true);
       return;
     }
@@ -266,6 +269,16 @@ class _PromptFieldWithAssistantState
     }
   }
 
+  void _copyToClipboard(TextEditingController ctrl) {
+    final text = ctrl.text.trim();
+    if (text.isEmpty) {
+      showToast(context, '暂无内容可复制', isInfo: true);
+      return;
+    }
+    Clipboard.setData(ClipboardData(text: text));
+    showToast(context, '已复制到剪贴板');
+  }
+
   Future<String?> _showSaveToLibraryNameDialog(String defaultName) async {
     final ctrl = TextEditingController(text: defaultName);
     return showDialog<String>(
@@ -338,18 +351,18 @@ class _PromptFieldWithAssistantState
       hintText: hintText,
       hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDarker),
       filled: true,
-      fillColor: AppColors.surfaceMutedDarker,
+      fillColor: AppColors.background.withValues(alpha: 0.5),
       contentPadding: EdgeInsets.symmetric(
         horizontal: Spacing.md.w,
         vertical: Spacing.lg.h,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-        borderSide: BorderSide(color: accent),
+        borderSide: BorderSide(color: accent.withValues(alpha: 0.6)),
       ),
     );
   }
@@ -455,46 +468,16 @@ class _PromptFieldWithAssistantState
                   left: 12.w,
                   top: 10.h,
                   right: 12.w,
-                  // 快捷词内嵌时需留出底部空间
-                  bottom: widget.quickPrompts.isNotEmpty ? 36.h : 12.h,
+                  bottom: 36.h,
                 ),
               ),
             ),
-            // 底部工具栏：快捷提示词 + 入库按钮
-            if (widget.quickPrompts.isNotEmpty || widget.onSaveToLibrary != null)
-              Positioned(
+            Positioned(
                 left: 8.w,
                 right: 8.w,
                 bottom: 6.h,
                 child: Row(
                   children: [
-                    if (widget.quickPrompts.isNotEmpty)
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: widget.quickPrompts.map((p) {
-                              return Padding(
-                                padding: EdgeInsets.only(right: 4.w),
-                                child: InlineQuickChip(
-                                  label: p,
-                                  accent: widget.accent,
-                                  onTap: () {
-                                    final current = _effectiveMainCtrl.text;
-                                    final next = current.isEmpty
-                                        ? p
-                                        : '$current, $p';
-                                    _effectiveMainCtrl.text = next;
-                                    if (_isControlled) {
-                                      widget.onChanged!(next);
-                                    }
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
                     if (widget.onSaveToLibrary != null)
                       TinyBtn(
                         icon: AppIcons.save,
@@ -502,11 +485,39 @@ class _PromptFieldWithAssistantState
                         accent: widget.accent,
                         onTap: () => _saveToLibrary(_effectiveMainCtrl, false),
                       ),
+                    TinyBtn(
+                      icon: AppIcons.copy,
+                      label: '复制',
+                      accent: widget.accent,
+                      onTap: () => _copyToClipboard(_effectiveMainCtrl),
+                    ),
                   ],
                 ),
               ),
           ],
         ),
+
+        if (widget.quickPrompts.isNotEmpty) ...[
+          SizedBox(height: Spacing.sm.h),
+          Wrap(
+            spacing: 6.w,
+            runSpacing: 6.h,
+            children: widget.quickPrompts.map((p) {
+              return InlineQuickChip(
+                label: p,
+                accent: widget.accent,
+                onTap: () {
+                  final current = _effectiveMainCtrl.text;
+                  final next = current.isEmpty ? p : '$current, $p';
+                  _effectiveMainCtrl.text = next;
+                  if (_isControlled) {
+                    widget.onChanged!(next);
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        ],
 
         if (_aiSuggestion != null || _aiLoading) _buildAiSuggestion(),
 

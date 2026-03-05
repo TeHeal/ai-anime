@@ -253,23 +253,48 @@ class _CharacterListPanelState extends ConsumerState<CharacterListPanel> {
                         ),
                       )
                     : null,
-                subtitleWidget: Row(
+                subtitleWidget: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AssetStatusChip.fromStatus(c.status),
-                    if (c.hasImage) ...[
-                      SizedBox(width: Spacing.sm.w),
-                      Icon(
-                        AppIcons.image,
-                        size: 10.r,
-                        color: AppColors.onSurface.withValues(alpha: 0.5),
-                      ),
-                    ],
-                    if (c.voiceName.isNotEmpty) ...[
-                      SizedBox(width: Spacing.sm.w),
-                      Icon(
-                        AppIcons.mic,
-                        size: 10.r,
-                        color: AppColors.onSurface.withValues(alpha: 0.5),
+                    Row(
+                      children: [
+                        AssetStatusChip.fromStatus(c.status),
+                        if (c.variants.isNotEmpty) ...[
+                          SizedBox(width: Spacing.sm.w),
+                          Text(
+                            '${c.variants.length}变体',
+                            style: AppTextStyles.labelTiny.copyWith(
+                              color: AppColors.onSurface.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                        if (c.hasBio) ...[
+                          SizedBox(width: Spacing.sm.w),
+                          Icon(
+                            AppIcons.document,
+                            size: 10.r,
+                            color: AppColors.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ],
+                        if (c.voiceName.isNotEmpty) ...[
+                          SizedBox(width: Spacing.sm.w),
+                          Icon(
+                            AppIcons.mic,
+                            size: 10.r,
+                            color: AppColors.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (c.tags.isNotEmpty) ...[
+                      SizedBox(height: Spacing.xxs.h),
+                      Text(
+                        c.tags.join(' · '),
+                        style: AppTextStyles.labelTiny.copyWith(
+                          color: AppColors.onSurface.withValues(alpha: 0.45),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ],

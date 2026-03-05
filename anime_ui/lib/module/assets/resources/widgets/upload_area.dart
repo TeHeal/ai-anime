@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,8 +11,14 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/services/file_svc.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 
-/// 上传区域：支持图片或音频，点击/拖拽上传后回调 URL
-enum UploadFileType { image, audio }
+enum UploadFileType { image, audio, text }
+
+/// 上传后的文件信息，用于自动填充名称、分辨率等
+class UploadFileInfo {
+  const UploadFileInfo({required this.fileName, this.resolution});
+  final String fileName;
+  final String? resolution;
+}
 
 class ResourceUploadArea extends StatefulWidget {
   const ResourceUploadArea({
@@ -18,7 +28,10 @@ class ResourceUploadArea extends StatefulWidget {
     this.currentUrl,
     this.label,
     this.onUploaded,
+    this.onFileInfo,
+    this.onTextContent,
     this.height,
+    this.textPreview,
   });
 
   final Color accentColor;
@@ -26,9 +39,12 @@ class ResourceUploadArea extends StatefulWidget {
   final String? currentUrl;
   final String? label;
   final void Function(String url)? onUploaded;
-
-  /// 自定义上传区域高度，默认 120.h
+  final void Function(UploadFileInfo info)? onFileInfo;
+  /// 文本文件上传后回调解析出的文本内容
+  final void Function(String content)? onTextContent;
   final double? height;
+  /// 已上传的文本内容摘要，用于预览展示
+  final String? textPreview;
 
   @override
   State<ResourceUploadArea> createState() => _ResourceUploadAreaState();
@@ -36,23 +52,45 @@ class ResourceUploadArea extends StatefulWidget {
 
 class _ResourceUploadAreaState extends State<ResourceUploadArea> {
   bool _isHovered = false;
+  bool _isUploading = false;
+  String? _uploadedFileName;
 
   Future<void> _pickAndUpload() async {
+    FileType pickerType;
+    List<String>? allowedExt;
+    switch (widget.fileType) {
+      case UploadFileType.audio:
+        pickerType = FileType.audio;
+      case UploadFileType.image:
+        pickerType = FileType.image;
+      case UploadFileType.text:
+        pickerType = FileType.custom;
+        allowedExt = ['txt', 'md', 'json', 'csv', 'srt', 'ass'];
+    }
+
     final result = await FilePicker.platform.pickFiles(
-      type: widget.fileType == UploadFileType.audio
-          ? FileType.audio
-          : FileType.image,
+      type: pickerType,
+      allowedExtensions: allowedExt,
       withData: true,
     );
     if (result == null || result.files.isEmpty) return;
     final file = result.files.first;
     if (file.bytes == null) return;
+
+    setState(() => _isUploading = true);
     try {
+      await _notifyFileInfo(file.name, file.bytes!);
+
+      if (widget.fileType == UploadFileType.text) {
+        _handleTextFile(file.name, file.bytes!);
+      }
+
       final url = await FileService().upload(
         file.bytes!,
         file.name,
         category: 'general',
       );
+      _uploadedFileName = file.name;
       widget.onUploaded?.call(url);
     } catch (e) {
       if (mounted) {
@@ -63,13 +101,54 @@ class _ResourceUploadAreaState extends State<ResourceUploadArea> {
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
-  String get _hintText {
-    if (widget.label != null) return widget.label!;
-    return widget.fileType == UploadFileType.audio ? '点击上传音频' : '点击上传图片';
+  void _handleTextFile(String name, Uint8List bytes) {
+    try {
+      final content = utf8.decode(bytes, allowMalformed: true);
+      widget.onTextContent?.call(content);
+    } catch (_) {
+      // 解码失败时忽略
+    }
   }
+
+  Future<void> _notifyFileInfo(String fullName, Uint8List bytes) async {
+    final baseName = fullName.contains('.')
+        ? fullName.substring(0, fullName.lastIndexOf('.'))
+        : fullName;
+    String? resolution;
+    if (widget.fileType == UploadFileType.image) {
+      try {
+        final codec = await ui.instantiateImageCodec(bytes);
+        final frame = await codec.getNextFrame();
+        resolution = '${frame.image.width}x${frame.image.height}';
+        frame.image.dispose();
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    widget.onFileInfo?.call(UploadFileInfo(
+      fileName: baseName,
+      resolution: resolution,
+    ));
+  }
+
+  String get _emptyHint {
+    if (widget.label != null) return widget.label!;
+    return switch (widget.fileType) {
+      UploadFileType.image => '点击上传图片',
+      UploadFileType.audio => '点击上传音频',
+      UploadFileType.text => '点击上传文本文件',
+    };
+  }
+
+  String get _formatHint => switch (widget.fileType) {
+        UploadFileType.image => '支持 JPG、PNG、WebP',
+        UploadFileType.audio => '支持 MP3、WAV 格式',
+        UploadFileType.text => '支持 TXT、MD、JSON、CSV',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -78,60 +157,162 @@ class _ResourceUploadAreaState extends State<ResourceUploadArea> {
     return _buildEmpty();
   }
 
+  // ─────────────────── 空态：虚线边框 ───────────────────
+
   Widget _buildEmpty() {
+    final color = widget.accentColor;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: _pickAndUpload,
+        onTap: _isUploading ? null : _pickAndUpload,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          height: widget.height ?? 120.h,
+          duration: MotionTokens.durationMedium,
+          curve: MotionTokens.curveStandard,
+          height: widget.height ?? 100.h,
           decoration: BoxDecoration(
             color: _isHovered
-                ? widget.accentColor.withValues(alpha: 0.08)
-                : widget.accentColor.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+                ? color.withValues(alpha: 0.06)
+                : color.withValues(alpha: 0.02),
+            borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+          ),
+          child: CustomPaint(
+            painter: _DashedBorderPainter(
+              color: _isHovered
+                  ? color.withValues(alpha: 0.5)
+                  : color.withValues(alpha: 0.25),
+              radius: RadiusTokens.lg.r,
+              strokeWidth: 1.2,
+              dashWidth: 6,
+              dashGap: 4,
+            ),
+            child: _isUploading
+                ? Center(
+                    child: SizedBox(
+                      width: 24.r,
+                      height: 24.r,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: color,
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          AppIcons.upload,
+                          size: 20.r,
+                          color: color.withValues(alpha: _isHovered ? 0.7 : 0.4),
+                        ),
+                        SizedBox(width: Spacing.sm.w),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _emptyHint,
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: color.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            SizedBox(height: Spacing.xxs.h),
+                            Text(
+                              _formatHint,
+                              style: AppTextStyles.tiny.copyWith(
+                                color: AppColors.mutedDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────── 已上传态 ───────────────────
+
+  Widget _buildUploaded() {
+    return switch (widget.fileType) {
+      UploadFileType.image => _buildUploadedImage(),
+      UploadFileType.audio => _buildUploadedCompact(AppIcons.music, '音频已上传'),
+      UploadFileType.text => _buildUploadedText(),
+    };
+  }
+
+  /// 图片已上传：缩略图预览 + hover 替换蒙层
+  Widget _buildUploadedImage() {
+    final h = widget.height ?? 120.h;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: _pickAndUpload,
+        child: AnimatedContainer(
+          duration: MotionTokens.durationMedium,
+          curve: MotionTokens.curveStandard,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
             border: Border.all(
               color: _isHovered
                   ? widget.accentColor.withValues(alpha: 0.4)
-                  : widget.accentColor.withValues(alpha: 0.2),
+                  : widget.accentColor.withValues(alpha: 0.15),
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.all(Spacing.md.r),
-                decoration: BoxDecoration(
-                  color: widget.accentColor.withValues(
-                    alpha: _isHovered ? 0.15 : 0.08,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  AppIcons.upload,
-                  size: 24.r,
-                  color: widget.accentColor.withValues(
-                    alpha: _isHovered ? 0.8 : 0.5,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+                child: Image.network(
+                  resolveFileUrl(widget.currentUrl!),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Center(
+                    child: Icon(
+                      AppIcons.gallery,
+                      size: 36.r,
+                      color: widget.accentColor.withValues(alpha: 0.4),
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: Spacing.sm.h),
-              Text(
-                _hintText,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: widget.accentColor.withValues(alpha: 0.7),
+              if (_isHovered)
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+                    color: AppColors.backgroundDarkest.withValues(alpha: 0.55),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(AppIcons.refresh, size: 18.r, color: AppColors.onPrimary),
+                        SizedBox(width: Spacing.xs.w),
+                        Text(
+                          '替换图片',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.onPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(height: Spacing.xs.h),
-              Text(
-                widget.fileType == UploadFileType.audio
-                    ? '支持 MP3、WAV 格式'
-                    : '支持 JPG、PNG、WebP',
-                style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
+              Positioned(
+                top: Spacing.xs.h,
+                right: Spacing.xs.w,
+                child: _MiniIconBtn(
+                  icon: AppIcons.close,
+                  onTap: () => widget.onUploaded?.call(''),
+                  tooltip: '移除',
+                ),
               ),
             ],
           ),
@@ -140,140 +321,120 @@ class _ResourceUploadAreaState extends State<ResourceUploadArea> {
     );
   }
 
-  Widget _buildUploaded() {
-    final hasHeight = widget.height != null;
-    final isImage = widget.fileType == UploadFileType.image;
-
-    // 有自定义高度时（双栏布局）用纵向堆叠展示大缩略图
-    if (hasHeight && isImage) {
-      return MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: GestureDetector(
-          onTap: _pickAndUpload,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: widget.height,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-              border: Border.all(
-                color: _isHovered
-                    ? widget.accentColor.withValues(alpha: 0.4)
-                    : widget.accentColor.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-                  child: Image.network(
-                    resolveFileUrl(widget.currentUrl!),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, Object? err, StackTrace? stack) =>
-                        Center(
-                      child: Icon(
-                        AppIcons.gallery,
-                        size: 40.r,
-                        color: widget.accentColor.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
-                ),
-                // 悬浮时显示操作蒙层
-                if (_isHovered)
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(RadiusTokens.xl.r),
-                      color: AppColors.shadowOverlay.withValues(alpha: 0.5),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          AppIcons.refresh,
-                          size: 24.r,
-                          color: AppColors.onPrimary,
-                        ),
-                        SizedBox(height: Spacing.xs.h),
-                        Text(
-                          '点击替换',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.onPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                // 右上角删除按钮
-                Positioned(
-                  top: Spacing.xs.h,
-                  right: Spacing.xs.w,
-                  child: _SmallIconButton(
-                    icon: AppIcons.close,
-                    onTap: () => widget.onUploaded?.call(''),
-                    tooltip: '移除',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    // 默认紧凑横向布局（音频或无自定义高度时）
+  /// 文本已上传：文件名 + 内容摘要
+  Widget _buildUploadedText() {
+    final preview = widget.textPreview ?? '';
+    final summary = preview.length > 120 ? '${preview.substring(0, 120)}…' : preview;
     return Container(
       padding: EdgeInsets.all(Spacing.md.r),
       decoration: BoxDecoration(
-        color: widget.accentColor.withValues(alpha: 0.06),
+        color: widget.accentColor.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-        border: Border.all(
-          color: widget.accentColor.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: widget.accentColor.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(AppIcons.document, size: 18.r, color: widget.accentColor.withValues(alpha: 0.6)),
+              SizedBox(width: Spacing.sm.w),
+              Expanded(
+                child: Text(
+                  _uploadedFileName ?? '文本文件已上传',
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _MiniIconBtn(
+                icon: AppIcons.refresh,
+                onTap: _pickAndUpload,
+                tooltip: '替换',
+              ),
+              SizedBox(width: Spacing.xxs.w),
+              _MiniIconBtn(
+                icon: AppIcons.close,
+                onTap: () {
+                  _uploadedFileName = null;
+                  widget.onUploaded?.call('');
+                  widget.onTextContent?.call('');
+                },
+                tooltip: '移除',
+              ),
+            ],
+          ),
+          if (summary.isNotEmpty) ...[
+            SizedBox(height: Spacing.sm.h),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(Spacing.sm.r),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceMutedDarker,
+                borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+              ),
+              child: Text(
+                summary,
+                style: AppTextStyles.tiny.copyWith(
+                  color: AppColors.muted,
+                  height: 1.5,
+                ),
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// 音频/通用紧凑横向已上传态
+  Widget _buildUploadedCompact(IconData icon, String fallbackLabel) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.md.w,
+        vertical: Spacing.sm.h,
+      ),
+      decoration: BoxDecoration(
+        color: widget.accentColor.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+        border: Border.all(color: widget.accentColor.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
-          if (isImage)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              child: Image.network(
-                resolveFileUrl(widget.currentUrl!),
-                width: 64.w,
-                height: 64.h,
-                fit: BoxFit.cover,
-                errorBuilder: (_, Object? err, StackTrace? stack) => Icon(
-                  AppIcons.gallery,
-                  size: 32.r,
-                  color: widget.accentColor.withValues(alpha: 0.5),
-                ),
-              ),
-            )
-          else
-            Icon(
-              AppIcons.music,
-              size: 32.r,
+          Container(
+            padding: EdgeInsets.all(Spacing.sm.r),
+            decoration: BoxDecoration(
+              color: widget.accentColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 18.r,
               color: widget.accentColor.withValues(alpha: 0.7),
             ),
+          ),
           SizedBox(width: Spacing.md.w),
           Expanded(
             child: Text(
-              '已上传',
-              style:
-                  AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+              _uploadedFileName ?? fallbackLabel,
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          IconButton(
-            icon: Icon(AppIcons.close, size: 16.r, color: AppColors.mutedDark),
-            onPressed: () => widget.onUploaded?.call(''),
-            tooltip: '移除',
+          _MiniIconBtn(
+            icon: AppIcons.refresh,
+            onTap: _pickAndUpload,
+            tooltip: '替换',
           ),
-          IconButton(
-            icon:
-                Icon(AppIcons.refresh, size: 16.r, color: AppColors.mutedDark),
-            onPressed: _pickAndUpload,
-            tooltip: '重新选择',
+          SizedBox(width: Spacing.xxs.w),
+          _MiniIconBtn(
+            icon: AppIcons.close,
+            onTap: () {
+              _uploadedFileName = null;
+              widget.onUploaded?.call('');
+            },
+            tooltip: '移除',
           ),
         ],
       ),
@@ -281,9 +442,55 @@ class _ResourceUploadAreaState extends State<ResourceUploadArea> {
   }
 }
 
-/// 小型圆形图标按钮（用于图片覆盖层上的操作）
-class _SmallIconButton extends StatelessWidget {
-  const _SmallIconButton({
+/// 虚线边框绘制器
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({
+    required this.color,
+    required this.radius,
+    this.strokeWidth = 1.0,
+    this.dashWidth = 6.0,
+    this.dashGap = 4.0,
+  });
+
+  final Color color;
+  final double radius;
+  final double strokeWidth;
+  final double dashWidth;
+  final double dashGap;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(radius),
+    );
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics();
+
+    for (final metric in metrics) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final end = (distance + dashWidth).clamp(0.0, metric.length);
+        final extracted = metric.extractPath(distance, end);
+        canvas.drawPath(extracted, paint);
+        distance += dashWidth + dashGap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter old) =>
+      color != old.color || radius != old.radius;
+}
+
+/// 迷你圆形图标按钮
+class _MiniIconBtn extends StatelessWidget {
+  const _MiniIconBtn({
     required this.icon,
     required this.onTap,
     this.tooltip,
@@ -295,20 +502,15 @@ class _SmallIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final child = GestureDetector(
+    final child = InkWell(
       onTap: onTap,
-      child: Container(
+      borderRadius: BorderRadius.circular(100),
+      child: Padding(
         padding: EdgeInsets.all(Spacing.xs.r),
-        decoration: BoxDecoration(
-          color: AppColors.shadowOverlay.withValues(alpha: 0.6),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 14.r, color: AppColors.onPrimary),
+        child: Icon(icon, size: 14.r, color: AppColors.muted),
       ),
     );
-    if (tooltip != null) {
-      return Tooltip(message: tooltip!, child: child);
-    }
+    if (tooltip != null) return Tooltip(message: tooltip!, child: child);
     return child;
   }
 }

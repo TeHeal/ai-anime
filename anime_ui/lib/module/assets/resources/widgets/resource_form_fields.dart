@@ -1,109 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
+import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 
-import '../models/resource_category.dart';
 import '../models/resource_meta_schema.dart';
+import '../providers/provider.dart';
 import 'meta_field_editor.dart';
 
-/// 素材表单 – 名称和描述输入字段
-class ResourceBasicFields extends StatelessWidget {
-  const ResourceBasicFields({
-    super.key,
-    required this.nameController,
-    required this.descController,
-    required this.accentColor,
-    required this.libraryType,
-  });
-
-  final TextEditingController nameController;
-  final TextEditingController descController;
-  final Color accentColor;
-  final ResourceLibraryType libraryType;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '名称',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
-          controller: nameController,
-          style:
-              AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
-          decoration: InputDecoration(
-            hintText: '输入素材名称',
-            hintStyle:
-                AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-            filled: true,
-            fillColor: AppColors.inputBackground,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              borderSide: const BorderSide(color: AppColors.inputBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              borderSide: BorderSide(color: accentColor),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Spacing.md.w,
-              vertical: Spacing.sm.h,
-            ),
-          ),
-        ),
-        SizedBox(height: Spacing.md.h),
-        Text(
-          '描述',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
-          controller: descController,
-          style:
-              AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: libraryType == ResourceLibraryType.prompt
-                ? '输入提示词内容…'
-                : '输入素材描述…',
-            hintStyle:
-                AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-            filled: true,
-            fillColor: AppColors.inputBackground,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              borderSide: const BorderSide(color: AppColors.inputBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              borderSide: BorderSide(color: accentColor),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Spacing.md.w,
-              vertical: Spacing.sm.h,
-            ),
-          ),
-        ),
-        SizedBox(height: Spacing.lg.h),
-      ],
-    );
-  }
-}
-
 /// 素材表单 – 标签编辑区
-class ResourceTagEditor extends StatelessWidget {
+class ResourceTagEditor extends StatefulWidget {
   const ResourceTagEditor({
     super.key,
     required this.tags,
@@ -120,78 +30,149 @@ class ResourceTagEditor extends StatelessWidget {
   final ValueChanged<String> onTagRemoved;
 
   @override
+  State<ResourceTagEditor> createState() => _ResourceTagEditorState();
+}
+
+class _ResourceTagEditorState extends State<ResourceTagEditor> {
+  final _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '标签',
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            Container(
+              width: 3.w,
+              height: 13.h,
+              decoration: BoxDecoration(
+                color: widget.accentColor,
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            SizedBox(width: Spacing.sm.w),
+            Text(
+              '标签',
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.mutedLight,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
         SizedBox(height: Spacing.xs.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: Spacing.sm.w,
-            vertical: Spacing.xs.h,
-          ),
-          constraints: BoxConstraints(minHeight: 38.h),
-          decoration: BoxDecoration(
-            color: AppColors.inputBackground,
-            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-            border: Border.all(color: AppColors.inputBorder),
-          ),
-          child: Wrap(
-            spacing: Spacing.xs.w,
-            runSpacing: Spacing.xs.h,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              ...tags.map((tag) => Chip(
-                    label: Text(tag, style: AppTextStyles.caption),
-                    deleteIcon:
-                        Icon(AppIcons.close, size: 14.r, color: accentColor),
-                    onDeleted: () => onTagRemoved(tag),
-                    backgroundColor: accentColor.withValues(alpha: 0.1),
-                    side: BorderSide(
-                      color: accentColor.withValues(alpha: 0.2),
+        GestureDetector(
+          onTap: () => _focusNode.requestFocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: Spacing.sm.w,
+              vertical: Spacing.xs.h,
+            ),
+            constraints: BoxConstraints(minHeight: 36.h),
+            decoration: BoxDecoration(
+              color: AppColors.inputBackground.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+            ),
+            child: Wrap(
+              spacing: Spacing.xs.w,
+              runSpacing: Spacing.xs.h,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ...widget.tags.map((tag) => _TagChip(
+                      label: tag,
+                      accent: widget.accentColor,
+                      onDelete: () => widget.onTagRemoved(tag),
+                    )),
+                IntrinsicWidth(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: 80.w),
+                    child: TextField(
+                      controller: widget.tagInputController,
+                      focusNode: _focusNode,
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: AppColors.onSurface),
+                      decoration: InputDecoration(
+                        hintText: widget.tags.isEmpty
+                            ? '输入后按回车添加'
+                            : '添加…',
+                        hintStyle: AppTextStyles.tiny
+                            .copyWith(color: AppColors.mutedDark),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: Spacing.xs.w,
+                          vertical: Spacing.xs.h,
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                      onSubmitted: widget.onTagAdded,
                     ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  )),
-              SizedBox(
-                width: 140.w,
-                height: 28.h,
-                child: TextField(
-                  controller: tagInputController,
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.onSurface),
-                  decoration: InputDecoration(
-                    hintText:
-                        tags.isEmpty ? '输入标签后按回车添加' : '添加更多…',
-                    hintStyle: AppTextStyles.bodySmall
-                        .copyWith(color: AppColors.mutedDark),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: Spacing.xs.w),
-                    border: InputBorder.none,
-                    isDense: true,
                   ),
-                  onSubmitted: onTagAdded,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        SizedBox(height: Spacing.lg.h),
+        SizedBox(height: Spacing.md.h),
       ],
     );
   }
 }
 
+/// 紧凑标签 Chip
+class _TagChip extends StatelessWidget {
+  const _TagChip({
+    required this.label,
+    required this.accent,
+    required this.onDelete,
+  });
+
+  final String label;
+  final Color accent;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.sm.w,
+        vertical: Spacing.xxs.h,
+      ),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+        border: Border.all(color: accent.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.tiny.copyWith(color: AppColors.onSurface),
+          ),
+          SizedBox(width: Spacing.xxs.w),
+          GestureDetector(
+            onTap: onDelete,
+            child: Icon(AppIcons.close, size: 12.r, color: accent.withValues(alpha: 0.6)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// 素材表单 – 属性（Schema）编辑区
-class ResourceSchemaSection extends StatelessWidget {
+/// prompt / negativePrompt 使用 PromptFieldWithAssistant（创作助理 + 提示词库 + 入库 + 复制）
+class ResourceSchemaSection extends ConsumerWidget {
   const ResourceSchemaSection({
     super.key,
     required this.schema,
@@ -208,7 +189,7 @@ class ResourceSchemaSection extends StatelessWidget {
   final void Function(String key, String value) onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final editableFields = schema.where((f) => !f.readOnly).toList();
     final shortFields = editableFields
         .where((f) =>
@@ -221,6 +202,20 @@ class ResourceSchemaSection extends StatelessWidget {
             (f.key == 'prompt' || f.key == 'negativePrompt'))
         .toList();
 
+    void openPromptLibrary(void Function(String) setText) {
+      final promptsAsync = ref.read(promptResourcesProvider);
+      promptsAsync.when(
+        data: (prompts) => showPromptLibrary(
+          context,
+          prompts: prompts,
+          accent: accentColor,
+          onSelected: setText,
+        ),
+        loading: () => showToast(context, '正在加载提示词库…', isInfo: true),
+        error: (e, _) => showToast(context, '提示词库加载失败', isError: true),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -228,7 +223,7 @@ class ResourceSchemaSection extends StatelessWidget {
           children: [
             Container(
               width: 3.w,
-              height: 14.h,
+              height: 13.h,
               decoration: BoxDecoration(
                 color: accentColor,
                 borderRadius: BorderRadius.circular(2.r),
@@ -269,13 +264,40 @@ class ResourceSchemaSection extends StatelessWidget {
               );
             },
           ),
-        ...longFields.map((f) => MetaFieldEditor(
-              field: f,
+        ...longFields.map((f) {
+          final isNeg = f.key == 'negativePrompt';
+          return Padding(
+            padding: EdgeInsets.only(top: isNeg ? Spacing.md.h : 0),
+            child: PromptFieldWithAssistant(
               value: metaValues[f.key] ?? '',
-              accentColor: accentColor,
-              extraOptions: availableValues?[f.key],
               onChanged: (v) => onChanged(f.key, v),
-            )),
+              hint: isNeg
+                  ? '不想出现的元素，如：模糊、变形、低质量…'
+                  : (f.hint ?? '描述画面风格、色调、氛围…'),
+              accent: accentColor,
+              label: isNeg ? '反向提示词（选填）' : (f.label),
+              negOnly: isNeg,
+              maxLines: isNeg ? 2 : 3,
+              onLibraryTap: openPromptLibrary,
+              onSaveToLibrary: (text, name, {required bool isNegative}) async {
+                await ref.read(resourceListProvider.notifier).addResource(
+                      Resource(
+                        name: name,
+                        libraryType: 'prompt',
+                        modality: 'text',
+                        description: text,
+                        metadataJson: isNegative
+                            ? '{"negative": true}'
+                            : '{}',
+                      ),
+                    );
+                if (context.mounted) {
+                  showToast(context, '已保存到提示词库');
+                }
+              },
+            ),
+          );
+        }),
       ],
     );
   }

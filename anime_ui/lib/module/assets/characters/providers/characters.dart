@@ -110,6 +110,130 @@ class AssetCharactersNotifier extends Notifier<AsyncValue<List<Character>>> {
     }
   }
 
+  Future<void> deleteReferenceImage(String charId, int idx) async {
+    try {
+      final updated = await _svc.deleteReferenceImage(charId, idx);
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id == charId ? updated : ch).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  // ─── 人物小传 ──────────────────────────────────────────────
+
+  Future<void> extractBio(String charId) async {
+    final pid = _projectId;
+    if (pid == null) return;
+    try {
+      final updated = await _svc.extractBio(pid, charId);
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id == charId ? updated : ch).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> updateBio(String charId, String bio) async {
+    try {
+      final updated = await _svc.updateBio(charId, bio);
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id == charId ? updated : ch).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> regenerateBio(String charId) async {
+    try {
+      final updated = await _svc.regenerateBio(charId);
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id == charId ? updated : ch).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  // ─── 变体 ──────────────────────────────────────────────
+
+  Future<void> addVariant(
+    String charId, {
+    required String label,
+    String? appearance,
+    String? episodeId,
+    String? sceneId,
+  }) async {
+    try {
+      final updated = await _svc.addVariant(
+        charId,
+        label: label,
+        appearance: appearance,
+        episodeId: episodeId,
+        sceneId: sceneId,
+      );
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id == charId ? updated : ch).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> updateVariant(
+    String charId,
+    int idx, {
+    String? label,
+    String? appearance,
+  }) async {
+    try {
+      final updated = await _svc.updateVariant(
+        charId,
+        idx,
+        label: label,
+        appearance: appearance,
+      );
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id == charId ? updated : ch).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> deleteVariant(String charId, int idx) async {
+    try {
+      final updated = await _svc.deleteVariant(charId, idx);
+      final list = state.value ?? [];
+      state = AsyncValue.data(
+        list.map((ch) => ch.id == charId ? updated : ch).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  /// 批量 AI 补全
+  Future<int> batchAIComplete(List<String> ids) async {
+    try {
+      final count = await _svc.batchAIComplete(ids);
+      await load();
+      return count;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return 0;
+    }
+  }
+
   Future<void> remove(String id) async {
     try {
       await _svc.delete(id);

@@ -93,9 +93,9 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
             children: [
               Text(
                 widget.field.label,
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.mutedLight,
-                  fontWeight: FontWeight.w600,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               if (widget.field.required)
@@ -103,14 +103,14 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
                   padding: EdgeInsets.only(left: Spacing.xxs.w),
                   child: Text(
                     '*',
-                    style: AppTextStyles.labelMedium.copyWith(
+                    style: AppTextStyles.caption.copyWith(
                       color: AppColors.error,
                     ),
                   ),
                 ),
             ],
           ),
-          SizedBox(height: Spacing.xs.h),
+          SizedBox(height: Spacing.xxs.h),
           if (widget.field.readOnly) _buildReadOnly() else _buildEditable(),
         ],
       ),
@@ -122,17 +122,16 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: Spacing.md.w,
+        horizontal: Spacing.sm.w,
         vertical: Spacing.sm.h,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMutedDark,
+        color: AppColors.inputBackground.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-        border: Border.all(color: AppColors.border),
       ),
       child: Text(
         widget.value,
-        style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
+        style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
       ),
     );
   }
@@ -140,19 +139,19 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
   Widget _buildEditable() {
     if (widget.field.isDynamic && _dynamicOptions == null) {
       return Container(
-        height: 38.h,
+        height: 36.h,
         alignment: Alignment.centerLeft,
-        padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
+        padding: EdgeInsets.symmetric(horizontal: Spacing.sm.w),
         decoration: BoxDecoration(
-          color: AppColors.inputBackground,
+          color: AppColors.surfaceMutedDark,
           borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-          border: Border.all(color: AppColors.inputBorder),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
             SizedBox(
-              width: 14.r,
-              height: 14.r,
+              width: 12.r,
+              height: 12.r,
               child: CircularProgressIndicator(
                 strokeWidth: 1.5,
                 color: AppColors.muted,
@@ -161,7 +160,7 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
             SizedBox(width: Spacing.sm.w),
             Text(
               '加载中…',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted),
+              style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
             ),
           ],
         ),
@@ -184,15 +183,16 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
     };
   }
 
+  /// 下拉选择器：浅底凸起
   Widget _buildFixedSelect() {
     final options = _allOptions;
     return Container(
-      height: 38.h,
-      padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
+      height: 36.h,
+      padding: EdgeInsets.symmetric(horizontal: Spacing.sm.w),
       decoration: BoxDecoration(
-        color: AppColors.inputBackground,
+        color: AppColors.surfaceMutedDark,
         borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-        border: Border.all(color: AppColors.inputBorder),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -200,11 +200,12 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
           value: options.contains(widget.value) ? widget.value : null,
           hint: Text(
             '选择${widget.field.label}',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
           ),
           isDense: true,
-          dropdownColor: AppColors.surfaceContainer,
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
+          dropdownColor: AppColors.surfaceContainerHigh,
+          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+          icon: Icon(Icons.keyboard_arrow_down_rounded, size: 18.r, color: AppColors.muted),
           items: options
               .map((o) => DropdownMenuItem(value: o, child: Text(o)))
               .toList(),
@@ -249,10 +250,10 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
 
   Widget _buildNumber() {
     return SizedBox(
-      height: 38.h,
+      height: 36.h,
       child: TextField(
         controller: _numberCtrl,
-        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
+        style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         decoration: _inputDecoration(widget.field.hint ?? '输入数字'),
@@ -266,7 +267,7 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
         widget.field.key == 'prompt' || widget.field.key == 'negativePrompt';
     return TextField(
       controller: _textCtrl,
-      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurface),
+      style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
       maxLines: isLong ? 3 : 1,
       decoration: _inputDecoration(
         widget.field.hint ?? '输入${widget.field.label}',
@@ -275,23 +276,24 @@ class _MetaFieldEditorState extends State<MetaFieldEditor> {
     );
   }
 
+  /// 输入框：深底凹陷
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+      hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
       filled: true,
-      fillColor: AppColors.inputBackground,
+      fillColor: AppColors.inputBackground.withValues(alpha: 0.6),
       contentPadding: EdgeInsets.symmetric(
-        horizontal: Spacing.md.w,
+        horizontal: Spacing.sm.w,
         vertical: Spacing.sm.h,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-        borderSide: BorderSide(color: AppColors.inputBorder),
+        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.3)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-        borderSide: BorderSide(color: widget.accentColor),
+        borderSide: BorderSide(color: widget.accentColor.withValues(alpha: 0.6)),
       ),
     );
   }

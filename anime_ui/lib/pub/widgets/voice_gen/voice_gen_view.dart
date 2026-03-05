@@ -176,21 +176,69 @@ class _VoiceGenViewState extends State<VoiceGenView>
     }
   }
 
+  Widget _buildInputPanel() {
+    return VoiceGenInputPanel(
+      config: config,
+      ctrl: _ctrl,
+      ref: widget.ref,
+      nameCtrl: _nameCtrl,
+      promptCtrl: _promptCtrl,
+      previewTextCtrl: _previewTextCtrl,
+      descCtrl: _descCtrl,
+      tagInputCtrl: _tagInputCtrl,
+      isGeneratingPreviewText: _isGeneratingPreviewText,
+      onGeneratePreviewText: _generatePreviewText,
+    );
+  }
+
+  Widget _buildResultPanel() {
+    return VoiceGenResultPanel(
+      ctrl: _ctrl,
+      accent: accent,
+      isSaving: _isSaving,
+      onSave: _save,
+    );
+  }
+
+  /// 宽屏：左右分栏（表单 | 结果）
+  Widget _buildWideContent() {
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 280.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: _buildInputPanel()),
+          Container(width: 1.w, color: AppColors.surfaceMutedDarker),
+          Expanded(child: _buildResultPanel()),
+        ],
+      ),
+    );
+  }
+
+  /// 窄屏：上方表单可滚动 + 下方播放预览固定可见
+  Widget _buildNarrowContent() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(child: _buildInputPanel()),
+        ),
+        Container(height: 1.h, color: AppColors.surfaceMutedDarker),
+        _buildResultPanel(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _ctrl,
       builder: (_, _) {
-        return Dialog(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
-          ),
-          child: ConstrainedBox(
+        final narrow = MediaQuery.sizeOf(context).width < Breakpoints.md;
+        return ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: 700.w,
-              maxHeight: 560.h,
-              minWidth: 480.w,
+              maxWidth: narrow ? 520.w : 920.w,
+              maxHeight: 740.h,
+              minWidth: narrow ? 340.w : 480.w,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -209,41 +257,9 @@ class _VoiceGenViewState extends State<VoiceGenView>
                   ),
                 Flexible(
                   fit: FlexFit.loose,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: 280.h),
-                    child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 380.w,
-                        child: VoiceGenInputPanel(
-                          config: config,
-                          ctrl: _ctrl,
-                          ref: widget.ref,
-                          nameCtrl: _nameCtrl,
-                          promptCtrl: _promptCtrl,
-                          previewTextCtrl: _previewTextCtrl,
-                          descCtrl: _descCtrl,
-                          tagInputCtrl: _tagInputCtrl,
-                          isGeneratingPreviewText: _isGeneratingPreviewText,
-                          onGeneratePreviewText: _generatePreviewText,
-                        ),
-                      ),
-                      Container(
-                        width: 1.w,
-                        color: AppColors.surfaceMutedDarker,
-                      ),
-                      Expanded(
-                        child: VoiceGenResultPanel(
-                          ctrl: _ctrl,
-                          accent: accent,
-                          isSaving: _isSaving,
-                          onSave: _save,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                  child: narrow
+                      ? _buildNarrowContent()
+                      : _buildWideContent(),
                 ),
                 VoiceGenFooter(
                   ctrl: _ctrl,
@@ -253,7 +269,6 @@ class _VoiceGenViewState extends State<VoiceGenView>
                 ),
               ],
             ),
-          ),
         );
       },
     );

@@ -3,13 +3,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/widgets/gen_form_helpers.dart';
+import 'package:anime_ui/pub/widgets/model_selector/model_selector.dart';
 import '../image_gen_config.dart';
 import '../image_gen_controller.dart';
 import 'gen_result_grid.dart';
 import 'output_count_bar.dart';
+import 'ratio_picker.dart';
 
-/// 图生右侧结果面板 — 输出数量合并到标题行
-class ImageGenResultPanel extends StatelessWidget {
+/// 图生右侧面板 — 上部可折叠参数配置 + 下部生成预览
+///
+/// 参数区（比例/分辨率/模型）在生成完成后自动折叠，让图片结果占满空间。
+/// 用户可随时手动展开/折叠。
+class ImageGenResultPanel extends StatefulWidget {
   const ImageGenResultPanel({
     super.key,
     required this.config,
@@ -28,13 +34,56 @@ class ImageGenResultPanel extends StatelessWidget {
   final void Function(String) onImageTap;
 
   @override
+  State<ImageGenResultPanel> createState() => _ImageGenResultPanelState();
+}
+
+class _ImageGenResultPanelState extends State<ImageGenResultPanel> {
+  bool _configExpanded = true;
+  GenControllerState? _prevStatus;
+
+  ImageGenConfig get config => widget.config;
+  ImageGenController get ctrl => widget.ctrl;
+  Color get accent => widget.accent;
+
+  @override
+  void initState() {
+    super.initState();
+    _prevStatus = ctrl.status;
+    ctrl.addListener(_onCtrlChanged);
+  }
+
+  @override
+  void dispose() {
+    ctrl.removeListener(_onCtrlChanged);
+    super.dispose();
+  }
+
+  /// 生成完成时自动折叠参数区；重置时自动展开
+  void _onCtrlChanged() {
+    final cur = ctrl.status;
+    if (_prevStatus != cur) {
+      if (cur == GenControllerState.done && _configExpanded) {
+        setState(() => _configExpanded = false);
+      } else if (cur == GenControllerState.idle && !_configExpanded) {
+        setState(() => _configExpanded = true);
+      }
+      _prevStatus = cur;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(Spacing.mid.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 标题行：「生成预览」+ 输出数量选择紧凑排列
+          // ── 可折叠参数配置区 ──
+          _buildCollapsibleConfig(),
+
+          SizedBox(height: Spacing.lg.h),
+
+          // ── 生成预览区 ──
           Row(
             children: [
               Text(
@@ -53,31 +102,18 @@ class ImageGenResultPanel extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: Spacing.md.h),
+          SizedBox(height: Spacing.sm.h),
 
-          // 空状态用固定高度紧凑显示，有结果时再撑满
-          ctrl.results.isEmpty && !ctrl.isGenerating
-              ? SizedBox(
-                  height: 180.h,
-                  child: GenResultGrid(
-                    results: ctrl.results,
-                    isGenerating: ctrl.isGenerating,
-                    progress: ctrl.progress,
-                    accent: accent,
-                    outputCount: ctrl.outputCount,
-                    onImageTap: onImageTap,
-                  ),
-                )
-              : Expanded(
-                  child: GenResultGrid(
-                    results: ctrl.results,
-                    isGenerating: ctrl.isGenerating,
-                    progress: ctrl.progress,
-                    accent: accent,
-                    outputCount: ctrl.outputCount,
-                    onImageTap: onImageTap,
-                  ),
-                ),
+          Expanded(
+            child: GenResultGrid(
+              results: ctrl.results,
+              isGenerating: ctrl.isGenerating,
+              progress: ctrl.progress,
+              accent: accent,
+              outputCount: ctrl.outputCount,
+              onImageTap: widget.onImageTap,
+            ),
+          ),
 
           if (ctrl.hasError && ctrl.errorMsg != null) ...[
             SizedBox(height: Spacing.md.h),
@@ -87,6 +123,97 @@ class ImageGenResultPanel extends StatelessWidget {
           if (ctrl.isDone && ctrl.results.isNotEmpty) ...[
             SizedBox(height: Spacing.md.h),
             _buildResultActions(context),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// 参数区：带折叠/展开动画和切换按钮
+  Widget _buildCollapsibleConfig() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () => setState(() => _configExpanded = !_configExpanded),
+          child: Row(
+            children: [
+              Text(
+                '参数配置',
+                style: AppTextStyles.labelMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.muted,
+                ),
+              ),
+              SizedBox(width: Spacing.xs.w),
+              AnimatedRotation(
+                turns: _configExpanded ? 0.0 : -0.25,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  Icons.expand_more_rounded,
+                  size: 16.r,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: Padding(
+            padding: EdgeInsets.only(top: Spacing.sm.h),
+            child: _buildConfigSection(),
+          ),
+          secondChild: const SizedBox.shrink(),
+          crossFadeState: _configExpanded
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+          duration: const Duration(milliseconds: 250),
+          sizeCurve: Curves.easeInOut,
+        ),
+      ],
+    );
+  }
+
+  /// 宽高比 + 分辨率 + 模型选择器
+  Widget _buildConfigSection() {
+    return Container(
+      padding: EdgeInsets.all(Spacing.md.r),
+      decoration: genSelectBoxDeco(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RatioPicker(
+            selectedRatio: ctrl.ratio,
+            selectedResolution: ctrl.resolution,
+            allowedRatios: config.allowedRatios,
+            accent: accent,
+            onRatioChanged: ctrl.setRatio,
+            onResolutionChanged: ctrl.setResolution,
+          ),
+          SizedBox(height: Spacing.sm.h),
+          ModelSelector(
+            serviceType: 'image',
+            accent: accent,
+            selected: ctrl.selectedModel,
+            style: ModelSelectorStyle.dialog,
+            onChanged: ctrl.setModel,
+          ),
+          if (ctrl.sizeValidationError != null) ...[
+            SizedBox(height: Spacing.sm.h),
+            Row(
+              children: [
+                Icon(
+                  AppIcons.warning,
+                  size: (AppTextStyles.bodySmall.fontSize ?? 13).r,
+                  color: AppColors.warning,
+                ),
+                SizedBox(width: Spacing.xs.w),
+                Text(
+                  ctrl.sizeValidationError!,
+                  style: AppTextStyles.tiny.copyWith(color: AppColors.warning),
+                ),
+              ],
+            ),
           ],
         ],
       ),
@@ -130,8 +257,8 @@ class ImageGenResultPanel extends StatelessWidget {
         ),
         const Spacer(),
         FilledButton.icon(
-          onPressed: isSaving ? null : onSave,
-          icon: isSaving
+          onPressed: widget.isSaving ? null : widget.onSave,
+          icon: widget.isSaving
               ? SizedBox(
                   width: Spacing.gridGap.w,
                   height: Spacing.gridGap.h,

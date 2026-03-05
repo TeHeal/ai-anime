@@ -4,19 +4,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/models/dashboard.dart';
 import 'package:anime_ui/pub/widgets/app_search_field.dart';
+import 'package:anime_ui/module/dashboard/providers/provider.dart';
+import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/assets/characters/providers/selection.dart';
 
-/// 角色工具栏：搜索、筛选（状态/重要性/角色类型）、AI 提取、导入小传、手动添加
+/// 角色工具栏：搜索、筛选（状态/重要性/角色类型/一致性/集数）、导入小传、创建角色
 class CharacterToolbar extends ConsumerStatefulWidget {
   const CharacterToolbar({
     super.key,
-    required this.onExtract,
     required this.onImportProfile,
     required this.onAdd,
   });
 
-  final VoidCallback onExtract;
   final VoidCallback onImportProfile;
   final VoidCallback onAdd;
 
@@ -46,6 +47,8 @@ class _CharacterToolbarState extends ConsumerState<CharacterToolbar> {
     final statusFilter = ref.watch(charStatusFilterProvider);
     final importanceFilter = ref.watch(charImportanceFilterProvider);
     final roleTypeFilter = ref.watch(charRoleTypeFilterProvider);
+    final consistencyFilter = ref.watch(charConsistencyFilterProvider);
+    final episodeFilter = ref.watch(assetEpisodeFilterProvider);
     final nameSearch = ref.watch(charNameSearchProvider);
 
     if (nameSearch.isEmpty && _searchCtrl.text.isNotEmpty) {
@@ -55,7 +58,12 @@ class _CharacterToolbarState extends ConsumerState<CharacterToolbar> {
     final hasFilter = statusFilter != null ||
         importanceFilter != null ||
         roleTypeFilter != null ||
+        consistencyFilter != null ||
+        episodeFilter != null ||
         nameSearch.isNotEmpty;
+
+    // 从项目 Dashboard 获取集列表
+    final episodes = _getEpisodes();
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -81,17 +89,15 @@ class _CharacterToolbarState extends ConsumerState<CharacterToolbar> {
               spacing: Spacing.sm.w,
               runSpacing: Spacing.sm.h,
               children: [
+                if (episodes.isNotEmpty)
+                  _buildEpisodeFilter(episodeFilter, episodes),
                 _buildStatusFilter(statusFilter),
                 _buildImportanceFilter(importanceFilter),
                 _buildRoleTypeFilter(roleTypeFilter),
+                _buildConsistencyFilter(consistencyFilter),
                 if (hasFilter)
                   TextButton(
-                    onPressed: () {
-                      ref.read(charStatusFilterProvider.notifier).set(null);
-                      ref.read(charImportanceFilterProvider.notifier).set(null);
-                      ref.read(charRoleTypeFilterProvider.notifier).set(null);
-                      ref.read(charNameSearchProvider.notifier).set('');
-                    },
+                    onPressed: _resetAll,
                     child: Text(
                       '重置',
                       style: AppTextStyles.caption.copyWith(
@@ -110,20 +116,29 @@ class _CharacterToolbarState extends ConsumerState<CharacterToolbar> {
           ),
           SizedBox(width: Spacing.sm.w),
           FilledButton.icon(
-            onPressed: widget.onExtract,
-            icon: Icon(AppIcons.autoAwesome, size: 16.r),
-            label: const Text('AI 提取'),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-          ),
-          SizedBox(width: Spacing.sm.w),
-          IconButton(
-            icon: Icon(AppIcons.add, size: 20.r, color: AppColors.primary),
-            tooltip: '手动添加',
             onPressed: widget.onAdd,
+            icon: Icon(AppIcons.add, size: 16.r),
+            label: const Text('创建角色'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
       ),
     );
+  }
+
+  void _resetAll() {
+    ref.read(charStatusFilterProvider.notifier).set(null);
+    ref.read(charImportanceFilterProvider.notifier).set(null);
+    ref.read(charRoleTypeFilterProvider.notifier).set(null);
+    ref.read(charConsistencyFilterProvider.notifier).set(null);
+    ref.read(assetEpisodeFilterProvider.notifier).set(null);
+    ref.read(charNameSearchProvider.notifier).set('');
+  }
+
+  /// 从 Dashboard 获取项目集列表
+  List<DashboardEpisode> _getEpisodes() {
+    final dash = ref.watch(dashboardProvider);
+    return dash.value?.episodes ?? [];
   }
 
   Widget _buildDropdown<T>({
@@ -160,6 +175,23 @@ class _CharacterToolbarState extends ConsumerState<CharacterToolbar> {
           onChanged: onChanged,
         ),
       ),
+    );
+  }
+
+  Widget _buildEpisodeFilter(int? current, List<DashboardEpisode> episodes) {
+    return _buildDropdown<int>(
+      value: current,
+      hint: '全部集',
+      items: [
+        const DropdownMenuItem<int?>(value: null, child: Text('全部集')),
+        ...episodes.map(
+          (ep) => DropdownMenuItem<int?>(
+            value: ep.sortIndex + 1,
+            child: Text('第${ep.sortIndex + 1}集'),
+          ),
+        ),
+      ],
+      onChanged: (v) => ref.read(assetEpisodeFilterProvider.notifier).set(v),
     );
   }
 
@@ -205,6 +237,21 @@ class _CharacterToolbarState extends ConsumerState<CharacterToolbar> {
         DropdownMenuItem(value: 'narrator', child: Text('旁白')),
       ],
       onChanged: (v) => ref.read(charRoleTypeFilterProvider.notifier).set(v),
+    );
+  }
+
+  Widget _buildConsistencyFilter(String? current) {
+    return _buildDropdown<String>(
+      value: current,
+      hint: '一致性要求',
+      items: const [
+        DropdownMenuItem(value: null, child: Text('一致性要求')),
+        DropdownMenuItem(value: 'strong', child: Text('强')),
+        DropdownMenuItem(value: 'medium', child: Text('中')),
+        DropdownMenuItem(value: 'weak', child: Text('弱')),
+      ],
+      onChanged: (v) =>
+          ref.read(charConsistencyFilterProvider.notifier).set(v),
     );
   }
 }

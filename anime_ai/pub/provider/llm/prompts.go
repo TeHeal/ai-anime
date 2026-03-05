@@ -58,6 +58,16 @@ func BuildScriptAssistUserPrompt(action, blockType, blockContent, sceneMeta stri
 		} else {
 			sb.WriteString("【任务】请根据上下文续写新的内容，保持风格一致并推进剧情。")
 		}
+	case "randomPrompt":
+		hint := blockType
+		if hint == "" || hint == "prompt" {
+			hint = "通用画面描述"
+		}
+		if blockContent != "" {
+			sb.WriteString(fmt.Sprintf("【任务】请基于以下内容，随机生成一段富有创意的提示词关键词（用于 %s 场景），风格多样、细节丰富，直接输出关键词用逗号分隔：\n%s", hint, blockContent))
+		} else {
+			sb.WriteString(fmt.Sprintf("【任务】请随机生成一段富有创意的提示词关键词（用于 %s 场景），风格多样、细节丰富，直接输出关键词用逗号分隔。", hint))
+		}
 	default:
 		sb.WriteString(fmt.Sprintf("【任务】%s\n%s", action, blockContent))
 	}

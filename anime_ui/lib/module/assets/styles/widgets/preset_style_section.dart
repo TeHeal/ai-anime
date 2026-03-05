@@ -136,9 +136,13 @@ class _PresetStyleSectionState extends ConsumerState<PresetStyleSection> {
                     child: Image.asset(
                       preset.thumbnailPath,
                       fit: BoxFit.cover,
+                      cacheWidth: 300,
+                      cacheHeight: 220,
                       errorBuilder: (context, e1, s1) => Image.asset(
                         preset.assetPath,
                         fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        cacheHeight: 220,
                         errorBuilder: (context, e2, s2) => _cardPlaceholder(),
                       ),
                     ),

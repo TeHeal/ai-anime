@@ -43,6 +43,17 @@ final charRoleTypeFilterProvider =
     NotifierProvider<CharRoleTypeFilterNotifier, String?>(
         CharRoleTypeFilterNotifier.new);
 
+/// 一致性要求筛选：strong / medium / weak
+class CharConsistencyFilterNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? value) => state = value;
+}
+
+final charConsistencyFilterProvider =
+    NotifierProvider<CharConsistencyFilterNotifier, String?>(
+        CharConsistencyFilterNotifier.new);
+
 /// 名称搜索
 class CharNameSearchNotifier extends Notifier<String> {
   @override

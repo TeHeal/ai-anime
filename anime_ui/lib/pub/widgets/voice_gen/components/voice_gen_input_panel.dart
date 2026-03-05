@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/gen_form_helpers.dart';
 import 'package:anime_ui/pub/widgets/model_selector/model_selector.dart';
+import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 import '../voice_gen_config.dart';
 import '../voice_gen_controller.dart';
 import 'voice_sample_upload.dart';
 
-/// 音色生成左侧输入面板
+/// 音色生成输入面板
 class VoiceGenInputPanel extends StatelessWidget {
   const VoiceGenInputPanel({
     super.key,
@@ -61,7 +65,7 @@ class VoiceGenInputPanel extends StatelessWidget {
               onRemove: ctrl.removeSample,
             ),
           ] else ...[
-            _buildDesignPromptField(),
+            _buildDesignPromptField(context),
             SizedBox(height: Spacing.gridGap.h),
             _buildPreviewTextField(),
           ],
@@ -100,49 +104,38 @@ class VoiceGenInputPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildDesignPromptField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        genFormLabel('音色描述', required: true),
-        SizedBox(height: Spacing.iconGapSm.h),
-        TextField(
-          controller: promptCtrl,
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-          maxLines: 3,
-          decoration: genFormInputDeco(config.designPromptHint, accent),
-        ),
-        if (config.quickPrompts.isNotEmpty) ...[
-          const SizedBox(height: Spacing.sm),
-          Wrap(
-            spacing: Spacing.sm.w,
-            runSpacing: Spacing.sm.h,
-            children: config.quickPrompts.map((p) {
-              return GestureDetector(
-                onTap: () {
-                  final cur = promptCtrl.text;
-                  promptCtrl.text = cur.isEmpty ? p : '$cur，$p';
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.sm.w,
-                    vertical: Spacing.xs.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-                    border: Border.all(color: accent.withValues(alpha: 0.2)),
-                  ),
-                  child: Text(
-                    p,
-                    style: AppTextStyles.tiny.copyWith(color: accent),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ],
+  Widget _buildDesignPromptField(BuildContext context) {
+    void openPromptLibrary(void Function(String) setText) {
+      final resources =
+          ref.read(resourceListPortProvider).resources.value ?? [];
+      final prompts =
+          resources.where((r) => r.libraryType == 'prompt').toList();
+      showPromptLibrary(
+        context,
+        prompts: prompts,
+        accent: accent,
+        onSelected: setText,
+      );
+    }
+
+    return PromptFieldWithAssistant(
+      controller: promptCtrl,
+      hint: config.designPromptHint,
+      accent: accent,
+      label: '音色描述',
+      quickPrompts: config.quickPrompts,
+      maxLines: 3,
+      onLibraryTap: openPromptLibrary,
+      onSaveToLibrary: (text, name, {required bool isNegative}) async {
+        await ref.read(resourceListPortProvider).addResource(
+              Resource(
+                name: name,
+                libraryType: 'prompt',
+                modality: 'text',
+                description: text,
+              ),
+            );
+      },
     );
   }
 

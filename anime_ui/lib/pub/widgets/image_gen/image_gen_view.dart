@@ -225,21 +225,13 @@ class _ImageGenViewState extends State<ImageGenView> {
     return ListenableBuilder(
       listenable: _ctrl,
       builder: (context, _) {
-        return Dialog(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
-          ),
-          child: Builder(
+        return Builder(
             builder: (context) {
-              final w = MediaQuery.sizeOf(context).width;
-              // 窄屏（<600px）单栏纵向布局，宽屏左右双栏
-              final narrow = w < Breakpoints.md;
-              // 子组件正常显示下的最小占用：不强制撑满，仅设上限防止溢出
+              final narrow = MediaQuery.sizeOf(context).width < Breakpoints.md;
               return ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: narrow ? 520.w : 800.w,
-                  maxHeight: 600.h,
+                  maxWidth: narrow ? 520.w : 920.w,
+                  maxHeight: 740.h,
                   minWidth: narrow ? 320.w : 560.w,
                 ),
                 child: Column(
@@ -295,6 +287,7 @@ class _ImageGenViewState extends State<ImageGenView> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Expanded(
+                                    flex: 2,
                                     child: ImageGenInputPanel(
                                     config: config,
                                     ctrl: _ctrl,
@@ -306,6 +299,7 @@ class _ImageGenViewState extends State<ImageGenView> {
                                 ),
                                 Container(width: 1.w, color: AppColors.divider),
                                 Expanded(
+                                  flex: 3,
                                   child: ImageGenResultPanel(
                                     config: config,
                                     ctrl: _ctrl,
@@ -334,7 +328,6 @@ class _ImageGenViewState extends State<ImageGenView> {
                 ),
               );
             },
-          ),
         );
       },
     );

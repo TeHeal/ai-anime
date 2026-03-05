@@ -24,10 +24,11 @@ abstract final class AppDialog {
   }) {
     return showDialog<T>(
       context: context,
-      barrierColor: Colors.transparent,
+      barrierColor: Colors.black54,
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.surface,
         shape: shape,
+        insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
         child: builder(ctx, () => Navigator.of(ctx).pop()),
       ),
     );

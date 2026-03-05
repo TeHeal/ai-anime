@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:anime_ui/pub/theme/design_tokens.dart';
-import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
-import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/widgets/app_network_image.dart';
 import 'package:anime_ui/pub/models/character.dart';
+import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/models/storyboard_script.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
+import 'package:anime_ui/pub/widgets/app_network_image.dart';
+import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
+import 'package:anime_ui/module/assets/resources/providers/provider.dart';
 import 'package:anime_ui/module/script/providers/review_ui.dart';
 import 'package:anime_ui/module/script/page/widgets/emotion_vector_widget.dart';
 
@@ -46,7 +50,7 @@ class ReviewEditor extends ConsumerWidget {
           _section('1. 基础信息', _buildBasicInfo(shot, editing, uiNotifier)),
           SizedBox(height: Spacing.md.h),
 
-          _buildScenePromptCard(shot, editing, uiNotifier),
+          _buildScenePromptCard(context, ref, shot, editing, uiNotifier),
           SizedBox(height: Spacing.md.h),
 
           _buildCharacterCard(shot, editing, characters, uiNotifier),

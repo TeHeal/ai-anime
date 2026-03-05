@@ -128,4 +128,27 @@ abstract class Character with _$Character {
       };
 
   bool get hasBio => bio.isNotEmpty;
+
+  /// 解析 scenes JSON 获取出场场次列表（如 ["1-1","2-3"]）
+  List<String> get scenesList {
+    if (scenes.isEmpty) return [];
+    try {
+      return (jsonDecode(scenes) as List).cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// 提取角色出现的集号集合（从 "集号-场号" 格式中提取）
+  Set<int> get episodeNumbers {
+    final result = <int>{};
+    for (final s in scenesList) {
+      final parts = s.split('-');
+      if (parts.isNotEmpty) {
+        final ep = int.tryParse(parts[0]);
+        if (ep != null) result.add(ep);
+      }
+    }
+    return result;
+  }
 }

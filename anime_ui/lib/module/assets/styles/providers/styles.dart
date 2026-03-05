@@ -75,6 +75,28 @@ class AssetStylesNotifier extends Notifier<AsyncValue<List<Style>>> {
     }
   }
 
+  /// 设为项目默认风格，同时前端 state 互斥更新
+  Future<void> setDefault(String styleId) async {
+    final pid = _projectId;
+    if (pid == null) return;
+    final list = state.value ?? [];
+    final target = list.where((s) => s.id == styleId).firstOrNull;
+    if (target == null) return;
+    try {
+      final updated = await _svc.update(pid, styleId,
+          isProjectDefault: true);
+      state = AsyncValue.data(
+        list.map((s) {
+          if (s.id == styleId) return updated;
+          if (s.isProjectDefault) return s.copyWith(isProjectDefault: false);
+          return s;
+        }).toList(),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   /// 将风格应用到所有资产（角色、场景、道具）
   Future<int> applyAll(String styleId) async {
     final pid = _projectId;

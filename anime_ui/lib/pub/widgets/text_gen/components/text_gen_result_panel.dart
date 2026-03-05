@@ -7,23 +7,27 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import '../text_gen_controller.dart';
 
-/// 文本生成右侧结果面板（空闲 / 生成中 / 结果 / 错误）
+/// 文本生成结果面板（空闲 / 生成中 / 结果 / 错误）
 class TextGenResultPanel extends StatelessWidget {
   const TextGenResultPanel({
     super.key,
     required this.ctrl,
     required this.accent,
     required this.onGenerate,
+    this.onOptimize,
   });
 
   final TextGenController ctrl;
   final Color accent;
   final VoidCallback onGenerate;
+  final VoidCallback? onOptimize;
 
   @override
   Widget build(BuildContext context) {
-    final isCompact = ctrl.status != TextGenStatus.done;
-    final content = Container(
+    return Container(
+      constraints: ctrl.status != TextGenStatus.done
+          ? BoxConstraints(minHeight: 160.h)
+          : null,
       color: AppColors.background,
       child: switch (ctrl.status) {
         TextGenStatus.idle => _buildIdlePlaceholder(context),
@@ -32,10 +36,6 @@ class TextGenResultPanel extends StatelessWidget {
         TextGenStatus.error => _buildError(context),
       },
     );
-    // 空闲/生成中/错误时用固定高度紧凑显示，有结果时再撑满
-    return isCompact
-        ? SizedBox(height: 200.h, child: content)
-        : content;
   }
 
   Widget _buildIdlePlaceholder(BuildContext context) {
@@ -137,31 +137,38 @@ class TextGenResultPanel extends StatelessWidget {
                 color: AppColors.muted,
                 onTap: onGenerate,
               ),
+              if (onOptimize != null) ...[
+                SizedBox(width: Spacing.sm.w),
+                _TinyAction(
+                  icon: AppIcons.magicStick,
+                  label: '优化结果',
+                  color: accent,
+                  onTap: onOptimize!,
+                ),
+              ],
             ],
           ),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              Spacing.lg.w,
-              0,
-              Spacing.lg.w,
-              Spacing.lg.h,
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            Spacing.lg.w,
+            0,
+            Spacing.lg.w,
+            Spacing.lg.h,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(Spacing.gridGap.r),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+              border: Border.all(color: accent.withValues(alpha: 0.15)),
             ),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(Spacing.gridGap.r),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-                border: Border.all(color: accent.withValues(alpha: 0.15)),
-              ),
-              child: SelectableText(
-                ctrl.result,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.onSurface,
-                  height: 1.7,
-                ),
+            child: SelectableText(
+              ctrl.result,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.onSurface,
+                height: 1.7,
               ),
             ),
           ),

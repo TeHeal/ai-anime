@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 
 /// 文字创作助理操作：剧本、提示词等文本小场景通用。
-enum AiAction { polish, expand, condense, continueWrite, rewrite }
+enum AiAction { polish, expand, condense, continueWrite, rewrite, randomPrompt }
 
 const aiActionLabels = <AiAction, String>{
   AiAction.polish: '润色',
@@ -11,6 +11,7 @@ const aiActionLabels = <AiAction, String>{
   AiAction.condense: '缩写',
   AiAction.continueWrite: '续写',
   AiAction.rewrite: '改写',
+  AiAction.randomPrompt: '随机',
 };
 
 const aiActionIcons = <AiAction, IconData>{
@@ -19,4 +20,5 @@ const aiActionIcons = <AiAction, IconData>{
   AiAction.condense: AppIcons.unfoldLess,
   AiAction.continueWrite: AppIcons.arrowForward,
   AiAction.rewrite: AppIcons.refresh,
+  AiAction.randomPrompt: AppIcons.bolt,
 };

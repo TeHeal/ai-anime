@@ -122,21 +122,44 @@ class _TextGenViewState extends State<TextGenView> {
     if (mounted) widget.onClose?.call();
   }
 
+  /// 基于当前结果再次优化
+  Future<void> _optimizeResult() async {
+    if (_ctrl.result.isEmpty) return;
+    final instruction = _instructionCtrl.text.trim();
+    if (instruction.isEmpty) return;
+
+    final optimizeConfig = TextGenConfig(
+      title: config.title,
+      accentColor: config.accentColor,
+      mode: TextGenMode.optimize,
+      onComplete: config.onComplete,
+      instructionHint: config.instructionHint,
+      referenceText: _ctrl.result,
+      targetModel: _selectedTargetModel?.displayName ?? '',
+      language: _selectedLanguage,
+      maxTokens: config.maxTokens,
+      quickPrompts: config.quickPrompts,
+      saveToLibrary: config.saveToLibrary,
+      libraryType: config.libraryType,
+    );
+
+    await _ctrl.generate(
+      instruction: instruction,
+      config: optimizeConfig,
+      name: _nameCtrl.text.trim(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _ctrl,
       builder: (_, _) {
-        return Dialog(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.xxxl.r),
-          ),
-          child: ConstrainedBox(
+        return ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: 660.w,
-              maxHeight: 520.h,
-              minWidth: 440.w,
+              maxWidth: 560.w,
+              maxHeight: 740.h,
+              minWidth: 360.w,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -146,16 +169,14 @@ class _TextGenViewState extends State<TextGenView> {
                   accent: accent,
                   onClose: widget.onClose,
                 ),
+                // 上下布局：输入在上，结果在下
                 Flexible(
                   fit: FlexFit.loose,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: 260.h),
-                    child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 340.w,
-                        child: TextGenInputPanel(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextGenInputPanel(
                           config: config,
                           instructionCtrl: _instructionCtrl,
                           nameCtrl: _nameCtrl,
@@ -170,21 +191,19 @@ class _TextGenViewState extends State<TextGenView> {
                           onTargetModelChanged: (m) =>
                               setState(() => _selectedTargetModel = m),
                         ),
-                      ),
-                      Container(
-                        width: 1.w,
-                        color: AppColors.surfaceMutedDarker,
-                      ),
-                      Expanded(
-                        child: TextGenResultPanel(
+                        Container(
+                          height: 1.h,
+                          color: AppColors.surfaceMutedDarker,
+                        ),
+                        TextGenResultPanel(
                           ctrl: _ctrl,
                           accent: accent,
                           onGenerate: _generate,
+                          onOptimize: _optimizeResult,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
                 ),
                 TextGenFooter(
                   config: config,
@@ -197,7 +216,6 @@ class _TextGenViewState extends State<TextGenView> {
                 ),
               ],
             ),
-          ),
         );
       },
     );

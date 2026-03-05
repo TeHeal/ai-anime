@@ -5,19 +5,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/character.dart';
-import 'package:anime_ui/pub/widgets/image_gen/image_gen_config.dart';
-import 'package:anime_ui/pub/widgets/image_gen/image_gen_dialog.dart';
 import 'package:anime_ui/pub/widgets/loading.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/module/assets/shared/confirm_delete_dialog.dart';
-import 'package:anime_ui/module/assets/shared/extract_dialog.dart';
 import 'package:anime_ui/module/assets/shared/import_profile_dialog.dart';
+import 'package:anime_ui/module/dashboard/providers/provider.dart';
+import 'package:anime_ui/module/assets/styles/providers/styles.dart';
+import 'package:anime_ui/module/assets/resources/providers/resource_list.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/assets/characters/providers/selection.dart';
+import 'package:anime_ui/module/assets/characters/widgets/character_create_dialog.dart';
 import 'package:anime_ui/module/assets/characters/widgets/character_detail_panel.dart';
 import 'package:anime_ui/module/assets/characters/widgets/character_edit_dialog.dart';
 import 'package:anime_ui/module/assets/characters/widgets/character_list_panel.dart';
 import 'package:anime_ui/module/assets/characters/widgets/character_toolbar.dart';
-import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 
 /// 角色页：列表 + 详情双栏布局
 class AssetsCharactersPage extends ConsumerStatefulWidget {
@@ -28,13 +29,37 @@ class AssetsCharactersPage extends ConsumerStatefulWidget {
       _AssetsCharactersPageState();
 }
 
-class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
+class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulseAnim;
+
   @override
   void initState() {
     super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: MotionTokens.durationSlow,
+    )..repeat(reverse: true);
+    _pulseAnim = Tween(begin: 0.92, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: MotionTokens.curveStandard),
+    );
+
     Future.microtask(() {
       ref.read(assetCharactersProvider.notifier).load();
+      ref.read(dashboardProvider.notifier).load();
+      ref.read(resourceListProvider.notifier).load();
+      final styles = ref.read(assetStylesProvider);
+      if (!styles.hasValue || (styles.value?.isEmpty ?? true)) {
+        ref.read(assetStylesProvider.notifier).load();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,13 +69,11 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
     final statusFilter = ref.watch(charStatusFilterProvider);
     final importanceFilter = ref.watch(charImportanceFilterProvider);
     final roleTypeFilter = ref.watch(charRoleTypeFilterProvider);
+    final consistencyFilter = ref.watch(charConsistencyFilterProvider);
+    final episodeFilter = ref.watch(assetEpisodeFilterProvider);
     final nameSearch = ref.watch(charNameSearchProvider);
 
     final toolbar = CharacterToolbar(
-      onExtract: () => showDialog(
-        context: context,
-        builder: (_) => const AssetExtractDialog(),
-      ),
       onImportProfile: () => showDialog(
         context: context,
         builder: (_) => const ImportProfileDialog(),
@@ -80,6 +103,11 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
       ),
       data: (allChars) {
         var chars = allChars.toList();
+        if (episodeFilter != null) {
+          chars = chars
+              .where((c) => c.episodeNumbers.contains(episodeFilter))
+              .toList();
+        }
         if (statusFilter != null) {
           chars = chars.where((c) => c.status == statusFilter).toList();
         }
@@ -88,6 +116,11 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
         }
         if (roleTypeFilter != null) {
           chars = chars.where((c) => c.roleType == roleTypeFilter).toList();
+        }
+        if (consistencyFilter != null) {
+          chars = chars
+              .where((c) => c.consistency == consistencyFilter)
+              .toList();
         }
         if (nameSearch.isNotEmpty) {
           final query = nameSearch.toLowerCase();
@@ -129,9 +162,8 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
                                 .batchConfirm(ids);
                             showToast(context, '已批量确认');
                           },
-                          onBatchStyleDialog: () => _showBatchStylePlaceholder(
-                            context,
-                          ),
+                          onBatchStyleDialog: () =>
+                              _showBatchStyleDialog(context),
                         ),
                       ),
                       VerticalDivider(
@@ -152,13 +184,13 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
                                         ),
                                 onDelete: () =>
                                     _confirmDelete(context, ref, selected),
-                                onGenerateImage: () => _handleGenerateImage(
+                                onEdit: () =>
+                                    _showEditCharacter(context, ref, selected),
+                                onAIComplete: () => _handleAIComplete(
                                   context,
                                   ref,
                                   selected,
                                 ),
-                                onEdit: () =>
-                                    _showEditCharacter(context, ref, selected),
                               )
                             : _buildSelectHint(),
                       ),
@@ -173,6 +205,8 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
     );
   }
 
+  // ─── 空状态 + 未选择提示（带脉冲动画）──────────────────
+
   Widget _emptyState(Widget toolbar) {
     return Column(
       children: [
@@ -182,10 +216,25 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  AppIcons.person,
-                  size: 64.r,
-                  color: AppColors.surfaceMuted,
+                AnimatedBuilder(
+                  animation: _pulseAnim,
+                  builder: (_, child) => Transform.scale(
+                    scale: _pulseAnim.value,
+                    child: child,
+                  ),
+                  child: Container(
+                    width: 64.r,
+                    height: 64.r,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      AppIcons.person,
+                      size: 32.r,
+                      color: AppColors.primary.withValues(alpha: 0.5),
+                    ),
+                  ),
                 ),
                 SizedBox(height: Spacing.lg.h),
                 Text(
@@ -218,10 +267,17 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            AppIcons.person,
-            size: 48.r,
-            color: AppColors.surfaceMuted,
+          AnimatedBuilder(
+            animation: _pulseAnim,
+            builder: (_, child) => Opacity(
+              opacity: 0.5 + _pulseAnim.value * 0.5,
+              child: child,
+            ),
+            child: Icon(
+              AppIcons.person,
+              size: 48.r,
+              color: AppColors.primary.withValues(alpha: 0.3),
+            ),
           ),
           SizedBox(height: Spacing.md.h),
           Text(
@@ -235,13 +291,24 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
     );
   }
 
+  // ─── Actions ──────────────────────────────────────────
+
   void _showAddCharacter(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (_) => CharacterEditDialog(
-        title: '新建角色',
-        onSave: (c) =>
-            ref.read(assetCharactersProvider.notifier).add(c),
+      builder: (_) => CharacterCreateDialog(
+        onCreated: (data) {
+          ref.read(assetCharactersProvider.notifier).add(
+                Character(
+                  name: data['name'] ?? '',
+                  appearance: data['appearance'] ?? '',
+                  roleType: data['roleType'] ?? 'human',
+                  importance: data['importance'] ?? 'main',
+                  personality: data['description'] ?? '',
+                  imageUrl: data['imageUrl'] ?? '',
+                ),
+              );
+        },
       ),
     );
   }
@@ -344,30 +411,6 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
     );
   }
 
-  Future<void> _handleGenerateImage(
-    BuildContext context,
-    WidgetRef ref,
-    Character c,
-  ) async {
-    if (c.isGenerating || c.id == null) return;
-
-    await ImageGenDialog.show(
-      context,
-      ref,
-      config: ImageGenConfig.character(
-        onSaved: (urls, mode, {prompt = '', negativePrompt = ''}) async {
-          if (urls.isEmpty || c.id == null) return;
-          await ref.read(assetCharactersProvider.notifier).addReferenceImage(
-                c.id!,
-                angle: 'front',
-                url: urls.first,
-                genMeta: {'prompt': prompt, 'negativePrompt': negativePrompt},
-              );
-        },
-      ),
-    );
-  }
-
   void _confirmDelete(
     BuildContext context,
     WidgetRef ref,
@@ -384,7 +427,65 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage> {
     }
   }
 
-  void _showBatchStylePlaceholder(BuildContext context) {
-    showToast(context, '风格 API 就绪后可批量设定', isInfo: true);
+  Future<void> _handleAIComplete(
+    BuildContext context,
+    WidgetRef ref,
+    Character c,
+  ) async {
+    if (c.id == null) return;
+    final count = await ref
+        .read(assetCharactersProvider.notifier)
+        .batchAIComplete([c.id!]);
+    if (mounted) {
+      showToast(context, 'AI 补全完成，更新了 $count 项');
+    }
+  }
+
+  void _showBatchStyleDialog(BuildContext context) {
+    final styles = ref.read(assetStylesProvider).value ?? [];
+    if (styles.isEmpty) {
+      showToast(context, '请先在风格库中创建风格', isInfo: true);
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceMutedDarker,
+        title: Text(
+          '批量设定风格',
+          style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+        ),
+        content: SizedBox(
+          width: 300.w,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: styles
+                .map(
+                  (s) => ListTile(
+                    title: Text(
+                      s.name,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    subtitle: s.description.isNotEmpty
+                        ? Text(
+                            s.description,
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.mutedDark,
+                            ),
+                          )
+                        : null,
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      showToast(context, '已设定风格「${s.name}」');
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      ),
+    );
   }
 }

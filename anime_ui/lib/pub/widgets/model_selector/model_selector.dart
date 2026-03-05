@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/model_catalog.dart';
 import 'package:anime_ui/pub/services/model_catalog_svc.dart';
 import 'package:anime_ui/pub/services/model_preference_svc.dart';
@@ -111,16 +114,7 @@ class _ModelSelectorState extends State<ModelSelector> {
   @override
   Widget build(BuildContext context) {
     if (_error != null && _models.isEmpty && !_loading) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Text(
-          _error!,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.error,
-            fontSize: 12,
-          ),
-        ),
-      );
+      return _buildErrorRetry();
     }
     return switch (widget.style) {
       ModelSelectorStyle.chips => ModelSelectorChips(
@@ -148,5 +142,62 @@ class _ModelSelectorState extends State<ModelSelector> {
           onChanged: _onSelect,
         ),
     };
+  }
+
+  /// 加载失败时显示与正常下拉框一致的容器，点击可重试
+  Widget _buildErrorRetry() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.label,
+          style: AppTextStyles.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+        SizedBox(height: Spacing.sm.h),
+        GestureDetector(
+          onTap: () {
+            _error = null;
+            _loadModels();
+          },
+          child: Container(
+            height: 38.h,
+            padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceMutedDarker,
+              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+              border: Border.all(
+                color: AppColors.error.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  AppIcons.warning,
+                  size: 14.r,
+                  color: AppColors.error.withValues(alpha: 0.8),
+                ),
+                SizedBox(width: Spacing.sm.w),
+                Expanded(
+                  child: Text(
+                    '加载失败，点击重试',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.error.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ),
+                Icon(
+                  AppIcons.refresh,
+                  size: 14.r,
+                  color: AppColors.onSurface.withValues(alpha: 0.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
