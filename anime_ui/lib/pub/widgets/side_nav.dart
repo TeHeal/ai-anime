@@ -346,7 +346,7 @@ class _SideNavState extends State<SideNav> {
                 ? Center(
                     child: ShaderMask(
                       shaderCallback: (bounds) => const LinearGradient(
-                        colors: [AppColors.primary, AppColors.info],
+                        colors: AppColors.brandGradient,
                       ).createShader(bounds),
                       child: Icon(
                         AppIcons.autoAwesome,
@@ -359,7 +359,7 @@ class _SideNavState extends State<SideNav> {
                     children: [
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
-                          colors: [AppColors.primary, AppColors.info],
+                          colors: AppColors.brandGradient,
                         ).createShader(bounds),
                         child: Icon(
                           AppIcons.autoAwesome,

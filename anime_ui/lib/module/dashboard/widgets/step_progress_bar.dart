@@ -37,12 +37,9 @@ class StepProgressBar extends StatelessWidget {
                     height: 1.5.h,
                     margin: EdgeInsets.only(right: Spacing.xxs.w),
                     decoration: BoxDecoration(
-                      gradient: prevDone
-                          ? const LinearGradient(
-                              colors: [AppColors.primary, AppColors.info],
-                            )
-                          : null,
-                      color: prevDone ? null : AppColors.surfaceMuted,
+                      color: prevDone
+                          ? AppColors.primary.withValues(alpha: 0.6)
+                          : AppColors.surfaceMuted,
                       borderRadius: BorderRadius.circular(Spacing.xxs.r),
                     ),
                   ),
@@ -59,12 +56,9 @@ class StepProgressBar extends StatelessWidget {
                     height: 1.5.h,
                     margin: EdgeInsets.only(left: Spacing.xxs.w),
                     decoration: BoxDecoration(
-                      gradient: prevDone
-                          ? const LinearGradient(
-                              colors: [AppColors.info, AppColors.primary],
-                            )
-                          : null,
-                      color: prevDone ? null : AppColors.surfaceMuted,
+                      color: prevDone
+                          ? AppColors.primary.withValues(alpha: 0.6)
+                          : AppColors.surfaceMuted,
                       borderRadius: BorderRadius.circular(Spacing.xxs.r),
                     ),
                   ),
@@ -123,9 +117,7 @@ class _StepNode extends StatelessWidget {
         height: 8.h,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [AppColors.primary, AppColors.info],
-          ),
+          color: AppColors.primary,
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.4),

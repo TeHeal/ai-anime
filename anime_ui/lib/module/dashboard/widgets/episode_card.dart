@@ -290,7 +290,7 @@ class _EpisodeCardState extends State<EpisodeCard> {
             ),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.info],
+                colors: AppColors.brandGradient,
               ),
               borderRadius: BorderRadius.circular(Spacing.mid.r),
               boxShadow: [

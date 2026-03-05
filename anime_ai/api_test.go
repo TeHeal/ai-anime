@@ -617,7 +617,7 @@ func TestAPI_Location_CreateAndList(t *testing.T) {
 	token := mustLogin(t, r)
 	projectID := mustCreateProject(t, r, token)
 
-	createBody := map[string]interface{}{"name": "客厅", "time": "白天", "interior_exterior": "内景"}
+	createBody := map[string]interface{}{"name": "客厅", "time": "白天", "interiorExterior": "内景"}
 	cb, _ := json.Marshal(createBody)
 	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/locations", bytes.NewReader(cb))
 	createReq.Header.Set("Content-Type", "application/json")
@@ -643,7 +643,7 @@ func TestAPI_Prop_CreateAndList(t *testing.T) {
 	token := mustLogin(t, r)
 	projectID := mustCreateProject(t, r, token)
 
-	createBody := map[string]interface{}{"name": "宝剑", "appearance": "银色长剑"}
+	createBody := map[string]interface{}{"name": "宝剑", "appearance": "银色长剑", "isKeyProp": false}
 	cb, _ := json.Marshal(createBody)
 	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/asset-props", bytes.NewReader(cb))
 	createReq.Header.Set("Content-Type", "application/json")
@@ -716,5 +716,204 @@ func TestAPI_Storyboard_List(t *testing.T) {
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		t.Errorf("获取分镜列表应为 200, 得 %d body=%s", w.Code, w.Body.String())
+	}
+}
+
+// TestAPI_Flow_Full_Login_ScriptImport_AssetConfirm 全流程：登录 → 创建项目 → 剧本解析+确认 → 集列表 → 角色/场景/道具创建+确认
+func TestAPI_Flow_Full_Login_ScriptImport_AssetConfirm(t *testing.T) {
+	r := buildTestRouter()
+
+	// 1. 登录
+	token := mustLogin(t, r)
+	if token == "" {
+		t.Fatal("登录失败")
+	}
+
+	// 2. 创建项目
+	projectID := mustCreateProject(t, r, token)
+	if projectID == "" {
+		t.Fatal("创建项目失败")
+	}
+
+	// 3. 剧本解析（使用解析器支持的标准格式：第N集、N-N日，内，地点）
+	parseBody := map[string]interface{}{
+		"content":     "第1集\n1-1日，内，客厅\n人物：张三，李四\n张三：你好，李四。\n李四：你好。",
+		"format_hint": "standard",
+	}
+	pb, _ := json.Marshal(parseBody)
+	parseReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/script/parse-sync", bytes.NewReader(pb))
+	parseReq.Header.Set("Content-Type", "application/json")
+	parseReq.Header.Set("Authorization", "Bearer "+token)
+	parseW := httptest.NewRecorder()
+	r.ServeHTTP(parseW, parseReq)
+	if parseW.Code != http.StatusOK {
+		t.Fatalf("剧本解析应返回 200, 得 %d body=%s", parseW.Code, parseW.Body.String())
+	}
+	var parseResp struct {
+		Data struct {
+			Script struct {
+				Episodes []interface{} `json:"episodes"`
+			} `json:"script"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(parseW.Body.Bytes(), &parseResp); err != nil {
+		t.Fatalf("解析 parse 响应失败: %v", err)
+	}
+	if len(parseResp.Data.Script.Episodes) == 0 {
+		t.Fatal("parse 应返回至少 1 集")
+	}
+
+	// 4. 剧本确认导入
+	confirmBody := map[string]interface{}{
+		"episodes": parseResp.Data.Script.Episodes,
+	}
+	cb, _ := json.Marshal(confirmBody)
+	confirmReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/script/confirm", bytes.NewReader(cb))
+	confirmReq.Header.Set("Content-Type", "application/json")
+	confirmReq.Header.Set("Authorization", "Bearer "+token)
+	confirmW := httptest.NewRecorder()
+	r.ServeHTTP(confirmW, confirmReq)
+	if confirmW.Code != http.StatusOK {
+		t.Fatalf("剧本确认应返回 200, 得 %d body=%s", confirmW.Code, confirmW.Body.String())
+	}
+
+	// 5. 列出集（验证导入结果）
+	listEpReq := httptest.NewRequest(http.MethodGet, "/api/v1/projects/"+projectID+"/episodes", nil)
+	listEpReq.Header.Set("Authorization", "Bearer "+token)
+	listEpW := httptest.NewRecorder()
+	r.ServeHTTP(listEpW, listEpReq)
+	if listEpW.Code != http.StatusOK {
+		t.Fatalf("列出集应返回 200, 得 %d body=%s", listEpW.Code, listEpW.Body.String())
+	}
+	var listEpResp struct {
+		Data []struct {
+			ID     string `json:"id"`
+			Title  string `json:"title"`
+			Scenes []struct {
+				ID string `json:"id"`
+			} `json:"scenes"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(listEpW.Body.Bytes(), &listEpResp); err != nil {
+		t.Fatalf("解析集列表失败: %v", err)
+	}
+	if len(listEpResp.Data) < 1 {
+		t.Fatal("集列表应至少有 1 项")
+	}
+
+	// 6. 创建角色并确认
+	charBody := map[string]interface{}{"name": "张三", "project_id": projectID, "appearance": "测试外貌"}
+	chb, _ := json.Marshal(charBody)
+	charReq := httptest.NewRequest(http.MethodPost, "/api/v1/characters", bytes.NewReader(chb))
+	charReq.Header.Set("Content-Type", "application/json")
+	charReq.Header.Set("Authorization", "Bearer "+token)
+	charW := httptest.NewRecorder()
+	r.ServeHTTP(charW, charReq)
+	if charW.Code != http.StatusOK && charW.Code != http.StatusCreated {
+		t.Fatalf("创建角色应返回 200/201, 得 %d body=%s", charW.Code, charW.Body.String())
+	}
+	var charResp struct {
+		Data struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(charW.Body.Bytes(), &charResp); err != nil {
+		t.Fatalf("解析角色响应失败: %v", err)
+	}
+	charID := charResp.Data.ID
+	if charID == "" {
+		t.Fatal("创建角色应返回 id")
+	}
+	confirmCharReq := httptest.NewRequest(http.MethodPost, "/api/v1/characters/"+charID+"/confirm", nil)
+	confirmCharReq.Header.Set("Authorization", "Bearer "+token)
+	confirmCharW := httptest.NewRecorder()
+	r.ServeHTTP(confirmCharW, confirmCharReq)
+	if confirmCharW.Code != http.StatusOK {
+		t.Fatalf("角色确认应返回 200, 得 %d body=%s", confirmCharW.Code, confirmCharW.Body.String())
+	}
+
+	// 7. 创建场景并确认
+	locBody := map[string]interface{}{"name": "客厅", "time": "日", "interiorExterior": "内"}
+	lb, _ := json.Marshal(locBody)
+	locReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/locations", bytes.NewReader(lb))
+	locReq.Header.Set("Content-Type", "application/json")
+	locReq.Header.Set("Authorization", "Bearer "+token)
+	locW := httptest.NewRecorder()
+	r.ServeHTTP(locW, locReq)
+	if locW.Code != http.StatusOK && locW.Code != http.StatusCreated {
+		t.Fatalf("创建场景应返回 200/201, 得 %d body=%s", locW.Code, locW.Body.String())
+	}
+	var locResp struct {
+		Data struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(locW.Body.Bytes(), &locResp); err != nil {
+		t.Fatalf("解析场景响应失败: %v", err)
+	}
+	locID := locResp.Data.ID
+	if locID == "" {
+		t.Fatal("创建场景应返回 id")
+	}
+	confirmLocReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/locations/"+locID+"/confirm", nil)
+	confirmLocReq.Header.Set("Authorization", "Bearer "+token)
+	confirmLocW := httptest.NewRecorder()
+	r.ServeHTTP(confirmLocW, confirmLocReq)
+	if confirmLocW.Code != http.StatusOK {
+		t.Fatalf("场景确认应返回 200, 得 %d body=%s", confirmLocW.Code, confirmLocW.Body.String())
+	}
+
+	// 8. 创建道具并确认
+	propBody := map[string]interface{}{"name": "茶杯", "appearance": "白瓷"}
+	pb2, _ := json.Marshal(propBody)
+	propReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/asset-props", bytes.NewReader(pb2))
+	propReq.Header.Set("Content-Type", "application/json")
+	propReq.Header.Set("Authorization", "Bearer "+token)
+	propW := httptest.NewRecorder()
+	r.ServeHTTP(propW, propReq)
+	if propW.Code != http.StatusOK && propW.Code != http.StatusCreated {
+		t.Fatalf("创建道具应返回 200/201, 得 %d body=%s", propW.Code, propW.Body.String())
+	}
+	var propResp struct {
+		Data struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(propW.Body.Bytes(), &propResp); err != nil {
+		t.Fatalf("解析道具响应失败: %v", err)
+	}
+	propID := propResp.Data.ID
+	if propID == "" {
+		t.Fatal("创建道具应返回 id")
+	}
+	confirmPropReq := httptest.NewRequest(http.MethodPost, "/api/v1/projects/"+projectID+"/asset-props/"+propID+"/confirm", nil)
+	confirmPropReq.Header.Set("Authorization", "Bearer "+token)
+	confirmPropW := httptest.NewRecorder()
+	r.ServeHTTP(confirmPropW, confirmPropReq)
+	if confirmPropW.Code != http.StatusOK {
+		t.Fatalf("道具确认应返回 200, 得 %d body=%s", confirmPropW.Code, confirmPropW.Body.String())
+	}
+
+	// 9. 验证资产列表
+	listCharReq := httptest.NewRequest(http.MethodGet, "/api/v1/projects/"+projectID+"/characters", nil)
+	listCharReq.Header.Set("Authorization", "Bearer "+token)
+	listCharW := httptest.NewRecorder()
+	r.ServeHTTP(listCharW, listCharReq)
+	if listCharW.Code != http.StatusOK {
+		t.Errorf("按项目列角色应为 200, 得 %d", listCharW.Code)
+	}
+	listLocReq := httptest.NewRequest(http.MethodGet, "/api/v1/projects/"+projectID+"/locations", nil)
+	listLocReq.Header.Set("Authorization", "Bearer "+token)
+	listLocW := httptest.NewRecorder()
+	r.ServeHTTP(listLocW, listLocReq)
+	if listLocW.Code != http.StatusOK {
+		t.Errorf("列出场景应为 200, 得 %d", listLocW.Code)
+	}
+	listPropReq := httptest.NewRequest(http.MethodGet, "/api/v1/projects/"+projectID+"/asset-props", nil)
+	listPropReq.Header.Set("Authorization", "Bearer "+token)
+	listPropW := httptest.NewRecorder()
+	r.ServeHTTP(listPropW, listPropReq)
+	if listPropW.Code != http.StatusOK {
+		t.Errorf("列出道具应为 200, 得 %d", listPropW.Code)
 	}
 }

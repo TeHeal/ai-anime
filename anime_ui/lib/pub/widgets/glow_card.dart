@@ -44,12 +44,7 @@ class _GlowCardState extends State<GlowCard> {
   Widget build(BuildContext context) {
     final glow = widget.glowColor ?? AppColors.primary;
     final accentColors =
-        widget.topAccentColors ??
-        [
-          AppColors.primary,
-          AppColors.primary.withValues(alpha: 0.95),
-          AppColors.info,
-        ];
+        widget.topAccentColors ?? AppColors.accentGradient;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),

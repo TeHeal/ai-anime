@@ -31,19 +31,19 @@ type Episode struct {
 	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
-// EpisodeResponse 集 API 响应
+// EpisodeResponse 集 API 响应（camelCase 以兼容 Flutter）
 type EpisodeResponse struct {
-	ID           string             `json:"id"`
-	ProjectID    string             `json:"project_id"`
-	Title        string             `json:"title"`
-	SortIndex    int                `json:"sort_index"`
-	Summary      string             `json:"summary"`
-	Status       string             `json:"status"`
-	CurrentStep  int                `json:"current_step"`
-	CurrentPhase string             `json:"current_phase"`
-	LastActiveAt *time.Time         `json:"last_active_at"`
-	CreatedAt    time.Time          `json:"created_at"`
-	UpdatedAt    time.Time          `json:"updated_at"`
+	ID           string                 `json:"id"`
+	ProjectID    string                 `json:"projectId"`
+	Title        string                 `json:"title"`
+	SortIndex    int                    `json:"sortIndex"`
+	Summary      string                 `json:"summary"`
+	Status       string                 `json:"status"`
+	CurrentStep  int                    `json:"currentStep"`
+	CurrentPhase string                 `json:"currentPhase"`
+	LastActiveAt *time.Time             `json:"lastActiveAt"`
+	CreatedAt    time.Time              `json:"createdAt"`
+	UpdatedAt    time.Time              `json:"updatedAt"`
 	Scenes       []scene.SceneResponse `json:"scenes,omitempty"`
 }
 

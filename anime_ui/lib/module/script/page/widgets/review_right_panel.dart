@@ -361,7 +361,6 @@ Widget _reviewRadio(String value, String label, Color color, String current) {
     ),
   );
 }
-
 Widget _taskChip(String label, bool active) {
   return Container(
     padding: EdgeInsets.symmetric(
@@ -388,3 +387,4 @@ Widget _taskChip(String label, bool active) {
     ),
   );
 }
+

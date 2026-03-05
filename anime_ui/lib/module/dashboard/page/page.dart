@@ -108,17 +108,56 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   Widget _buildBody(Dashboard dash, String projectName) {
     if (dash.totalEpisodes == 0) return _buildEmpty(projectName);
 
+    // status 为空时视为 not_started（兼容旧数据）
+    String statusVal(String s) => s.isEmpty ? 'not_started' : s;
     final inProgress =
-        dash.episodes.where((e) => e.status == 'in_progress').toList()
+        dash.episodes.where((e) => statusVal(e.status) == 'in_progress').toList()
           ..sort(_compareByActive);
     final notStarted =
-        dash.episodes.where((e) => e.status == 'not_started').toList()
+        dash.episodes.where((e) => statusVal(e.status) == 'not_started').toList()
           ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
     final completed =
-        dash.episodes.where((e) => e.status == 'completed').toList()
+        dash.episodes.where((e) => statusVal(e.status) == 'completed').toList()
           ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
 
-    return CustomScrollView(
+    // totalEpisodes > 0 但 episodes 为空：数据不同步，提示刷新
+    final hasEpisodeGroups =
+        inProgress.isNotEmpty || notStarted.isNotEmpty || completed.isNotEmpty;
+    if (!hasEpisodeGroups) {
+      return _buildBodyWithScrollbar(
+        slivers: [
+          _buildAppBar(projectName, dash),
+          SliverPadding(padding: EdgeInsets.only(top: Spacing.sm.h)),
+          _buildStatsBar(dash),
+          _buildOverviewRow(dash),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '集列表暂未加载完成',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.mutedDark,
+                    ),
+                  ),
+                  SizedBox(height: Spacing.md.h),
+                  TextButton.icon(
+                    onPressed: () =>
+                        ref.read(dashboardProvider.notifier).load(),
+                    icon: Icon(AppIcons.refresh, size: 16.r),
+                    label: const Text('刷新'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return _buildBodyWithScrollbar(
       slivers: [
         _buildAppBar(projectName, dash),
         SliverPadding(padding: EdgeInsets.only(top: Spacing.sm.h)),
@@ -156,6 +195,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           padding: EdgeInsets.only(bottom: (Spacing.xl + Spacing.lg).h),
         ),
       ],
+    );
+  }
+
+  /// 使用 Scrollbar 包裹，Web 端便于发现可滚动内容
+  Widget _buildBodyWithScrollbar({required List<Widget> slivers}) {
+    return Scrollbar(
+      thumbVisibility: true,
+      child: CustomScrollView(
+        slivers: slivers,
+      ),
     );
   }
 

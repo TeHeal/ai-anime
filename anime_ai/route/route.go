@@ -12,6 +12,7 @@ import (
 	"anime_ai/module/file"
 	"anime_ai/module/health"
 	"anime_ai/module/assets/location"
+	"anime_ai/module/model_catalog"
 	"anime_ai/module/notification"
 	"anime_ai/module/organization"
 	"anime_ai/module/package_task"
@@ -67,6 +68,7 @@ type Config struct {
 	PackageHandler       *package_task.Handler
 	UsageHandler         *usage.Handler
 	ScheduleHandler      *schedule.Handler
+	ModelCatalogHandler  *model_catalog.Handler
 	WSHandler            *realtime.WSHandler
 	AsynqClient          *asynq.Client
 	JWTSecret            string
@@ -106,6 +108,9 @@ func Register(r *gin.Engine, cfg *Config) {
 				aiGroup.POST("/generate/text", cfg.AIHandler.GenerateText)
 				aiGroup.POST("/generate/voice", cfg.AIHandler.GenerateVoice)
 			}
+		}
+		if cfg.ModelCatalogHandler != nil {
+			protected.GET("/models", cfg.ModelCatalogHandler.List)
 		}
 		if cfg.NotificationHandler != nil {
 			protected.GET("/notifications", cfg.NotificationHandler.List)
@@ -353,6 +358,7 @@ func Register(r *gin.Engine, cfg *Config) {
 				characters.POST("/:charId/regenerate-bio", cfg.CharacterHandler.RegenerateBio)
 				characters.POST("/:charId/generate-candidates", cfg.CharacterHandler.GenerateCandidates)
 				characters.GET("/:charId/candidates", cfg.CharacterHandler.GetCandidates)
+				characters.POST("/:charId/candidates/select", cfg.CharacterHandler.SelectCandidate)
 				characters.GET("/:charId/snapshots", cfg.CharacterHandler.ListByCharacter)
 			}
 			snapshots := protected.Group("/character-snapshots")

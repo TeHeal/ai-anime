@@ -36,26 +36,26 @@ func (s *Service) SetFrozenAssetChecker(c crossmodule.FrozenAssetChecker) {
 	s.frozenAssetChecker = c
 }
 
-// CreateRequest 创建道具请求
+// CreateRequest 创建道具请求（camelCase 以兼容 Flutter）
 type CreateRequest struct {
 	Name       string `json:"name" binding:"required"`
 	Appearance string `json:"appearance"`
-	IsKeyProp  bool   `json:"is_key_prop"`
+	IsKeyProp  bool   `json:"isKeyProp"`
 	Style      string `json:"style"`
-	ImageURL   string `json:"image_url"`
+	ImageURL   string `json:"imageUrl"`
 }
 
-// UpdateRequest 更新道具请求
+// UpdateRequest 更新道具请求（camelCase）
 type UpdateRequest struct {
 	Name                *string `json:"name"`
 	Appearance          *string `json:"appearance"`
-	IsKeyProp           *bool   `json:"is_key_prop"`
+	IsKeyProp           *bool   `json:"isKeyProp"`
 	Style               *string `json:"style"`
-	StyleOverride       *bool   `json:"style_override"`
-	ReferenceImagesJSON *string `json:"reference_images_json"`
-	ImageURL            *string `json:"image_url"`
-	UsedByJSON          *string `json:"used_by_json"`
-	ScenesJSON          *string `json:"scenes_json"`
+	StyleOverride       *bool   `json:"styleOverride"`
+	ReferenceImagesJSON *string `json:"referenceImagesJson"`
+	ImageURL            *string `json:"imageUrl"`
+	UsedByJSON          *string `json:"usedByJson"`
+	ScenesJSON          *string `json:"scenesJson"`
 	Status              *string `json:"status"`
 	Source              *string `json:"source"`
 }

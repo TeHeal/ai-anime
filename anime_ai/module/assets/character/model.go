@@ -18,47 +18,47 @@ const (
 	CharacterSourceSkeleton    = "skeleton"
 )
 
-// Character 角色实体
+// Character 角色实体（camelCase 以兼容 Flutter）
 // ID 为 string（UUID 格式），与 sch/db pgtype.UUID 兼容
 type Character struct {
 	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 
-	UserID    string  `json:"user_id"`    // UUID 格式
-	ProjectID *string `json:"project_id"`  // UUID 格式
+	UserID    string  `json:"userId"`
+	ProjectID *string `json:"projectId"`
 	Name      string  `json:"name"`
 
-	AliasJSON           string `json:"alias_json"`
+	AliasJSON           string `json:"aliasJson"`
 	Appearance          string `json:"appearance"`
 	Style               string `json:"style"`
-	StyleID             *string `json:"style_id"`
-	StyleOverride       bool   `json:"style_override"`
+	StyleID             *string `json:"styleId"`
+	StyleOverride       bool   `json:"styleOverride"`
 	Personality         string `json:"personality"`
-	VoiceHint           string `json:"voice_hint"`
+	VoiceHint           string `json:"voiceHint"`
 	Emotions            string `json:"emotions"`
 	Scenes              string `json:"scenes"`
 	Gender              string `json:"gender"`
-	AgeGroup            string `json:"age_group"`
-	VoiceID             string `json:"voice_id"`
-	VoiceName           string `json:"voice_name"`
-	ImageURL            string `json:"image_url"`
-	ReferenceImagesJSON string `json:"reference_images_json"`
-	TaskID              string `json:"task_id"`
-	ImageStatus         string `json:"image_status"`
+	AgeGroup            string `json:"ageGroup"`
+	VoiceID             string `json:"voiceId"`
+	VoiceName           string `json:"voiceName"`
+	ImageURL            string `json:"imageUrl"`
+	ReferenceImagesJSON string `json:"referenceImagesJson"`
+	TaskID              string `json:"taskId"`
+	ImageStatus         string `json:"imageStatus"`
 	Shared              bool   `json:"shared"`
 	Status              string `json:"status"`
 	Source              string `json:"source"`
-	VariantsJSON        string `json:"variants_json"`
+	VariantsJSON        string `json:"variantsJson"`
 
-	Importance           string `json:"importance"`
-	Consistency          string `json:"consistency"`
-	RoleType             string `json:"role_type"`
-	TagsJSON             string `json:"tags_json"`
-	PropsJSON            string `json:"props_json"`
-	Bio                  string `json:"bio"`
-	BioFragmentsJSON     string `json:"bio_fragments_json"`
-	ImageGenOverrideJSON  string `json:"image_gen_override_json"`
+	Importance          string `json:"importance"`
+	Consistency         string `json:"consistency"`
+	RoleType            string `json:"roleType"`
+	TagsJSON            string `json:"tagsJson"`
+	PropsJSON           string `json:"propsJson"`
+	Bio                 string `json:"bio"`
+	BioFragmentsJSON    string `json:"bioFragmentsJson"`
+	ImageGenOverrideJSON string `json:"imageGenOverrideJson"`
 
 	Version int `json:"version"`
 }

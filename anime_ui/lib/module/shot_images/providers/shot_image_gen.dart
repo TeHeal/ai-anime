@@ -51,6 +51,20 @@ class ShotImageConfig {
     );
   }
 
+  /// 折叠态摘要
+  String get summaryLabel {
+    final parts = <String>[];
+    if (globalPrompt.isNotEmpty) {
+      parts.add(globalPrompt.length > 15
+          ? '${globalPrompt.substring(0, 15)}…'
+          : globalPrompt);
+    }
+    if (model.isNotEmpty) parts.add(model);
+    parts.add('$outputCount张 $aspectRatio');
+    if (cardMode) parts.add('抽卡');
+    return parts.join(' · ');
+  }
+
   Map<String, dynamic> toJson() => {
         'global_prompt': globalPrompt,
         'negative_prompt': negativePrompt,

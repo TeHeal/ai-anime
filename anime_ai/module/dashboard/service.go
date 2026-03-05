@@ -173,14 +173,22 @@ func (s *Service) Get(projectID, userID string) (*Dashboard, error) {
 		createdAt = &createdAtVal
 
 		progress := s.buildEpisodeProgress(&ep, len(epScenes))
+		status := ep.Status
+		if status == "" {
+			status = episode.EpisodeStatusNotStarted
+		}
+		phase := ep.CurrentPhase
+		if phase == "" {
+			phase = "story"
+		}
 		dash.Episodes = append(dash.Episodes, DashboardEpisode{
 			ID:           epID,
 			Title:        ep.Title,
 			SortIndex:    ep.SortIndex,
 			Summary:      ep.Summary,
-			Status:       ep.Status,
+			Status:       status,
 			CurrentStep:  ep.CurrentStep,
-			CurrentPhase: ep.CurrentPhase,
+			CurrentPhase: phase,
 			SceneCount:   len(epScenes),
 			CharacterNames: charNames,
 			LastActiveAt:  lastActive,

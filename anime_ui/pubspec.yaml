@@ -46,3 +46,7 @@ flutter:
   assets:
     - assets/styles/
     - assets/styles/thumb/
+  fonts:
+    - family: Noto Sans SC
+      fonts:
+        - asset: assets/fonts/NotoSansSC-VariableFont.ttf

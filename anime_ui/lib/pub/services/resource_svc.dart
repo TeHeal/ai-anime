@@ -15,13 +15,13 @@ class ResourceService {
   }) async {
     final resp = await dio.post('/resources', data: {
       'name': name,
-      'library_type': libraryType,
+      'libraryType': libraryType,
       'modality': modality,
-      'thumbnail_url': thumbnailUrl,
-      'tags_json': tagsJson,
+      'thumbnailUrl': thumbnailUrl,
+      'tagsJson': tagsJson,
       'version': version,
-      'metadata_json': metadataJson,
-      'binding_ids_json': bindingIdsJson,
+      'metadataJson': metadataJson,
+      'bindingIdsJson': bindingIdsJson,
       'description': description,
     });
     return extractDataObject(resp, Resource.fromJson);
@@ -82,11 +82,11 @@ class ResourceService {
     if (name != null) body['name'] = name;
     if (libraryType != null) body['libraryType'] = libraryType;
     if (modality != null) body['modality'] = modality;
-    if (thumbnailUrl != null) body['thumbnail_url'] = thumbnailUrl;
-    if (tagsJson != null) body['tags_json'] = tagsJson;
+    if (thumbnailUrl != null) body['thumbnailUrl'] = thumbnailUrl;
+    if (tagsJson != null) body['tagsJson'] = tagsJson;
     if (version != null) body['version'] = version;
-    if (metadataJson != null) body['metadata_json'] = metadataJson;
-    if (bindingIdsJson != null) body['binding_ids_json'] = bindingIdsJson;
+    if (metadataJson != null) body['metadataJson'] = metadataJson;
+    if (bindingIdsJson != null) body['bindingIdsJson'] = bindingIdsJson;
     if (description != null) body['description'] = description;
     final resp = await dio.put('/resources/$resourceId', data: body);
     return extractDataObject(resp, Resource.fromJson);

@@ -47,16 +47,11 @@ class ProgressOverview extends StatelessWidget {
         children: [
           Row(
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.primary, AppColors.info],
-                ).createShader(bounds),
-                child: Text(
-                  '整体进度',
-                  style: AppTextStyles.labelLarge.copyWith(
-                    color: AppColors.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
+              Text(
+                '整体进度',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.onSurface,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const Spacer(),
@@ -64,16 +59,11 @@ class ProgressOverview extends StatelessWidget {
                 tween: Tween(begin: 0, end: pct * 100),
                 duration: const Duration(milliseconds: 1000),
                 curve: Curves.easeOutCubic,
-                builder: (_, value, _) => ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [AppColors.primary, AppColors.info],
-                  ).createShader(bounds),
-                  child: Text(
-                    '${value.toInt()}%',
-                    style: AppTextStyles.h1.copyWith(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.w800,
-                    ),
+                builder: (_, value, _) => Text(
+                  '${value.toInt()}%',
+                  style: AppTextStyles.h1.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),

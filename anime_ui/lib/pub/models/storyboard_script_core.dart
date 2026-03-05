@@ -383,10 +383,34 @@ class DependencyInfo {
 // 生成配置
 // ---------------------------------------------------------------------------
 
+/// 镜头密度档位
+enum ShotDensity {
+  compact, // 精简：2-3 镜头/场
+  standard, // 标准：3-5 镜头/场
+  detailed, // 细致：5-8 镜头/场
+}
+
+/// 运镜预设风格
+enum CameraPreset {
+  narrative, // 叙事风：中近景为主，节奏平稳
+  action, // 动作风：多机位快切，动感强烈
+  cinematic, // 电影风：大景别+推拉镜，氛围感
+  custom, // 自定义
+}
+
+/// 输出语言
+enum OutputLanguage {
+  zh, // 中文
+  en, // English
+  zhEn, // 中英混合（结构中文，画面 Prompt 英文）
+}
+
 class GenerateConfig {
   String globalStyle;
   String defaultNegativePrompt;
-  String productionNotes;
+  ShotDensity shotDensity;
+  CameraPreset cameraPreset;
+  OutputLanguage outputLanguage;
   bool includeAdjacentSummary;
   String provider;
   String model;
@@ -394,7 +418,9 @@ class GenerateConfig {
   GenerateConfig({
     this.globalStyle = '2D漫风，色调偏暗，无失真无穿帮',
     this.defaultNegativePrompt = '失真，穿帮，模糊，低质量',
-    this.productionNotes = '对话用定镜，动作用跟镜/推拉镜',
+    this.shotDensity = ShotDensity.standard,
+    this.cameraPreset = CameraPreset.narrative,
+    this.outputLanguage = OutputLanguage.zh,
     this.includeAdjacentSummary = true,
     this.provider = '',
     this.model = '',
@@ -403,16 +429,36 @@ class GenerateConfig {
   Map<String, dynamic> toJson() => {
         'global_style': globalStyle,
         'negative_prompt': defaultNegativePrompt,
-        'production_notes': productionNotes,
+        'shot_density': shotDensity.name,
+        'camera_preset': cameraPreset.name,
+        'output_language': outputLanguage.name,
         'include_adjacent_summary': includeAdjacentSummary,
         if (provider.isNotEmpty) 'provider': provider,
         if (model.isNotEmpty) 'model': model,
       };
 
+  /// 折叠概况文字：模型 · 密度 · 语言
+  String get summaryLabel {
+    final modelLabel = model.isNotEmpty ? model : '未选择模型';
+    const densityLabels = {
+      ShotDensity.compact: '精简',
+      ShotDensity.standard: '标准',
+      ShotDensity.detailed: '细致',
+    };
+    const langLabels = {
+      OutputLanguage.zh: '中文',
+      OutputLanguage.en: 'English',
+      OutputLanguage.zhEn: '中英混合',
+    };
+    return '$modelLabel · ${densityLabels[shotDensity]} · ${langLabels[outputLanguage]}';
+  }
+
   GenerateConfig copyWith({
     String? globalStyle,
     String? defaultNegativePrompt,
-    String? productionNotes,
+    ShotDensity? shotDensity,
+    CameraPreset? cameraPreset,
+    OutputLanguage? outputLanguage,
     bool? includeAdjacentSummary,
     String? provider,
     String? model,
@@ -421,7 +467,9 @@ class GenerateConfig {
         globalStyle: globalStyle ?? this.globalStyle,
         defaultNegativePrompt:
             defaultNegativePrompt ?? this.defaultNegativePrompt,
-        productionNotes: productionNotes ?? this.productionNotes,
+        shotDensity: shotDensity ?? this.shotDensity,
+        cameraPreset: cameraPreset ?? this.cameraPreset,
+        outputLanguage: outputLanguage ?? this.outputLanguage,
         includeAdjacentSummary:
             includeAdjacentSummary ?? this.includeAdjacentSummary,
         provider: provider ?? this.provider,

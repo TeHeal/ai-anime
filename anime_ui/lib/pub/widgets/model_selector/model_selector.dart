@@ -144,7 +144,7 @@ class _ModelSelectorState extends State<ModelSelector> {
     };
   }
 
-  /// 加载失败时显示与正常下拉框一致的容器，点击可重试
+  /// 加载失败时显示与正常下拉框一致的容器，点击可重试（低调 inline 样式）
   Widget _buildErrorRetry() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,43 +157,69 @@ class _ModelSelectorState extends State<ModelSelector> {
           ),
         ),
         SizedBox(height: Spacing.sm.h),
-        GestureDetector(
-          onTap: () {
-            _error = null;
-            _loadModels();
-          },
-          child: Container(
-            height: 38.h,
-            padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceMutedDarker,
-              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-              border: Border.all(
-                color: AppColors.error.withValues(alpha: 0.4),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  AppIcons.warning,
-                  size: 14.r,
-                  color: AppColors.error.withValues(alpha: 0.8),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              _error = null;
+              _loadModels();
+            },
+            child: Container(
+              height: 38.h,
+              padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceMutedDark,
+                borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.3),
                 ),
-                SizedBox(width: Spacing.sm.w),
-                Expanded(
-                  child: Text(
-                    '加载失败，点击重试',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.error.withValues(alpha: 0.8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.warning,
+                    size: 13.r,
+                    color: AppColors.warning.withValues(alpha: 0.7),
+                  ),
+                  SizedBox(width: Spacing.sm.w),
+                  Expanded(
+                    child: Text(
+                      '加载失败',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.muted,
+                      ),
                     ),
                   ),
-                ),
-                Icon(
-                  AppIcons.refresh,
-                  size: 14.r,
-                  color: AppColors.onSurface.withValues(alpha: 0.4),
-                ),
-              ],
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.sm.w,
+                      vertical: Spacing.xs.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: widget.accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          AppIcons.refresh,
+                          size: 12.r,
+                          color: widget.accent,
+                        ),
+                        SizedBox(width: Spacing.xs.w),
+                        Text(
+                          '重试',
+                          style: AppTextStyles.tiny.copyWith(
+                            color: widget.accent,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

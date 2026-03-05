@@ -92,7 +92,7 @@ class _GradientActionButtonState extends State<GradientActionButton> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _hovered
-                  ? [AppColors.primary, AppColors.info]
+                  ? AppColors.brandGradient
                   : [
                       AppColors.primary,
                       AppColors.primary.withValues(alpha: 0.85),

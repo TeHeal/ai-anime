@@ -13,10 +13,10 @@ class StyleService {
     final resp = await dio.post('/projects/$projectId/styles', data: {
       'name': name,
       'description': description,
-      'negative_prompt': negativePrompt,
-      'reference_images_json': referenceImagesJson,
-      'thumbnail_url': thumbnailUrl,
-      'is_project_default': isProjectDefault,
+      'negativePrompt': negativePrompt,
+      'referenceImagesJson': referenceImagesJson,
+      'thumbnailUrl': thumbnailUrl,
+      'isProjectDefault': isProjectDefault,
     });
     return extractDataObject(resp, Style.fromJson);
   }
@@ -42,10 +42,10 @@ class StyleService {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (description != null) body['description'] = description;
-    if (negativePrompt != null) body['negative_prompt'] = negativePrompt;
-    if (referenceImagesJson != null) body['reference_images_json'] = referenceImagesJson;
-    if (thumbnailUrl != null) body['thumbnail_url'] = thumbnailUrl;
-    if (isProjectDefault != null) body['is_project_default'] = isProjectDefault;
+    if (negativePrompt != null) body['negativePrompt'] = negativePrompt;
+    if (referenceImagesJson != null) body['referenceImagesJson'] = referenceImagesJson;
+    if (thumbnailUrl != null) body['thumbnailUrl'] = thumbnailUrl;
+    if (isProjectDefault != null) body['isProjectDefault'] = isProjectDefault;
     final resp = await dio.put('/projects/$projectId/styles/$styleId', data: body);
     return extractDataObject(resp, Style.fromJson);
   }

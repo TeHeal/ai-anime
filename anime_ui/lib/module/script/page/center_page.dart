@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
-import 'package:anime_ui/pub/models/storyboard_script.dart';
-import 'package:anime_ui/pub/widgets/generation_center/progress_summary_bar.dart';
 import 'package:anime_ui/module/script/providers/script.dart';
 import 'package:anime_ui/module/script/providers/script_center.dart';
 import 'package:anime_ui/module/script/page/widgets/center_config_card.dart';
+import 'package:anime_ui/module/script/page/widgets/center_import_card.dart';
 import 'package:anime_ui/module/script/page/widgets/center_task_section.dart';
 
 /// 脚本 - 生成中心（Tab 2）
@@ -53,40 +52,28 @@ class _ScriptCenterPageState extends ConsumerState<ScriptCenterPage> {
       });
     }
 
-    // 统计各状态计数
-    final validEpisodes = episodes.where((e) => e.id != null).toList();
-    int completedCount = 0;
-    int generatingCount = 0;
-    int failedCount = 0;
-    for (final ep in validEpisodes) {
-      final st = epStates[ep.id]?.status;
-      if (st == EpisodeScriptStatus.completed) {
-        completedCount++;
-      } else if (st == EpisodeScriptStatus.generating) {
-        generatingCount++;
-      } else if (st == EpisodeScriptStatus.failed) {
-        failedCount++;
-      }
-    }
-
     return SingleChildScrollView(
       padding: EdgeInsets.all(Spacing.xl.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const CenterConfigCard(),
-          SizedBox(height: Spacing.mid.h),
-          ProgressSummaryBar(
-            total: validEpisodes.length,
-            completed: completedCount,
-            generating: generatingCount,
-            failed: failedCount,
-            countLabel: '集',
-          ),
+          _buildTopCards(),
           SizedBox(height: Spacing.mid.h),
           const CenterTaskSection(),
         ],
       ),
+    );
+  }
+
+  /// 配置卡片(3) + 导入卡片(1) 横排，与镜图栏目保持一致布局
+  Widget _buildTopCards() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Expanded(flex: 3, child: CenterConfigCard()),
+        SizedBox(width: Spacing.mid.w),
+        const Expanded(flex: 1, child: CenterImportCard()),
+      ],
     );
   }
 }

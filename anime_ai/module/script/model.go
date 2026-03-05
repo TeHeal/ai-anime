@@ -13,14 +13,14 @@ type Segment struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// SegmentResponse 分段 API 响应
+// SegmentResponse 分段 API 响应（camelCase 以兼容 Flutter）
 type SegmentResponse struct {
 	ID        string    `json:"id"`
-	ProjectID string    `json:"project_id"`
-	SortIndex int       `json:"sort_index"`
+	ProjectID string    `json:"projectId"`
+	SortIndex int       `json:"sortIndex"`
 	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // ToResponse 转为 API 响应

@@ -13,9 +13,9 @@ class PropService {
     final resp = await dio.post('/projects/${projectId.toString()}/asset-props', data: {
       'name': name,
       'appearance': appearance,
-      'is_key_prop': isKeyProp,
+      'isKeyProp': isKeyProp,
       'style': style,
-      'image_url': imageUrl,
+      'imageUrl': imageUrl,
     });
     return extractDataObject(resp, Prop.fromJson);
   }
@@ -43,11 +43,11 @@ class PropService {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (appearance != null) body['appearance'] = appearance;
-    if (isKeyProp != null) body['is_key_prop'] = isKeyProp;
+    if (isKeyProp != null) body['isKeyProp'] = isKeyProp;
     if (style != null) body['style'] = style;
-    if (styleOverride != null) body['style_override'] = styleOverride;
-    if (referenceImagesJson != null) body['reference_images_json'] = referenceImagesJson;
-    if (imageUrl != null) body['image_url'] = imageUrl;
+    if (styleOverride != null) body['styleOverride'] = styleOverride;
+    if (referenceImagesJson != null) body['referenceImagesJson'] = referenceImagesJson;
+    if (imageUrl != null) body['imageUrl'] = imageUrl;
     if (status != null) body['status'] = status;
     final resp = await dio.put('/projects/${projectId.toString()}/asset-props/${propId.toString()}', data: body);
     return extractDataObject(resp, Prop.fromJson);

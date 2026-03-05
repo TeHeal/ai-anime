@@ -22,6 +22,7 @@ class TaskSectionLayout extends StatelessWidget {
     this.activeGroup = '',
     this.onGroupChanged,
     this.headerTrailing,
+    this.progressBar,
     required this.child,
   });
 
@@ -39,6 +40,9 @@ class TaskSectionLayout extends StatelessWidget {
 
   /// 标题行右侧（如 BatchActionBar、视图模式切换）
   final Widget? headerTrailing;
+
+  /// 可选的进度条，显示在 header 和筛选栏之间
+  final Widget? progressBar;
 
   /// 任务网格或空状态
   final Widget child;
@@ -64,6 +68,7 @@ class TaskSectionLayout extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
+            if (progressBar case Widget bar) bar,
             _buildFilter(),
             _buildContent(),
           ],

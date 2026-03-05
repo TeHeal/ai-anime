@@ -11,6 +11,7 @@ import (
 	"anime_ai/module/episode"
 	"anime_ai/module/file"
 	"anime_ai/module/assets/location"
+	"anime_ai/module/model_catalog"
 	"anime_ai/module/notification"
 	"anime_ai/module/organization"
 	"anime_ai/module/package_task"
@@ -72,8 +73,9 @@ type deps struct {
 	shotHandler         *shot.Handler
 	shotImageHandler    *shot_image.Handler
 	shotVideoHandler    *shot_video.Handler
-	notificationHandler *notification.Handler
-	orgHandler          *organization.Handler
+	notificationHandler   *notification.Handler
+	modelCatalogHandler   *model_catalog.Handler
+	orgHandler           *organization.Handler
 	teamHandler         *team.Handler
 	taskHandler         *task.Handler
 	compositeHandler    *composite.Handler

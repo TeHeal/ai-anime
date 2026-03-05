@@ -56,9 +56,7 @@ class _PillChild extends StatelessWidget {
       height: 26.h,
       padding: EdgeInsets.symmetric(horizontal: Spacing.lg.w),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.info],
-        ),
+        gradient: const LinearGradient(colors: AppColors.brandGradient),
         borderRadius: BorderRadius.circular(RadiusTokens.xxl.r),
         boxShadow: [
           BoxShadow(

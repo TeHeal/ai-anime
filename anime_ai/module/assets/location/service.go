@@ -36,32 +36,32 @@ func (s *Service) SetFrozenAssetChecker(c crossmodule.FrozenAssetChecker) {
 	s.frozenAssetChecker = c
 }
 
-// CreateRequest 创建场景请求
+// CreateRequest 创建场景请求（camelCase 以兼容 Flutter）
 type CreateRequest struct {
 	Name             string `json:"name" binding:"required"`
 	Time             string `json:"time"`
-	InteriorExterior string `json:"interior_exterior"`
+	InteriorExterior string `json:"interiorExterior"`
 	Atmosphere       string `json:"atmosphere"`
-	ColorTone        string `json:"color_tone"`
+	ColorTone        string `json:"colorTone"`
 	Layout           string `json:"layout"`
 	Style            string `json:"style"`
-	StyleOverride    bool   `json:"style_override"`
-	StyleNote        string `json:"style_note"`
+	StyleOverride    bool   `json:"styleOverride"`
+	StyleNote        string `json:"styleNote"`
 }
 
-// UpdateRequest 更新场景请求
+// UpdateRequest 更新场景请求（camelCase）
 type UpdateRequest struct {
 	Name                *string `json:"name"`
 	Time                *string `json:"time"`
-	InteriorExterior    *string `json:"interior_exterior"`
+	InteriorExterior    *string `json:"interiorExterior"`
 	Atmosphere          *string `json:"atmosphere"`
-	ColorTone           *string `json:"color_tone"`
+	ColorTone           *string `json:"colorTone"`
 	Layout              *string `json:"layout"`
 	Style               *string `json:"style"`
-	StyleOverride       *bool   `json:"style_override"`
-	StyleNote           *string `json:"style_note"`
-	ImageURL            *string `json:"image_url"`
-	ReferenceImagesJSON *string `json:"reference_images_json"`
+	StyleOverride       *bool   `json:"styleOverride"`
+	StyleNote           *string `json:"styleNote"`
+	ImageURL            *string `json:"imageUrl"`
+	ReferenceImagesJSON *string `json:"referenceImagesJson"`
 }
 
 // Create 创建场景

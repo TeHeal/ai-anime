@@ -68,12 +68,13 @@ type UpdateSceneRequest struct {
 	SortIndex        *int     `json:"sort_index"`
 }
 
-// CreateBlockRequest 创建块请求
+// CreateBlockRequest 创建块请求（SaveBlocks 时可选 sort_index）
 type CreateBlockRequest struct {
 	Type      string `json:"type" binding:"required,max=16"`
 	Character string `json:"character" binding:"max=64"`
 	Emotion   string `json:"emotion" binding:"max=128"`
 	Content   string `json:"content" binding:"max=65535"`
+	SortIndex *int   `json:"sort_index"`
 }
 
 // UpdateBlockRequest 更新块请求
@@ -305,13 +306,17 @@ func (s *Service) SaveBlocks(sceneID, episodeID, userID string, req BulkSaveBloc
 	_ = s.blockStore.DeleteByScene(sceneID)
 	blocks := make([]SceneBlock, len(req.Blocks))
 	for i, b := range req.Blocks {
+		sortIdx := i
+		if b.SortIndex != nil {
+			sortIdx = *b.SortIndex
+		}
 		blocks[i] = SceneBlock{
 			SceneID:   sceneID,
 			Type:      b.Type,
 			Character: b.Character,
 			Emotion:   b.Emotion,
 			Content:   b.Content,
-			SortIndex: i,
+			SortIndex: sortIdx,
 		}
 	}
 	if err := s.blockStore.BulkCreate(blocks); err != nil {

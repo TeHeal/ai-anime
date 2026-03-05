@@ -4,16 +4,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/module/assets/resources/providers/provider.dart';
 import 'package:anime_ui/module/shot_images/providers/center_ui.dart';
-import 'package:anime_ui/module/shot_images/page/provider.dart';
+import 'package:anime_ui/module/shot_images/providers/shot_image_gen.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/generation_center/styled_card.dart';
 import 'package:anime_ui/pub/widgets/model_selector/model_selector.dart';
-import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 
-/// 镜图生成配置卡片
+/// 镜图生成配置卡片 — 可折叠，展开后含提示词、模型、出图选项
 class CenterConfigCard extends ConsumerWidget {
   const CenterConfigCard({super.key});
 
@@ -38,12 +38,55 @@ class CenterConfigCard extends ConsumerWidget {
     final n = ref.read(shotImageConfigProvider.notifier);
     final uiState = ref.watch(shotImageCenterUiProvider);
     final uiNotifier = ref.read(shotImageCenterUiProvider.notifier);
+    final expanded = uiState.configExpanded;
 
     return StyledCard(
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          _buildHeader(config, expanded, uiNotifier),
+          AnimatedSize(
+            duration: MotionTokens.durationMedium,
+            curve: MotionTokens.curveStandard,
+            alignment: Alignment.topCenter,
+            child: expanded
+                ? _buildBody(context, ref, config, n, uiState, uiNotifier)
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(
+    ShotImageConfig config,
+    bool expanded,
+    ShotImageCenterUiNotifier uiNotifier,
+  ) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => uiNotifier.toggleConfigExpanded(),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.cardPadding.w,
+            vertical: Spacing.lg.h,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withValues(
+                  alpha: expanded ? 0.04 : 0.08,
+                ),
+                Colors.transparent,
+              ],
+            ),
+            border: expanded
+                ? const Border(bottom: BorderSide(color: AppColors.border))
+                : null,
+          ),
+          child: Row(
             children: [
               Container(
                 padding: EdgeInsets.all(Spacing.sm.r),
@@ -67,15 +110,58 @@ class CenterConfigCard extends ConsumerWidget {
                 '生成配置',
                 style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
               ),
-              const Spacer(),
-              _compactSwitch(
-                label: '上下集衔接',
-                value: config.includeAdjacent,
-                onChanged: (v) => n.update(includeAdjacent: v),
+              if (!expanded) ...[
+                SizedBox(width: Spacing.lg.w),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.sm.w,
+                      vertical: Spacing.xs.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+                    ),
+                    child: Text(
+                      config.summaryLabel,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.muted,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ] else
+                const Spacer(),
+              AnimatedRotation(
+                turns: expanded ? 0.0 : -0.25,
+                duration: MotionTokens.durationFast,
+                child: Icon(
+                  AppIcons.expandMore,
+                  size: 18.r,
+                  color: AppColors.onSurface.withValues(alpha: 0.55),
+                ),
               ),
             ],
           ),
-          SizedBox(height: Spacing.xl.h),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    ShotImageConfig config,
+    ShotImageConfigNotifier n,
+    ShotImageCenterUiState uiState,
+    ShotImageCenterUiNotifier uiNotifier,
+  ) {
+    return Padding(
+      padding: EdgeInsets.all(Spacing.cardPadding.r),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           PromptFieldWithAssistant(
             value: config.globalPrompt,
             onChanged: (v) => n.update(globalPrompt: v),
@@ -149,51 +235,68 @@ class CenterConfigCard extends ConsumerWidget {
             ],
           ),
           SizedBox(height: Spacing.lg.h),
-          Row(
+          Wrap(
+            spacing: Spacing.xl.w,
+            runSpacing: Spacing.md.h,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text(
-                '出图数量:',
-                style: AppTextStyles.caption.copyWith(color: AppColors.muted),
-              ),
-              SizedBox(width: Spacing.sm.w),
-              for (final count in [1, 2, 4])
-                Padding(
-                  padding: EdgeInsets.only(right: Spacing.sm.w),
-                  child: _countChip(
-                    count,
-                    config.outputCount,
-                    (v) => n.update(outputCount: v),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '出图数量:',
+                    style:
+                        AppTextStyles.caption.copyWith(color: AppColors.muted),
                   ),
-                ),
-              const SizedBox(width: Spacing.xl),
-              Text(
-                '画面比例:',
-                style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+                  SizedBox(width: Spacing.sm.w),
+                  for (final count in [1, 2, 4])
+                    Padding(
+                      padding: EdgeInsets.only(right: Spacing.sm.w),
+                      child: _countChip(
+                        count,
+                        config.outputCount,
+                        (v) => n.update(outputCount: v),
+                      ),
+                    ),
+                ],
               ),
-              SizedBox(width: Spacing.sm.w),
-              DropdownButton<String>(
-                value: config.aspectRatio,
-                isDense: true,
-                dropdownColor: AppColors.surfaceMutedDarker,
-                underline: const SizedBox(),
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.onSurface,
-                ),
-                items: ['16:9', '9:16', '1:1', '4:3']
-                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) n.update(aspectRatio: v);
-                },
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '画面比例:',
+                    style:
+                        AppTextStyles.caption.copyWith(color: AppColors.muted),
+                  ),
+                  SizedBox(width: Spacing.sm.w),
+                  DropdownButton<String>(
+                    value: config.aspectRatio,
+                    isDense: true,
+                    dropdownColor: AppColors.surfaceMutedDarker,
+                    underline: const SizedBox(),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.onSurface,
+                    ),
+                    items: ['16:9', '9:16', '1:1', '4:3']
+                        .map(
+                            (r) => DropdownMenuItem(value: r, child: Text(r)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) n.update(aspectRatio: v);
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(width: Spacing.xl),
-              _compactSwitch(
-                label: '抽卡模式',
-                value: config.cardMode,
-                onChanged: (v) {
-                  n.update(cardMode: v);
-                  if (v && config.outputCount < 2) n.update(outputCount: 2);
-                },
+              Tooltip(
+                message: '开启后每个镜头生成多张图供挑选',
+                child: _compactSwitch(
+                  label: '抽卡模式',
+                  value: config.cardMode,
+                  onChanged: (v) {
+                    n.update(cardMode: v);
+                    if (v && config.outputCount < 2) n.update(outputCount: 2);
+                  },
+                ),
               ),
             ],
           ),

@@ -20,6 +20,7 @@ import (
 	"anime_ai/module/episode"
 	"anime_ai/module/file"
 	"anime_ai/module/assets/location"
+	"anime_ai/module/model_catalog"
 	"anime_ai/module/notification"
 	"anime_ai/module/organization"
 	"anime_ai/module/package_task"
@@ -280,6 +281,9 @@ func New(cfg *config.Config) (*App, error) {
 	d.notificationHandler = notification.NewHandler(notificationSvc)
 	log.Println("通知模块已启用")
 
+	d.modelCatalogHandler = model_catalog.NewHandler()
+	log.Println("模型目录 API 已启用")
+
 	// 组织
 	orgData := organization.NewDBData(db.New(pool))
 	orgSvc := organization.NewService(orgData)
@@ -480,8 +484,9 @@ func New(cfg *config.Config) (*App, error) {
 	routeCfg := &route.Config{
 		AIHandler:           d.aiHandler,
 		AuthHandler:         d.authHandler,
-		NotificationHandler: d.notificationHandler,
-		OrgHandler:          d.orgHandler,
+		NotificationHandler:   d.notificationHandler,
+		ModelCatalogHandler:  d.modelCatalogHandler,
+		OrgHandler:           d.orgHandler,
 		TeamHandler:         d.teamHandler,
 		TaskHandler:         d.taskHandler,
 		ProjectHandler:      d.projectHandler,

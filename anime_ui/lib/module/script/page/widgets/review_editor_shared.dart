@@ -274,7 +274,6 @@ Widget _priorityBadge(String priority) {
     ),
   );
 }
-
 Widget _countBadge(int count) {
   return Container(
     padding: EdgeInsets.symmetric(
@@ -305,3 +304,4 @@ Widget _enabledDot() {
     ),
   );
 }
+

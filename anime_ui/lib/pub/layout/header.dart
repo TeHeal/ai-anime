@@ -77,7 +77,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                       maxScale: 1.08,
                       child: ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
-                          colors: [AppColors.primary, AppColors.info],
+                          colors: AppColors.brandGradient,
                         ).createShader(bounds),
                         child: Icon(
                           AppIcons.movieFilter,

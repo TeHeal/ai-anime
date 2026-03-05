@@ -11,6 +11,7 @@ import 'text.dart';
 final ThemeData appDarkTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
+  fontFamily: AppTextStyles.fontFamily,
   inputDecorationTheme: InputDecorationTheme(
     labelStyle: AppTextStyles.labelLarge,
     hintStyle: AppTextStyles.bodySmall,

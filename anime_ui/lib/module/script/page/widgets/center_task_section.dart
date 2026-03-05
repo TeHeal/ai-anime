@@ -77,9 +77,22 @@ class CenterTaskSection extends ConsumerWidget {
         GroupChipData(key: '$i', label: '${(i - 1) * 10 + 1}-${i * 10}'),
     ];
 
+    final completedCount =
+        statusCounts[EpisodeScriptStatus.completed] ?? 0;
+    final generatingCountForBar =
+        statusCounts[EpisodeScriptStatus.generating] ?? 0;
+    final failedCount =
+        statusCounts[EpisodeScriptStatus.failed] ?? 0;
+    final total = validEpisodes.length;
+    final pct = total > 0 ? (completedCount * 100 ~/ total) : 0;
+
     return TaskSectionLayout(
       count: validEpisodes.length,
       countLabel: '集',
+      progressBar: total > 0
+          ? _buildProgressBar(
+              total, completedCount, generatingCountForBar, failedCount, pct)
+          : null,
       filters: [
         FilterChipData(key: 'all', label: '全部', count: statusCounts[null] ?? 0),
         FilterChipData(
@@ -148,6 +161,65 @@ class CenterTaskSection extends ConsumerWidget {
           : filtered.isEmpty
           ? _buildNoMatchState(uiNotifier)
           : _buildTaskGrid(context, ref, uiState, uiNotifier, filtered, states),
+    );
+  }
+
+  /// 纤细分段进度条 + 百分比
+  Widget _buildProgressBar(
+    int total,
+    int completed,
+    int generating,
+    int failed,
+    int pct,
+  ) {
+    final pending = (total - completed - generating - failed).clamp(0, total);
+    double frac(int v) => total > 0 ? v / total : 0;
+
+    Widget segment(double fraction, Color color) {
+      if (fraction <= 0) return const SizedBox.shrink();
+      return Flexible(
+        flex: (fraction * 1000).round().clamp(1, 1000),
+        child: Container(color: color),
+      );
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Spacing.cardPadding.w,
+        vertical: Spacing.sm.h,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+              child: SizedBox(
+                height: 4.h,
+                child: Row(
+                  children: [
+                    segment(frac(completed), AppColors.success),
+                    segment(frac(generating), AppColors.primary),
+                    segment(frac(failed), AppColors.error),
+                    segment(frac(pending), AppColors.surfaceContainer),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: Spacing.md.w),
+          Text(
+            '$pct%',
+            style: AppTextStyles.tiny.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.onSurface.withValues(alpha: 0.6),
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

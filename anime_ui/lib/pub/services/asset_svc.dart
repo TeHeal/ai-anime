@@ -1,6 +1,10 @@
 import 'package:anime_ui/pub/models/asset.dart';
 import 'api_svc.dart';
 
+/// 已废弃：后端无统一 /assets 接口。请使用：
+/// - CharacterService、LocationService、PropService、StyleService（项目级资产）
+/// - ResourceService（用户级素材）
+@Deprecated('后端无 /assets 接口，请使用 CharacterService / LocationService / PropService / StyleService / ResourceService')
 class AssetService {
   Future<Asset> create({
     String? projectId,

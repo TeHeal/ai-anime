@@ -17,13 +17,13 @@ class LocationService {
     final resp = await dio.post('/projects/${projectId.toString()}/locations', data: {
       'name': name,
       'time': time,
-      'interior_exterior': interiorExterior,
+      'interiorExterior': interiorExterior,
       'atmosphere': atmosphere,
-      'color_tone': colorTone,
+      'colorTone': colorTone,
       'layout': layout,
       'style': style,
-      'style_override': styleOverride,
-      'style_note': styleNote,
+      'styleOverride': styleOverride,
+      'styleNote': styleNote,
     });
     return extractDataObject(resp, Location.fromJson);
   }
@@ -53,14 +53,14 @@ class LocationService {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (time != null) body['time'] = time;
-    if (interiorExterior != null) body['interior_exterior'] = interiorExterior;
+    if (interiorExterior != null) body['interiorExterior'] = interiorExterior;
     if (atmosphere != null) body['atmosphere'] = atmosphere;
-    if (colorTone != null) body['color_tone'] = colorTone;
+    if (colorTone != null) body['colorTone'] = colorTone;
     if (layout != null) body['layout'] = layout;
     if (style != null) body['style'] = style;
-    if (styleOverride != null) body['style_override'] = styleOverride;
-    if (styleNote != null) body['style_note'] = styleNote;
-    if (referenceImagesJson != null) body['reference_images_json'] = referenceImagesJson;
+    if (styleOverride != null) body['styleOverride'] = styleOverride;
+    if (styleNote != null) body['styleNote'] = styleNote;
+    if (referenceImagesJson != null) body['referenceImagesJson'] = referenceImagesJson;
     final resp = await dio.put('/projects/${projectId.toString()}/locations/${locId.toString()}', data: body);
     return extractDataObject(resp, Location.fromJson);
   }

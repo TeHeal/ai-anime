@@ -7,22 +7,26 @@ class ShotImageCenterUiState {
   final Set<String> selectedShots;
   final String statusFilter;
   final ModelCatalogItem? selectedModel;
+  final bool configExpanded;
 
   const ShotImageCenterUiState({
     this.selectedShots = const {},
     this.statusFilter = 'all',
     this.selectedModel,
+    this.configExpanded = true,
   });
 
   ShotImageCenterUiState copyWith({
     Set<String>? selectedShots,
     String? statusFilter,
     ModelCatalogItem? selectedModel,
+    bool? configExpanded,
   }) {
     return ShotImageCenterUiState(
       selectedShots: selectedShots ?? this.selectedShots,
       statusFilter: statusFilter ?? this.statusFilter,
       selectedModel: selectedModel ?? this.selectedModel,
+      configExpanded: configExpanded ?? this.configExpanded,
     );
   }
 }
@@ -62,7 +66,12 @@ class ShotImageCenterUiNotifier extends Notifier<ShotImageCenterUiState> {
       selectedShots: state.selectedShots,
       statusFilter: state.statusFilter,
       selectedModel: model,
+      configExpanded: state.configExpanded,
     );
+  }
+
+  void toggleConfigExpanded() {
+    state = state.copyWith(configExpanded: !state.configExpanded);
   }
 }
 

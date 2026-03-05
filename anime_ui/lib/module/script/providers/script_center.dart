@@ -19,7 +19,9 @@ class GenerateConfigNotifier extends Notifier<GenerateConfig> {
   void update({
     String? globalStyle,
     String? defaultNegativePrompt,
-    String? productionNotes,
+    ShotDensity? shotDensity,
+    CameraPreset? cameraPreset,
+    OutputLanguage? outputLanguage,
     bool? includeAdjacentSummary,
     String? provider,
     String? model,
@@ -27,7 +29,9 @@ class GenerateConfigNotifier extends Notifier<GenerateConfig> {
     state = state.copyWith(
       globalStyle: globalStyle,
       defaultNegativePrompt: defaultNegativePrompt,
-      productionNotes: productionNotes,
+      shotDensity: shotDensity,
+      cameraPreset: cameraPreset,
+      outputLanguage: outputLanguage,
       includeAdjacentSummary: includeAdjacentSummary,
       provider: provider,
       model: model,
