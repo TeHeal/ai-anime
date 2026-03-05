@@ -38,6 +38,7 @@ class AssetUploadArea extends StatefulWidget {
     this.height,
     this.textPreview,
     this.uploadCategory = 'general',
+    this.onFileNameChanged,
   });
 
   final UploadFileType fileType;

@@ -92,6 +92,9 @@ See README § 开发与部署（启动命令）and `anime_ai/Makefile` for full 
 - After modifying freezed/json_serializable models: `cd anime_ui && dart run build_runner build --delete-conflicting-outputs`.
 - sqlc queries use `COALESCE(..., '{}'::jsonb)` for JSONB defaults. Always include `::jsonb` cast when adding new COALESCE defaults for JSONB columns.
 - Database schema: `anime_ai/sch/schema.sql` (full, sqlc 来源) + `anime_ai/migrations/` (golang-migrate). 应用启动时自动执行迁移；手动执行见 `go run ./cmd/migrate` 或 migrate CLI。
+- **Admin user is NOT auto-seeded**: migrations create tables but do not insert the admin user. On a fresh DB, register via `POST /api/v1/auth/register` with `{"username":"admin","password":"admin123"}`, then promote to admin: `UPDATE users SET role='admin' WHERE username='admin';`. Alternatively, the `/register` link on the login page works.
+- **Tool paths**: Go is at `/usr/local/go/bin`, Flutter at `/opt/flutter/bin`. Ensure both are in `PATH`.
+- **config.yaml creation**: Copy `config.yaml.example` to `config.yaml` in `anime_ai/`. Set `db.user: ai_anime`, `db.password: ai_anime_dev`. The DB user/database `ai_anime` must be created in PostgreSQL first (see `scripts/init_db.sh` for reference).
 
 ### LLM integration
 
