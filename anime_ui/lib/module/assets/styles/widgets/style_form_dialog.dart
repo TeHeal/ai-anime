@@ -13,6 +13,9 @@ import 'package:anime_ui/pub/models/style.dart';
 import 'package:anime_ui/pub/services/file_svc.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
+import 'package:anime_ui/pub/widgets/asset_form_shell.dart';
+import 'package:anime_ui/pub/widgets/asset_input_field.dart';
+import 'package:anime_ui/pub/widgets/asset_section_label.dart';
 import 'package:anime_ui/pub/widgets/image_lightbox.dart';
 import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 
@@ -57,16 +60,17 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
     Future.microtask(
         () => widget.ref.read(resourceListProvider.notifier).load());
     _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
-    _descCtrl = TextEditingController(text: widget.existing?.description ?? '');
-    _negCtrl = TextEditingController(text: widget.existing?.negativePrompt ?? '');
+    _descCtrl =
+        TextEditingController(text: widget.existing?.description ?? '');
+    _negCtrl =
+        TextEditingController(text: widget.existing?.negativePrompt ?? '');
     if (widget.existing?.referenceImagesJson.isNotEmpty == true) {
       try {
-        final list = jsonDecode(widget.existing!.referenceImagesJson) as List;
+        final list =
+            jsonDecode(widget.existing!.referenceImagesJson) as List;
         for (final item in list) {
           final url = (item as Map<String, dynamic>)['url'] as String?;
-          if (url != null && url.isNotEmpty) {
-            _refImageUrls.add(url);
-          }
+          if (url != null && url.isNotEmpty) _refImageUrls.add(url);
         }
       } catch (e) {
         debugPrint('解析参考图 JSON 失败: $e');
@@ -84,9 +88,7 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
 
   String _buildRefImagesJson() {
     if (_refImageUrls.isEmpty) return '';
-    return jsonEncode(
-      _refImageUrls.map((u) => {'url': u}).toList(),
-    );
+    return jsonEncode(_refImageUrls.map((u) => {'url': u}).toList());
   }
 
   String get _thumbnailUrl =>
@@ -117,9 +119,7 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
         setState(() => _refImageUrls.add(url));
       }
     } catch (e) {
-      if (mounted) {
-        showToast(context, '上传失败: $e', isError: true);
-      }
+      if (mounted) showToast(context, '上传失败: $e', isError: true);
     } finally {
       if (mounted) setState(() => _uploading = false);
     }
@@ -161,113 +161,58 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _isEdit
-        ? '编辑风格 · ${widget.existing!.name}'
-        : '新建风格';
-
-    return Container(
-      width: 520.w,
-      constraints: BoxConstraints(maxHeight: 640.h),
-      padding: EdgeInsets.all(Spacing.xl.r),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: Spacing.lg.h),
-          Flexible(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildNameField(),
-                  SizedBox(height: Spacing.md.h),
-                  PromptFieldWithAssistant(
-                    controller: _descCtrl,
-                    negPromptController: _negCtrl,
-                    hint: '描述画面风格、色调、氛围…',
-                    negPromptHint: '不想出现的元素，如：模糊、变形…',
-                    accent: _accent,
-                    label: '提示词',
-                    maxLines: 2,
-                    onLibraryTap: (setText) => _showPromptLibrary(setText),
-                    negOnLibraryTap: (setText) => _showPromptLibrary(setText),
-                    onSaveToLibrary:
-                        (text, name, {required bool isNegative}) async {
-                      await widget.ref
-                          .read(resourceListProvider.notifier)
-                          .addResource(
-                            Resource(
-                              name: name,
-                              libraryType: 'prompt',
-                              modality: 'text',
-                              description: text,
-                            ),
-                          );
-                    },
-                  ),
-                  SizedBox(height: Spacing.lg.h),
-                  _buildRefImagesSection(),
-                ],
-              ),
+    return AssetFormShell(
+      title: _isEdit ? '编辑风格' : '创建风格',
+      subtitle: _isEdit ? widget.existing!.name : null,
+      icon: AppIcons.brush,
+      accent: _accent,
+      primaryLabel: _isEdit ? '保存' : '创建',
+      onPrimary: _submit,
+      maxWidth: 520.w,
+      maxHeight: 640.h,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.xl.w,
+          vertical: Spacing.lg.h,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AssetInputField(
+              label: '风格名称',
+              controller: _nameCtrl,
+              hint: '如：赛博朋克、水彩手绘',
+              accent: _accent,
+              required: true,
             ),
-          ),
-          _buildFooter(),
-        ],
+            SizedBox(height: Spacing.lg.h),
+            PromptFieldWithAssistant(
+              controller: _descCtrl,
+              negPromptController: _negCtrl,
+              hint: '描述画面风格、色调、氛围…',
+              negPromptHint: '不想出现的元素，如：模糊、变形…',
+              accent: _accent,
+              label: '提示词',
+              maxLines: 2,
+              onLibraryTap: (setText) => _showPromptLibrary(setText),
+              negOnLibraryTap: (setText) => _showPromptLibrary(setText),
+              onSaveToLibrary:
+                  (text, name, {required bool isNegative}) async {
+                await widget.ref
+                    .read(resourceListProvider.notifier)
+                    .addResource(Resource(
+                      name: name,
+                      libraryType: 'prompt',
+                      modality: 'text',
+                      description: text,
+                    ));
+              },
+            ),
+            SizedBox(height: Spacing.lg.h),
+            _buildRefImagesSection(),
+          ],
+        ),
       ),
-    );
-  }
-
-  // ── 风格名称 ──
-
-  Widget _buildNameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '风格名称',
-          style: AppTextStyles.labelMedium.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.muted,
-          ),
-        ),
-        SizedBox(height: Spacing.sm.h),
-        TextField(
-          controller: _nameCtrl,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.onSurface,
-          ),
-          decoration: InputDecoration(
-            hintText: '如：赛博朋克、水彩手绘',
-            hintStyle: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.mutedDarker,
-            ),
-            filled: true,
-            fillColor: AppColors.background.withValues(alpha: 0.5),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Spacing.md.w,
-              vertical: Spacing.md.h,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-              borderSide: BorderSide(
-                color: AppColors.border.withValues(alpha: 0.5),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-              borderSide: BorderSide(
-                color: _accent.withValues(alpha: 0.6),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -277,35 +222,22 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              '风格参考图',
-              style: AppTextStyles.labelMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.muted,
-              ),
-            ),
-            if (_refImageUrls.isNotEmpty) ...[
-              SizedBox(width: Spacing.xs.w),
-              Text(
-                '(${_refImageUrls.length}/$_maxImages)',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.muted,
-                ),
-              ),
-            ],
-            const Spacer(),
-            if (_uploading)
-              SizedBox(
-                width: 16.w,
-                height: 16.h,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: _accent,
-                ),
-              ),
-          ],
+        AssetSectionLabel(
+          '风格参考图',
+          accent: _accent,
+          hint: _refImageUrls.isNotEmpty
+              ? '(${_refImageUrls.length}/$_maxImages)'
+              : null,
+          trailing: _uploading
+              ? SizedBox(
+                  width: 16.w,
+                  height: 16.h,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: _accent,
+                  ),
+                )
+              : null,
         ),
         SizedBox(height: Spacing.sm.h),
         if (_refImageUrls.isEmpty)
@@ -316,8 +248,7 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
             runSpacing: Spacing.sm.h,
             children: [
               ..._refImageUrls.asMap().entries.map(_buildImageThumb),
-              if (_refImageUrls.length < _maxImages)
-                _buildUploadButton(),
+              if (_refImageUrls.length < _maxImages) _buildUploadButton(),
             ],
           ),
       ],
@@ -340,7 +271,13 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
                   resolveFileUrl(e.value),
                   fit: BoxFit.cover,
                   cacheWidth: 144,
-                  errorBuilder: (_, __, ___) => _placeholder(),
+                  errorBuilder: (_, _, _) => Container(
+                    width: 72.w,
+                    height: 72.h,
+                    color: AppColors.surfaceMutedDark,
+                    child: Icon(AppIcons.brush,
+                        size: 24.r, color: AppColors.muted),
+                  ),
                 ),
               ),
             ),
@@ -357,11 +294,7 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
                 color: AppColors.error,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.close,
-                size: 12.r,
-                color: AppColors.onPrimary,
-              ),
+              child: Icon(Icons.close, size: 12.r, color: AppColors.onPrimary),
             ),
           ),
         ),
@@ -369,7 +302,6 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
     );
   }
 
-  /// 无参考图时的完整引导区
   Widget _buildUploadGuide() {
     return GestureDetector(
       onTap: _uploading ? null : _pickAndUploadImages,
@@ -379,20 +311,17 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
           width: double.infinity,
           padding: EdgeInsets.symmetric(vertical: Spacing.xl.h),
           decoration: BoxDecoration(
-            color: AppColors.background.withValues(alpha: 0.5),
+            color: _accent.withValues(alpha: 0.02),
             borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
             border: Border.all(
-              color: AppColors.border,
+              color: _accent.withValues(alpha: 0.25),
               style: BorderStyle.solid,
             ),
           ),
           child: Column(
             children: [
-              Icon(
-                AppIcons.upload,
-                size: 28.r,
-                color: AppColors.muted,
-              ),
+              Icon(AppIcons.upload,
+                  size: 28.r, color: _accent.withValues(alpha: 0.4)),
               SizedBox(height: Spacing.sm.h),
               Text(
                 '点击上传风格参考图',
@@ -404,9 +333,7 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
               SizedBox(height: Spacing.xxs.h),
               Text(
                 '支持多选，最多 $_maxImages 张',
-                style: AppTextStyles.tiny.copyWith(
-                  color: AppColors.mutedDark,
-                ),
+                style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
               ),
             ],
           ),
@@ -431,55 +358,11 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
           children: [
             Icon(AppIcons.upload, size: 20.r, color: AppColors.muted),
             SizedBox(height: Spacing.xxs.h),
-            Text(
-              '上传',
-              style: AppTextStyles.tiny.copyWith(color: AppColors.muted),
-            ),
+            Text('上传',
+                style: AppTextStyles.tiny.copyWith(color: AppColors.muted)),
           ],
         ),
       ),
-    );
-  }
-
-  // ── 底部 ──
-
-  Widget _buildFooter() {
-    return Column(
-      children: [
-        Divider(height: 1, color: AppColors.divider),
-        SizedBox(height: Spacing.md.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                '取消',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.muted,
-                ),
-              ),
-            ),
-            SizedBox(width: Spacing.sm.w),
-            FilledButton(
-              onPressed: _submit,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              child: const Text('保存'),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _placeholder() {
-    return Container(
-      width: 72.w,
-      height: 72.h,
-      color: AppColors.surfaceMutedDark,
-      child: Icon(AppIcons.brush, size: 24.r, color: AppColors.muted),
     );
   }
 }

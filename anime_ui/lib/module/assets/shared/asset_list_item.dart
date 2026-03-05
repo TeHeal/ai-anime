@@ -40,92 +40,94 @@ class AssetListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        margin: EdgeInsets.only(bottom: Spacing.xs.h),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              ...[leading].whereType<Widget>(),
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.md.w,
-                    vertical: Spacing.sm.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.08)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-                  ),
-                  child: Row(
-                    children: [
-                      if (thumbnail != null) ...[
-                        thumbnail!,
-                        SizedBox(width: Spacing.md.w),
-                      ],
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    name,
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.onSurface,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          margin: EdgeInsets.only(bottom: Spacing.xs.h),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                ...[leading].whereType<Widget>(),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.md.w,
+                      vertical: Spacing.sm.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.08)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+                    ),
+                    child: Row(
+                      children: [
+                        if (thumbnail != null) ...[
+                          thumbnail!,
+                          SizedBox(width: Spacing.md.w),
+                        ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      name,
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.onSurface,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                                if (titleTrailing != null) ...[
-                                  SizedBox(width: Spacing.sm.w),
-                                  titleTrailing!,
+                                  if (titleTrailing != null) ...[
+                                    SizedBox(width: Spacing.sm.w),
+                                    titleTrailing!,
+                                  ],
                                 ],
-                              ],
-                            ),
-                            if (subtitleWidget != null) ...[
-                              SizedBox(height: Spacing.xs.h),
-                              subtitleWidget!,
-                            ] else if (subtitle != null) ...[
-                              SizedBox(height: Spacing.xs.h),
-                              Text(
-                                subtitle!,
-                                style: AppTextStyles.tiny.copyWith(
-                                  color: AppColors.onSurface.withValues(
-                                    alpha: 0.6,
-                                  ),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
+                              if (subtitleWidget != null) ...[
+                                SizedBox(height: Spacing.xs.h),
+                                subtitleWidget!,
+                              ] else if (subtitle != null) ...[
+                                SizedBox(height: Spacing.xs.h),
+                                Text(
+                                  subtitle!,
+                                  style: AppTextStyles.tiny.copyWith(
+                                    color: AppColors.onSurface.withValues(
+                                      alpha: 0.6,
+                                    ),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                      if (statusChip != null) ...[
-                        SizedBox(width: Spacing.sm.w),
-                        statusChip!,
+                        if (statusChip != null) ...[
+                          SizedBox(width: Spacing.sm.w),
+                          statusChip!,
+                        ],
+                        if (trailing != null) ...[
+                          SizedBox(width: Spacing.sm.w),
+                          trailing!,
+                        ],
                       ],
-                      if (trailing != null) ...[
-                        SizedBox(width: Spacing.sm.w),
-                        trailing!,
-                      ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
-    return content;
   }
 }

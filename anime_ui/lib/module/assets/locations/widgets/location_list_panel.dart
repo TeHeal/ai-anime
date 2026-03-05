@@ -12,11 +12,16 @@ import 'package:anime_ui/module/assets/shared/asset_list_panel.dart';
 import 'package:anime_ui/module/assets/shared/asset_status_chip.dart';
 import 'package:anime_ui/module/assets/locations/providers/selection.dart';
 
-/// 场景列表面板
+/// 场景列表面板（支持多选）
 class LocationListPanel extends ConsumerWidget {
-  const LocationListPanel({super.key, required this.locations});
+  const LocationListPanel({
+    super.key,
+    required this.locations,
+    this.onBatchConfirm,
+  });
 
   final List<Location> locations;
+  final void Function(List<String> ids)? onBatchConfirm;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,13 +33,24 @@ class LocationListPanel extends ConsumerWidget {
       confirmedCount: confirmed,
       countLabel: '个场景',
       itemCount: locations.length,
-      itemBuilder: (context, index) {
+      onBatchConfirm: onBatchConfirm,
+      allIds: locations.map((l) => l.id).whereType<String>().toList(),
+      itemBuilder: (context, index, multiSelect, selectedIds) {
         final loc = locations[index];
         final isSelected = loc.id == selectedId;
+        final isChecked = loc.id != null && selectedIds.contains(loc.id!);
         return AssetListItem(
           name: loc.name,
           isSelected: isSelected,
-          onTap: () => ref.read(selectedLocIdProvider.notifier).set(loc.id),
+          onTap: () {
+            if (multiSelect && loc.id != null) {
+              final panel =
+                  context.findAncestorStateOfType<AssetListPanelState>();
+              panel?.toggleId(loc.id!);
+            } else {
+              ref.read(selectedLocIdProvider.notifier).set(loc.id);
+            }
+          },
           leading: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             width: Spacing.tinyGap.w,
@@ -84,6 +100,27 @@ class LocationListPanel extends ConsumerWidget {
               ],
             ],
           ),
+          trailing: multiSelect
+              ? MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (loc.id != null) {
+                        final panel = context
+                            .findAncestorStateOfType<AssetListPanelState>();
+                        panel?.toggleId(loc.id!);
+                      }
+                    },
+                    child: Icon(
+                      isChecked ? AppIcons.check : AppIcons.circleOutline,
+                      size: 18.r,
+                      color: isChecked
+                          ? AppColors.primary
+                          : AppColors.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                )
+              : null,
         );
       },
     );

@@ -6,6 +6,8 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/loading.dart';
 import 'package:anime_ui/pub/models/prop.dart';
+import 'package:anime_ui/pub/widgets/image_gen/image_gen_config.dart';
+import 'package:anime_ui/pub/widgets/image_gen/image_gen_dialog.dart';
 import 'package:anime_ui/module/assets/shared/confirm_delete_dialog.dart';
 import 'package:anime_ui/module/assets/props/providers/list.dart';
 import 'package:anime_ui/module/assets/props/providers/selection.dart';
@@ -37,7 +39,25 @@ class _AssetsPropsPageState extends ConsumerState<AssetsPropsPage> {
     final statusFilter = ref.watch(propStatusFilterProvider);
     final nameSearch = ref.watch(propNameSearchProvider);
 
-    final toolbar = PropToolbar(onAdd: () => _showAddProp(context, ref));
+    final toolbar = PropToolbar(
+      onAdd: () => _showAddProp(context, ref),
+      onAiGenerate: () => ImageGenDialog.show(
+        context,
+        ref,
+        config: ImageGenConfig.prop(
+          onSaved: (urls, mode, {prompt = '', negativePrompt = ''}) async {
+            for (final url in urls) {
+              await ref.read(assetPropsProvider.notifier).add(
+                    Prop(
+                      name: '道具-${DateTime.now().millisecondsSinceEpoch}',
+                      imageUrl: url,
+                    ),
+                  );
+            }
+          },
+        ),
+      ),
+    );
 
     return asyncProps.when(
       loading: () => Column(
@@ -93,7 +113,14 @@ class _AssetsPropsPageState extends ConsumerState<AssetsPropsPage> {
                     children: [
                       SizedBox(
                         width: panelW,
-                        child: PropListPanel(props: props),
+                        child: PropListPanel(
+                          props: props,
+                          onBatchConfirm: (ids) {
+                            ref
+                                .read(assetPropsProvider.notifier)
+                                .batchConfirm(ids);
+                          },
+                        ),
                       ),
                       VerticalDivider(width: 1.w, color: AppColors.divider),
                       Expanded(
@@ -112,6 +139,23 @@ class _AssetsPropsPageState extends ConsumerState<AssetsPropsPage> {
                                     _confirmDelete(context, ref, selected),
                                 onEdit: () =>
                                     _showEditProp(context, ref, selected),
+                                onAiGenerate: () => ImageGenDialog.show(
+                                  context,
+                                  ref,
+                                  config: ImageGenConfig.prop(
+                                    onSaved: (urls, mode,
+                                        {prompt = '',
+                                        negativePrompt = ''}) async {
+                                      if (urls.isNotEmpty) {
+                                        await ref
+                                            .read(
+                                                assetPropsProvider.notifier)
+                                            .update(selected.copyWith(
+                                                imageUrl: urls.first));
+                                      }
+                                    },
+                                  ),
+                                ),
                               )
                             : _buildSelectHint(),
                       ),
@@ -153,10 +197,40 @@ class _AssetsPropsPageState extends ConsumerState<AssetsPropsPage> {
                   ),
                 ),
                 SizedBox(height: Spacing.mid.h),
-                OutlinedButton.icon(
-                  onPressed: () => _showAddProp(context, ref),
-                  icon: Icon(AppIcons.add, size: 18.r),
-                  label: const Text('手动添加'),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _showAddProp(context, ref),
+                      icon: Icon(AppIcons.add, size: 18.r),
+                      label: const Text('手动添加'),
+                    ),
+                    SizedBox(width: Spacing.md.w),
+                    FilledButton.icon(
+                      onPressed: () => ImageGenDialog.show(
+                        context,
+                        ref,
+                        config: ImageGenConfig.prop(
+                          onSaved: (urls, mode,
+                              {prompt = '', negativePrompt = ''}) async {
+                            for (final url in urls) {
+                              await ref
+                                  .read(assetPropsProvider.notifier)
+                                  .add(Prop(
+                                    name:
+                                        '道具-${DateTime.now().millisecondsSinceEpoch}',
+                                    imageUrl: url,
+                                  ));
+                            }
+                          },
+                        ),
+                      ),
+                      icon: Icon(AppIcons.magicStick, size: 18.r),
+                      label: const Text('AI 生成'),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary),
+                    ),
+                  ],
                 ),
               ],
             ),

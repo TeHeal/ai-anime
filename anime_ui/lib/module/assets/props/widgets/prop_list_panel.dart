@@ -12,11 +12,16 @@ import 'package:anime_ui/module/assets/shared/asset_list_panel.dart';
 import 'package:anime_ui/module/assets/shared/asset_status_chip.dart';
 import 'package:anime_ui/module/assets/props/providers/selection.dart';
 
-/// 道具列表面板
+/// 道具列表面板（支持多选）
 class PropListPanel extends ConsumerWidget {
-  const PropListPanel({super.key, required this.props});
+  const PropListPanel({
+    super.key,
+    required this.props,
+    this.onBatchConfirm,
+  });
 
   final List<Prop> props;
+  final void Function(List<String> ids)? onBatchConfirm;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,13 +33,24 @@ class PropListPanel extends ConsumerWidget {
       confirmedCount: confirmed,
       countLabel: '个道具',
       itemCount: props.length,
-      itemBuilder: (context, index) {
+      onBatchConfirm: onBatchConfirm,
+      allIds: props.map((p) => p.id).whereType<String>().toList(),
+      itemBuilder: (context, index, multiSelect, selectedIds) {
         final prop = props[index];
         final isSelected = prop.id == selectedId;
+        final isChecked = prop.id != null && selectedIds.contains(prop.id!);
         return AssetListItem(
           name: prop.name,
           isSelected: isSelected,
-          onTap: () => ref.read(selectedPropIdProvider.notifier).set(prop.id),
+          onTap: () {
+            if (multiSelect && prop.id != null) {
+              final panel =
+                  context.findAncestorStateOfType<AssetListPanelState>();
+              panel?.toggleId(prop.id!);
+            } else {
+              ref.read(selectedPropIdProvider.notifier).set(prop.id);
+            }
+          },
           leading: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             width: Spacing.tinyGap.w,
@@ -57,6 +73,27 @@ class PropListPanel extends ConsumerWidget {
               ],
             ],
           ),
+          trailing: multiSelect
+              ? MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (prop.id != null) {
+                        final panel = context
+                            .findAncestorStateOfType<AssetListPanelState>();
+                        panel?.toggleId(prop.id!);
+                      }
+                    },
+                    child: Icon(
+                      isChecked ? AppIcons.check : AppIcons.circleOutline,
+                      size: 18.r,
+                      color: isChecked
+                          ? AppColors.primary
+                          : AppColors.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                )
+              : null,
         );
       },
     );

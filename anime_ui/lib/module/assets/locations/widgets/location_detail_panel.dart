@@ -149,16 +149,24 @@ class LocationDetailPanel extends StatelessWidget {
           SizedBox(height: Spacing.md.h),
           Row(
             children: [
-              OutlinedButton.icon(
+              FilledButton.icon(
                 onPressed: onGenerateImage,
-                icon: Icon(AppIcons.autoAwesome, size: 16.r),
+                icon: Icon(AppIcons.magicStick, size: 16.r),
                 label: Text(location.isGenerating ? '生成中...' : 'AI 生成'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                  foregroundColor: AppColors.primary,
+                ),
               ),
               SizedBox(width: Spacing.sm.w),
-              OutlinedButton.icon(
+              FilledButton.icon(
                 onPressed: () {},
                 icon: Icon(AppIcons.upload, size: 16.r),
                 label: const Text('上传'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.surfaceContainerHigh,
+                  foregroundColor: AppColors.onSurface.withValues(alpha: 0.8),
+                ),
               ),
             ],
           ),
@@ -275,17 +283,24 @@ class LocationDetailPanel extends StatelessWidget {
           ),
           SizedBox(width: Spacing.md.w),
         ],
-        OutlinedButton.icon(
+        FilledButton.icon(
           onPressed: onEdit,
           icon: Icon(AppIcons.edit, size: 16.r),
           label: const Text('编辑'),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.surfaceContainerHigh,
+            foregroundColor: AppColors.onSurface.withValues(alpha: 0.8),
+          ),
         ),
         const Spacer(),
-        OutlinedButton.icon(
+        FilledButton.icon(
           onPressed: onDelete,
           icon: Icon(AppIcons.delete, size: 16.r),
           label: const Text('删除'),
-          style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.error.withValues(alpha: 0.12),
+            foregroundColor: AppColors.error,
+          ),
         ),
       ],
     );

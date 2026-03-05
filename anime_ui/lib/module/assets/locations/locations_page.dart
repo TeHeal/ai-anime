@@ -47,6 +47,25 @@ class _AssetsLocationsPageState extends ConsumerState<AssetsLocationsPage> {
 
     final toolbar = LocationToolbar(
       onAdd: () => _showAddLocation(context, ref),
+      onAiGenerate: () => ImageGenDialog.show(
+        context,
+        ref,
+        config: ImageGenConfig.scene(
+          onSaved: (urls, mode, {prompt = '', negativePrompt = ''}) async {
+            final pid = ref.read(currentProjectProvider).value?.id;
+            if (pid == null) return;
+            for (final url in urls) {
+              await ref.read(assetLocationsProvider.notifier).add(
+                    Location(
+                      projectId: pid,
+                      name: '场景-${DateTime.now().millisecondsSinceEpoch}',
+                      imageUrl: url,
+                    ),
+                  );
+            }
+          },
+        ),
+      ),
     );
 
     return asyncLocs.when(
@@ -105,7 +124,14 @@ class _AssetsLocationsPageState extends ConsumerState<AssetsLocationsPage> {
                     children: [
                       SizedBox(
                         width: panelW,
-                        child: LocationListPanel(locations: locs),
+                        child: LocationListPanel(
+                          locations: locs,
+                          onBatchConfirm: (ids) {
+                            ref
+                                .read(assetLocationsProvider.notifier)
+                                .batchConfirm(ids);
+                          },
+                        ),
                       ),
                       VerticalDivider(width: 1.w, color: AppColors.divider),
                       Expanded(
@@ -170,10 +196,43 @@ class _AssetsLocationsPageState extends ConsumerState<AssetsLocationsPage> {
                   ),
                 ),
                 SizedBox(height: Spacing.mid.h),
-                OutlinedButton.icon(
-                  onPressed: () => _showAddLocation(context, ref),
-                  icon: Icon(AppIcons.add, size: 18.r),
-                  label: const Text('手动添加'),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _showAddLocation(context, ref),
+                      icon: Icon(AppIcons.add, size: 18.r),
+                      label: const Text('手动添加'),
+                    ),
+                    SizedBox(width: Spacing.md.w),
+                    FilledButton.icon(
+                      onPressed: () => ImageGenDialog.show(
+                        context,
+                        ref,
+                        config: ImageGenConfig.scene(
+                          onSaved: (urls, mode,
+                              {prompt = '', negativePrompt = ''}) async {
+                            final pid = ref.read(currentProjectProvider).value?.id;
+                            if (pid == null) return;
+                            for (final url in urls) {
+                              await ref
+                                  .read(assetLocationsProvider.notifier)
+                                  .add(Location(
+                                    projectId: pid,
+                                    name:
+                                        '场景-${DateTime.now().millisecondsSinceEpoch}',
+                                    imageUrl: url,
+                                  ));
+                            }
+                          },
+                        ),
+                      ),
+                      icon: Icon(AppIcons.magicStick, size: 18.r),
+                      label: const Text('AI 生成'),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary),
+                    ),
+                  ],
                 ),
               ],
             ),

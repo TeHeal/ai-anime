@@ -6,9 +6,14 @@ import 'package:anime_ui/module/assets/props/providers/selection.dart';
 
 /// 道具工具栏
 class PropToolbar extends ConsumerWidget {
-  const PropToolbar({super.key, required this.onAdd});
+  const PropToolbar({
+    super.key,
+    required this.onAdd,
+    this.onAiGenerate,
+  });
 
   final VoidCallback onAdd;
+  final VoidCallback? onAiGenerate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,6 +26,7 @@ class PropToolbar extends ConsumerWidget {
       onStatusFilterChanged: (v) =>
           ref.read(propStatusFilterProvider.notifier).set(v),
       onAdd: onAdd,
+      onAiGenerate: onAiGenerate,
     );
   }
 }

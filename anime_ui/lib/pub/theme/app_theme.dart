@@ -21,6 +21,15 @@ final ThemeData appDarkTheme = ThemeData(
     ),
     contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
   ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: AppColors.onSurface.withValues(alpha: 0.8),
+      side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+      ),
+    ),
+  ),
   colorScheme: const ColorScheme.dark(
     primary: AppColors.primary,
     secondary: AppColors.secondary,

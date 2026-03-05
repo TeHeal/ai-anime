@@ -6,9 +6,14 @@ import 'package:anime_ui/module/assets/locations/providers/selection.dart';
 
 /// 场景工具栏
 class LocationToolbar extends ConsumerWidget {
-  const LocationToolbar({super.key, required this.onAdd});
+  const LocationToolbar({
+    super.key,
+    required this.onAdd,
+    this.onAiGenerate,
+  });
 
   final VoidCallback onAdd;
+  final VoidCallback? onAiGenerate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,6 +26,7 @@ class LocationToolbar extends ConsumerWidget {
       onStatusFilterChanged: (v) =>
           ref.read(locStatusFilterProvider.notifier).set(v),
       onAdd: onAdd,
+      onAiGenerate: onAiGenerate,
     );
   }
 }

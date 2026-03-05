@@ -7,12 +7,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/widgets/asset_form_shell.dart';
+import 'package:anime_ui/pub/widgets/asset_upload_area.dart';
+import 'package:anime_ui/pub/widgets/asset_section_label.dart';
+import 'package:anime_ui/pub/widgets/asset_input_field.dart';
+import 'package:anime_ui/pub/widgets/asset_tag_editor.dart';
 
 import '../models/resource_category.dart';
 import '../models/resource_meta_schema.dart';
 import '../providers/provider.dart';
 import '../widgets/resource_form_fields.dart';
-import '../widgets/upload_area.dart';
 
 export 'batch_upload_dialog.dart' show showResourceBatchUploadDialog;
 export 'resource_ai_generate.dart' show showResourceAiGenerateDialog;
@@ -223,78 +227,21 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: AppColors.surfaceContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-      ),
-      child: LayoutBuilder(
-        builder: (context, dialogConstraints) {
-          final isWide = dialogConstraints.maxWidth >= Breakpoints.md;
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: isWide ? 820.w : 620.w,
-              maxHeight: 720.h,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildHeader(),
-                Flexible(child: isWide ? _buildTwoColumnBody() : _buildBody()),
-                _buildFooter(),
-              ],
-            ),
-          );
+    return AssetFormShell(
+      title: isEdit ? '编辑素材' : '添加素材',
+      subtitle: widget.libraryType.label,
+      icon: widget.libraryType.icon,
+      accent: accent,
+      primaryLabel: isEdit ? '保存' : '创建',
+      onPrimary: _save,
+      saving: _saving,
+      maxWidth: 820.w,
+      maxHeight: 720.h,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 600;
+          return isWide ? _buildTwoColumnBody() : _buildBody();
         },
-      ),
-    );
-  }
-
-  // ─────────────────── 头部 ───────────────────
-
-  Widget _buildHeader() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        Spacing.xl.w, Spacing.lg.h, Spacing.md.w, Spacing.md.h,
-      ),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(Spacing.sm.r),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-            ),
-            child: Icon(widget.libraryType.icon, size: 20.r, color: accent),
-          ),
-          SizedBox(width: Spacing.md.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isEdit ? '编辑素材' : '添加素材',
-                  style: AppTextStyles.h4.copyWith(
-                    color: AppColors.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: Spacing.xxs.h),
-                Text(
-                  widget.libraryType.label,
-                  style: AppTextStyles.caption.copyWith(color: accent),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(AppIcons.close, size: 18.r, color: AppColors.muted),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
       ),
     );
   }
@@ -314,10 +261,10 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
           SizedBox(height: Spacing.lg.h),
           _buildNameField(),
           SizedBox(height: Spacing.md.h),
-          ResourceTagEditor(
+          AssetTagEditor(
             tags: _tags,
-            tagInputController: _tagInputCtrl,
-            accentColor: accent,
+            controller: _tagInputCtrl,
+            accent: accent,
             onTagAdded: _addTag,
             onTagRemoved: (tag) => setState(() => _tags.remove(tag)),
           ),
@@ -331,6 +278,7 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
                   setState(() => _metaValues[key] = value),
             ),
           ],
+          if (_isText) _buildTextPreviewSection(),
           _buildCustomMetaSection(),
         ],
       ),
@@ -357,10 +305,10 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
                 SizedBox(height: Spacing.lg.h),
                 _buildNameField(),
                 SizedBox(height: Spacing.md.h),
-                ResourceTagEditor(
+                AssetTagEditor(
                   tags: _tags,
-                  tagInputController: _tagInputCtrl,
-                  accentColor: accent,
+                  controller: _tagInputCtrl,
+                  accent: accent,
                   onTagAdded: _addTag,
                   onTagRemoved: (tag) => setState(() => _tags.remove(tag)),
                 ),
@@ -374,7 +322,7 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
           width: 1,
           color: AppColors.border.withValues(alpha: 0.4),
         ),
-        // 右列：属性 + 提示词
+        // 右列：属性 + 提示词（视觉/音频）或内容预览（文本）
         Expanded(
           flex: 6,
           child: SingleChildScrollView(
@@ -393,9 +341,74 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
                     onChanged: (key, value) =>
                         setState(() => _metaValues[key] = value),
                   ),
+                if (_isText) _buildTextPreviewSection(),
               ],
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────── 文本内容预览（仅文本类右列） ───────────────────
+
+  Widget _buildTextPreviewSection() {
+    final hasContent = _textPreview.isNotEmpty ||
+        (isEdit && (widget.initial?.description.isNotEmpty ?? false));
+    final content = _textPreview.isNotEmpty
+        ? _textPreview
+        : (widget.initial?.description ?? '');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: Spacing.lg.h),
+        AssetSectionLabel('内容预览', accent: accent),
+        SizedBox(height: Spacing.sm.h),
+        Container(
+          width: double.infinity,
+          constraints: BoxConstraints(minHeight: 120.h, maxHeight: 200.h),
+          padding: EdgeInsets.all(Spacing.md.r),
+          decoration: BoxDecoration(
+            color: AppColors.inputBackground.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+            border: Border.all(
+              color: hasContent
+                  ? accent.withValues(alpha: 0.2)
+                  : AppColors.border.withValues(alpha: 0.3),
+            ),
+          ),
+          child: hasContent
+              ? SingleChildScrollView(
+                  child: Text(
+                    content,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.onSurface.withValues(alpha: 0.8),
+                      height: 1.6,
+                    ),
+                    maxLines: 12,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                )
+              : Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.document,
+                        size: 28.r,
+                        color: AppColors.muted.withValues(alpha: 0.4),
+                      ),
+                      SizedBox(height: Spacing.sm.h),
+                      Text(
+                        '上传文件后预览内容',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.mutedDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ],
     );
@@ -407,9 +420,9 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionLabel('上传文件', required: !isEdit && !_isText),
+        AssetSectionLabel('上传文件', accent: accent, required: !isEdit && !_isText),
         SizedBox(height: Spacing.sm.h),
-        ResourceUploadArea(
+        AssetUploadArea(
           accentColor: accent,
           fileType: _uploadFileType,
           currentUrl: _uploadedUrl.isNotEmpty ? _uploadedUrl : null,
@@ -434,39 +447,12 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
   // ─────────────────── 名称 ───────────────────
 
   Widget _buildNameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionLabel('名称', required: true),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
-          controller: _nameCtrl,
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-          decoration: _inputDeco('输入素材名称'),
-        ),
-      ],
-    );
-  }
-
-  /// 输入框装饰：深底凹陷 + 圆角微边框
-  InputDecoration _inputDeco(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
-      filled: true,
-      fillColor: AppColors.inputBackground.withValues(alpha: 0.6),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: Spacing.sm.w,
-        vertical: Spacing.sm.h,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.3)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-        borderSide: BorderSide(color: accent.withValues(alpha: 0.6)),
-      ),
+    return AssetInputField(
+      label: '名称',
+      controller: _nameCtrl,
+      hint: '输入素材名称',
+      accent: accent,
+      required: true,
     );
   }
 
@@ -543,97 +529,6 @@ class _ResourceFormDialogState extends ConsumerState<_ResourceFormDialog> {
     );
   }
 
-  // ─────────────────── 底部 ───────────────────
-
-  Widget _buildFooter() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        Spacing.xl.w, Spacing.md.h, Spacing.xl.w, Spacing.lg.h,
-      ),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: Spacing.lg.w,
-                vertical: Spacing.sm.h,
-              ),
-            ),
-            child: Text(
-              '取消',
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-            ),
-          ),
-          SizedBox(width: Spacing.md.w),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            style: FilledButton.styleFrom(
-              backgroundColor: accent,
-              disabledBackgroundColor: accent.withValues(alpha: 0.3),
-              padding: EdgeInsets.symmetric(
-                horizontal: Spacing.xl.w,
-                vertical: Spacing.sm.h,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-              ),
-            ),
-            child: _saving
-                ? SizedBox(
-                    width: 16.w,
-                    height: 16.h,
-                    child: const CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.onPrimary,
-                    ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(isEdit ? AppIcons.save : AppIcons.add, size: 16.r),
-                      SizedBox(width: Spacing.xs.w),
-                      Text(isEdit ? '保存' : '创建'),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────── 工具方法 ───────────────────
-
-  Widget _buildSectionLabel(String text, {bool required = false}) {
-    return Row(
-      children: [
-        Container(
-          width: 3.w,
-          height: 13.h,
-          decoration: BoxDecoration(
-            color: accent,
-            borderRadius: BorderRadius.circular(2.r),
-          ),
-        ),
-        SizedBox(width: Spacing.sm.w),
-        Text(
-          text,
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.mutedLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        if (required) ...[
-          SizedBox(width: Spacing.xxs.w),
-          Text('*', style: AppTextStyles.labelMedium.copyWith(color: AppColors.error)),
-        ],
-      ],
-    );
-  }
 }
 
 /// 自定义元数据行

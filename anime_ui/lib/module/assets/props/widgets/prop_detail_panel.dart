@@ -16,12 +16,14 @@ class PropDetailPanel extends StatelessWidget {
     this.onConfirm,
     required this.onDelete,
     required this.onEdit,
+    this.onAiGenerate,
   });
 
   final Prop prop;
   final VoidCallback? onConfirm;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
+  final VoidCallback? onAiGenerate;
 
   @override
   Widget build(BuildContext context) {
@@ -137,11 +139,26 @@ class PropDetailPanel extends StatelessWidget {
           SizedBox(height: Spacing.md.h),
           Row(
             children: [
-              OutlinedButton.icon(
+              FilledButton.icon(
                 onPressed: () {},
                 icon: Icon(AppIcons.upload, size: 16.r),
                 label: const Text('上传'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.surfaceContainerHigh,
+                  foregroundColor: AppColors.onSurface.withValues(alpha: 0.8),
+                ),
               ),
+              if (onAiGenerate != null) ...[
+                SizedBox(width: Spacing.sm.w),
+                FilledButton.icon(
+                  onPressed: onAiGenerate,
+                  icon: Icon(AppIcons.magicStick, size: 16.r),
+                  label: const Text('AI 生成'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                  ),
+                ),
+              ],
             ],
           ),
         ],
@@ -267,17 +284,24 @@ class PropDetailPanel extends StatelessWidget {
           ),
           SizedBox(width: Spacing.md.w),
         ],
-        OutlinedButton.icon(
+        FilledButton.icon(
           onPressed: onEdit,
           icon: Icon(AppIcons.edit, size: 16.r),
           label: const Text('编辑'),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.surfaceContainerHigh,
+            foregroundColor: AppColors.onSurface.withValues(alpha: 0.8),
+          ),
         ),
         const Spacer(),
-        OutlinedButton.icon(
+        FilledButton.icon(
           onPressed: onDelete,
           icon: Icon(AppIcons.delete, size: 16.r),
           label: const Text('删除'),
-          style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.error.withValues(alpha: 0.12),
+            foregroundColor: AppColors.error,
+          ),
         ),
       ],
     );

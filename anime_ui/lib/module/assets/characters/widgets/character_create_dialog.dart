@@ -1,15 +1,13 @@
-import 'dart:typed_data';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/widgets/form_field_helpers.dart';
+import 'package:anime_ui/pub/widgets/asset_form_shell.dart';
+import 'package:anime_ui/pub/widgets/asset_input_field.dart';
+import 'package:anime_ui/pub/widgets/asset_section_label.dart';
+import 'package:anime_ui/pub/widgets/asset_upload_area.dart';
 import 'package:anime_ui/pub/widgets/option_chips.dart';
-import 'package:anime_ui/pub/services/file_svc.dart';
-import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
 
 /// 两步骤角色创建对话框
 ///
@@ -38,7 +36,6 @@ class _CharacterCreateDialogState extends State<CharacterCreateDialog> {
   String _importance = 'main';
 
   String? _uploadedImageUrl;
-  bool _isUploading = false;
 
   @override
   void dispose() {
@@ -62,80 +59,44 @@ class _CharacterCreateDialogState extends State<CharacterCreateDialog> {
     Navigator.pop(context);
   }
 
-  Future<void> _handleUpload() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true,
-    );
-    if (result == null || result.files.isEmpty) return;
-    final file = result.files.first;
-    final Uint8List? bytes = file.bytes;
-    if (bytes == null) return;
-
-    setState(() => _isUploading = true);
-    try {
-      final url = await FileService().upload(
-        bytes,
-        file.name,
-        category: 'character_reference',
-      );
-      setState(() => _uploadedImageUrl = url);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('上传失败: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: AppColors.surfaceMutedDarker,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 520.w, maxHeight: 540.h),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            _buildStepIndicator(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  Spacing.xl.w, Spacing.lg.h, Spacing.xl.w, Spacing.sm.h,
-                ),
-                child: _step == 0 ? _buildStep1() : _buildStep2(),
-              ),
-            ),
-            _buildFooter(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(Spacing.xl.w, Spacing.lg.h, Spacing.lg.w, 0),
-      child: Row(
-        children: [
-          Text(
-            '新建角色',
-            style: AppTextStyles.h4.copyWith(
-              color: AppColors.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+    return AssetFormShell(
+      title: '新建角色',
+      icon: AppIcons.person,
+      accent: AppColors.primary,
+      primaryLabel: _step == 0 ? '下一步 →' : '创建角色',
+      onPrimary: _step == 0
+          ? (_canProceed ? () => setState(() => _step = 1) : null)
+          : _handleCreate,
+      maxWidth: 520.w,
+      maxHeight: 560.h,
+      secondaryActions: [
+        if (_step > 0)
+          TextButton(
+            onPressed: () => setState(() => _step = 0),
+            child: const Text('← 上一步'),
           ),
+        if (_step == 1) ...[
           const Spacer(),
-          IconButton(
-            icon: Icon(AppIcons.close, color: AppColors.muted),
-            onPressed: () => Navigator.pop(context),
+          OutlinedButton(
+            onPressed: _handleCreate,
+            child: const Text('跳过，直接创建'),
+          ),
+          SizedBox(width: Spacing.sm.w),
+        ],
+      ],
+      body: Column(
+        children: [
+          _buildStepIndicator(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: Spacing.xl.w,
+                vertical: Spacing.lg.h,
+              ),
+              child: _step == 0 ? _buildStep0() : _buildStep1(),
+            ),
           ),
         ],
       ),
@@ -144,11 +105,17 @@ class _CharacterCreateDialogState extends State<CharacterCreateDialog> {
 
   Widget _buildStepIndicator() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(Spacing.xl.w, Spacing.md.h, Spacing.xl.w, 0),
+      padding: EdgeInsets.fromLTRB(
+          Spacing.xl.w, Spacing.md.h, Spacing.xl.w, 0),
       child: Row(
         children: [
           _stepDot(0, '基本信息'),
-          _stepLine(),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
+              child: const Divider(color: AppColors.border, thickness: 1),
+            ),
+          ),
           _stepDot(1, '外貌描述'),
         ],
       ),
@@ -195,31 +162,21 @@ class _CharacterCreateDialogState extends State<CharacterCreateDialog> {
     );
   }
 
-  Widget _stepLine() {
-    return Expanded(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
-        child: Divider(color: AppColors.border, thickness: 1),
-      ),
-    );
-  }
+  // ─── Step 0：基本信息 ────────────────────────────────
 
-  // ─── Step 1：基本信息 ────────────────────────────────
-
-  Widget _buildStep1() {
+  Widget _buildStep0() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const DarkFieldLabel('角色名称', required: true),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
+        AssetInputField(
+          label: '角色名称',
           controller: _nameCtrl,
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-          decoration: darkInputDecoration('请输入角色名称'),
+          hint: '请输入角色名称',
+          required: true,
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: Spacing.lg.h),
-        const DarkFieldLabel('角色类型'),
+        const AssetSectionLabel('角色类型', accent: AppColors.primary),
         SizedBox(height: Spacing.xs.h),
         OptionChips<String>(
           options: const {
@@ -232,7 +189,7 @@ class _CharacterCreateDialogState extends State<CharacterCreateDialog> {
           onSelected: (v) => setState(() => _roleType = v),
         ),
         SizedBox(height: Spacing.lg.h),
-        const DarkFieldLabel('重要程度'),
+        const AssetSectionLabel('重要程度', accent: AppColors.primary),
         SizedBox(height: Spacing.xs.h),
         OptionChips<String>(
           options: const {
@@ -245,31 +202,40 @@ class _CharacterCreateDialogState extends State<CharacterCreateDialog> {
           onSelected: (v) => setState(() => _importance = v),
         ),
         SizedBox(height: Spacing.lg.h),
-        const DarkFieldLabel('简要描述', hint: '可选'),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
+        AssetInputField(
+          label: '简要描述',
           controller: _descriptionCtrl,
+          hint: '一句话描述这个角色（可选）',
           maxLines: 2,
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-          decoration: darkInputDecoration('一句话描述这个角色（可选）'),
+          labelHint: '可选',
         ),
       ],
     );
   }
 
-  // ─── Step 2：外貌描述 ────────────────────────────────
+  // ─── Step 1：外貌描述 ────────────────────────────────
 
-  Widget _buildStep2() {
+  Widget _buildStep1() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildUploadArea(),
-            SizedBox(width: Spacing.lg.w),
-            Expanded(child: _buildAppearanceField()),
-          ],
+        const AssetSectionLabel('参考图', accent: AppColors.primary, hint: '可选'),
+        SizedBox(height: Spacing.sm.h),
+        AssetUploadArea(
+          fileType: UploadFileType.image,
+          accentColor: AppColors.primary,
+          currentUrl: _uploadedImageUrl,
+          height: 160.h,
+          uploadCategory: 'character_reference',
+          onUploaded: (url) => setState(() => _uploadedImageUrl = url),
+        ),
+        SizedBox(height: Spacing.lg.h),
+        AssetInputField(
+          label: '外貌描述',
+          controller: _appearanceCtrl,
+          hint: '描述角色的外观特征，如性别、年龄、发型、服装等',
+          maxLines: 8,
+          labelHint: '可选',
         ),
         SizedBox(height: Spacing.md.h),
         Container(
@@ -296,145 +262,4 @@ class _CharacterCreateDialogState extends State<CharacterCreateDialog> {
       ],
     );
   }
-
-  Widget _buildUploadArea() {
-    if (_uploadedImageUrl != null) {
-      return Stack(
-        children: [
-          Container(
-            width: 160.w,
-            height: 200.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-              image: DecorationImage(
-                image: NetworkImage(resolveFileUrl(_uploadedImageUrl!)),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Positioned(
-            top: 4.h,
-            right: 4.w,
-            child: GestureDetector(
-              onTap: () => setState(() => _uploadedImageUrl = null),
-              child: Container(
-                padding: EdgeInsets.all(4.r),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
-                ),
-                child: Icon(AppIcons.close, size: 14.r, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return GestureDetector(
-      onTap: _isUploading ? null : _handleUpload,
-      child: Container(
-        width: 160.w,
-        height: 200.h,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: _isUploading
-            ? Center(
-                child: SizedBox(
-                  width: 24.r,
-                  height: 24.r,
-                  child: const CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            : Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(AppIcons.image, size: 32.r, color: AppColors.muted),
-                    SizedBox(height: Spacing.sm.h),
-                    Text(
-                      '上传参考图',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.mutedDark,
-                      ),
-                    ),
-                    Text(
-                      '（可选）',
-                      style: AppTextStyles.tiny.copyWith(
-                        color: AppColors.mutedDarker,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildAppearanceField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const DarkFieldLabel('外貌描述', hint: '可选'),
-        SizedBox(height: Spacing.xs.h),
-        TextField(
-          controller: _appearanceCtrl,
-          maxLines: 8,
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-          decoration: darkInputDecoration('描述角色的外观特征，如性别、年龄、发型、服装等'),
-        ),
-      ],
-    );
-  }
-
-  // ─── Footer ──────────────────────────────────────────
-
-  Widget _buildFooter() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        Spacing.xl.w, Spacing.sm.h, Spacing.xl.w, Spacing.lg.h,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          if (_step > 0)
-            TextButton(
-              onPressed: () => setState(() => _step = 0),
-              child: const Text('← 上一步'),
-            ),
-          const Spacer(),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              '取消',
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-            ),
-          ),
-          SizedBox(width: Spacing.md.w),
-          if (_step == 0)
-            FilledButton(
-              onPressed: _canProceed ? () => setState(() => _step = 1) : null,
-              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('下一步 →'),
-            )
-          else ...[
-            OutlinedButton(
-              onPressed: _handleCreate,
-              child: const Text('跳过，直接创建'),
-            ),
-            SizedBox(width: Spacing.sm.w),
-            FilledButton(
-              onPressed: _handleCreate,
-              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('创建角色'),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 }
-

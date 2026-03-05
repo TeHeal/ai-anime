@@ -6,6 +6,8 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/character.dart';
 import 'package:anime_ui/pub/widgets/loading.dart';
+import 'package:anime_ui/pub/widgets/image_gen/image_gen_config.dart';
+import 'package:anime_ui/pub/widgets/image_gen/image_gen_dialog.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/module/assets/shared/confirm_delete_dialog.dart';
 import 'package:anime_ui/module/assets/shared/import_profile_dialog.dart';
@@ -79,6 +81,22 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage>
         builder: (_) => const ImportProfileDialog(),
       ),
       onAdd: () => _showAddCharacter(context, ref),
+      onAiGenerate: () => ImageGenDialog.show(
+        context,
+        ref,
+        config: ImageGenConfig.character(
+          onSaved: (urls, mode, {prompt = '', negativePrompt = ''}) async {
+            for (final url in urls) {
+              await ref.read(assetCharactersProvider.notifier).add(
+                    Character(
+                      name: '角色-${DateTime.now().millisecondsSinceEpoch}',
+                      imageUrl: url,
+                    ),
+                  );
+            }
+          },
+        ),
+      ),
     );
 
     return asyncChars.when(
@@ -249,10 +267,40 @@ class _AssetsCharactersPageState extends ConsumerState<AssetsCharactersPage>
                   ),
                 ),
                 SizedBox(height: Spacing.mid.h),
-                OutlinedButton.icon(
-                  onPressed: () => _showAddCharacter(context, ref),
-                  icon: Icon(AppIcons.add, size: 18.r),
-                  label: const Text('手动添加'),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _showAddCharacter(context, ref),
+                      icon: Icon(AppIcons.add, size: 18.r),
+                      label: const Text('手动添加'),
+                    ),
+                    SizedBox(width: Spacing.md.w),
+                    FilledButton.icon(
+                      onPressed: () => ImageGenDialog.show(
+                        context,
+                        ref,
+                        config: ImageGenConfig.character(
+                          onSaved: (urls, mode,
+                              {prompt = '', negativePrompt = ''}) async {
+                            for (final url in urls) {
+                              await ref
+                                  .read(assetCharactersProvider.notifier)
+                                  .add(Character(
+                                    name:
+                                        '角色-${DateTime.now().millisecondsSinceEpoch}',
+                                    imageUrl: url,
+                                  ));
+                            }
+                          },
+                        ),
+                      ),
+                      icon: Icon(AppIcons.magicStick, size: 18.r),
+                      label: const Text('AI 生成'),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary),
+                    ),
+                  ],
                 ),
               ],
             ),

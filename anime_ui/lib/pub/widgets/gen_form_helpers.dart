@@ -1,28 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/widgets/asset_section_label.dart';
 
-/// 生成类弹窗通用表单标签（支持必填星号）
+/// 生成类弹窗通用表单标签，委托给 [AssetSectionLabel]（无竖条模式）
 Widget genFormLabel(String text, {bool required = false}) {
-  return Row(
-    children: [
-      Text(
-        text,
-        style: AppTextStyles.labelMedium.copyWith(
-          fontWeight: FontWeight.w600,
-          color: AppColors.muted,
-        ),
-      ),
-      if (required)
-        Padding(
-          padding: EdgeInsets.only(left: Spacing.xs.w),
-          child: Text(
-            '*',
-            style: AppTextStyles.caption.copyWith(color: AppColors.error),
-          ),
-        ),
-    ],
-  );
+  return AssetSectionLabel(text, required: required, showBar: false);
 }
 
 /// 输入框装饰：深底凹陷（用于文本输入、数字输入等"可输入"控件）

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/prop.dart';
+import 'package:anime_ui/pub/widgets/asset_form_shell.dart';
+import 'package:anime_ui/pub/widgets/asset_input_field.dart';
+import 'package:anime_ui/pub/widgets/asset_section_label.dart';
 
-/// 道具编辑对话框
+/// 道具新建/编辑对话框
 class PropEditDialog extends StatefulWidget {
   const PropEditDialog({
     super.key,
@@ -30,7 +34,8 @@ class _PropEditDialogState extends State<PropEditDialog> {
   void initState() {
     super.initState();
     _name = TextEditingController(text: widget.initial?.name ?? '');
-    _appearance = TextEditingController(text: widget.initial?.appearance ?? '');
+    _appearance =
+        TextEditingController(text: widget.initial?.appearance ?? '');
     _isKeyProp = widget.initial?.isKeyProp ?? false;
   }
 
@@ -54,94 +59,63 @@ class _PropEditDialogState extends State<PropEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppColors.surfaceMutedDarker,
-      title: Text(
-        widget.title,
-        style: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
-      ),
-      content: SizedBox(
-        width: 400.w,
+    return AssetFormShell(
+      title: widget.title,
+      icon: AppIcons.tag,
+      primaryLabel: widget.initial != null ? '保存' : '创建',
+      onPrimary: _submit,
+      maxWidth: 440.w,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.xl.w,
+          vertical: Spacing.lg.h,
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _field('道具名称', _name, required: true),
-            _field('外观描述', _appearance, maxLines: 3),
+            AssetInputField(
+              label: '道具名称',
+              controller: _name,
+              required: true,
+            ),
+            SizedBox(height: Spacing.md.h),
+            AssetInputField(
+              label: '外观描述',
+              controller: _appearance,
+              maxLines: 3,
+            ),
+            SizedBox(height: Spacing.md.h),
+            const AssetSectionLabel('道具属性'),
             SizedBox(height: Spacing.xs.h),
-            SwitchListTile(
-              title: Text(
-                '关键道具',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.mutedLight,
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.sm.w),
+              decoration: BoxDecoration(
+                color: AppColors.inputBackground.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.3),
                 ),
               ),
-              subtitle: Text(
-                '标记为关键道具会在总览中优先提示',
-                style: AppTextStyles.tiny.copyWith(
-                  color: AppColors.mutedDarker,
+              child: SwitchListTile(
+                title: Text(
+                  '关键道具',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.mutedLight,
+                  ),
                 ),
+                subtitle: Text(
+                  '标记为关键道具会在总览中优先提示',
+                  style: AppTextStyles.tiny.copyWith(
+                    color: AppColors.mutedDarker,
+                  ),
+                ),
+                value: _isKeyProp,
+                onChanged: (v) => setState(() => _isKeyProp = v),
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                contentPadding: EdgeInsets.zero,
               ),
-              value: _isKeyProp,
-              onChanged: (v) => setState(() => _isKeyProp = v),
-              activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
-              contentPadding: EdgeInsets.zero,
             ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            '取消',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
-          ),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-          child: Text(widget.initial != null ? '保存' : '创建'),
-        ),
-      ],
-    );
-  }
-
-  Widget _field(
-    String label,
-    TextEditingController controller, {
-    String? hint,
-    int maxLines = 1,
-    bool required = false,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.md.h),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
-        decoration: InputDecoration(
-          labelText: required ? '$label *' : label,
-          labelStyle: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.mutedDark,
-          ),
-          hintText: hint,
-          hintStyle: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.surfaceMuted,
-          ),
-          filled: true,
-          fillColor: AppColors.surfaceMutedDarker,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: Spacing.md.w,
-            vertical: Spacing.md.h,
-          ),
         ),
       ),
     );

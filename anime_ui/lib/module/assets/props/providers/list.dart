@@ -88,6 +88,13 @@ class AssetPropsNotifier extends Notifier<AsyncValue<List<Prop>>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  /// 批量确认：逐条调用 confirm
+  Future<void> batchConfirm(List<String> ids) async {
+    for (final id in ids) {
+      await confirm(id);
+    }
+  }
 }
 
 final assetPropsProvider =

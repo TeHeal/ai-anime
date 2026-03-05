@@ -106,10 +106,15 @@ class CharacterVoiceCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    OutlinedButton(
+                    FilledButton.icon(
                       onPressed: () =>
                           _showVoicePickerDialog(context, ref),
-                      child: const Text('从音色库选择'),
+                      icon: Icon(AppIcons.mic, size: 14.r),
+                      label: const Text('从音色库选择'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.surfaceContainerHigh,
+                        foregroundColor: AppColors.onSurface.withValues(alpha: 0.8),
+                      ),
                     ),
                     VoiceGenTrigger(
                       config: VoiceGenConfig.voiceLibrary(

@@ -5,7 +5,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_search_field.dart';
 
-/// 资产工具栏：搜索 + 状态筛选 + 重置 + 新建按钮
+/// 资产工具栏：搜索 + 状态筛选 + 重置 + 新建按钮 + 可选 AI 生成按钮
 ///
 /// 通过回调与父组件状态同步，父组件负责 Provider 绑定
 class AssetToolbar extends StatefulWidget {
@@ -18,6 +18,8 @@ class AssetToolbar extends StatefulWidget {
     required this.statusFilter,
     required this.onStatusFilterChanged,
     required this.onAdd,
+    this.onAiGenerate,
+    this.aiGenerateLabel = 'AI 生成',
   });
 
   final String searchHint;
@@ -27,6 +29,10 @@ class AssetToolbar extends StatefulWidget {
   final String? statusFilter;
   final ValueChanged<String?> onStatusFilterChanged;
   final VoidCallback onAdd;
+
+  /// 非 null 时在新建按钮右侧显示 AI 生成按钮
+  final VoidCallback? onAiGenerate;
+  final String aiGenerateLabel;
 
   @override
   State<AssetToolbar> createState() => _AssetToolbarState();
@@ -106,8 +112,20 @@ class _AssetToolbarState extends State<AssetToolbar> {
             onPressed: widget.onAdd,
             icon: Icon(AppIcons.add, size: 16.r),
             label: Text(widget.addLabel),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+              foregroundColor: AppColors.primary,
+            ),
           ),
+          if (widget.onAiGenerate != null) ...[
+            SizedBox(width: Spacing.sm.w),
+            FilledButton.icon(
+              onPressed: widget.onAiGenerate,
+              icon: Icon(AppIcons.magicStick, size: 16.r),
+              label: Text(widget.aiGenerateLabel),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            ),
+          ],
         ],
       ),
     );

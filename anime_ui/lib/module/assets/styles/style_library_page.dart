@@ -418,8 +418,8 @@ class _StyleLibraryPageState extends ConsumerState<StyleLibraryPage> {
                   runSpacing: Spacing.md.h,
                   children: [
                     EmptyGuideCard(
-                      icon: AppIcons.upload,
-                      label: '上传风格图',
+                      icon: AppIcons.add,
+                      label: '创建风格',
                       accent: _accent,
                       onTap: () => showStyleFormDialog(context, ref),
                     ),

@@ -10,16 +10,18 @@ import 'package:anime_ui/module/dashboard/providers/provider.dart';
 import 'package:anime_ui/module/assets/characters/providers/characters.dart';
 import 'package:anime_ui/module/assets/characters/providers/selection.dart';
 
-/// 角色工具栏：搜索、筛选（状态/重要性/角色类型/一致性/集数）、导入小传、创建角色
+/// 角色工具栏：搜索、筛选（状态/重要性/角色类型/一致性/集数）、导入小传、创建角色、AI 生成
 class CharacterToolbar extends ConsumerStatefulWidget {
   const CharacterToolbar({
     super.key,
     required this.onImportProfile,
     required this.onAdd,
+    this.onAiGenerate,
   });
 
   final VoidCallback onImportProfile;
   final VoidCallback onAdd;
+  final VoidCallback? onAiGenerate;
 
   @override
   ConsumerState<CharacterToolbar> createState() => _CharacterToolbarState();
@@ -109,18 +111,34 @@ class _CharacterToolbarState extends ConsumerState<CharacterToolbar> {
             ),
           ),
           SizedBox(width: Spacing.sm.w),
-          OutlinedButton.icon(
+          FilledButton.icon(
             onPressed: widget.onImportProfile,
             icon: Icon(AppIcons.upload, size: 16.r),
             label: const Text('导入小传'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.surfaceContainerHigh,
+              foregroundColor: AppColors.onSurface.withValues(alpha: 0.8),
+            ),
           ),
           SizedBox(width: Spacing.sm.w),
           FilledButton.icon(
             onPressed: widget.onAdd,
             icon: Icon(AppIcons.add, size: 16.r),
             label: const Text('创建角色'),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+              foregroundColor: AppColors.primary,
+            ),
           ),
+          if (widget.onAiGenerate != null) ...[
+            SizedBox(width: Spacing.sm.w),
+            FilledButton.icon(
+              onPressed: widget.onAiGenerate,
+              icon: Icon(AppIcons.magicStick, size: 16.r),
+              label: const Text('AI 生成'),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            ),
+          ],
         ],
       ),
     );

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:anime_ui/pub/models/style.dart';
-import 'package:anime_ui/pub/widgets/app_dialog.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_search_field.dart';
@@ -94,10 +93,14 @@ class _StyleToolbarState extends ConsumerState<StyleToolbar> {
           ),
           SizedBox(width: Spacing.sm.w),
           const Expanded(child: SizedBox.shrink()),
-          OutlinedButton.icon(
+          FilledButton.icon(
             onPressed: widget.onUpload,
-            icon: Icon(AppIcons.upload, size: 16.r),
-            label: const Text('上传风格图'),
+            icon: Icon(AppIcons.add, size: 16.r),
+            label: const Text('创建风格'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+              foregroundColor: AppColors.primary,
+            ),
           ),
           SizedBox(width: Spacing.sm.w),
           ImageGenTrigger(
@@ -112,11 +115,11 @@ class _StyleToolbarState extends ConsumerState<StyleToolbar> {
   }
 }
 
-/// 显示风格表单对话框（用于上传模式）
+/// 显示风格创建/编辑弹窗
 void showStyleFormDialog(BuildContext context, WidgetRef ref, {Style? existing}) {
-  AppDialog.show(
-    context,
-    builder: (_, close) => StyleFormDialog(
+  showDialog(
+    context: context,
+    builder: (_) => StyleFormDialog(
       ref: ref,
       existing: existing,
       onSave: (name, description, negativePrompt, refImagesJson, thumbnailUrl) {

@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/models/model_catalog.dart';
 import 'package:anime_ui/pub/services/model_catalog_svc.dart';
-import 'components/text_gen_footer.dart';
-import 'components/text_gen_header.dart';
+import 'package:anime_ui/pub/widgets/gen_dialog_shell.dart';
 import 'components/text_gen_input_panel.dart';
 import 'components/text_gen_result_panel.dart';
 import 'text_gen_config.dart';
@@ -122,7 +122,6 @@ class _TextGenViewState extends State<TextGenView> {
     if (mounted) widget.onClose?.call();
   }
 
-  /// 基于当前结果再次优化
   Future<void> _optimizeResult() async {
     if (_ctrl.result.isEmpty) return;
     final instruction = _instructionCtrl.text.trim();
@@ -150,72 +149,109 @@ class _TextGenViewState extends State<TextGenView> {
     );
   }
 
+  bool get _hasResult =>
+      _ctrl.status == TextGenStatus.done && _ctrl.result.isNotEmpty;
+  bool get _isGenerating => _ctrl.status == TextGenStatus.generating;
+
+  List<Widget> _buildFooterActions() {
+    if (_hasResult) {
+      return [
+        TextButton(
+          onPressed: _isGenerating ? null : widget.onClose,
+          child: Text('取消',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.muted)),
+        ),
+        SizedBox(width: Spacing.sm.w),
+        if (config.saveToLibrary && _ctrl.savedResource == null)
+          OutlinedButton(
+            onPressed: _saveAndUse,
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: accent.withValues(alpha: 0.4)),
+            ),
+            child: Text('保存并使用',
+                style: AppTextStyles.bodySmall.copyWith(color: accent)),
+          ),
+        SizedBox(width: Spacing.sm.w),
+        FilledButton(
+          onPressed: _useResult,
+          style: FilledButton.styleFrom(backgroundColor: accent),
+          child: const Text('使用结果'),
+        ),
+      ];
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _ctrl,
       builder: (_, _) {
-        return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 560.w,
-              maxHeight: 740.h,
-              minWidth: 360.w,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextGenHeader(
-                  config: config,
-                  accent: accent,
-                  onClose: widget.onClose,
-                ),
-                // 上下布局：输入在上，结果在下
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        TextGenInputPanel(
-                          config: config,
-                          instructionCtrl: _instructionCtrl,
-                          nameCtrl: _nameCtrl,
-                          selectedLanguage: _selectedLanguage,
-                          selectedTargetModel: _selectedTargetModel,
-                          imageModels: _imageModels,
-                          loadingModels: _loadingModels,
-                          modelLoadError: _modelLoadError,
-                          accent: accent,
-                          onLanguageChanged: (v) =>
-                              setState(() => _selectedLanguage = v),
-                          onTargetModelChanged: (m) =>
-                              setState(() => _selectedTargetModel = m),
-                        ),
-                        Container(
-                          height: 1.h,
-                          color: AppColors.surfaceMutedDarker,
-                        ),
-                        TextGenResultPanel(
-                          ctrl: _ctrl,
-                          accent: accent,
-                          onGenerate: _generate,
-                          onOptimize: _optimizeResult,
-                        ),
-                      ],
-                    ),
+        final narrow = MediaQuery.sizeOf(context).width < Breakpoints.md;
+        final inputPanel = TextGenInputPanel(
+          config: config,
+          instructionCtrl: _instructionCtrl,
+          nameCtrl: _nameCtrl,
+          selectedLanguage: _selectedLanguage,
+          selectedTargetModel: _selectedTargetModel,
+          imageModels: _imageModels,
+          loadingModels: _loadingModels,
+          modelLoadError: _modelLoadError,
+          accent: accent,
+          onLanguageChanged: (v) => setState(() => _selectedLanguage = v),
+          onTargetModelChanged: (m) =>
+              setState(() => _selectedTargetModel = m),
+        );
+        final resultPanel = TextGenResultPanel(
+          ctrl: _ctrl,
+          accent: accent,
+          onGenerate: _generate,
+          onOptimize: _optimizeResult,
+        );
+
+        return GenDialogShell(
+          title: config.title,
+          subtitle: config.mode.label,
+          icon: AppIcons.document,
+          accent: accent,
+          primaryLabel: _isGenerating ? '生成中…' : '生成',
+          onPrimary: _generate,
+          canPrimary: !_isGenerating && _instructionCtrl.text.isNotEmpty,
+          generating: _isGenerating,
+          onClose: widget.onClose,
+          footerActions: _hasResult ? _buildFooterActions() : null,
+          footerLeading: _hasResult && config.saveToLibrary
+              ? Text(
+                  _ctrl.savedResource != null ? '已保存到素材库' : '',
+                  style: AppTextStyles.tiny
+                      .copyWith(color: AppColors.mutedDark),
+                )
+              : null,
+          maxWidth: narrow ? 560.w : 860.w,
+          minWidth: narrow ? 360.w : 560.w,
+          body: narrow
+              ? SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      inputPanel,
+                      Container(
+                          height: 1.h, color: AppColors.surfaceMutedDarker),
+                      resultPanel,
+                    ],
                   ),
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(child: inputPanel),
+                    ),
+                    Container(
+                        width: 1.w, color: AppColors.surfaceMutedDarker),
+                    Expanded(child: resultPanel),
+                  ],
                 ),
-                TextGenFooter(
-                  config: config,
-                  ctrl: _ctrl,
-                  accent: accent,
-                  onClose: widget.onClose,
-                  onGenerate: _generate,
-                  onUseResult: _useResult,
-                  onSaveAndUse: _saveAndUse,
-                ),
-              ],
-            ),
         );
       },
     );

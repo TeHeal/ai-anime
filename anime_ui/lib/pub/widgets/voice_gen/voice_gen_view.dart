@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
-import 'components/voice_gen_footer.dart';
-import 'components/voice_gen_header.dart';
+import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
+import 'package:anime_ui/pub/widgets/gen_dialog_shell.dart';
 import 'components/voice_gen_input_panel.dart';
 import 'components/voice_gen_mode_tabs.dart';
 import 'components/voice_gen_result_panel.dart';
 import 'voice_gen_config.dart';
 import 'voice_gen_controller.dart';
-import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
-import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 class VoiceGenView extends StatefulWidget {
   const VoiceGenView({
@@ -60,9 +60,8 @@ class _VoiceGenViewState extends State<VoiceGenView>
 
     _nameCtrl.addListener(() => _ctrl.setName(_nameCtrl.text));
     _promptCtrl.addListener(() => _ctrl.setDesignPrompt(_promptCtrl.text));
-    _previewTextCtrl.addListener(
-      () => _ctrl.setPreviewText(_previewTextCtrl.text),
-    );
+    _previewTextCtrl
+        .addListener(() => _ctrl.setPreviewText(_previewTextCtrl.text));
     _descCtrl.addListener(() => _ctrl.setDescription(_descCtrl.text));
 
     _tabCtrl = TabController(
@@ -118,8 +117,8 @@ class _VoiceGenViewState extends State<VoiceGenView>
                 description: description,
                 onProgress: onProgress,
               );
-              final audioUrl = resource.metadata['audioUrl'] as String? ??
-                  resource.thumbnailUrl;
+              final audioUrl =
+                  resource.metadata['audioUrl'] as String? ?? resource.thumbnailUrl;
               if (audioUrl.isNotEmpty) onResult(audioUrl);
             } else {
               final resource = await port.generateVoiceDesign(
@@ -132,10 +131,9 @@ class _VoiceGenViewState extends State<VoiceGenView>
                 description: description,
                 onProgress: onProgress,
               );
-              final audioUrl = resource.metadata['audio_url'] as String? ?? '';
-              if (audioUrl.isNotEmpty) {
-                onResult(audioUrl);
-              }
+              final audioUrl =
+                  resource.metadata['audio_url'] as String? ?? '';
+              if (audioUrl.isNotEmpty) onResult(audioUrl);
             }
           },
     );
@@ -149,14 +147,10 @@ class _VoiceGenViewState extends State<VoiceGenView>
       final text = await port.generatePreviewText(
         voicePrompt: _promptCtrl.text,
       );
-      if (mounted && text.isNotEmpty) {
-        _previewTextCtrl.text = text;
-      }
+      if (mounted && text.isNotEmpty) _previewTextCtrl.text = text;
     } catch (e, st) {
       debugPrint('VoiceGenView._generatePreviewText: $e\n$st');
-      if (mounted) {
-        showToast(context, '生成预览文本失败', isError: true);
-      }
+      if (mounted) showToast(context, '生成预览文本失败', isError: true);
     } finally {
       if (mounted) setState(() => _isGeneratingPreviewText = false);
     }
@@ -168,9 +162,7 @@ class _VoiceGenViewState extends State<VoiceGenView>
       await config.onSaved(_ctrl.mode);
       if (mounted) widget.onClose?.call();
     } catch (e) {
-      if (mounted) {
-        showToast(context, '保存失败：$e', isError: true);
-      }
+      if (mounted) showToast(context, '保存失败：$e', isError: true);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -200,32 +192,24 @@ class _VoiceGenViewState extends State<VoiceGenView>
     );
   }
 
-  /// 宽屏：左右分栏（表单 | 结果）
-  Widget _buildWideContent() {
-    return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: 280.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildFooterLeading() {
+    if (_ctrl.isGenerating) {
+      return Row(
         children: [
-          Expanded(child: _buildInputPanel()),
-          Container(width: 1.w, color: AppColors.surfaceMutedDarker),
-          Expanded(child: _buildResultPanel()),
+          SizedBox(
+            width: 14.w, height: 14.h,
+            child: CircularProgressIndicator(
+                strokeWidth: 2.r, color: accent),
+          ),
+          SizedBox(width: Spacing.sm.w),
+          Text(
+            _ctrl.progress > 0 ? '生成中 ${_ctrl.progress}%…' : '生成中…',
+            style: AppTextStyles.caption.copyWith(color: accent),
+          ),
         ],
-      ),
-    );
-  }
-
-  /// 窄屏：上方表单可滚动 + 下方播放预览固定可见
-  Widget _buildNarrowContent() {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(child: _buildInputPanel()),
-        ),
-        Container(height: 1.h, color: AppColors.surfaceMutedDarker),
-        _buildResultPanel(),
-      ],
-    );
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   @override
@@ -234,41 +218,51 @@ class _VoiceGenViewState extends State<VoiceGenView>
       listenable: _ctrl,
       builder: (_, _) {
         final narrow = MediaQuery.sizeOf(context).width < Breakpoints.md;
-        return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: narrow ? 520.w : 920.w,
-              maxHeight: 740.h,
-              minWidth: narrow ? 340.w : 480.w,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                VoiceGenHeader(
-                  config: config,
-                  ctrl: _ctrl,
+        return GenDialogShell(
+          title: config.title,
+          subtitle: _ctrl.mode.label,
+          icon: AppIcons.mic,
+          accent: accent,
+          primaryLabel: '开始生成',
+          onPrimary: _generate,
+          canPrimary: _ctrl.canGenerate,
+          generating: _ctrl.isGenerating,
+          onClose: widget.onClose,
+          footerLeading: _buildFooterLeading(),
+          maxWidth: narrow ? 520.w : 920.w,
+          minWidth: narrow ? 340.w : 480.w,
+          aboveBody: config.allowedModes.length > 1
+              ? VoiceGenModeTabs(
+                  tabController: _tabCtrl,
+                  allowedModes: config.allowedModes,
                   accent: accent,
-                  onClose: widget.onClose ?? () => Navigator.pop(context),
-                ),
-                if (config.allowedModes.length > 1)
-                  VoiceGenModeTabs(
-                    tabController: _tabCtrl,
-                    allowedModes: config.allowedModes,
-                    accent: accent,
+                )
+              : null,
+          body: narrow
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                          child: _buildInputPanel()),
+                    ),
+                    Container(
+                        height: 1.h, color: AppColors.surfaceMutedDarker),
+                    _buildResultPanel(),
+                  ],
+                )
+              : ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: 280.h),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _buildInputPanel()),
+                      Container(
+                          width: 1.w,
+                          color: AppColors.surfaceMutedDarker),
+                      Expanded(child: _buildResultPanel()),
+                    ],
                   ),
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: narrow
-                      ? _buildNarrowContent()
-                      : _buildWideContent(),
                 ),
-                VoiceGenFooter(
-                  ctrl: _ctrl,
-                  accent: accent,
-                  onClose: widget.onClose ?? () => Navigator.pop(context),
-                  onGenerate: _generate,
-                ),
-              ],
-            ),
         );
       },
     );

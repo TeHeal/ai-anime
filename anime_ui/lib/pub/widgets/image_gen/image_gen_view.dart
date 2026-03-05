@@ -5,21 +5,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
+import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
+import 'package:anime_ui/pub/widgets/gen_dialog_shell.dart';
 import 'package:anime_ui/pub/widgets/prompt_library_dialog.dart';
-import 'components/image_gen_footer.dart';
-import 'components/image_gen_header.dart';
 import 'components/image_gen_input_panel.dart';
 import 'components/image_gen_result_panel.dart';
 import 'image_gen_config.dart';
 import 'image_gen_controller.dart';
 
 /// 图像生成弹窗视图
-///
-/// 用于角色参考图、风格图、表情图、道具图等场景的 AI 图像生成。
-/// 左侧为提示词、参考图、宽高比等输入区，右侧为生成预览区。
 class ImageGenView extends StatefulWidget {
   const ImageGenView({
     super.key,
@@ -37,13 +34,9 @@ class ImageGenView extends StatefulWidget {
 }
 
 class _ImageGenViewState extends State<ImageGenView> {
-  /// 生成控制器：模式、参考图、输出数量、宽高比等
   late final ImageGenController _ctrl;
-  /// 正向提示词输入框
   late final TextEditingController _promptCtrl;
-  /// 反向提示词输入框
   late final TextEditingController _negPromptCtrl;
-  /// 保存中状态，用于禁用重复点击
   bool _isSaving = false;
 
   ImageGenConfig get config => widget.config;
@@ -56,7 +49,6 @@ class _ImageGenViewState extends State<ImageGenView> {
     _ctrl.setRatio(config.defaultRatio);
     _promptCtrl = TextEditingController();
     _negPromptCtrl = TextEditingController();
-    // 输入框变化时同步到控制器
     _promptCtrl.addListener(() => _ctrl.setPrompt(_promptCtrl.text));
     _negPromptCtrl.addListener(() => _ctrl.setNegPrompt(_negPromptCtrl.text));
   }
@@ -69,7 +61,6 @@ class _ImageGenViewState extends State<ImageGenView> {
     super.dispose();
   }
 
-  /// 执行生成：由控制器校验参数后回调，按 outputCount 并发多张
   Future<void> _generate() async {
     await _ctrl.generate(
       onGenerate:
@@ -91,7 +82,6 @@ class _ImageGenViewState extends State<ImageGenView> {
             final refImgUrl = refImages.isNotEmpty ? refImages.first : '';
             final multiRefImgs = refImages.length > 1 ? refImages : <String>[];
 
-            // 智能模式（ratio 为空）时用 size 参数，否则用 width/height
             String sizeParam = '';
             int? w = width;
             int? h = height;
@@ -102,8 +92,7 @@ class _ImageGenViewState extends State<ImageGenView> {
             }
 
             final tasks = <Future<void>>[];
-            final count = outputCount;
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < outputCount; i++) {
               tasks.add(
                 _generateOne(
                   port: port,
@@ -126,7 +115,6 @@ class _ImageGenViewState extends State<ImageGenView> {
     );
   }
 
-  /// 单张生成：调用 port 的 generateImage，完成后通过 onResult 回传缩略图 URL
   Future<void> _generateOne({
     required dynamic port,
     required String prompt,
@@ -167,7 +155,6 @@ class _ImageGenViewState extends State<ImageGenView> {
     }
   }
 
-  /// 保存生成结果到目标库，调用 config.onSaved 后关闭弹窗
   Future<void> _saveResults() async {
     if (_ctrl.results.isEmpty) return;
     setState(() => _isSaving = true);
@@ -180,15 +167,12 @@ class _ImageGenViewState extends State<ImageGenView> {
       );
       if (mounted) widget.onClose?.call();
     } catch (e) {
-      if (mounted) {
-        showToast(context, '保存失败：$e', isError: true);
-      }
+      if (mounted) showToast(context, '保存失败：$e', isError: true);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
-  /// 打开提示词库弹窗，选择后填入输入框
   void _showPromptLibrary(ValueChanged<String> onSelected) {
     final resources =
         widget.ref.read(resourceListPortProvider).resources.value ?? [];
@@ -210,7 +194,6 @@ class _ImageGenViewState extends State<ImageGenView> {
     );
   }
 
-  /// 大图预览：使用 easy_image_viewer 全屏查看
   void _showLightbox(String url) {
     showImageViewer(
       context,
@@ -220,114 +203,135 @@ class _ImageGenViewState extends State<ImageGenView> {
     );
   }
 
+  Widget _buildFooterLeading() {
+    final modelName = _ctrl.selectedModel?.displayName ?? '';
+    if (_ctrl.isGenerating) {
+      return Row(
+        children: [
+          SizedBox(
+            width: 14.w, height: 14.h,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.r, color: accent,
+            ),
+          ),
+          SizedBox(width: Spacing.sm.w),
+          Text(
+            _ctrl.progress > 0 ? '生成中 ${_ctrl.progress}%…' : '生成中…',
+            style: AppTextStyles.caption.copyWith(color: accent),
+          ),
+        ],
+      );
+    }
+    if (modelName.isNotEmpty) {
+      return Row(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: Spacing.sm.w, vertical: Spacing.xxs.h,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(AppIcons.autoAwesome, size: 11.r, color: AppColors.mutedDark),
+                SizedBox(width: Spacing.xs.w),
+                Text(modelName,
+                    style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark)),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _ctrl,
       builder: (context, _) {
-        return Builder(
-            builder: (context) {
-              final narrow = MediaQuery.sizeOf(context).width < Breakpoints.md;
-              return ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: narrow ? 520.w : 920.w,
-                  maxHeight: 740.h,
-                  minWidth: narrow ? 320.w : 560.w,
+        final narrow = MediaQuery.sizeOf(context).width < Breakpoints.md;
+        return GenDialogShell(
+          title: config.title,
+          subtitle: '填写提示词后点击生成',
+          icon: AppIcons.magicStick,
+          accent: accent,
+          primaryLabel: '开始生成',
+          onPrimary: _generate,
+          canPrimary: !_ctrl.isGenerating &&
+              (_promptCtrl.text.isNotEmpty || _ctrl.refImages.isNotEmpty),
+          generating: _ctrl.isGenerating,
+          onClose: widget.onClose,
+          footerLeading: _buildFooterLeading(),
+          maxWidth: narrow ? 520.w : 920.w,
+          minWidth: narrow ? 320.w : 560.w,
+          body: narrow
+              ? SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(Spacing.lg.r),
+                        child: ImageGenInputPanel(
+                          config: config,
+                          ctrl: _ctrl,
+                          ref: widget.ref,
+                          promptCtrl: _promptCtrl,
+                          negPromptCtrl: _negPromptCtrl,
+                          onPromptLibraryTap: _showPromptLibrary,
+                        ),
+                      ),
+                      Container(height: 1.h, color: AppColors.divider),
+                      SizedBox(
+                        height: 280.h,
+                        child: ImageGenResultPanel(
+                          config: config,
+                          ctrl: _ctrl,
+                          accent: accent,
+                          isSaving: _isSaving,
+                          onSave: _saveResults,
+                          onImageTap: _showLightbox,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: 260.h),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: ImageGenInputPanel(
+                          config: config,
+                          ctrl: _ctrl,
+                          ref: widget.ref,
+                          promptCtrl: _promptCtrl,
+                          negPromptCtrl: _negPromptCtrl,
+                          onPromptLibraryTap: _showPromptLibrary,
+                        ),
+                      ),
+                      Container(width: 1.w, color: AppColors.divider),
+                      Expanded(
+                        flex: 3,
+                        child: ImageGenResultPanel(
+                          config: config,
+                          ctrl: _ctrl,
+                          accent: accent,
+                          isSaving: _isSaving,
+                          onSave: _saveResults,
+                          onImageTap: _showLightbox,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 标题栏：模式切换、关闭
-                    ImageGenHeader(
-                      config: config,
-                      ctrl: _ctrl,
-                      accent: accent,
-                      onClose: widget.onClose ?? () => Navigator.pop(context),
-                    ),
-                    // 主内容区：不撑满，按内容最小占用（loose 避免多余空白）
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: narrow
-                          ? SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.all(Spacing.lg.r),
-                                    child: ImageGenInputPanel(
-                                      config: config,
-                                      ctrl: _ctrl,
-                                      ref: widget.ref,
-                                      promptCtrl: _promptCtrl,
-                                      negPromptCtrl: _negPromptCtrl,
-                                      onPromptLibraryTap: _showPromptLibrary,
-                                    ),
-                                  ),
-                                  Container(
-                                    height: 1.h,
-                                    color: AppColors.divider,
-                                  ),
-                                  SizedBox(
-                                    height: 280.h,
-                                    child: ImageGenResultPanel(
-                                      config: config,
-                                      ctrl: _ctrl,
-                                      accent: accent,
-                                      isSaving: _isSaving,
-                                      onSave: _saveResults,
-                                      onImageTap: _showLightbox,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ConstrainedBox(
-                              constraints: BoxConstraints(minHeight: 260.h),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: ImageGenInputPanel(
-                                    config: config,
-                                    ctrl: _ctrl,
-                                    ref: widget.ref,
-                                    promptCtrl: _promptCtrl,
-                                    negPromptCtrl: _negPromptCtrl,
-                                    onPromptLibraryTap: _showPromptLibrary,
-                                  ),
-                                ),
-                                Container(width: 1.w, color: AppColors.divider),
-                                Expanded(
-                                  flex: 3,
-                                  child: ImageGenResultPanel(
-                                    config: config,
-                                    ctrl: _ctrl,
-                                    accent: accent,
-                                    isSaving: _isSaving,
-                                    onSave: _saveResults,
-                                    onImageTap: _showLightbox,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            ),
-                            ),
-                    // 底部操作栏：取消、开始生成
-                    ImageGenFooter(
-                      ctrl: _ctrl,
-                      accent: accent,
-                      canGenerate:
-                          !_ctrl.isGenerating &&
-                          (_promptCtrl.text.isNotEmpty ||
-                              _ctrl.refImages.isNotEmpty),
-                      onClose: widget.onClose ?? () => Navigator.pop(context),
-                      onGenerate: _generate,
-                    ),
-                  ],
-                ),
-              );
-            },
         );
       },
     );

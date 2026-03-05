@@ -96,26 +96,32 @@ class _CharacterListPanelState extends ConsumerState<CharacterListPanel> {
                   ),
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => setState(() {
-                    _multiSelect = false;
-                    _selectedIds.clear();
-                  }),
-                  child: Text(
-                    '取消多选',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primary,
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => setState(() {
+                      _multiSelect = false;
+                      _selectedIds.clear();
+                    }),
+                    child: Text(
+                      '取消多选',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ),
               ] else ...[
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => setState(() => _multiSelect = true),
-                  child: Text(
-                    '多选',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.onSurface.withValues(alpha: 0.6),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _multiSelect = true),
+                    child: Text(
+                      '多选',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.onSurface.withValues(alpha: 0.6),
+                      ),
                     ),
                   ),
                 ),

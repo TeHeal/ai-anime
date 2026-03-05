@@ -93,6 +93,22 @@ abstract final class ResourceMetaSchema {
     MetaFieldDef(key: 'seed', label: '种子', type: MetaFieldType.number),
   ];
 
+  /// 音频类共享：生成描述 + 反向描述（选填，记录创作时的提示词）
+  static const _audioPromptCommon = [
+    MetaFieldDef(
+      key: 'prompt',
+      label: '生成描述',
+      type: MetaFieldType.text,
+      hint: '记录创作时使用的提示词或参数描述…',
+    ),
+    MetaFieldDef(
+      key: 'negativePrompt',
+      label: '反向描述',
+      type: MetaFieldType.text,
+      hint: '不希望出现的音频特征…',
+    ),
+  ];
+
   static const _characterSchema = [
     MetaFieldDef(
       key: 'gender',
@@ -248,6 +264,7 @@ abstract final class ResourceMetaSchema {
       options: ['上传', 'AI 生成', '语音克隆'],
       allowCustom: false,
     ),
+    ..._audioPromptCommon,
   ];
 
   static const _voiceoverSchema = [
@@ -264,6 +281,7 @@ abstract final class ResourceMetaSchema {
       type: MetaFieldType.text,
       readOnly: true,
     ),
+    ..._audioPromptCommon,
   ];
 
   static const _sfxSchema = [
@@ -279,6 +297,7 @@ abstract final class ResourceMetaSchema {
       type: MetaFieldType.text,
       readOnly: true,
     ),
+    ..._audioPromptCommon,
   ];
 
   static const _musicSchema = [
@@ -305,6 +324,7 @@ abstract final class ResourceMetaSchema {
       type: MetaFieldType.text,
       readOnly: true,
     ),
+    ..._audioPromptCommon,
   ];
 
   static const _promptSchema = [
