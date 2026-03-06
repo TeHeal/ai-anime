@@ -60,7 +60,6 @@ video:
 tts:
   volcengine_key: ""
   volcengine_appid: ""
-  cosyvoice_key: ""
   fish_audio_key: ""
   minimax_key: ""
 

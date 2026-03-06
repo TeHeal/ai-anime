@@ -388,6 +388,7 @@ func Register(r *gin.Engine, cfg *Config) {
 				resources.POST("/generate-voice", cfg.ResourceHandler.GenerateVoice)
 				resources.POST("/generate-voice-design", cfg.ResourceHandler.GenerateVoiceDesign)
 				resources.POST("/generate-preview-text", cfg.ResourceHandler.GeneratePreviewText)
+				resources.GET("/voices/system/preview", cfg.ResourceHandler.GetSystemVoicePreview)
 				resources.GET("/:resourceId", cfg.ResourceHandler.Get)
 				resources.PUT("/:resourceId", cfg.ResourceHandler.Update)
 				resources.DELETE("/:resourceId", cfg.ResourceHandler.Delete)

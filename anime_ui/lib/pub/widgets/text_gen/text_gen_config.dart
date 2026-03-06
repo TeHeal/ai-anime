@@ -4,6 +4,7 @@ import 'package:anime_ui/pub/theme/design_tokens.dart';
 
 /// 文字生成场景模式
 enum TextGenMode {
+  prompt('提示词'),
   imagePrompt('图像提示词'),
   styleGuide('风格指令'),
   dialogue('台词对白'),
@@ -93,14 +94,12 @@ class TextGenConfig {
   static TextGenConfig newPrompt({
     required Future<void> Function(String result) onComplete,
     Color accentColor = AppColors.success,
-    String targetModel = '',
     String category = '',
   }) => TextGenConfig(
     title: '生成提示词',
     accentColor: accentColor,
-    mode: TextGenMode.imagePrompt,
+    mode: TextGenMode.prompt,
     instructionHint: '描述想生成的提示词内容，如：一个赛博朋克风格的少女站在霓虹灯下…',
-    targetModel: targetModel,
     quickPrompts: const ['角色描述', '场景描述', '动作描述', '风格描述', '情绪描述'],
     saveToLibrary: true,
     onComplete: onComplete,

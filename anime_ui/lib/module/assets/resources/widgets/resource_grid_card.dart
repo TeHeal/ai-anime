@@ -62,6 +62,7 @@ class _ResourceGridCardState extends State<ResourceGridCard> {
     final hasThumbnail = widget.resource.hasThumbnail;
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(

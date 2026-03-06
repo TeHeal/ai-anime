@@ -87,6 +87,7 @@ class _ModelSelectorState extends State<ModelSelector> {
     setState(() => _loading = true);
     try {
       final items = await _catalogSvc.list(service: widget.serviceType);
+      if (!mounted) return;
       _models = items;
 
       if (widget.selected == null && items.isNotEmpty) {
@@ -95,6 +96,7 @@ class _ModelSelectorState extends State<ModelSelector> {
           serviceType: widget.serviceType,
           bestForHint: widget.bestForHint,
         );
+        if (!mounted) return;
         widget.onChanged(best);
       }
     } catch (e, st) {

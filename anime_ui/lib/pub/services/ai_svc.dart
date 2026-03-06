@@ -7,6 +7,7 @@ import 'package:anime_ui/pub/models/image_gen_output.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/models/task.dart';
 import 'api_svc.dart';
+import 'resource_svc.dart';
 
 class AiService {
   Stream<String> chatStream({
@@ -63,8 +64,8 @@ class AiService {
   }
 
   /// 统一图生接口，支持 output 参数
-  /// output.type=resource 时同步返回 Resource
-  Future<Resource> generateImage({
+  /// output.type=resource 时返回占位 Resource + taskId（异步生成）
+  Future<GenerateResourceResult> generateImage({
     required String prompt,
     String negativePrompt = '',
     List<String> referenceImageUrls = const [],
@@ -75,22 +76,26 @@ class AiService {
     String aspectRatio = '',
     required ImageGenOutput output,
   }) async {
-    final data = <String, dynamic>{
+    final body = <String, dynamic>{
       'prompt': prompt,
       'output': output.toJson(),
     };
-    if (negativePrompt.isNotEmpty) data['negativePrompt'] = negativePrompt;
+    if (negativePrompt.isNotEmpty) body['negativePrompt'] = negativePrompt;
     if (referenceImageUrls.isNotEmpty) {
-      data['referenceImageUrls'] = referenceImageUrls;
+      body['referenceImageUrls'] = referenceImageUrls;
     }
-    if (provider.isNotEmpty) data['provider'] = provider;
-    if (model.isNotEmpty) data['model'] = model;
-    if (width != null && width > 0) data['width'] = width;
-    if (height != null && height > 0) data['height'] = height;
-    if (aspectRatio.isNotEmpty) data['aspectRatio'] = aspectRatio;
+    if (provider.isNotEmpty) body['provider'] = provider;
+    if (model.isNotEmpty) body['model'] = model;
+    if (width != null && width > 0) body['width'] = width;
+    if (height != null && height > 0) body['height'] = height;
+    if (aspectRatio.isNotEmpty) body['aspectRatio'] = aspectRatio;
 
-    final resp = await dio.post('/ai/generate/image', data: data);
-    return extractDataObject(resp, Resource.fromJson);
+    final resp = await dio.post('/ai/generate/image', data: body);
+    final data = extractData<Map<String, dynamic>>(resp);
+    return GenerateResourceResult(
+      resource: Resource.fromJson(data['resource'] as Map<String, dynamic>),
+      taskId: data['taskId'] as String? ?? data['task_id'] as String? ?? '',
+    );
   }
 
   /// 统一文本生成接口，action=prompt 时同步返回 Resource

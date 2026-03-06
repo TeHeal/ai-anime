@@ -37,7 +37,7 @@ func DefaultPolicy() Policy {
 		},
 		Image: []string{"seedream", "wanx", "kie"},
 		Video: []string{"seedance", "kie_video"},
-		TTS:   []string{"minimax_tts", "cosyvoice", "volcengine_tts", "fish_audio"},
+		TTS:   []string{"minimax_tts", "volcengine_tts", "fish_audio"},
 		Music: []string{"kie", "suno"},
 	}
 }

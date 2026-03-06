@@ -32,12 +32,13 @@ func SetupMux(log *zap.Logger) *asynq.ServeMux {
 
 // MuxDeps 可选依赖，用于注册真实 handler；nil 字段使用占位
 type MuxDeps struct {
-	ImageHandler    *ImageTaskHandler
-	VideoHandler    *VideoTaskHandler
-	TTSHandler      *TTSTaskHandler
-	ExportHandler   *ExportTaskHandler
-	PackageHandler  *PackageTaskHandler
-	PipelineHandler *PipelineTaskHandler
+	ImageHandler      *ImageTaskHandler
+	VideoHandler      *VideoTaskHandler
+	TTSHandler        *TTSTaskHandler
+	ExportHandler     *ExportTaskHandler
+	PackageHandler    *PackageTaskHandler
+	PipelineHandler   *PipelineTaskHandler
+	ResourceGenHandler *ResourceGenHandler
 }
 
 // SetupMuxWithDeps 注册任务 handler，deps 非空时注入真实实现
@@ -83,6 +84,16 @@ func SetupMuxWithDeps(log *zap.Logger, deps *MuxDeps) *asynq.ServeMux {
 		RegisterPipelineHandler(mux, deps.PipelineHandler)
 	} else {
 		mux.HandleFunc(tasktypes.TypeStoryboardGenerate, placeholderHandler(l, tasktypes.TypeStoryboardGenerate))
+	}
+
+	// 素材库资源生成
+	if deps != nil && deps.ResourceGenHandler != nil {
+		RegisterResourceGenHandlers(mux, deps.ResourceGenHandler)
+	} else {
+		mux.HandleFunc(tasktypes.TypeResourceVoiceDesign, placeholderHandler(l, tasktypes.TypeResourceVoiceDesign))
+		mux.HandleFunc(tasktypes.TypeResourceVoiceClone, placeholderHandler(l, tasktypes.TypeResourceVoiceClone))
+		mux.HandleFunc(tasktypes.TypeResourceImage, placeholderHandler(l, tasktypes.TypeResourceImage))
+		mux.HandleFunc(tasktypes.TypeResourceText, placeholderHandler(l, tasktypes.TypeResourceText))
 	}
 
 	return mux

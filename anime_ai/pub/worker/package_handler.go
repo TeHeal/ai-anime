@@ -34,6 +34,7 @@ type PackageTaskPayload struct {
 type PackageTaskDeps struct {
 	PackageUpdater crossmodule.PackageStoreUpdater
 	Storage        storage.Storage
+	TaskNotifier   TaskNotifier
 }
 
 // PackageTaskHandler 按集打包任务 Handler
@@ -98,6 +99,13 @@ func (h *PackageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 
 	if err := h.deps.PackageUpdater.UpdateStatus(ctx, payload.PackageTaskID, crossmodule.PackageStatusDone, outputURL, ""); err != nil {
 		h.log.Warn("更新打包完成状态失败", zap.String("package_task_id", payload.PackageTaskID), zap.Error(err))
+	}
+
+	if h.deps.TaskNotifier != nil {
+		h.deps.TaskNotifier.NotifyTaskComplete(ctx, payload.UserID, "package", payload.PackageTaskID,
+			"按集打包完成",
+			"按集打包已完成，可前往项目下载",
+			"/projects/"+payload.ProjectID+"/episodes")
 	}
 
 	h.log.Info("按集打包任务完成",

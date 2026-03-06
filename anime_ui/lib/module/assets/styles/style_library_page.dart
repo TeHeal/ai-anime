@@ -455,122 +455,127 @@ class _StyleLibraryPageState extends ConsumerState<StyleLibraryPage> {
     final selected = defaultStyle?.id == style.id;
     final isCustom = !style.isPreset;
 
-    return GestureDetector(
-      onTap: selected
-          ? null
-          : () async {
-              await ref
-                  .read(assetStylesProvider.notifier)
-                  .setDefault(style.id!);
-              if (!mounted) return;
-              showToast(context, '已切换为「${style.name}」');
-            },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: 160.w,
-        decoration: BoxDecoration(
-          color: selected
-              ? _accent.withValues(alpha: 0.12)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-          border: Border.all(
-            color: selected ? _accent : AppColors.border,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(RadiusTokens.lg.r),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 4 / 3,
-                    child: Container(
-                      color: AppColors.backgroundDarkest,
-                      child: _styleCardImage(style),
-                    ),
-                  ),
-                ),
-                if (selected)
-                  Positioned(
-                    top: Spacing.xs.h,
-                    right: Spacing.xs.w,
-                    child: Container(
-                      padding: EdgeInsets.all(Spacing.xxs.r),
-                      decoration: const BoxDecoration(
-                        color: _accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.check,
-                        size: 14.r,
-                        color: AppColors.onPrimary,
-                      ),
-                    ),
-                  ),
-              ],
+    return MouseRegion(
+      cursor: selected
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: selected
+            ? null
+            : () async {
+                await ref
+                    .read(assetStylesProvider.notifier)
+                    .setDefault(style.id!);
+                if (!mounted) return;
+                showToast(context, '已切换为「${style.name}」');
+              },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 160.w,
+          decoration: BoxDecoration(
+            color: selected
+                ? _accent.withValues(alpha: 0.12)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+            border: Border.all(
+              color: selected ? _accent : AppColors.border,
+              width: selected ? 2 : 1,
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Spacing.sm.w,
-                vertical: Spacing.sm.h,
-              ),
-              child: Column(
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
                 children: [
-                  Text(
-                    style.name,
-                    style: AppTextStyles.labelMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: selected ? _accent : AppColors.onSurface,
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(RadiusTokens.lg.r),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: AspectRatio(
+                      aspectRatio: 4 / 3,
+                      child: Container(
+                        color: AppColors.backgroundDarkest,
+                        child: _styleCardImage(style),
+                      ),
+                    ),
                   ),
-                  if (isCustom && style.id != null) ...[
-                    SizedBox(height: Spacing.xs.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: () => showStyleFormDialog(context, ref,
-                              existing: style),
-                          child: Icon(
-                            AppIcons.edit,
-                            size: 14.r,
-                            color: AppColors.muted,
-                          ),
+                  if (selected)
+                    Positioned(
+                      top: Spacing.xs.h,
+                      right: Spacing.xs.w,
+                      child: Container(
+                        padding: EdgeInsets.all(Spacing.xxs.r),
+                        decoration: const BoxDecoration(
+                          color: _accent,
+                          shape: BoxShape.circle,
                         ),
-                        SizedBox(width: Spacing.md.w),
-                        InkWell(
-                          onTap: () async {
-                            final ok = await showConfirmDeleteDialog(
-                              context,
-                              title: '删除风格',
-                              content: '确定要删除「${style.name}」吗？此操作不可撤销。',
-                            );
-                            if (ok == true) {
-                              ref
-                                  .read(assetStylesProvider.notifier)
-                                  .remove(style.id!);
-                            }
-                          },
-                          child: Icon(
-                            AppIcons.delete,
-                            size: 14.r,
-                            color: AppColors.error,
-                          ),
+                        child: Icon(
+                          Icons.check,
+                          size: 14.r,
+                          color: AppColors.onPrimary,
                         ),
-                      ],
+                      ),
                     ),
-                  ],
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Spacing.sm.w,
+                  vertical: Spacing.sm.h,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      style.name,
+                      style: AppTextStyles.labelMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: selected ? _accent : AppColors.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (isCustom && style.id != null) ...[
+                      SizedBox(height: Spacing.xs.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          InkWell(
+                            onTap: () => showStyleFormDialog(context, ref,
+                                existing: style),
+                            child: Icon(
+                              AppIcons.edit,
+                              size: 14.r,
+                              color: AppColors.muted,
+                            ),
+                          ),
+                          SizedBox(width: Spacing.md.w),
+                          InkWell(
+                            onTap: () async {
+                              final ok = await showConfirmDeleteDialog(
+                                context,
+                                title: '删除风格',
+                                content: '确定要删除「${style.name}」吗？此操作不可撤销。',
+                              );
+                              if (ok == true) {
+                                ref
+                                    .read(assetStylesProvider.notifier)
+                                    .remove(style.id!);
+                              }
+                            },
+                            child: Icon(
+                              AppIcons.delete,
+                              size: 14.r,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

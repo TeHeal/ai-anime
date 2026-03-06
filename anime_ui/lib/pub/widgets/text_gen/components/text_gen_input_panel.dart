@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:anime_ui/pub/models/model_catalog.dart';
 import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
-import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/gen_form_helpers.dart';
-import 'package:anime_ui/pub/widgets/model_selector/model_selector.dart';
 import 'package:anime_ui/pub/widgets/prompt_field_with_assistant.dart';
 import '../text_gen_config.dart';
 
@@ -20,26 +17,16 @@ class TextGenInputPanel extends ConsumerWidget {
     required this.instructionCtrl,
     required this.nameCtrl,
     required this.selectedLanguage,
-    required this.selectedTargetModel,
-    required this.imageModels,
-    required this.loadingModels,
-    this.modelLoadError,
     required this.accent,
     required this.onLanguageChanged,
-    required this.onTargetModelChanged,
   });
 
   final TextGenConfig config;
   final TextEditingController instructionCtrl;
   final TextEditingController nameCtrl;
   final String selectedLanguage;
-  final ModelCatalogItem? selectedTargetModel;
-  final List<ModelCatalogItem> imageModels;
-  final bool loadingModels;
-  final String? modelLoadError;
   final Color accent;
   final void Function(String) onLanguageChanged;
-  final void Function(ModelCatalogItem?) onTargetModelChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -139,24 +126,7 @@ class TextGenInputPanel extends ConsumerWidget {
       children: [
         genFormLabel('选项'),
         SizedBox(height: Spacing.sm.h),
-        Row(
-          children: [
-            Expanded(child: _buildLanguageDropdown()),
-            SizedBox(width: Spacing.lg.w),
-            Expanded(
-              child: modelLoadError != null
-                  ? Text(modelLoadError!,
-                      style:
-                          AppTextStyles.caption.copyWith(color: AppColors.error))
-                  : ModelSelectorMini(
-                      models: imageModels,
-                      selected: selectedTargetModel,
-                      isLoading: loadingModels,
-                      onChanged: onTargetModelChanged,
-                    ),
-            ),
-          ],
-        ),
+        _buildLanguageDropdown(),
       ],
     );
   }

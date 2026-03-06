@@ -19,8 +19,12 @@ class AudioPlaybackService extends ChangeNotifier {
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
 
+  /// 播放来源标记，用于区分同一 URL 在不同上下文（列表 vs 详情弹窗）的播放
+  String _source = 'list';
+
   String get currentUrl => _currentUrl;
   bool get isPlaying => _playing;
+  String get source => _source;
   Duration get position => _position;
   Duration get duration => _duration;
 
@@ -31,7 +35,17 @@ class AudioPlaybackService extends ChangeNotifier {
 
   bool isPlayingUrl(String url) => _playing && _currentUrl == url;
 
-  Future<void> play(String url) async {
+  /// 按来源判断是否正在播放，避免详情弹窗的试听影响列表项图标
+  bool isPlayingUrlFrom(String url, String fromSource) =>
+      _playing && _currentUrl == url && _source == fromSource;
+
+  /// 播放音频。[source] 标记播放来源（默认 'list'）
+  /// [onError] 在加载/播放失败时回调
+  Future<void> play(
+    String url, {
+    String source = 'list',
+    void Function(String message)? onError,
+  }) async {
     final resolved = resolveFileUrl(url);
 
     if (_currentUrl == url && _playing) {
@@ -44,6 +58,7 @@ class AudioPlaybackService extends ChangeNotifier {
     _position = Duration.zero;
     _duration = Duration.zero;
     _currentUrl = url;
+    _source = source;
     notifyListeners();
 
     try {
@@ -73,6 +88,7 @@ class AudioPlaybackService extends ChangeNotifier {
       _playing = false;
       _currentUrl = '';
       notifyListeners();
+      onError?.call(e.toString().replaceFirst(RegExp(r'^Exception: '), ''));
     }
   }
 

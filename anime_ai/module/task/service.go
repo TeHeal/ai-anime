@@ -13,6 +13,8 @@ import (
 var validTypes = map[string]bool{
 	"image": true, "video": true, "script": true,
 	"export": true, "package": true,
+	// 素材库资源生成
+	"voice_design": true, "voice_clone": true, "text": true,
 }
 
 // 有效的任务状态
@@ -42,6 +44,20 @@ func (s *Service) Create(ctx context.Context, projectID, userID, typ, title, des
 	}
 	return s.data.Create(ctx, CreateParams{
 		ProjectID:   projectID,
+		UserID:      userID,
+		Type:        typ,
+		Title:       title,
+		Description: description,
+		Config:      config,
+	})
+}
+
+// CreateForUser 创建无项目归属的任务（素材库生成等场景）
+func (s *Service) CreateForUser(ctx context.Context, userID, typ, title, description string, config json.RawMessage) (*TaskDTO, error) {
+	if !validTypes[typ] {
+		return nil, pkg.NewBizError("无效的任务类型: " + typ)
+	}
+	return s.data.Create(ctx, CreateParams{
 		UserID:      userID,
 		Type:        typ,
 		Title:       title,

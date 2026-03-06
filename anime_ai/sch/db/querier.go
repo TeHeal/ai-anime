@@ -64,6 +64,7 @@ type Querier interface {
 	// 风格 CRUD（项目级，阶段 3）
 	CreateStyle(ctx context.Context, arg CreateStyleParams) (Style, error)
 	// 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
+	// project_id 可空：素材库任务无项目归属
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)

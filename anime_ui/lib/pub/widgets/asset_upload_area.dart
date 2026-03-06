@@ -301,6 +301,7 @@ class _AssetUploadAreaState extends State<AssetUploadArea> {
   Widget _buildUploadedImage() {
     final h = widget.height ?? 120.h;
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(

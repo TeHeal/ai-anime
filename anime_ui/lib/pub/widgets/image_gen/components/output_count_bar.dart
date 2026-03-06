@@ -68,6 +68,7 @@ class _CountChipState extends State<_CountChip> {
     final selected = widget.selected;
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(

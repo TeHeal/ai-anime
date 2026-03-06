@@ -167,24 +167,26 @@ Widget _statusActionBtn({
   required bool active,
   VoidCallback? onTap,
 }) {
-  return GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      padding: EdgeInsets.symmetric(
-        vertical: Spacing.sm.h,
-      ),
-      decoration: BoxDecoration(
-        color: active
-            ? color.withValues(alpha: 0.15)
-            : AppColors.surface.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-        border: Border.all(
-          color: active
-              ? color.withValues(alpha: 0.4)
-              : AppColors.border.withValues(alpha: 0.3),
+  return MouseRegion(
+    cursor: SystemMouseCursors.click,
+    child: GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.symmetric(
+          vertical: Spacing.sm.h,
         ),
-      ),
+        decoration: BoxDecoration(
+          color: active
+              ? color.withValues(alpha: 0.15)
+              : AppColors.surface.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+          border: Border.all(
+            color: active
+                ? color.withValues(alpha: 0.4)
+                : AppColors.border.withValues(alpha: 0.3),
+          ),
+        ),
       child: Column(
         children: [
           Icon(
@@ -203,6 +205,7 @@ Widget _statusActionBtn({
         ],
       ),
     ),
+  ),
   );
 }
 
@@ -366,24 +369,26 @@ Widget _batchBtn({
   required bool enabled,
   required VoidCallback onTap,
 }) {
-  return GestureDetector(
-    onTap: enabled ? onTap : null,
-    child: Container(
-      padding: EdgeInsets.symmetric(
-        vertical: Spacing.sm.h,
-        horizontal: Spacing.sm.w,
-      ),
-      decoration: BoxDecoration(
-        color: outlined
-            ? Colors.transparent
-            : (enabled
-                ? color.withValues(alpha: 0.12)
-                : AppColors.surfaceVariant.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-        border: Border.all(
-          color: enabled
-              ? color.withValues(alpha: 0.3)
-              : AppColors.border.withValues(alpha: 0.2),
+  return MouseRegion(
+    cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+    child: GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          vertical: Spacing.sm.h,
+          horizontal: Spacing.sm.w,
+        ),
+        decoration: BoxDecoration(
+          color: outlined
+              ? Colors.transparent
+              : (enabled
+                  ? color.withValues(alpha: 0.12)
+                  : AppColors.surfaceVariant.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+          border: Border.all(
+            color: enabled
+                ? color.withValues(alpha: 0.3)
+                : AppColors.border.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -407,6 +412,7 @@ Widget _batchBtn({
         ],
       ),
     ),
+  ),
   );
 }
 
@@ -421,28 +427,31 @@ Widget _buildDeleteButton(
   ReviewUiState uiState,
 ) {
   return Center(
-    child: GestureDetector(
-      onTap: () => _confirmDeleteShot(context, ref, shot, uiState),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: Spacing.sm.h),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              AppIcons.delete,
-              size: 12.r,
-              color: AppColors.mutedDarker,
-            ),
-            SizedBox(width: Spacing.xs.w),
-            Text(
-              '删除镜头',
-              style: AppTextStyles.tiny.copyWith(
+    child: MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => _confirmDeleteShot(context, ref, shot, uiState),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: Spacing.sm.h),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                AppIcons.delete,
+                size: 12.r,
                 color: AppColors.mutedDarker,
               ),
+              SizedBox(width: Spacing.xs.w),
+              Text(
+                '删除镜头',
+                style: AppTextStyles.tiny.copyWith(
+                  color: AppColors.mutedDarker,
+                ),
             ),
           ],
         ),
       ),
+    ),
     ),
   );
 }

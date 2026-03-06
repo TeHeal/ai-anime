@@ -75,10 +75,17 @@ func NewDBData(q *db.Queries) *DBData {
 }
 
 func (d *DBData) Create(ctx context.Context, arg CreateParams) (*TaskDTO, error) {
-	pid := pkg.ParseUUID(arg.ProjectID)
 	uid := pkg.ParseUUID(arg.UserID)
-	if !pid.Valid || !uid.Valid {
-		return nil, pkg.NewBizError("无效的 project_id 或 user_id")
+	if !uid.Valid {
+		return nil, pkg.NewBizError("无效的 user_id")
+	}
+	// project_id 可选：素材库任务不需要项目归属
+	var pid pgtype.UUID
+	if arg.ProjectID != "" {
+		pid = pkg.ParseUUID(arg.ProjectID)
+		if !pid.Valid {
+			return nil, pkg.NewBizError("无效的 project_id")
+		}
 	}
 	status := arg.Status
 	if status == "" {

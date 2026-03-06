@@ -35,6 +35,7 @@ class ResourceService {
     String? sortBy,
     int page = 1,
     int pageSize = 50,
+    bool includeSystemVoices = false,
   }) async {
     final params = <String, dynamic>{
       'page': page,
@@ -47,6 +48,7 @@ class ResourceService {
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (tags != null && tags.isNotEmpty) params['tags'] = tags;
     if (sortBy != null && sortBy.isNotEmpty) params['sortBy'] = sortBy;
+    if (includeSystemVoices) params['includeSystemVoices'] = 'true';
 
     final resp = await dio.get('/resources', queryParameters: params);
     final data = extractData<Map<String, dynamic>>(resp);
@@ -54,12 +56,30 @@ class ResourceService {
             ?.map((e) => Resource.fromJson(e as Map<String, dynamic>))
             .toList() ??
         [];
+    final systemVoices = (data['systemVoices'] as List<dynamic>?)
+            ?.map((e) => Resource.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
     return ResourceListResult(
       items: items,
+      systemVoices: systemVoices,
       total: data['total'] as int? ?? 0,
       page: data['page'] as int? ?? 1,
       pageSize: data['pageSize'] as int? ?? pageSize,
     );
+  }
+
+  /// 获取系统音色试听 URL（TTS 合成后缓存，首次较慢）
+  Future<String> getSystemVoicePreview({
+    required String provider,
+    required String voiceId,
+  }) async {
+    final resp = await dio.get(
+      '/resources/voices/system/preview',
+      queryParameters: {'provider': provider, 'voiceId': voiceId},
+    );
+    final data = extractData<Map<String, dynamic>>(resp);
+    return data['audioUrl'] as String? ?? '';
   }
 
   Future<Resource> get(String resourceId) async {
@@ -143,7 +163,7 @@ class ResourceService {
     final data = extractData<Map<String, dynamic>>(resp);
     return GenerateResourceResult(
       resource: Resource.fromJson(data['resource'] as Map<String, dynamic>),
-      taskId: data['task_id'] as String? ?? '',
+      taskId: data['taskId'] as String? ?? data['task_id'] as String? ?? '',
     );
   }
 
@@ -165,7 +185,7 @@ class ResourceService {
     final data = extractData<Map<String, dynamic>>(resp);
     return GenerateResourceResult(
       resource: Resource.fromJson(data['resource'] as Map<String, dynamic>),
-      taskId: data['task_id'] as String? ?? '',
+      taskId: data['taskId'] as String? ?? data['task_id'] as String? ?? '',
     );
   }
 
@@ -212,8 +232,8 @@ class ResourceService {
     return data['text'] as String? ?? '';
   }
 
-  /// LLM prompt generation -> resource (synchronous)
-  Future<Resource> generatePrompt({
+  /// LLM prompt generation -> resource (async: returns placeholder immediately)
+  Future<GenerateResourceResult> generatePrompt({
     required String name,
     required String instruction,
     String targetModel = '',
@@ -233,7 +253,11 @@ class ResourceService {
       if (libraryType.isNotEmpty) 'libraryType': libraryType,
       if (language.isNotEmpty) 'language': language,
     });
-    return extractDataObject(resp, Resource.fromJson);
+    final data = extractData<Map<String, dynamic>>(resp);
+    return GenerateResourceResult(
+      resource: Resource.fromJson(data['resource'] as Map<String, dynamic>),
+      taskId: data['taskId'] as String? ?? data['task_id'] as String? ?? '',
+    );
   }
 }
 
@@ -246,12 +270,14 @@ class GenerateResourceResult {
 class ResourceListResult {
   const ResourceListResult({
     required this.items,
+    this.systemVoices = const [],
     required this.total,
     required this.page,
     required this.pageSize,
   });
 
   final List<Resource> items;
+  final List<Resource> systemVoices;
   final int total;
   final int page;
   final int pageSize;

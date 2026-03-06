@@ -198,29 +198,32 @@ class _VoicePickerState extends State<VoicePicker> {
 
   Widget _filterChip(String label, String value) {
     final selected = _genderFilter == value;
-    return GestureDetector(
-      onTap: () => setState(() => _genderFilter = value),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.lg.w,
-          vertical: Spacing.xs.h,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? accent.withValues(alpha: 0.15)
-              : AppColors.surfaceMutedDarker,
-          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-          border: Border.all(
-            color: selected
-                ? accent.withValues(alpha: 0.4)
-                : AppColors.surfaceContainer,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => setState(() => _genderFilter = value),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.lg.w,
+            vertical: Spacing.xs.h,
           ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            color: selected ? accent : AppColors.muted,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          decoration: BoxDecoration(
+            color: selected
+                ? accent.withValues(alpha: 0.15)
+                : AppColors.surfaceMutedDarker,
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+            border: Border.all(
+              color: selected
+                  ? accent.withValues(alpha: 0.4)
+                  : AppColors.surfaceContainer,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: selected ? accent : AppColors.muted,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
       ),
@@ -304,21 +307,24 @@ class _VoicePickerItem extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    GestureDetector(
-                      onTap: hasAudio ? () => playback.play(_audioUrl!) : null,
-                      child: Container(
-                        width: 36.w,
-                        height: 36.h,
-                        decoration: BoxDecoration(
-                          color: hasAudio
-                              ? accent.withValues(alpha: isPlaying ? 0.25 : 0.1)
-                              : AppColors.surfaceMutedDarker,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          isPlaying ? AppIcons.stop : AppIcons.playArrow,
-                          size: 18.r,
-                          color: hasAudio ? accent : AppColors.mutedDarker,
+                    MouseRegion(
+                      cursor: hasAudio ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                      child: GestureDetector(
+                        onTap: hasAudio ? () => playback.play(_audioUrl!) : null,
+                        child: Container(
+                          width: 36.w,
+                          height: 36.h,
+                          decoration: BoxDecoration(
+                            color: hasAudio
+                                ? accent.withValues(alpha: isPlaying ? 0.25 : 0.1)
+                                : AppColors.surfaceMutedDarker,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isPlaying ? AppIcons.stop : AppIcons.playArrow,
+                            size: 18.r,
+                            color: hasAudio ? accent : AppColors.mutedDarker,
+                          ),
                         ),
                       ),
                     ),

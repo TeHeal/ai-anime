@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
-import 'package:anime_ui/pub/models/model_catalog.dart';
-import 'package:anime_ui/pub/services/model_catalog_svc.dart';
 import 'package:anime_ui/pub/widgets/gen_dialog_shell.dart';
 import 'components/text_gen_input_panel.dart';
 import 'components/text_gen_result_panel.dart';
@@ -34,10 +32,6 @@ class _TextGenViewState extends State<TextGenView> {
   late final TextEditingController _instructionCtrl;
   late final TextEditingController _nameCtrl;
   String _selectedLanguage = '';
-  ModelCatalogItem? _selectedTargetModel;
-  List<ModelCatalogItem> _imageModels = [];
-  bool _loadingModels = false;
-  String? _modelLoadError;
 
   TextGenConfig get config => widget.config;
   Color get accent => config.accentColor;
@@ -49,18 +43,6 @@ class _TextGenViewState extends State<TextGenView> {
     _instructionCtrl = TextEditingController();
     _nameCtrl = TextEditingController();
     _selectedLanguage = config.language;
-    _loadTargetModels();
-  }
-
-  Future<void> _loadTargetModels() async {
-    setState(() => _loadingModels = true);
-    try {
-      _imageModels = await ModelCatalogService().list(service: 'image');
-    } catch (e, st) {
-      debugPrint('TextGenView._loadTargetModels: $e\n$st');
-      _modelLoadError = '模型加载失败';
-    }
-    if (mounted) setState(() => _loadingModels = false);
   }
 
   @override
@@ -82,7 +64,6 @@ class _TextGenViewState extends State<TextGenView> {
       onComplete: config.onComplete,
       instructionHint: config.instructionHint,
       referenceText: config.referenceText,
-      targetModel: _selectedTargetModel?.displayName ?? '',
       language: _selectedLanguage,
       maxTokens: config.maxTokens,
       quickPrompts: config.quickPrompts,
@@ -113,7 +94,7 @@ class _TextGenViewState extends State<TextGenView> {
             ? _nameCtrl.text.trim()
             : '${config.mode.label}-${DateTime.now().millisecondsSinceEpoch}',
         instruction: _instructionCtrl.text.trim(),
-        targetModel: _selectedTargetModel?.displayName ?? '',
+        targetModel: '',
         category: config.mode.name,
       );
     }
@@ -134,7 +115,6 @@ class _TextGenViewState extends State<TextGenView> {
       onComplete: config.onComplete,
       instructionHint: config.instructionHint,
       referenceText: _ctrl.result,
-      targetModel: _selectedTargetModel?.displayName ?? '',
       language: _selectedLanguage,
       maxTokens: config.maxTokens,
       quickPrompts: config.quickPrompts,
@@ -193,14 +173,8 @@ class _TextGenViewState extends State<TextGenView> {
           instructionCtrl: _instructionCtrl,
           nameCtrl: _nameCtrl,
           selectedLanguage: _selectedLanguage,
-          selectedTargetModel: _selectedTargetModel,
-          imageModels: _imageModels,
-          loadingModels: _loadingModels,
-          modelLoadError: _modelLoadError,
           accent: accent,
           onLanguageChanged: (v) => setState(() => _selectedLanguage = v),
-          onTargetModelChanged: (m) =>
-              setState(() => _selectedTargetModel = m),
         );
         final resultPanel = TextGenResultPanel(
           ctrl: _ctrl,
@@ -227,8 +201,8 @@ class _TextGenViewState extends State<TextGenView> {
                       .copyWith(color: AppColors.mutedDark),
                 )
               : null,
-          maxWidth: narrow ? 560.w : 860.w,
-          minWidth: narrow ? 360.w : 560.w,
+          maxWidth: narrow ? 520.w : 760.w,
+          minWidth: narrow ? 340.w : 480.w,
           body: narrow
               ? SingleChildScrollView(
                   child: Column(

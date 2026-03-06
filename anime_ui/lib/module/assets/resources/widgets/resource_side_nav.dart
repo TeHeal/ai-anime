@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:anime_ui/pub/const/motion.dart';
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import '../models/resource_category.dart';
 import '../providers/provider.dart';

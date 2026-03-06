@@ -29,6 +29,7 @@ class AudioListTile extends StatefulWidget {
     this.onEdit,
     this.onCopy,
     this.onDelete,
+    this.onGetPreviewUrl,
   });
 
   final Resource resource;
@@ -43,6 +44,8 @@ class AudioListTile extends StatefulWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onCopy;
   final VoidCallback? onDelete;
+  /// 系统音色试听：当 audioUrl 为空时，调用此回调获取预览 URL 后播放
+  final Future<String?> Function(Resource)? onGetPreviewUrl;
 
   @override
   State<AudioListTile> createState() => _AudioListTileState();
@@ -50,6 +53,12 @@ class AudioListTile extends StatefulWidget {
 
 class _AudioListTileState extends State<AudioListTile> {
   bool _hovering = false;
+  String? _resolvedPreviewUrl;
+
+  String get _effectiveAudioUrl =>
+      widget.resource.audioUrl.isNotEmpty
+          ? widget.resource.audioUrl
+          : (_resolvedPreviewUrl ?? '');
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +71,10 @@ class _AudioListTileState extends State<AudioListTile> {
     return ListenableBuilder(
       listenable: playback,
       builder: (context, _) {
-        final isPlaying = playback.isPlayingUrl(widget.resource.audioUrl);
+        final isPlaying = playback.isPlayingUrlFrom(_effectiveAudioUrl, 'list');
 
         return MouseRegion(
+          cursor: SystemMouseCursors.click,
           onEnter: (_) => setState(() => _hovering = true),
           onExit: (_) => setState(() => _hovering = false),
           child: GestureDetector(
@@ -151,10 +161,15 @@ class _AudioListTileState extends State<AudioListTile> {
                     width: 160.w,
                     child: _MiniPlayer(
                       resource: widget.resource,
+                      effectiveAudioUrl: _effectiveAudioUrl,
                       accentColor: widget.accentColor,
                       isPlaying: isPlaying,
                       isHovering: _hovering,
                       playback: playback,
+                      onGetPreviewUrl: widget.onGetPreviewUrl,
+                      onResolved: (url) {
+                        if (mounted) setState(() => _resolvedPreviewUrl = url);
+                      },
                     ),
                   ),
 
@@ -288,6 +303,9 @@ class _AudioIcon extends StatelessWidget {
 class _MiniPlayer extends StatelessWidget {
   const _MiniPlayer({
     required this.resource,
+    required this.effectiveAudioUrl,
+    this.onGetPreviewUrl,
+    this.onResolved,
     required this.accentColor,
     required this.isPlaying,
     required this.isHovering,
@@ -295,6 +313,9 @@ class _MiniPlayer extends StatelessWidget {
   });
 
   final Resource resource;
+  final String effectiveAudioUrl;
+  final Future<String?> Function(Resource)? onGetPreviewUrl;
+  final void Function(String)? onResolved;
   final Color accentColor;
   final bool isPlaying;
   final bool isHovering;
@@ -302,7 +323,7 @@ class _MiniPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasAudio = resource.audioUrl.isNotEmpty;
+    final hasAudio = effectiveAudioUrl.isNotEmpty || onGetPreviewUrl != null;
     final durationStr = _extractDuration();
 
     // 播放中：播放按钮 + 进度条 + 时间
@@ -312,7 +333,7 @@ class _MiniPlayer extends StatelessWidget {
           _MiniPlayButton(
             accentColor: accentColor,
             isPlaying: true,
-            onTap: hasAudio ? () => playback.play(resource.audioUrl) : null,
+            onTap: hasAudio ? () => _handlePlay(context) : null,
           ),
           SizedBox(width: Spacing.xs.w),
           Expanded(
@@ -342,7 +363,7 @@ class _MiniPlayer extends StatelessWidget {
           _MiniPlayButton(
             accentColor: accentColor,
             isPlaying: false,
-            onTap: () => playback.play(resource.audioUrl),
+            onTap: () => _handlePlay(context),
           ),
           SizedBox(width: Spacing.xs.w),
           Expanded(
@@ -396,6 +417,18 @@ class _MiniPlayer extends StatelessWidget {
     if (d is String && d.isNotEmpty) return d;
     return '';
   }
+
+  void _handlePlay(BuildContext context) async {
+    if (effectiveAudioUrl.isNotEmpty) {
+      playback.play(effectiveAudioUrl);
+      return;
+    }
+    final url = await onGetPreviewUrl?.call(resource);
+    if (url != null && url.isNotEmpty) {
+      onResolved?.call(url);
+      playback.play(url);
+    }
+  }
 }
 
 /// 迷你播放/暂停按钮
@@ -412,22 +445,25 @@ class _MiniPlayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28.r,
-        height: 28.r,
-        decoration: BoxDecoration(
-          color: accentColor.withValues(alpha: isPlaying ? 0.25 : 0.12),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: accentColor.withValues(alpha: 0.4),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 28.r,
+          height: 28.r,
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: isPlaying ? 0.25 : 0.12),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.4),
+            ),
           ),
-        ),
-        child: Icon(
-          isPlaying ? AppIcons.stop : AppIcons.playArrow,
-          size: 14.r,
-          color: accentColor,
+          child: Icon(
+            isPlaying ? AppIcons.stop : AppIcons.playArrow,
+            size: 14.r,
+            color: accentColor,
+          ),
         ),
       ),
     );

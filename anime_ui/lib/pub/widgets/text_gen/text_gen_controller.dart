@@ -40,7 +40,7 @@ class TextGenController extends ChangeNotifier {
     try {
       String fullInstruction = _buildInstruction(instruction, config);
 
-      final resource = await _svc.generatePrompt(
+      final genResult = await _svc.generatePrompt(
         name: name.isNotEmpty ? name : _autoName(config),
         instruction: fullInstruction,
         targetModel: config.targetModel,
@@ -49,8 +49,8 @@ class TextGenController extends ChangeNotifier {
         language: config.language,
       );
 
-      _result = resource.description;
-      _savedResource = config.saveToLibrary ? resource : null;
+      _result = genResult.resource.description;
+      _savedResource = config.saveToLibrary ? genResult.resource : null;
       _status = TextGenStatus.done;
     } catch (e) {
       _errorMsg = '$e';

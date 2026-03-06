@@ -78,60 +78,63 @@ class _AssetTagEditorState extends State<AssetTagEditor> {
           showBar: widget.showBar,
         ),
         SizedBox(height: Spacing.xs.h),
-        GestureDetector(
-          onTap: () => _focusNode.requestFocus(),
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: Spacing.sm.w,
-              vertical: Spacing.xs.h,
-            ),
-            constraints: BoxConstraints(minHeight: 36.h),
-            decoration: BoxDecoration(
-              color: AppColors.inputBackground.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-              border: Border.all(
-                color: AppColors.border.withValues(alpha: 0.3),
+        MouseRegion(
+          cursor: SystemMouseCursors.text,
+          child: GestureDetector(
+            onTap: () => _focusNode.requestFocus(),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: Spacing.sm.w,
+                vertical: Spacing.xs.h,
               ),
-            ),
-            child: Wrap(
-              spacing: Spacing.xs.w,
-              runSpacing: Spacing.xs.h,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ...widget.tags.map(
-                  (tag) => _TagChip(
-                    label: tag,
-                    accent: _accent,
-                    onDelete: () => widget.onTagRemoved(tag),
-                  ),
+              constraints: BoxConstraints(minHeight: 36.h),
+              decoration: BoxDecoration(
+                color: AppColors.inputBackground.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.3),
                 ),
-                IntrinsicWidth(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: 80.w),
-                    child: TextField(
-                      controller: _ctrl,
-                      focusNode: _focusNode,
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.onSurface),
-                      decoration: InputDecoration(
-                        hintText:
-                            widget.tags.isEmpty ? '输入后按回车添加' : '添加…',
-                        hintStyle: AppTextStyles.tiny
-                            .copyWith(color: AppColors.mutedDark),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: Spacing.xs.w,
-                          vertical: Spacing.xs.h,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                      ),
-                      onSubmitted: _addTag,
+              ),
+              child: Wrap(
+                spacing: Spacing.xs.w,
+                runSpacing: Spacing.xs.h,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ...widget.tags.map(
+                    (tag) => _TagChip(
+                      label: tag,
+                      accent: _accent,
+                      onDelete: () => widget.onTagRemoved(tag),
                     ),
                   ),
-                ),
-              ],
+                  IntrinsicWidth(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: 80.w),
+                      child: TextField(
+                        controller: _ctrl,
+                        focusNode: _focusNode,
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: AppColors.onSurface),
+                        decoration: InputDecoration(
+                          hintText:
+                              widget.tags.isEmpty ? '输入后按回车添加' : '添加…',
+                          hintStyle: AppTextStyles.tiny
+                              .copyWith(color: AppColors.mutedDark),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: Spacing.xs.w,
+                            vertical: Spacing.xs.h,
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                        onSubmitted: _addTag,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -172,12 +175,15 @@ class _TagChip extends StatelessWidget {
             style: AppTextStyles.tiny.copyWith(color: AppColors.onSurface),
           ),
           SizedBox(width: Spacing.xxs.w),
-          GestureDetector(
-            onTap: onDelete,
-            child: Icon(
-              AppIcons.close,
-              size: 12.r,
-              color: accent.withValues(alpha: 0.6),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: onDelete,
+              child: Icon(
+                AppIcons.close,
+                size: 12.r,
+                color: accent.withValues(alpha: 0.6),
+              ),
             ),
           ),
         ],

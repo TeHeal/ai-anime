@@ -543,7 +543,7 @@ CREATE TABLE tasks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    project_id UUID NOT NULL REFERENCES projects(id),
+    project_id UUID REFERENCES projects(id),  -- 素材库任务无项目归属，允许 NULL
     user_id UUID NOT NULL REFERENCES users(id),
     type VARCHAR(32) NOT NULL,
     status VARCHAR(16) NOT NULL DEFAULT 'pending',

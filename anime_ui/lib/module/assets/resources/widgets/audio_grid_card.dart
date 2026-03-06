@@ -27,6 +27,7 @@ class AudioGridCard extends StatefulWidget {
     this.onViewDetail,
     this.onEdit,
     this.onDelete,
+    this.onGetPreviewUrl,
   });
 
   final Resource resource;
@@ -40,6 +41,8 @@ class AudioGridCard extends StatefulWidget {
   final VoidCallback? onViewDetail;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  /// 系统音色试听：当 audioUrl 为空时，调用此回调获取预览 URL 后播放
+  final Future<String?> Function(Resource)? onGetPreviewUrl;
 
   @override
   State<AudioGridCard> createState() => _AudioGridCardState();
@@ -47,9 +50,15 @@ class AudioGridCard extends StatefulWidget {
 
 class _AudioGridCardState extends State<AudioGridCard> {
   bool _hovering = false;
+  String? _resolvedPreviewUrl; // 系统音色试听 URL 缓存
 
   bool get _showActions =>
       _hovering && !widget.isBatchMode && widget.taskStatus == null;
+
+  String get _effectiveAudioUrl =>
+      widget.resource.audioUrl.isNotEmpty
+          ? widget.resource.audioUrl
+          : (_resolvedPreviewUrl ?? '');
 
   @override
   Widget build(BuildContext context) {
@@ -59,15 +68,16 @@ class _AudioGridCardState extends State<AudioGridCard> {
     return ListenableBuilder(
       listenable: playback,
       builder: (context, _) {
-        final isPlaying = playback.isPlayingUrl(widget.resource.audioUrl);
+        final isPlaying = playback.isPlayingUrlFrom(_effectiveAudioUrl, 'list');
 
         return MouseRegion(
+          cursor: SystemMouseCursors.click,
           onEnter: (_) => setState(() => _hovering = true),
           onExit: (_) => setState(() => _hovering = false),
           child: GestureDetector(
             onTap: widget.isBatchMode
                 ? widget.onTap
-                : () => _handlePlayTap(playback),
+                : () => _handlePlayTap(context, playback),
             child: AnimatedContainer(
               duration: MotionTokens.durationFast,
               decoration: BoxDecoration(
@@ -201,13 +211,41 @@ class _AudioGridCardState extends State<AudioGridCard> {
     );
   }
 
-  void _handlePlayTap(AudioPlaybackService playback) {
-    final url = widget.resource.audioUrl;
+  Future<void> _handlePlayTap(BuildContext context, AudioPlaybackService playback) async {
+    var url = _effectiveAudioUrl;
+    if (url.isEmpty && widget.onGetPreviewUrl != null) {
+      try {
+        final resolved = await widget.onGetPreviewUrl!(widget.resource);
+        if (resolved != null && resolved.isNotEmpty && mounted) {
+          setState(() => _resolvedPreviewUrl = resolved);
+          url = resolved;
+        }
+      } catch (e, st) {
+        if (mounted && context.mounted) {
+          debugPrint('系统音色试听失败: $e\n$st');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('试听加载失败: ${e.toString().replaceAll(RegExp(r'^Exception: '), '')}')),
+          );
+        }
+        return;
+      }
+    }
     if (url.isEmpty) {
+      if (mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('该音色暂无试听音频')),
+        );
+      }
       widget.onViewDetail?.call();
       return;
     }
-    playback.play(url);
+    playback.play(url, onError: (msg) {
+      if (mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('播放失败: $msg')),
+        );
+      }
+    });
   }
 }
 

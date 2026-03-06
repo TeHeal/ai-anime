@@ -231,27 +231,30 @@ class BatchCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: MotionTokens.durationFast,
-        width: 22.r,
-        height: 22.r,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? accentColor
-              : onDarkBackground
-                  ? AppColors.background.withValues(alpha: 0.6)
-                  : AppColors.surfaceContainerHigh.withValues(alpha: 0.8),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? accentColor : AppColors.muted,
-            width: 1.5,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: MotionTokens.durationFast,
+          width: 22.r,
+          height: 22.r,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? accentColor
+                : onDarkBackground
+                    ? AppColors.background.withValues(alpha: 0.6)
+                    : AppColors.surfaceContainerHigh.withValues(alpha: 0.8),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isSelected ? accentColor : AppColors.muted,
+              width: 1.5,
+            ),
           ),
+          child: isSelected
+              ? Icon(Icons.check, size: 14.r, color: AppColors.onPrimary)
+              : null,
         ),
-        child: isSelected
-            ? Icon(Icons.check, size: 14.r, color: AppColors.onPrimary)
-            : null,
       ),
     );
   }
@@ -507,13 +510,16 @@ class TileTaskStatus extends StatelessWidget {
         Icon(AppIcons.error, size: 16.r, color: AppColors.error),
         if (onRetry != null) ...[
           SizedBox(width: Spacing.xs.w),
-          GestureDetector(
-            onTap: onRetry,
-            child: Text(
-              '重试',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.w600,
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: onRetry,
+              child: Text(
+                '重试',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),

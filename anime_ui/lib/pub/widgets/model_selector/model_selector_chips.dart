@@ -31,9 +31,7 @@ class ModelSelectorChips extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.muted,
-          ),
+          style: AppTextStyles.labelMedium.copyWith(color: AppColors.muted),
         ),
         SizedBox(height: Spacing.sm.h),
         if (isLoading)
@@ -41,7 +39,9 @@ class ModelSelectorChips extends StatelessWidget {
         else if (models.isEmpty)
           Text(
             '暂无可用模型',
-            style: AppTextStyles.labelMedium.copyWith(color: AppColors.mutedDark),
+            style: AppTextStyles.labelMedium.copyWith(
+              color: AppColors.mutedDark,
+            ),
           )
         else
           Wrap(
@@ -72,49 +72,52 @@ class ModelSelectorChips extends StatelessWidget {
 
   Widget _chip(ModelCatalogItem m) {
     final isSelected = selected?.id == m.id;
-    return GestureDetector(
-      onTap: () => onChanged(m),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.chipPaddingH.w,
-          vertical: Spacing.sm.h,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? accent.withValues(alpha: 0.15)
-              : AppColors.surfaceMutedDarker,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(
-            color: isSelected
-                ? accent.withValues(alpha: 0.5)
-                : AppColors.surfaceContainer,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => onChanged(m),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.chipPaddingH.w,
+            vertical: Spacing.sm.h,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (m.isRecommended) ...[
-              Icon(
-                AppIcons.bolt,
-                size: (AppTextStyles.labelMedium.fontSize ?? 14).r,
-                color: AppColors.tagAmber,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? accent.withValues(alpha: 0.15)
+                : AppColors.surfaceMutedDarker,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(
+              color: isSelected
+                  ? accent.withValues(alpha: 0.5)
+                  : AppColors.surfaceContainer,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (m.isRecommended) ...[
+                Icon(
+                  AppIcons.bolt,
+                  size: (AppTextStyles.labelMedium.fontSize ?? 14).r,
+                  color: AppColors.tagAmber,
+                ),
+                SizedBox(width: Spacing.xs.w),
+              ],
+              Text(
+                m.displayName,
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: isSelected ? accent : AppColors.mutedLight,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
               ),
               SizedBox(width: Spacing.xs.w),
-            ],
-            Text(
-              m.displayName,
-              style: AppTextStyles.labelMedium.copyWith(
-                color: isSelected ? accent : AppColors.mutedLight,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              Text(
+                m.operatorLabel,
+                style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
               ),
-            ),
-            SizedBox(width: Spacing.xs.w),
-            Text(
-              m.operatorLabel,
-              style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

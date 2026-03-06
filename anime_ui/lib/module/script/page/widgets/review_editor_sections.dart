@@ -94,39 +94,42 @@ Widget _modeToggle(bool editing, ReviewUiNotifier notifier) {
 }
 
 Widget _modeBtn(String label, IconData icon, bool active, VoidCallback onTap) {
-  return GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      padding: EdgeInsets.symmetric(
-        horizontal: Spacing.md.w,
-        vertical: Spacing.sm.h,
-      ),
-      decoration: BoxDecoration(
-        color: active
-            ? AppColors.primary.withValues(alpha: 0.15)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 13.r,
-            color: active
-                ? AppColors.primary
-                : AppColors.mutedDark,
-          ),
-          SizedBox(width: Spacing.xs.w),
-          Text(
-            label,
-            style: AppTextStyles.labelMedium.copyWith(
-              color: active ? AppColors.primary : AppColors.mutedDark,
-              fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+  return MouseRegion(
+    cursor: SystemMouseCursors.click,
+    child: GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.md.w,
+          vertical: Spacing.sm.h,
+        ),
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.primary.withValues(alpha: 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 13.r,
+              color: active
+                  ? AppColors.primary
+                  : AppColors.mutedDark,
             ),
-          ),
-        ],
+            SizedBox(width: Spacing.xs.w),
+            Text(
+              label,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: active ? AppColors.primary : AppColors.mutedDark,
+                fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );

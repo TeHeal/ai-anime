@@ -61,6 +61,7 @@ class _TextGridCardState extends State<TextGridCard> {
         .firstOrNull;
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(

@@ -48,21 +48,23 @@ type UpdateRequest struct {
 
 // ListRequest 列表请求（分页、筛选）
 type ListRequest struct {
-	Modality    string   `form:"modality"`
-	LibraryType string   `form:"libraryType"`
-	Tags        []string `form:"tags"`
-	Search      string   `form:"search"`
-	SortBy      string   `form:"sortBy"`
-	Page        int      `form:"page"`
-	PageSize    int      `form:"pageSize"`
+	Modality            string   `form:"modality"`
+	LibraryType         string   `form:"libraryType"`
+	Tags                []string `form:"tags"`
+	Search              string   `form:"search"`
+	SortBy              string   `form:"sortBy"`
+	Page                int      `form:"page"`
+	PageSize            int      `form:"pageSize"`
+	IncludeSystemVoices bool     `form:"includeSystemVoices"` // 音色库为 true 时合并系统音色
 }
 
 // ListResponse 列表响应
 type ListResponse struct {
-	Items []Resource `json:"items"`
-	Total int64      `json:"total"`
-	Page  int        `json:"page"`
-	Size  int        `json:"pageSize"`
+	Items        []Resource `json:"items"`
+	SystemVoices []Resource `json:"systemVoices,omitempty"` // 系统音色（合并到前端列表顶部）
+	Total        int64      `json:"total"`
+	Page         int        `json:"page"`
+	Size         int        `json:"pageSize"`
 }
 
 // CountsResponse 各子库数量统计

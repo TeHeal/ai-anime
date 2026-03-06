@@ -369,24 +369,27 @@ class _AngleThumb extends ConsumerWidget {
             Positioned(
               top: 2.h,
               right: 4.w,
-              child: GestureDetector(
-                onTap: () => ref
-                    .read(assetCharactersProvider.notifier)
-                    .deleteReferenceImage(characterId!, existingIdx),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.xs.w,
-                    vertical: 1.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
-                  ),
-                  child: Text(
-                    '删除',
-                    style: AppTextStyles.tiny.copyWith(
-                      fontSize: 9.sp,
-                      color: AppColors.mutedLight,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => ref
+                      .read(assetCharactersProvider.notifier)
+                      .deleteReferenceImage(characterId!, existingIdx),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.xs.w,
+                      vertical: 1.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+                    ),
+                    child: Text(
+                      '删除',
+                      style: AppTextStyles.tiny.copyWith(
+                        fontSize: 9.sp,
+                        color: AppColors.mutedLight,
+                      ),
                     ),
                   ),
                 ),

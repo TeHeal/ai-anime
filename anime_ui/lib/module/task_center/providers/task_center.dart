@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/models/task.dart';
@@ -92,14 +91,37 @@ class TaskCenterNotifier extends Notifier<TaskCenterState> {
       if (type != 'task_progress' &&
           type != 'task_complete' &&
           type != 'task_error') return;
-      final data = event['data'];
-      if (data is! Map<String, dynamic>) return;
-      try {
-        final updated = Task.fromJson(data);
-        _upsertTask(updated);
-      } catch (e, st) {
-        debugPrint('解析 WS 任务更新失败: $e\n$st');
+
+      final payload =
+          (event['payload'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+      final taskId = (payload['taskId'] as String?) ??
+          (event['task_id'] as String?) ??
+          '';
+      if (taskId.isEmpty) return;
+
+      // 根据事件类型推导 status
+      String status;
+      switch (type) {
+        case 'task_complete':
+          status = 'completed';
+          break;
+        case 'task_error':
+          status = 'failed';
+          break;
+        default:
+          status = (payload['status'] as String?) ?? 'running';
       }
+
+      // payload 并非完整 Task JSON，需手动构造
+      final updated = Task(
+        id: taskId,
+        type: (payload['type'] as String?) ?? '',
+        status: status,
+        progress: (payload['progress'] as num?)?.toInt() ?? 0,
+        title: (payload['title'] as String?) ?? '',
+        error: payload['error'] as String?,
+      );
+      _upsertTask(updated);
     });
   }
 

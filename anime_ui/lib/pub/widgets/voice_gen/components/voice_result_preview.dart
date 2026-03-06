@@ -32,21 +32,32 @@ class VoiceResultPreview extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      height: 140.h,
+      height: 120.h,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: accent.withValues(alpha: 0.1)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withValues(alpha: 0.04),
+            accent.withValues(alpha: 0.01),
+          ],
+        ),
       ),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(AppIcons.mic, size: 32.r, color: AppColors.surfaceMuted),
-            SizedBox(height: Spacing.lg.h),
+            Icon(
+              AppIcons.mic,
+              size: 28.r,
+              color: accent.withValues(alpha: 0.25),
+            ),
+            SizedBox(height: Spacing.sm.h),
             Text(
-              '生成结果将显示在此处',
-              style: AppTextStyles.bodySmall.copyWith(
+              '生成结果将在此处显示',
+              style: AppTextStyles.caption.copyWith(
                 color: AppColors.mutedDarker,
               ),
             ),
@@ -148,22 +159,27 @@ class VoiceResultPreview extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => playback.play(audioUrl),
-                    child: Container(
-                      width: 48.w,
-                      height: 48.h,
-                      decoration: BoxDecoration(
-                        color: accent.withValues(alpha: isPlaying ? 0.3 : 0.15),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: accent.withValues(alpha: 0.4),
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () => playback.play(audioUrl),
+                      child: Container(
+                        width: 48.w,
+                        height: 48.h,
+                        decoration: BoxDecoration(
+                          color: accent.withValues(
+                            alpha: isPlaying ? 0.3 : 0.15,
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.4),
+                          ),
                         ),
-                      ),
-                      child: Icon(
-                        isPlaying ? AppIcons.stop : AppIcons.playArrow,
-                        size: 26.r,
-                        color: accent,
+                        child: Icon(
+                          isPlaying ? AppIcons.stop : AppIcons.playArrow,
+                          size: 26.r,
+                          color: accent,
+                        ),
                       ),
                     ),
                   ),

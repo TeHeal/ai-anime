@@ -1,21 +1,40 @@
 package ai
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 
 	"anime_ai/module/assets/resource"
 	"anime_ai/pub/pkg"
+	"anime_ai/pub/realtime"
+	"anime_ai/pub/tasktypes"
 	"github.com/gin-gonic/gin"
+	"github.com/hibiken/asynq"
+	"go.uber.org/zap"
 )
 
 // Handler AI 生成统一入口（图生、LLM、音频）
 type Handler struct {
 	resourceSvc *resource.Service
+	realtimeHub *realtime.Hub
+	log         *zap.Logger
+	asynqClient *asynq.Client
+	taskCreator resource.ResourceTaskCreator
 }
 
 // NewHandler 创建 Handler
-func NewHandler(resourceSvc *resource.Service) *Handler {
-	return &Handler{resourceSvc: resourceSvc}
+func NewHandler(resourceSvc *resource.Service, realtimeHub *realtime.Hub, log *zap.Logger) *Handler {
+	if log == nil {
+		log = zap.NewNop()
+	}
+	return &Handler{resourceSvc: resourceSvc, realtimeHub: realtimeHub, log: log.Named("ai_handler")}
+}
+
+// SetAsynq 注入 asynq 入队能力
+func (h *Handler) SetAsynq(client *asynq.Client, tc resource.ResourceTaskCreator) {
+	h.asynqClient = client
+	h.taskCreator = tc
 }
 
 // GenerateImage 统一图生接口 POST /ai/generate/image
@@ -37,7 +56,7 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 
 	switch req.Output.Type {
 	case "resource":
-		res, err := h.generateImageResource(c, userID, req)
+		placeholder, err := h.createImagePlaceholder(c, userID, req)
 		if err != nil {
 			if errors.Is(err, pkg.ErrNotFound) {
 				pkg.NotFound(c, "资源不存在")
@@ -50,7 +69,12 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 			pkg.HandleError(c, err)
 			return
 		}
-		pkg.Created(c, res)
+		if h.realtimeHub != nil {
+			h.realtimeHub.BroadcastResourceCreated(userID, placeholder.ID, "resource_image")
+		}
+
+		taskID := h.enqueueImageTask(c, userID, placeholder.ID, req)
+		pkg.Created(c, map[string]any{"resource": placeholder, "taskId": taskID})
 	case "character", "location":
 		pkg.BadRequest(c, "output.type="+req.Output.Type+" 暂未实现，请使用对应模块接口")
 	case "shot":
@@ -60,9 +84,64 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 	}
 }
 
-// generateImageResource output.type=resource 时复用 ResourceService 逻辑
-func (h *Handler) generateImageResource(c *gin.Context, userID string, req GenerateImageRequest) (*resource.Resource, error) {
-	ctx := c.Request.Context()
+// enqueueImageTask 创建 Task 记录 + asynq 入队；无 asynq 时降级 goroutine
+func (h *Handler) enqueueImageTask(c *gin.Context, userID, resourceID string, req GenerateImageRequest) string {
+	if h.asynqClient == nil || h.taskCreator == nil {
+		go h.completeImageAsync(userID, resourceID, req)
+		return resourceID
+	}
+	resReq := h.toResourceImageReq(req)
+	reqJSON, _ := json.Marshal(resReq)
+	taskID, err := h.taskCreator.CreateTaskForUser(c.Request.Context(), userID, "image", "图片生成: "+resReq.Name, reqJSON)
+	if err != nil {
+		h.log.Warn("创建 Task 记录失败，降级 goroutine", zap.Error(err))
+		go h.completeImageAsync(userID, resourceID, req)
+		return resourceID
+	}
+	payload, _ := json.Marshal(map[string]interface{}{
+		"task_id":      taskID,
+		"resource_id":  resourceID,
+		"user_id":      userID,
+		"gen_type":     "image",
+		"title":        "图片生成: " + resReq.Name,
+		"request_json": reqJSON,
+	})
+	task := asynq.NewTask(tasktypes.TypeResourceImage, payload)
+	if _, err := h.asynqClient.Enqueue(task); err != nil {
+		h.log.Warn("asynq 入队失败，降级 goroutine", zap.Error(err))
+		go h.completeImageAsync(userID, resourceID, req)
+		return resourceID
+	}
+	return taskID
+}
+
+// createImagePlaceholder 创建图生占位资源
+func (h *Handler) createImagePlaceholder(c *gin.Context, userID string, req GenerateImageRequest) (*resource.Resource, error) {
+	return h.resourceSvc.CreateImagePlaceholder(c.Request.Context(), userID, h.toResourceImageReq(req))
+}
+
+// completeImageAsync 后台 goroutine 完成图生
+func (h *Handler) completeImageAsync(userID, resourceID string, req GenerateImageRequest) {
+	ctx := context.Background()
+	h.broadcastResourceTask(userID, resourceID, "image", "图片生成", 10, "running")
+
+	res, err := h.resourceSvc.CompleteImage(ctx, userID, resourceID, h.toResourceImageReq(req))
+	if err != nil {
+		h.log.Error("图生异步完成失败",
+			zap.String("resource_id", resourceID),
+			zap.Error(err),
+		)
+		_ = h.resourceSvc.MarkResourceGenFailed(ctx, resourceID, userID, err.Error())
+		h.broadcastResourceTask(userID, resourceID, "image", "图片生成", 0, "failed")
+		return
+	}
+	h.broadcastResourceTask(userID, resourceID, "image", "图片生成", 100, "completed")
+	if h.realtimeHub != nil {
+		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_image")
+	}
+}
+
+func (h *Handler) toResourceImageReq(req GenerateImageRequest) resource.GenerateImageRequest {
 	libraryType := req.Output.LibraryType
 	if libraryType == "" {
 		libraryType = "style"
@@ -79,20 +158,42 @@ func (h *Handler) generateImageResource(c *gin.Context, userID string, req Gener
 	if len(req.ReferenceImageURLs) > 0 {
 		refURL = req.ReferenceImageURLs[0]
 	}
-	r := resource.GenerateImageRequest{
-		Prompt:         req.Prompt,
-		NegativePrompt: req.NegativePrompt,
+	return resource.GenerateImageRequest{
+		Prompt:            req.Prompt,
+		NegativePrompt:    req.NegativePrompt,
 		ReferenceImageURL: refURL,
-		LibraryType:    libraryType,
-		Modality:       modality,
-		Provider:       req.Provider,
-		Model:          req.Model,
-		Name:           name,
-		Width:          req.Width,
-		Height:         req.Height,
-		AspectRatio:    req.AspectRatio,
+		LibraryType:       libraryType,
+		Modality:          modality,
+		Provider:          req.Provider,
+		Model:             req.Model,
+		Name:              name,
+		Width:             req.Width,
+		Height:            req.Height,
+		AspectRatio:       req.AspectRatio,
 	}
-	return h.resourceSvc.GenerateImage(ctx, userID, r)
+}
+
+// broadcastResourceTask 推送素材生成任务进度
+func (h *Handler) broadcastResourceTask(userID, resourceID, taskType, title string, progress int, status string) {
+	if h.realtimeHub == nil {
+		return
+	}
+	data := map[string]interface{}{
+		"taskId":     resourceID,
+		"type":       taskType,
+		"progress":   progress,
+		"status":     status,
+		"title":      title,
+		"resourceId": resourceID,
+	}
+	switch {
+	case progress >= 100 && status == "completed":
+		h.realtimeHub.BroadcastTaskComplete(userID, nil, resourceID, data)
+	case status == "failed":
+		h.realtimeHub.BroadcastTaskError(userID, nil, resourceID, data)
+	default:
+		h.realtimeHub.BroadcastTaskProgress(userID, nil, resourceID, data)
+	}
 }
 
 // GenerateText 统一文本生成接口 POST /ai/generate/text

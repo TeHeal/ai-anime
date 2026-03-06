@@ -43,39 +43,42 @@ class VoiceSampleUpload extends StatelessWidget {
   }
 
   Widget _buildEmpty() {
-    return GestureDetector(
-      onTap: _pick,
-      child: Container(
-        height: 120.h,
-        decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
-          border: Border.all(
-            color: accent.withValues(alpha: 0.2),
-            style: BorderStyle.solid,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: _pick,
+        child: Container(
+          height: 120.h,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(RadiusTokens.xl.r),
+            border: Border.all(
+              color: accent.withValues(alpha: 0.2),
+              style: BorderStyle.solid,
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              AppIcons.upload,
-              size: 28.r,
-              color: accent.withValues(alpha: 0.5),
-            ),
-            SizedBox(height: Spacing.sm.h),
-            Text(
-              '上传音频样本',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: accent.withValues(alpha: 0.7),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                AppIcons.upload,
+                size: 28.r,
+                color: accent.withValues(alpha: 0.5),
               ),
-            ),
-            SizedBox(height: Spacing.xs.h),
-            Text(
-              '支持 MP3、WAV 格式，建议 10-60 秒',
-              style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
-            ),
-          ],
+              SizedBox(height: Spacing.sm.h),
+              Text(
+                '上传音频样本',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: accent.withValues(alpha: 0.7),
+                ),
+              ),
+              SizedBox(height: Spacing.xs.h),
+              Text(
+                '支持 MP3、WAV 格式，建议 10-60 秒',
+                style: AppTextStyles.tiny.copyWith(color: AppColors.mutedDark),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -96,19 +99,22 @@ class VoiceSampleUpload extends StatelessWidget {
           ),
           child: Row(
             children: [
-              GestureDetector(
-                onTap: () => playback.play(sampleUrl),
-                child: Container(
-                  width: 40.w,
-                  height: 40.h,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: isPlaying ? 0.25 : 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isPlaying ? AppIcons.stop : AppIcons.playArrow,
-                    size: 22.r,
-                    color: accent,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => playback.play(sampleUrl),
+                  child: Container(
+                    width: 40.w,
+                    height: 40.h,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: isPlaying ? 0.25 : 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isPlaying ? AppIcons.stop : AppIcons.playArrow,
+                      size: 22.r,
+                      color: accent,
+                    ),
                   ),
                 ),
               ),

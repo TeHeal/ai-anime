@@ -92,6 +92,7 @@ type CreateTaskParams struct {
 }
 
 // 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
+// project_id 可空：素材库任务无项目归属
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
 	row := q.db.QueryRow(ctx, createTask,
 		arg.ProjectID,

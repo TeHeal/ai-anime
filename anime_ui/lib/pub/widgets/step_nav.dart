@@ -74,46 +74,51 @@ class StepNav extends StatelessWidget {
     final isActive = index == currentStep;
     final status = stepStatuses?[index] ?? StepStatus.notStarted;
 
-    return GestureDetector(
-      onTap: onStepTap != null ? () => onStepTap!(index) : null,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.lg.w,
-          vertical: Spacing.lg.h,
-        ),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.onSurface
-              : AppColors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.shadowOverlay.withValues(alpha: 0.2),
-                    blurRadius: 8.r,
-                    offset: Offset(0, 2.h),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildStepIcon(index, isActive, status),
-            SizedBox(width: Spacing.sm.w),
-            Text(
-              label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive
-                    ? AppColors.background
-                    : AppColors.onSurface.withValues(alpha: 0.6),
+    return MouseRegion(
+      cursor: onStepTap != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
+      child: GestureDetector(
+        onTap: onStepTap != null ? () => onStepTap!(index) : null,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.lg.w,
+            vertical: Spacing.lg.h,
+          ),
+          decoration: BoxDecoration(
+            color: isActive
+                ? AppColors.onSurface
+                : AppColors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: AppColors.shadowOverlay.withValues(alpha: 0.2),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildStepIcon(index, isActive, status),
+              SizedBox(width: Spacing.sm.w),
+              Text(
+                label,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive
+                      ? AppColors.background
+                      : AppColors.onSurface.withValues(alpha: 0.6),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

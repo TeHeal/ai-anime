@@ -172,28 +172,31 @@ class ReviewPlayerBar extends ConsumerWidget {
     ShotsReviewUiNotifier uiNotifier,
   ) {
     final active = uiState.playbackMode == mode;
-    return GestureDetector(
-      onTap: () => uiNotifier.setPlaybackMode(mode),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.sm.w,
-          vertical: Spacing.xs.h,
-        ),
-        decoration: BoxDecoration(
-          color: active
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-          border: Border.all(
-            color: active
-                ? AppColors.primary.withValues(alpha: 0.4)
-                : AppColors.surfaceContainer,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => uiNotifier.setPlaybackMode(mode),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.sm.w,
+            vertical: Spacing.xs.h,
           ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.labelTinySmall.copyWith(
-            color: active ? AppColors.primary : AppColors.mutedDark,
+          decoration: BoxDecoration(
+            color: active
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+            border: Border.all(
+              color: active
+                  ? AppColors.primary.withValues(alpha: 0.4)
+                  : AppColors.surfaceContainer,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.labelTinySmall.copyWith(
+              color: active ? AppColors.primary : AppColors.mutedDark,
+            ),
           ),
         ),
       ),

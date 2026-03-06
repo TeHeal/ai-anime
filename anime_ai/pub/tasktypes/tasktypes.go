@@ -22,4 +22,15 @@ const (
 	TypeScriptParse = "gen:script_parse"
 	// TypeStoryboardGenerate 分镜生成
 	TypeStoryboardGenerate = "gen:storyboard"
+
+	// --- 素材库资源生成（无 project 归属） ---
+
+	// TypeResourceVoiceDesign 素材库音色设计
+	TypeResourceVoiceDesign = "gen:res_voice_design"
+	// TypeResourceVoiceClone 素材库音色克隆
+	TypeResourceVoiceClone = "gen:res_voice_clone"
+	// TypeResourceImage 素材库图片生成
+	TypeResourceImage = "gen:res_image"
+	// TypeResourceText 素材库提示词生成
+	TypeResourceText = "gen:res_text"
 )

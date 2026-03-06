@@ -60,6 +60,7 @@ class _TextPreviewCardState extends State<TextPreviewCard> {
         .firstOrNull;
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(
@@ -95,13 +96,11 @@ class _TextPreviewCardState extends State<TextPreviewCard> {
                   ),
 
                   // 信息区
-                  Expanded(
-                    child: _InfoSection(
-                      resource: widget.resource,
-                      accentColor: widget.accentColor,
-                      libType: libType,
-                      charCount: charCount,
-                    ),
+                  _InfoSection(
+                    resource: widget.resource,
+                    accentColor: widget.accentColor,
+                    libType: libType,
+                    charCount: charCount,
                   ),
                 ],
               ),
@@ -362,7 +361,7 @@ class _InfoSection extends StatelessWidget {
             ),
           ],
 
-          const Spacer(),
+          SizedBox(height: Spacing.sm.h),
 
           // 底行：字数 + 时间
           Row(

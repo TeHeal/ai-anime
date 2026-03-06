@@ -63,6 +63,7 @@ class _ResourcePreviewCardState extends State<ResourcePreviewCard> {
     final resolution = _extractResolution(widget.resource.metadata);
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(
@@ -149,84 +150,74 @@ class _ResourcePreviewCardState extends State<ResourcePreviewCard> {
                   ),
 
                   // 信息区
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.all(Spacing.md.r),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 名称
+                  Padding(
+                    padding: EdgeInsets.all(Spacing.md.r),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.resource.name,
+                          style: AppTextStyles.labelLarge.copyWith(
+                            color: AppColors.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (widget.resource.description.isNotEmpty) ...[
+                          SizedBox(height: Spacing.xxs.h),
                           Text(
-                            widget.resource.name,
-                            style: AppTextStyles.labelLarge.copyWith(
-                              color: AppColors.onSurface,
-                              fontWeight: FontWeight.w600,
+                            widget.resource.description,
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.muted,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-
-                          // 描述
-                          if (widget.resource.description.isNotEmpty) ...[
-                            SizedBox(height: Spacing.xxs.h),
-                            Text(
-                              widget.resource.description,
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.muted,
+                        ],
+                        if (widget.resource.tags.isNotEmpty) ...[
+                          SizedBox(height: Spacing.sm.h),
+                          Wrap(
+                            spacing: Spacing.xs.w,
+                            runSpacing: Spacing.xxs.h,
+                            children: widget.resource.tags
+                                .take(4)
+                                .map((tag) => ResourceTagChip(
+                                      label: tag,
+                                      accentColor: widget.accentColor,
+                                    ))
+                                .toList(),
+                          ),
+                        ],
+                        SizedBox(height: Spacing.sm.h),
+                        Row(
+                          children: [
+                            if (libType != null) ...[
+                              Icon(
+                                libType.icon,
+                                size: 14.r,
+                                color: AppColors.mutedDark,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-
-                          // 标签
-                          if (widget.resource.tags.isNotEmpty) ...[
-                            SizedBox(height: Spacing.sm.h),
-                            Wrap(
-                              spacing: Spacing.xs.w,
-                              runSpacing: Spacing.xxs.h,
-                              children: widget.resource.tags
-                                  .take(4)
-                                  .map((tag) => ResourceTagChip(
-                                        label: tag,
-                                        accentColor: widget.accentColor,
-                                      ))
-                                  .toList(),
-                            ),
-                          ],
-
-                          const Spacer(),
-
-                          // 底行：子库类型 + 时间
-                          Row(
-                            children: [
-                              if (libType != null) ...[
-                                Icon(
-                                  libType.icon,
-                                  size: 14.r,
-                                  color: AppColors.mutedDark,
-                                ),
-                                SizedBox(width: Spacing.xxs.w),
-                                Text(
-                                  libType.label,
-                                  style: AppTextStyles.tiny.copyWith(
-                                    color: AppColors.mutedDark,
-                                  ),
-                                ),
-                              ],
-                              const Spacer(),
+                              SizedBox(width: Spacing.xxs.w),
                               Text(
-                                formatRelativeTime(
-                                  widget.resource.createdAt,
-                                ),
+                                libType.label,
                                 style: AppTextStyles.tiny.copyWith(
                                   color: AppColors.mutedDark,
                                 ),
                               ),
                             ],
-                          ),
-                        ],
-                      ),
+                            const Spacer(),
+                            Text(
+                              formatRelativeTime(
+                                widget.resource.createdAt,
+                              ),
+                              style: AppTextStyles.tiny.copyWith(
+                                color: AppColors.mutedDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -7,7 +7,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/app_network_image.dart';
 import '../image_gen_controller.dart';
 
-/// 生成结果网格（流式追加，支持点击大图预览）
+/// 生成结果网格（流式追加，支持点击大图预览 + 多选）
 class GenResultGrid extends StatelessWidget {
   const GenResultGrid({
     super.key,
@@ -17,6 +17,9 @@ class GenResultGrid extends StatelessWidget {
     required this.accent,
     required this.outputCount,
     this.onImageTap,
+    this.selectedIndices = const {},
+    this.onToggleSelect,
+    this.selectionEnabled = false,
   });
 
   final List<GenResult> results;
@@ -25,6 +28,9 @@ class GenResultGrid extends StatelessWidget {
   final Color accent;
   final int outputCount;
   final void Function(String url)? onImageTap;
+  final Set<int> selectedIndices;
+  final void Function(int index)? onToggleSelect;
+  final bool selectionEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +62,10 @@ class GenResultGrid extends StatelessWidget {
                 return _ResultCell(
                   url: result.url,
                   accent: accent,
+                  isSelected: selectedIndices.contains(i),
+                  selectionEnabled: selectionEnabled,
                   onTap: () => onImageTap?.call(result.url),
+                  onToggleSelect: () => onToggleSelect?.call(i),
                 );
               },
             ),
@@ -265,11 +274,17 @@ class _ResultCell extends StatefulWidget {
     required this.url,
     required this.accent,
     required this.onTap,
+    this.isSelected = false,
+    this.selectionEnabled = false,
+    this.onToggleSelect,
   });
 
   final String url;
   final Color accent;
   final VoidCallback onTap;
+  final bool isSelected;
+  final bool selectionEnabled;
+  final VoidCallback? onToggleSelect;
 
   @override
   State<_ResultCell> createState() => _ResultCellState();
@@ -280,11 +295,15 @@ class _ResultCellState extends State<_ResultCell> {
 
   @override
   Widget build(BuildContext context) {
+    final showCheckbox = widget.selectionEnabled || _hovered;
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: widget.selectionEnabled
+            ? widget.onToggleSelect
+            : widget.onTap,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
           child: Stack(
@@ -294,7 +313,19 @@ class _ResultCellState extends State<_ResultCell> {
                 url: resolveFileUrl(widget.url),
                 fit: BoxFit.cover,
               ),
-              if (_hovered)
+              // 选中态高亮边框
+              if (widget.isSelected)
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: widget.accent,
+                      width: 2.5.r,
+                    ),
+                    borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+                  ),
+                ),
+              // hover 遮罩 + 查看大图提示
+              if (_hovered && !widget.selectionEnabled)
                 Container(
                   color: AppColors.shadowOverlay.withValues(alpha: 0.38),
                   child: Center(
@@ -323,6 +354,41 @@ class _ResultCellState extends State<_ResultCell> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                ),
+              // 选择复选框（hover 时或选择模式下显示）
+              if (showCheckbox)
+                Positioned(
+                  top: Spacing.sm.h,
+                  right: Spacing.sm.w,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: widget.onToggleSelect,
+                      child: Container(
+                        width: 22.r,
+                        height: 22.r,
+                        decoration: BoxDecoration(
+                          color: widget.isSelected
+                              ? widget.accent
+                              : AppColors.shadowOverlay.withValues(alpha: 0.54),
+                          borderRadius: BorderRadius.circular(6.r),
+                          border: Border.all(
+                            color: widget.isSelected
+                                ? widget.accent
+                                : AppColors.onPrimary.withValues(alpha: 0.6),
+                            width: 1.5.r,
+                          ),
+                        ),
+                        child: widget.isSelected
+                            ? Icon(
+                                AppIcons.check,
+                                size: 14.r,
+                                color: AppColors.onPrimary,
+                              )
+                            : null,
                       ),
                     ),
                   ),

@@ -249,30 +249,33 @@ class _RatioSelector extends StatelessWidget {
               final selected = value == o.value;
               return Padding(
                 padding: EdgeInsets.only(right: Spacing.xs.w),
-                child: GestureDetector(
-                  onTap: () => onChanged(o.value),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: Spacing.sm.w, vertical: 3.h),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? AppColors.primary.withValues(alpha: 0.15)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-                      border: Border.all(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => onChanged(o.value),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: Spacing.sm.w, vertical: 3.h),
+                      decoration: BoxDecoration(
                         color: selected
-                            ? AppColors.primary.withValues(alpha: 0.5)
-                            : AppColors.border,
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primary.withValues(alpha: 0.5)
+                              : AppColors.border,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      o.value,
-                      style: AppTextStyles.tiny.copyWith(
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.onSurface.withValues(alpha: 0.55),
-                        fontWeight:
-                            selected ? FontWeight.w600 : FontWeight.normal,
+                      child: Text(
+                        o.value,
+                        style: AppTextStyles.tiny.copyWith(
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.onSurface.withValues(alpha: 0.55),
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.normal,
+                        ),
                       ),
                     ),
                   ),
@@ -404,43 +407,46 @@ class _OptionToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chip = GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: Spacing.sm.w, vertical: Spacing.xs.h),
-        decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-          border: Border.all(
+    final chip = MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: Spacing.sm.w, vertical: Spacing.xs.h),
+          decoration: BoxDecoration(
             color: enabled
-                ? AppColors.primary.withValues(alpha: 0.4)
-                : AppColors.border,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 12.r,
+                ? AppColors.primary.withValues(alpha: 0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+            border: Border.all(
               color: enabled
-                  ? AppColors.primary
-                  : AppColors.onSurface.withValues(alpha: 0.4),
+                  ? AppColors.primary.withValues(alpha: 0.4)
+                  : AppColors.border,
             ),
-            SizedBox(width: 4.w),
-            Text(
-              label,
-              style: AppTextStyles.tiny.copyWith(
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 12.r,
                 color: enabled
                     ? AppColors.primary
-                    : AppColors.onSurface.withValues(alpha: 0.5),
-                fontWeight: enabled ? FontWeight.w600 : FontWeight.normal,
+                    : AppColors.onSurface.withValues(alpha: 0.4),
               ),
-            ),
-          ],
+              SizedBox(width: 4.w),
+              Text(
+                label,
+                style: AppTextStyles.tiny.copyWith(
+                  color: enabled
+                      ? AppColors.primary
+                      : AppColors.onSurface.withValues(alpha: 0.5),
+                  fontWeight: enabled ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

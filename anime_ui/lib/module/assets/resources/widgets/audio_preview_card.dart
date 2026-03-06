@@ -28,6 +28,7 @@ class AudioPreviewCard extends StatefulWidget {
     this.onEdit,
     this.onCopy,
     this.onDelete,
+    this.onGetPreviewUrl,
   });
 
   final Resource resource;
@@ -42,6 +43,8 @@ class AudioPreviewCard extends StatefulWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onCopy;
   final VoidCallback? onDelete;
+  /// 系统音色试听：当 audioUrl 为空时，调用此回调获取预览 URL 后播放
+  final Future<String?> Function(Resource)? onGetPreviewUrl;
 
   @override
   State<AudioPreviewCard> createState() => _AudioPreviewCardState();
@@ -49,6 +52,12 @@ class AudioPreviewCard extends StatefulWidget {
 
 class _AudioPreviewCardState extends State<AudioPreviewCard> {
   bool _hovering = false;
+  String? _resolvedPreviewUrl;
+
+  String get _effectiveAudioUrl =>
+      widget.resource.audioUrl.isNotEmpty
+          ? widget.resource.audioUrl
+          : (_resolvedPreviewUrl ?? '');
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +69,10 @@ class _AudioPreviewCardState extends State<AudioPreviewCard> {
     return ListenableBuilder(
       listenable: playback,
       builder: (context, _) {
-        final isPlaying = playback.isPlayingUrl(widget.resource.audioUrl);
+        final isPlaying = playback.isPlayingUrlFrom(_effectiveAudioUrl, 'list');
 
         return MouseRegion(
+          cursor: SystemMouseCursors.click,
           onEnter: (_) => setState(() => _hovering = true),
           onExit: (_) => setState(() => _hovering = false),
           child: GestureDetector(
@@ -103,19 +113,22 @@ class _AudioPreviewCardState extends State<AudioPreviewCard> {
                       // 波形播放器区域
                       _WaveformPlayer(
                         resource: widget.resource,
+                        effectiveAudioUrl: _effectiveAudioUrl,
                         accentColor: widget.accentColor,
                         isPlaying: isPlaying,
                         isHovering: _hovering,
                         playback: playback,
+                        onGetPreviewUrl: widget.onGetPreviewUrl,
+                        onResolved: (url) {
+                          if (mounted) setState(() => _resolvedPreviewUrl = url);
+                        },
                       ),
 
                       // 信息区
-                      Expanded(
-                        child: _InfoSection(
-                          resource: widget.resource,
-                          accentColor: widget.accentColor,
-                          libType: libType,
-                        ),
+                      _InfoSection(
+                        resource: widget.resource,
+                        accentColor: widget.accentColor,
+                        libType: libType,
                       ),
                     ],
                   ),
@@ -191,6 +204,9 @@ class _AudioPreviewCardState extends State<AudioPreviewCard> {
 class _WaveformPlayer extends StatelessWidget {
   const _WaveformPlayer({
     required this.resource,
+    required this.effectiveAudioUrl,
+    this.onGetPreviewUrl,
+    this.onResolved,
     required this.accentColor,
     required this.isPlaying,
     required this.isHovering,
@@ -198,6 +214,9 @@ class _WaveformPlayer extends StatelessWidget {
   });
 
   final Resource resource;
+  final String effectiveAudioUrl;
+  final Future<String?> Function(Resource)? onGetPreviewUrl;
+  final void Function(String)? onResolved;
   final Color accentColor;
   final bool isPlaying;
   final bool isHovering;
@@ -205,7 +224,7 @@ class _WaveformPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasAudio = resource.audioUrl.isNotEmpty;
+    final hasAudio = effectiveAudioUrl.isNotEmpty || onGetPreviewUrl != null;
     final icon = resourceIcon(resource);
 
     return ClipRRect(
@@ -255,30 +274,30 @@ class _WaveformPlayer extends StatelessWidget {
                   Row(
                     children: [
                       // 播放按钮
-                      GestureDetector(
-                        onTap: hasAudio
-                            ? () => playback.play(resource.audioUrl)
-                            : null,
-                        child: AnimatedContainer(
-                          duration: MotionTokens.durationFast,
-                          width: 40.r,
-                          height: 40.r,
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(
-                              alpha: isPlaying ? 0.3 : 0.15,
+                      MouseRegion(
+                        cursor: hasAudio ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                        child: GestureDetector(
+                          onTap: hasAudio ? () => _handlePlay() : null,
+                          child: AnimatedContainer(
+                            duration: MotionTokens.durationFast,
+                            width: 40.r,
+                            height: 40.r,
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(
+                                alpha: isPlaying ? 0.3 : 0.15,
+                              ),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: accentColor.withValues(alpha: 0.4),
+                              ),
                             ),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color:
-                                  accentColor.withValues(alpha: 0.4),
+                            child: Icon(
+                              isPlaying
+                                  ? AppIcons.stop
+                                  : AppIcons.playArrow,
+                              size: 20.r,
+                              color: accentColor,
                             ),
-                          ),
-                          child: Icon(
-                            isPlaying
-                                ? AppIcons.stop
-                                : AppIcons.playArrow,
-                            size: 20.r,
-                            color: accentColor,
                           ),
                         ),
                       ),
@@ -352,6 +371,18 @@ class _WaveformPlayer extends StatelessWidget {
     }
     if (d is String && d.isNotEmpty) return d;
     return '--:--';
+  }
+
+  Future<void> _handlePlay() async {
+    if (effectiveAudioUrl.isNotEmpty) {
+      playback.play(effectiveAudioUrl);
+      return;
+    }
+    final url = await onGetPreviewUrl?.call(resource);
+    if (url != null && url.isNotEmpty) {
+      onResolved?.call(url);
+      playback.play(url);
+    }
   }
 }
 
@@ -485,7 +516,7 @@ class _InfoSection extends StatelessWidget {
             ),
           ],
 
-          const Spacer(),
+          SizedBox(height: Spacing.sm.h),
 
           // 底行：子库类型 + 时间
           Row(

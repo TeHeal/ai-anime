@@ -40,9 +40,10 @@ type t2aCreateReq struct {
 }
 
 // t2aCreateResp 创建任务响应
+// MiniMax API 的 task_id 实际为 number，用 json.Number 兼容
 type t2aCreateResp struct {
-	TaskID   string `json:"task_id"`
-	FileID   int64  `json:"file_id"`
+	TaskID   json.Number `json:"task_id"`
+	FileID   int64       `json:"file_id"`
 	BaseResp *struct {
 		StatusCode int    `json:"status_code"`
 		StatusMsg  string `json:"status_msg"`
@@ -126,10 +127,11 @@ func (p *MiniMaxTTSProvider) SubmitTTSTask(ctx context.Context, req capability.T
 	if result.BaseResp != nil && result.BaseResp.StatusCode != 0 {
 		return "", fmt.Errorf("MiniMax 错误: %s (code=%d)", result.BaseResp.StatusMsg, result.BaseResp.StatusCode)
 	}
-	if result.TaskID == "" {
+	taskID := result.TaskID.String()
+	if taskID == "" || taskID == "0" {
 		return "", fmt.Errorf("MiniMax 未返回 task_id")
 	}
-	return result.TaskID, nil
+	return taskID, nil
 }
 
 // QueryTTSTask 查询 TTS 任务状态
@@ -174,6 +176,114 @@ func (p *MiniMaxTTSProvider) QueryTTSTask(ctx context.Context, taskID string) (*
 		ttsResult.Status = "pending"
 	}
 	return ttsResult, nil
+}
+
+// SynthesizeSync 同步语音合成（t2a_v2），直接返回 mp3 音频字节
+// 适用于短文本试听，2~5 秒内返回结果
+func (p *MiniMaxTTSProvider) SynthesizeSync(ctx context.Context, req capability.TTSRequest) ([]byte, error) {
+	model := req.Model
+	if model == "" {
+		model = "speech-2.8-hd"
+	}
+	voiceID := req.VoiceID
+	if voiceID == "" {
+		voiceID = "audiobook_male_1"
+	}
+
+	body := map[string]any{
+		"model":  model,
+		"text":   req.Text,
+		"stream": false,
+		"voice_setting": map[string]any{
+			"voice_id": voiceID,
+			"speed":    1,
+			"vol":      1,
+			"pitch":    0,
+		},
+		"audio_setting": map[string]any{
+			"sample_rate": 32000,
+			"bitrate":     128000,
+			"format":      "mp3",
+			"channel":     1,
+		},
+	}
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("序列化请求失败: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, minimaxAPIBase+"/v1/t2a_v2", bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", "Bearer "+p.apiKey)
+
+	resp, err := p.client.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("请求 t2a_v2 失败: %w", err)
+	}
+	defer resp.Body.Close()
+	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("MiniMax t2a_v2 返回 %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var result struct {
+		Data struct {
+			Audio  string `json:"audio"`
+			Status int    `json:"status"`
+		} `json:"data"`
+		BaseResp *struct {
+			StatusCode int    `json:"status_code"`
+			StatusMsg  string `json:"status_msg"`
+		} `json:"base_resp"`
+	}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return nil, fmt.Errorf("解析 t2a_v2 响应失败: %w", err)
+	}
+	if result.BaseResp != nil && result.BaseResp.StatusCode != 0 {
+		return nil, fmt.Errorf("MiniMax t2a_v2 错误: %s (code=%d)", result.BaseResp.StatusMsg, result.BaseResp.StatusCode)
+	}
+	if result.Data.Audio == "" {
+		return nil, fmt.Errorf("MiniMax t2a_v2 未返回音频数据")
+	}
+
+	audioBytes, err := hexDecode(result.Data.Audio)
+	if err != nil {
+		return nil, fmt.Errorf("解码 hex 音频失败: %w", err)
+	}
+	return audioBytes, nil
+}
+
+// hexDecode 解码 hex 编码的字符串
+func hexDecode(s string) ([]byte, error) {
+	if len(s)%2 != 0 {
+		return nil, fmt.Errorf("hex 字符串长度为奇数")
+	}
+	b := make([]byte, len(s)/2)
+	for i := 0; i < len(s); i += 2 {
+		hi := unhex(s[i])
+		lo := unhex(s[i+1])
+		if hi == 0xFF || lo == 0xFF {
+			return nil, fmt.Errorf("无效 hex 字符在位置 %d", i)
+		}
+		b[i/2] = hi<<4 | lo
+	}
+	return b, nil
+}
+
+func unhex(c byte) byte {
+	switch {
+	case '0' <= c && c <= '9':
+		return c - '0'
+	case 'a' <= c && c <= 'f':
+		return c - 'a' + 10
+	case 'A' <= c && c <= 'F':
+		return c - 'A' + 10
+	default:
+		return 0xFF
+	}
 }
 
 // getFileDownloadURL 通过 file_id 获取下载 URL

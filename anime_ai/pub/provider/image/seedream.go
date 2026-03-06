@@ -4,7 +4,9 @@ package image
 import (
 	"context"
 	"fmt"
+	"io"
 	"math"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,6 +39,7 @@ func NewSeedreamProvider(apiKey string) *SeedreamProvider {
 
 func (p *SeedreamProvider) Name() string { return "seedream" }
 
+// SubmitImageTask 通过 SSE 流式调用火山生图 API，单图/组图统一使用流式连接
 func (p *SeedreamProvider) SubmitImageTask(ctx context.Context, req capability.ImageRequest) (string, error) {
 	mdl := req.Model
 	if mdl == "" {
@@ -63,27 +66,44 @@ func (p *SeedreamProvider) SubmitImageTask(ctx context.Context, req capability.I
 		generateReq.Image = req.ReferenceImageURLs
 	}
 
-	resp, err := p.client.GenerateImages(ctx, generateReq)
+	stream, err := p.client.GenerateImagesStreaming(ctx, generateReq)
 	if err != nil {
 		return "", fmt.Errorf("seedream generate: %w", err)
 	}
+	defer stream.Close()
 
-	if resp.Error != nil {
-		return "", fmt.Errorf("seedream API error %s: %s", resp.Error.Code, resp.Error.Message)
+	urls := make([]string, 0, 4)
+	for {
+		recv, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return "", fmt.Errorf("seedream stream: %w", err)
+		}
+
+		switch recv.Type {
+		case model.ImageGenerationStreamEventPartialSucceeded:
+			if recv.Url != nil && *recv.Url != "" {
+				urls = append(urls, *recv.Url)
+			}
+		case model.ImageGenerationStreamEventPartialFailed:
+			if recv.Error != nil && strings.EqualFold(recv.Error.Code, "InternalServiceError") {
+				return "", fmt.Errorf("seedream API 内部异常: %s", recv.Error.Message)
+			}
+		default:
+			if recv.Error != nil {
+				return "", fmt.Errorf("seedream API error %s: %s", recv.Error.Code, recv.Error.Message)
+			}
+		}
 	}
 
-	if len(resp.Data) == 0 {
+	if len(urls) == 0 {
 		return "", fmt.Errorf("seedream API returned no images")
 	}
 
 	taskID := fmt.Sprintf("seedream_%d", time.Now().UnixNano())
-
-	imgResult := &capability.ImageResult{Status: "completed"}
-	for _, img := range resp.Data {
-		if img != nil && img.Url != nil {
-			imgResult.URLs = append(imgResult.URLs, *img.Url)
-		}
-	}
+	imgResult := &capability.ImageResult{Status: "completed", URLs: urls}
 
 	p.mu.Lock()
 	p.results[taskID] = imgResult

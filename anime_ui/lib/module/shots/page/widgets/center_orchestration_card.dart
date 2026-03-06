@@ -231,32 +231,35 @@ class CenterOrchestrationCard extends ConsumerWidget {
   }
 
   Widget _taskToggle(WidgetRef ref, String label, bool enabled, String type) {
-    return GestureDetector(
-      onTap: () =>
-          ref.read(compositeConfigProvider.notifier).toggleTask(type, !enabled),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.md.w,
-          vertical: Spacing.sm.h,
-        ),
-        decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(
-            color: enabled
-                ? AppColors.primary.withValues(alpha: 0.4)
-                : AppColors.border,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () =>
+            ref.read(compositeConfigProvider.notifier).toggleTask(type, !enabled),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.md.w,
+            vertical: Spacing.sm.h,
           ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
+          decoration: BoxDecoration(
             color: enabled
-                ? AppColors.primary
-                : AppColors.onSurface.withValues(alpha: 0.55),
-            fontWeight: enabled ? FontWeight.w600 : FontWeight.normal,
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(
+              color: enabled
+                  ? AppColors.primary.withValues(alpha: 0.4)
+                  : AppColors.border,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: enabled
+                  ? AppColors.primary
+                  : AppColors.onSurface.withValues(alpha: 0.55),
+              fontWeight: enabled ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
       ),

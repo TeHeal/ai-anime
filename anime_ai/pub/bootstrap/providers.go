@@ -85,10 +85,6 @@ func initTTSRouter(cfg *config.Config) *mesh.TTSRouter {
 	policy := mesh.DefaultPolicy()
 	breaker := mesh.NewBreaker(3)
 	router := mesh.NewTTSRouter(policy, breaker)
-	if cfg.TTS.CosyVoiceKey != "" {
-		router.RegisterProvider(audio.NewCosyVoiceTTSProvider(cfg.TTS.CosyVoiceKey))
-		log.Println("TTS Provider 已注册: cosyvoice")
-	}
 	if cfg.TTS.MiniMaxKey != "" {
 		router.RegisterProvider(audio.NewMiniMaxTTSProvider(cfg.TTS.MiniMaxKey))
 		log.Println("TTS Provider 已注册: minimax_tts")

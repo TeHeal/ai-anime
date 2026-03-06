@@ -83,40 +83,44 @@ class _ComboboxSelectState extends State<ComboboxSelect> {
     final hasValue = widget.value.isNotEmpty;
     return CompositedTransformTarget(
       link: _layerLink,
-      child: GestureDetector(
-        onTap: _toggle,
-        child: Container(
-          height: 36.h,
-          padding: EdgeInsets.symmetric(horizontal: Spacing.sm.w),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceMutedDark,
-            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-            border: Border.all(
-              color: _isOpen
-                  ? widget.accentColor.withValues(alpha: 0.6)
-                  : AppColors.border.withValues(alpha: 0.3),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: _toggle,
+          child: Container(
+            height: 36.h,
+            padding: EdgeInsets.symmetric(horizontal: Spacing.sm.w),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceMutedDark,
+              borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+              border: Border.all(
+                color: _isOpen
+                    ? widget.accentColor.withValues(alpha: 0.6)
+                    : AppColors.border.withValues(alpha: 0.3),
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  hasValue ? widget.value : widget.hint,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: hasValue ? AppColors.onSurface : AppColors.mutedDark,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    hasValue ? widget.value : widget.hint,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color:
+                          hasValue ? AppColors.onSurface : AppColors.mutedDark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Icon(
-                _isOpen
-                    ? Icons.keyboard_arrow_up_rounded
-                    : Icons.keyboard_arrow_down_rounded,
-                size: 18.r,
-                color: AppColors.muted,
-              ),
-            ],
+                Icon(
+                  _isOpen
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  size: 18.r,
+                  color: AppColors.muted,
+                ),
+              ],
+            ),
           ),
         ),
       ),

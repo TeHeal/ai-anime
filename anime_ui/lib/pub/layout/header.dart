@@ -8,6 +8,7 @@ import 'package:anime_ui/pub/const/app_const.dart';
 import 'package:anime_ui/pub/const/routes.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/widgets/pulse.dart';
+import 'package:anime_ui/pub/widgets/global_task_indicator.dart';
 import 'package:anime_ui/module/dashboard/index.dart';
 import 'package:anime_ui/pub/providers/notification_provider.dart';
 import 'package:anime_ui/pub/widgets/user_menu.dart';
@@ -143,6 +144,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
           onTap: () => context.go(Routes.projects),
         ),
         SizedBox(width: Spacing.md.w),
+        const GlobalTaskIndicator(),
+        SizedBox(width: Spacing.md.w),
         const _NotificationBadge(),
         SizedBox(width: Spacing.lg.w),
         Padding(
@@ -177,6 +180,7 @@ class _HeaderActionButtonState extends State<_HeaderActionButton> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: Tooltip(

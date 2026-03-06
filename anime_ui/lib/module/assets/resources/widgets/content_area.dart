@@ -11,6 +11,7 @@ import 'package:anime_ui/pub/widgets/generation_center/batch_action_bar.dart';
 import 'package:anime_ui/pub/widgets/image_lightbox.dart';
 import 'package:anime_ui/pub/widgets/text_gen/text_gen_dialog.dart';
 import 'package:anime_ui/pub/widgets/voice_gen/voice_gen_dialog.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../models/resource_category.dart';
 import '../providers/provider.dart';
@@ -83,8 +84,18 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
     final viewMode = ref.watch(viewModeProvider);
     final batchMode = ref.watch(batchModeProvider);
     final selectedIds = ref.watch(selectedResourceIdsProvider);
+    final activeTasks = ref.watch(resourceTasksProvider);
     final color = widget.modality.color;
     final isLoading = asyncList is AsyncLoading;
+
+    // 构建 resourceId → ResourceTaskState 反向索引
+    final taskByResourceId = <String, ResourceTaskState>{};
+    for (final entry in activeTasks.entries) {
+      final rid = entry.value.resourceId;
+      if (rid != null && rid.isNotEmpty) {
+        taskByResourceId[rid] = entry.value;
+      }
+    }
 
     return Container(
       color: AppColors.background,
@@ -186,9 +197,11 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
                         context,
                         resources,
                         color,
+                        libraryType,
                         viewMode,
                         batchMode,
                         selectedIds,
+                        taskByResourceId,
                       ),
           ),
         ],
@@ -228,17 +241,19 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
     BuildContext context,
     List<Resource> resources,
     Color color,
+    ResourceLibraryType libraryType,
     ViewMode viewMode,
     bool batchMode,
     Set<String> selectedIds,
+    Map<String, ResourceTaskState> taskByResourceId,
   ) {
     return switch (viewMode) {
-      ViewMode.grid => _buildGrid(
-          context, resources, color, batchMode, selectedIds),
-      ViewMode.list => _buildList(
-          context, resources, color, batchMode, selectedIds),
-      ViewMode.preview => _buildPreview(
-          context, resources, color, batchMode, selectedIds),
+      ViewMode.grid => _buildGrid(context, resources, color, libraryType,
+          batchMode, selectedIds, taskByResourceId),
+      ViewMode.list => _buildList(context, resources, color, libraryType,
+          batchMode, selectedIds, taskByResourceId),
+      ViewMode.preview => _buildPreview(context, resources, color, libraryType,
+          batchMode, selectedIds, taskByResourceId),
     };
   }
 
@@ -324,13 +339,40 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
     }
   }
 
+  /// 音色试听：从 metadata 读取 provider/voiceId，调用后端 TTS 合成并返回 URL
+  /// 支持系统音色（source=system）及用户音色（有 provider+voiceId 但 audioUrl 为空）
+  Future<String?> _getPreviewUrlForVoice(Resource resource) async {
+    final m = resource.metadata;
+    final provider = m['provider'] as String?;
+    final voiceId = m['voiceId'] as String?;
+    if (provider == null || provider.isEmpty || voiceId == null || voiceId.isEmpty) {
+      return null;
+    }
+    // 有 audioUrl 则无需请求预览
+    if (resource.audioUrl.isNotEmpty) return null;
+    final svc = ref.read(resourceSvcProvider);
+    final url = await svc.getSystemVoicePreview(provider: provider, voiceId: voiceId);
+    return url.isEmpty ? null : url;
+  }
+
+  /// 将 ResourceTaskState 转换为卡片 UI 需要的 ResourceTaskStatus 枚举
+  ResourceTaskStatus? _toCardStatus(ResourceTaskState? ts) {
+    if (ts == null) return null;
+    if (ts.isGenerating) return ResourceTaskStatus.generating;
+    if (ts.isFailed) return ResourceTaskStatus.failed;
+    if (ts.isCompleted) return ResourceTaskStatus.completed;
+    return null;
+  }
+
   /// Grid 灵感墙：纯图卡片，4~6 列，3:4 竖向比例
   Widget _buildGrid(
     BuildContext context,
     List<Resource> resources,
     Color color,
+    ResourceLibraryType libraryType,
     bool batchMode,
     Set<String> selectedIds,
+    Map<String, ResourceTaskState> taskByResourceId,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -351,16 +393,23 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
             final res = resources[index];
             final resId = res.id ?? '';
             final isSelected = batchMode && selectedIds.contains(resId);
+            final ts = resId.isNotEmpty ? taskByResourceId[resId] : null;
+            final cardStatus = _toCardStatus(ts);
             if (isAudioResource(res)) {
               return AudioGridCard(
                 resource: res,
                 accentColor: color,
                 isSelected: isSelected,
                 isBatchMode: batchMode,
+                taskStatus: cardStatus,
+                taskProgress: ts?.progress,
                 onTap: _onTap(res, resId, color, batchMode),
                 onViewDetail: () => _openDetail(res, color),
                 onEdit: () => _openEdit(res, color),
                 onDelete: _onDelete(res),
+                onGetPreviewUrl: libraryType == ResourceLibraryType.voice
+                    ? _getPreviewUrlForVoice
+                    : null,
               );
             }
             if (isTextResource(res)) {
@@ -369,6 +418,8 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
                 accentColor: color,
                 isSelected: isSelected,
                 isBatchMode: batchMode,
+                taskStatus: cardStatus,
+                taskProgress: ts?.progress,
                 onTap: _onTap(res, resId, color, batchMode),
                 onViewDetail: () => _openDetail(res, color),
                 onEdit: () => _openEdit(res, color),
@@ -381,6 +432,8 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
               accentColor: color,
               isSelected: isSelected,
               isBatchMode: batchMode,
+              taskStatus: cardStatus,
+              taskProgress: ts?.progress,
               onTap: _onTap(res, resId, color, batchMode),
               onViewLargeImage: _onViewLargeImage(res),
               onEdit: () => _openEdit(res, color),
@@ -397,8 +450,10 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
     BuildContext context,
     List<Resource> resources,
     Color color,
+    ResourceLibraryType libraryType,
     bool batchMode,
     Set<String> selectedIds,
+    Map<String, ResourceTaskState> taskByResourceId,
   ) {
     return ListView.separated(
       padding: EdgeInsets.symmetric(vertical: Spacing.sm.h),
@@ -412,17 +467,24 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
         final res = resources[index];
         final resId = res.id ?? '';
         final isSelected = batchMode && selectedIds.contains(resId);
+        final ts = resId.isNotEmpty ? taskByResourceId[resId] : null;
+        final cardStatus = _toCardStatus(ts);
         if (isAudioResource(res)) {
           return AudioListTile(
             resource: res,
             accentColor: color,
             isSelected: isSelected,
             isBatchMode: batchMode,
+            taskStatus: cardStatus,
+            taskProgress: ts?.progress,
             onTap: _onTap(res, resId, color, batchMode),
             onViewDetail: () => _openDetail(res, color),
             onEdit: () => _openEdit(res, color),
             onCopy: () => _doCopy(res),
             onDelete: _onDelete(res),
+            onGetPreviewUrl: libraryType == ResourceLibraryType.voice
+                ? _getPreviewUrlForVoice
+                : null,
           );
         }
         if (isTextResource(res)) {
@@ -431,6 +493,8 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
             accentColor: color,
             isSelected: isSelected,
             isBatchMode: batchMode,
+            taskStatus: cardStatus,
+            taskProgress: ts?.progress,
             onTap: _onTap(res, resId, color, batchMode),
             onViewDetail: () => _openDetail(res, color),
             onEdit: () => _openEdit(res, color),
@@ -443,6 +507,8 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
           accentColor: color,
           isSelected: isSelected,
           isBatchMode: batchMode,
+          taskStatus: cardStatus,
+          taskProgress: ts?.progress,
           onTap: _onTap(res, resId, color, batchMode),
           onViewLargeImage: _onViewLargeImage(res),
           onViewDetail: () => _openDetail(res, color),
@@ -454,13 +520,15 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
     );
   }
 
-  /// Preview 审阅：2 列大图 + 详情
+  /// Preview 审阅：瀑布流布局，每张卡片高度自适应内容
   Widget _buildPreview(
     BuildContext context,
     List<Resource> resources,
     Color color,
+    ResourceLibraryType libraryType,
     bool batchMode,
     Set<String> selectedIds,
+    Map<String, ResourceTaskState> taskByResourceId,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -468,30 +536,34 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
           constraints.maxWidth,
           maxCols: 2,
         );
-        return GridView.builder(
+        return MasonryGridView.count(
           padding: EdgeInsets.all(Spacing.mid.r),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: Spacing.lg.w,
-            mainAxisSpacing: Spacing.lg.h,
-            childAspectRatio: 0.62,
-          ),
+          crossAxisCount: crossAxisCount,
+          mainAxisSpacing: Spacing.lg.h,
+          crossAxisSpacing: Spacing.lg.w,
           itemCount: resources.length,
           itemBuilder: (context, index) {
             final res = resources[index];
             final resId = res.id ?? '';
             final isSelected = batchMode && selectedIds.contains(resId);
+            final ts = resId.isNotEmpty ? taskByResourceId[resId] : null;
+            final cardStatus = _toCardStatus(ts);
             if (isAudioResource(res)) {
               return AudioPreviewCard(
                 resource: res,
                 accentColor: color,
                 isSelected: isSelected,
                 isBatchMode: batchMode,
+                taskStatus: cardStatus,
+                taskProgress: ts?.progress,
                 onTap: _onTap(res, resId, color, batchMode),
                 onViewDetail: () => _openDetail(res, color),
                 onEdit: () => _openEdit(res, color),
                 onCopy: () => _doCopy(res),
                 onDelete: _onDelete(res),
+                onGetPreviewUrl: libraryType == ResourceLibraryType.voice
+                    ? _getPreviewUrlForVoice
+                    : null,
               );
             }
             if (isTextResource(res)) {
@@ -500,6 +572,8 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
                 accentColor: color,
                 isSelected: isSelected,
                 isBatchMode: batchMode,
+                taskStatus: cardStatus,
+                taskProgress: ts?.progress,
                 onTap: _onTap(res, resId, color, batchMode),
                 onViewDetail: () => _openDetail(res, color),
                 onEdit: () => _openEdit(res, color),
@@ -512,6 +586,8 @@ class _ContentAreaState extends ConsumerState<ContentArea> {
               accentColor: color,
               isSelected: isSelected,
               isBatchMode: batchMode,
+              taskStatus: cardStatus,
+              taskProgress: ts?.progress,
               onTap: _onTap(res, resId, color, batchMode),
               onViewLargeImage: _onViewLargeImage(res),
               onViewDetail: () => _openDetail(res, color),

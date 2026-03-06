@@ -371,6 +371,7 @@ func New(cfg *config.Config) (*App, error) {
 		ShotVideoReader:  exportShotVideoReader,
 		Storage:          d.store,
 		RealtimeHub:      realtimeHub,
+		TaskNotifier:     taskNotifier,
 	})
 
 	packageStore := package_task.NewDBStore(db.New(pool))
@@ -379,35 +380,23 @@ func New(cfg *config.Config) (*App, error) {
 		packageWorkerHandler = worker.NewPackageTaskHandler(d.logger, worker.PackageTaskDeps{
 			PackageUpdater: packageStore,
 			Storage:        d.store,
+			TaskNotifier:   taskNotifier,
 		})
 	}
 	log.Println("按集打包模块已启用")
 
-	// Asynq
+	// Asynq：初始化 client/server，但延迟启动 worker（等素材库 handler 初始化完成）
 	redisAddr := cfg.Redis.Addr
+	var pipelineHandler *worker.PipelineTaskHandler
 	if redisAddr != "" && worker.PingRedis(redisAddr, cfg.Redis.Password, cfg.Redis.DB) {
 		d.asynqClient = worker.NewClient(redisAddr, cfg.Redis.Password, cfg.Redis.DB)
 		d.asynqServer = worker.NewServer(redisAddr, cfg.Redis.Password, cfg.Redis.DB, d.logger)
-		pipelineHandler := worker.NewPipelineTaskHandler(d.logger, worker.PipelineTaskDeps{
+		pipelineHandler = worker.NewPipelineTaskHandler(d.logger, worker.PipelineTaskDeps{
 			ScriptLockChecker: d.scriptLockCheck,
 			AsynqClient:       d.asynqClient,
 			RealtimeHub:       realtimeHub,
 		})
-		muxDeps := &worker.MuxDeps{
-			ImageHandler:    imageHandler,
-			VideoHandler:    videoHandler,
-			TTSHandler:      ttsHandler,
-			ExportHandler:   exportHandler,
-			PackageHandler:  packageWorkerHandler,
-			PipelineHandler: pipelineHandler,
-		}
-		mux := worker.SetupMuxWithDeps(d.logger, muxDeps)
-		go func() {
-			if err := d.asynqServer.Run(mux); err != nil {
-				d.logger.Error("Asynq Worker 异常退出", zap.Error(err))
-			}
-		}()
-		d.logger.Info("Asynq Worker 已启动", zap.String("redis", redisAddr))
+		d.logger.Info("Asynq Client/Server 已初始化（延迟启动 Worker）", zap.String("redis", redisAddr))
 	} else {
 		if redisAddr == "" {
 			d.logger.Info("Redis 未配置，跳过 Asynq Worker 启动")
@@ -458,15 +447,57 @@ func New(cfg *config.Config) (*App, error) {
 	}
 	resourceSvc.SetTTSCapability(mesh.NewTTSCapability(ttsRouter))
 	if cfg.TTS.MiniMaxKey != "" {
+		resourceSvc.SetTTSSyncProvider(audio.NewMiniMaxTTSProvider(cfg.TTS.MiniMaxKey))
+	}
+	if cfg.TTS.MiniMaxKey != "" {
 		resourceSvc.SetVoiceCloneProvider(audio.NewMiniMaxVoiceCloneProvider(cfg.TTS.MiniMaxKey))
 		log.Println("音色克隆 Provider 已注册: minimax_voice_clone")
+		resourceSvc.SetVoiceDesignProvider(audio.NewMiniMaxVoiceDesignProvider(cfg.TTS.MiniMaxKey))
+		log.Println("音色设计 Provider 已注册: minimax_voice_design")
+		resourceSvc.SetSystemVoiceLister(audio.NewMiniMaxSystemVoiceLister(cfg.TTS.MiniMaxKey))
+		log.Println("系统音色列表 Provider 已注册: minimax")
 	}
 	if d.store != nil {
 		resourceSvc.SetStorage(d.store)
 	}
-	d.resourceHandler = resource.NewHandler(resourceSvc, realtimeHub)
-	d.aiHandler = ai.NewHandler(resourceSvc)
+	d.resourceHandler = resource.NewHandler(resourceSvc, realtimeHub, d.logger)
+	d.aiHandler = ai.NewHandler(resourceSvc, realtimeHub, d.logger)
+
+	// 素材库生成注入 asynq 入队 + asynq worker handler
+	var resourceGenHandler *worker.ResourceGenHandler
+	if d.asynqClient != nil {
+		taskAdapter := resource.NewTaskSvcAdapter(taskSvc)
+		d.resourceHandler.SetAsynq(d.asynqClient, taskAdapter)
+		d.aiHandler.SetAsynq(d.asynqClient, taskAdapter)
+		resourceGenHandler = worker.NewResourceGenHandler(d.logger, worker.ResourceGenDeps{
+			ResourceSvc:  resourceSvc,
+			RealtimeHub:  realtimeHub,
+			TaskNotifier: taskNotifier,
+			TaskRecorder: task.NewTaskRecorder(taskSvc),
+		})
+		d.logger.Info("素材库生成已注入 asynq 入队")
+	}
 	log.Println("素材库模块已启用")
+
+	// 启动 Asynq Worker（在所有 handler 初始化完成后）
+	if d.asynqServer != nil {
+		muxDeps := &worker.MuxDeps{
+			ImageHandler:       imageHandler,
+			VideoHandler:       videoHandler,
+			TTSHandler:         ttsHandler,
+			ExportHandler:      exportHandler,
+			PackageHandler:     packageWorkerHandler,
+			PipelineHandler:    pipelineHandler,
+			ResourceGenHandler: resourceGenHandler,
+		}
+		mux := worker.SetupMuxWithDeps(d.logger, muxDeps)
+		go func() {
+			if err := d.asynqServer.Run(mux); err != nil {
+				d.logger.Error("Asynq Worker 异常退出", zap.Error(err))
+			}
+		}()
+		d.logger.Info("Asynq Worker 已启动 (含素材库生成)")
+	}
 
 	// 仪表盘
 	dashboardSvc := dashboard.NewService(

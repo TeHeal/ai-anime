@@ -309,24 +309,27 @@ class _CharacterListPanelState extends ConsumerState<CharacterListPanel> {
                   ],
                 ),
                 trailing: _multiSelect
-                    ? GestureDetector(
-                        onTap: () {
-                          if (c.id != null) {
-                            setState(() {
-                              if (_selectedIds.contains(c.id!)) {
-                                _selectedIds.remove(c.id!);
-                              } else {
-                                _selectedIds.add(c.id!);
-                              }
-                            });
-                          }
-                        },
-                        child: Icon(
-                          isChecked ? AppIcons.check : AppIcons.circleOutline,
-                          size: 18.r,
-                          color: isChecked
-                              ? AppColors.primary
-                              : AppColors.onSurface.withValues(alpha: 0.5),
+                    ? MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (c.id != null) {
+                              setState(() {
+                                if (_selectedIds.contains(c.id!)) {
+                                  _selectedIds.remove(c.id!);
+                                } else {
+                                  _selectedIds.add(c.id!);
+                                }
+                              });
+                            }
+                          },
+                          child: Icon(
+                            isChecked ? AppIcons.check : AppIcons.circleOutline,
+                            size: 18.r,
+                            color: isChecked
+                                ? AppColors.primary
+                                : AppColors.onSurface.withValues(alpha: 0.5),
+                          ),
                         ),
                       )
                     : null,

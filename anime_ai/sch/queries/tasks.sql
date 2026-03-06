@@ -1,8 +1,9 @@
 -- name: CreateTask :one
 -- 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
+-- project_id 可空：素材库任务无项目归属
 INSERT INTO tasks (project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg)
 VALUES (
-    sqlc.arg('project_id'), sqlc.arg('user_id'), sqlc.arg('type'),
+    sqlc.narg('project_id'), sqlc.arg('user_id'), sqlc.arg('type'),
     COALESCE(sqlc.narg('status'), 'pending'),
     COALESCE(sqlc.narg('progress'), 0),
     COALESCE(sqlc.narg('title'), ''),

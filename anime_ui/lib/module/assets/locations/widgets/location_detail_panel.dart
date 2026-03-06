@@ -198,10 +198,13 @@ class LocationDetailPanel extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: onEdit,
-                child: Icon(AppIcons.edit, size: 14.r,
-                    color: AppColors.onSurface.withValues(alpha: 0.55)),
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: onEdit,
+                  child: Icon(AppIcons.edit, size: 14.r,
+                      color: AppColors.onSurface.withValues(alpha: 0.55)),
+                ),
               ),
             ],
           ),

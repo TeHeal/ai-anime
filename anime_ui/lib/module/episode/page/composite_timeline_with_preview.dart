@@ -71,27 +71,30 @@ class _ViewToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.lg.w,
-          vertical: Spacing.sm.h,
-        ),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(
-            color: isActive ? AppColors.primary : AppColors.border,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.lg.w,
+            vertical: Spacing.sm.h,
           ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.labelLarge.copyWith(
-            color: isActive ? AppColors.primary : AppColors.mutedDark,
+          decoration: BoxDecoration(
+            color: isActive
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(
+              color: isActive ? AppColors.primary : AppColors.border,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.labelLarge.copyWith(
+              color: isActive ? AppColors.primary : AppColors.mutedDark,
+            ),
           ),
         ),
       ),

@@ -215,21 +215,22 @@ class _ManageAccountsDialogState extends State<ManageAccountsDialog> {
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.onSurface,
                   ),
-                  decoration: _compactInputDecor(
-                    hint: '密码',
-                    icon: AppIcons.lockOutline,
-                  ).copyWith(
-                    suffixIcon: IconButton(
-                      onPressed: () =>
-                          setState(() => _pwdVisible = !_pwdVisible),
-                      icon: Icon(
-                        _pwdVisible ? AppIcons.lockUnlocked : AppIcons.lock,
-                        size: Spacing.gridGap.r,
-                        color: AppColors.mutedDark,
+                  decoration:
+                      _compactInputDecor(
+                        hint: '密码',
+                        icon: AppIcons.lockOutline,
+                      ).copyWith(
+                        suffixIcon: IconButton(
+                          onPressed: () =>
+                              setState(() => _pwdVisible = !_pwdVisible),
+                          icon: Icon(
+                            _pwdVisible ? AppIcons.lockUnlocked : AppIcons.lock,
+                            size: Spacing.gridGap.r,
+                            color: AppColors.mutedDark,
+                          ),
+                          splashRadius: Spacing.lg.r,
+                        ),
                       ),
-                      splashRadius: Spacing.lg.r,
-                    ),
-                  ),
                 ),
               ),
             ],
@@ -261,8 +262,9 @@ class _ManageAccountsDialogState extends State<ManageAccountsDialog> {
                 ),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  disabledBackgroundColor:
-                      AppColors.primary.withValues(alpha: 0.4),
+                  disabledBackgroundColor: AppColors.primary.withValues(
+                    alpha: 0.4,
+                  ),
                   padding: EdgeInsets.symmetric(
                     horizontal: Spacing.lg.w,
                     vertical: Spacing.buttonPaddingV.h,
@@ -281,41 +283,44 @@ class _ManageAccountsDialogState extends State<ManageAccountsDialog> {
 
   Widget _buildRoleChip(String value, String label, IconData icon) {
     final selected = _role == value;
-    return GestureDetector(
-      onTap: () => setState(() => _role = value),
-      child: AnimatedContainer(
-        duration: MotionTokens.durationFast,
-        curve: MotionTokens.curveStandard,
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.chipPaddingH.w,
-          vertical: Spacing.chipPaddingV.h,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.inputBorder,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => setState(() => _role = value),
+        child: AnimatedContainer(
+          duration: MotionTokens.durationFast,
+          curve: MotionTokens.curveStandard,
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.chipPaddingH.w,
+            vertical: Spacing.chipPaddingV.h,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: Spacing.gridGap.r,
-              color: selected ? AppColors.primary : AppColors.mutedDark,
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(
+              color: selected ? AppColors.primary : AppColors.inputBorder,
             ),
-            SizedBox(width: Spacing.xs.w),
-            Text(
-              label,
-              style: AppTextStyles.labelMedium.copyWith(
-                color: selected ? AppColors.primary : AppColors.muted,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: Spacing.gridGap.r,
+                color: selected ? AppColors.primary : AppColors.mutedDark,
               ),
-            ),
-          ],
+              SizedBox(width: Spacing.xs.w),
+              Text(
+                label,
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: selected ? AppColors.primary : AppColors.muted,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -328,8 +333,11 @@ class _ManageAccountsDialogState extends State<ManageAccountsDialog> {
     return InputDecoration(
       hintText: hint,
       hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedDark),
-      prefixIcon:
-          Icon(icon, size: Spacing.menuIconSize.r, color: AppColors.muted),
+      prefixIcon: Icon(
+        icon,
+        size: Spacing.menuIconSize.r,
+        color: AppColors.muted,
+      ),
       isDense: true,
       filled: true,
       fillColor: AppColors.surface,

@@ -42,9 +42,8 @@ class VoiceGenController extends ChangeNotifier {
   bool get canGenerate {
     if (isGenerating) return false;
     if (name.isEmpty) return false;
-    return mode == VoiceGenMode.clone
-        ? sampleAudioUrl.isNotEmpty
-        : designPrompt.isNotEmpty;
+    if (mode == VoiceGenMode.clone) return sampleAudioUrl.isNotEmpty;
+    return designPrompt.isNotEmpty;
   }
 
   // ── Upload sample audio (clone mode) ──

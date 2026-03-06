@@ -62,59 +62,65 @@ class ModelSelectorDialogTrigger extends StatelessWidget {
   }
 
   Widget _buildTrigger(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showPicker(context),
-      child: Container(
-        height: 38.h,
-        padding: EdgeInsets.symmetric(horizontal: Spacing.md.w),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceMutedDarker,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: selected != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          selected!.displayName,
-                          style: AppTextStyles.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (selected!.features.isNotEmpty)
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => _showPicker(context),
+        child: Container(
+          constraints: BoxConstraints(minHeight: 38.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.md.w,
+            vertical: Spacing.xs.h,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceMutedDarker,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: selected != null
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           Text(
-                            translateFeatures(selected!.features),
-                            style: AppTextStyles.labelTinySmall.copyWith(
-                              color: AppColors.onSurface.withValues(
-                                alpha: 0.55,
-                              ),
+                            selected!.displayName,
+                            style: AppTextStyles.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      ],
-                    )
-                  : Text(
-                      '选择模型',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.onSurface.withValues(alpha: 0.5),
+                          if (selected!.features.isNotEmpty)
+                            Text(
+                              translateFeatures(selected!.features),
+                              style: AppTextStyles.labelTinySmall.copyWith(
+                                color: AppColors.onSurface.withValues(
+                                  alpha: 0.55,
+                                ),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      )
+                    : Text(
+                        '选择模型',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.onSurface.withValues(alpha: 0.5),
+                        ),
                       ),
-                    ),
-            ),
-            Icon(
-              AppIcons.expandMore,
-              size: 14.r,
-              color: AppColors.onSurface.withValues(alpha: 0.55),
-            ),
-          ],
+              ),
+              Icon(
+                AppIcons.expandMore,
+                size: 14.r,
+                color: AppColors.onSurface.withValues(alpha: 0.55),
+              ),
+            ],
+          ),
         ),
       ),
     );

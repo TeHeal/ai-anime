@@ -73,36 +73,39 @@ class CharacterVoiceCard extends ConsumerWidget {
                   runSpacing: Spacing.xs.h,
                   children: [
                     if (c.voiceName.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          showToast(context, '试听功能开发中', isInfo: true);
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Spacing.sm.w,
-                            vertical: Spacing.xs.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.12),
-                            borderRadius:
-                                BorderRadius.circular(RadiusTokens.sm.r),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                AppIcons.play,
-                                size: 12.r,
-                                color: AppColors.primary,
-                              ),
-                              SizedBox(width: Spacing.xs.w),
-                              Text(
-                                '试听',
-                                style: AppTextStyles.tiny.copyWith(
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            showToast(context, '试听功能开发中', isInfo: true);
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.sm.w,
+                              vertical: Spacing.xs.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              borderRadius:
+                                  BorderRadius.circular(RadiusTokens.sm.r),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  AppIcons.play,
+                                  size: 12.r,
                                   color: AppColors.primary,
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: Spacing.xs.w),
+                                Text(
+                                  '试听',
+                                  style: AppTextStyles.tiny.copyWith(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/theme/design_tokens.dart';
 import 'package:anime_ui/pub/theme/app_icons.dart';
+import 'package:anime_ui/pub/domain/resource_list_port.dart';
 import 'package:anime_ui/pub/providers/resource_list_port_provider.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/utils/url.dart' show resolveFileUrl;
@@ -116,7 +117,7 @@ class _ImageGenViewState extends State<ImageGenView> {
   }
 
   Future<void> _generateOne({
-    required dynamic port,
+    required ResourceListPort port,
     required String prompt,
     required String negPrompt,
     required String referenceImageUrl,
@@ -129,7 +130,7 @@ class _ImageGenViewState extends State<ImageGenView> {
     required void Function(int)? onProgress,
     required void Function(String) onResult,
   }) async {
-    final resourceId = await port.generateImage(
+    final resource = await port.generateImage(
       name: '${config.title}-${DateTime.now().millisecondsSinceEpoch}',
       libraryType: config.libraryType,
       modality: config.modality,
@@ -146,22 +147,18 @@ class _ImageGenViewState extends State<ImageGenView> {
       onProgress: onProgress ?? (_) {},
     );
 
-    if (resourceId != null) {
-      final resources = port.resources.value ?? [];
-      final matches = resources.where((r) => r.id == resourceId);
-      final generated = matches.isEmpty ? null : matches.first;
-      if (generated != null && generated.thumbnailUrl.isNotEmpty) {
-        onResult(generated.thumbnailUrl);
-      }
+    if (resource != null && resource.thumbnailUrl.isNotEmpty) {
+      onResult(resource.thumbnailUrl);
     }
   }
 
   Future<void> _saveResults() async {
-    if (_ctrl.results.isEmpty) return;
+    final toSave = _ctrl.selectedResults;
+    if (toSave.isEmpty) return;
     setState(() => _isSaving = true);
     try {
       await config.onSaved(
-        _ctrl.results.map((r) => r.url).toList(),
+        toSave.map((r) => r.url).toList(),
         _ctrl.mode,
         prompt: _promptCtrl.text.trim(),
         negativePrompt: _negPromptCtrl.text.trim(),

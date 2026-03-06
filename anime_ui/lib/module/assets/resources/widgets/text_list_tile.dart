@@ -60,6 +60,7 @@ class _TextListTileState extends State<TextListTile> {
     final metaLabel = _primaryMetaLabel(widget.resource, libType);
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(
@@ -242,13 +243,16 @@ class _TextListTileState extends State<TextListTile> {
           Icon(AppIcons.error, size: 16.r, color: AppColors.error),
           if (widget.onRetry != null) ...[
             SizedBox(width: Spacing.xs.w),
-            GestureDetector(
-              onTap: widget.onRetry,
-              child: Text(
-                '重试',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.w600,
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: widget.onRetry,
+                child: Text(
+                  '重试',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

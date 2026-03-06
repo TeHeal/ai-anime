@@ -16,8 +16,8 @@ abstract class ResourceListPort {
   /// 添加资源到库
   Future<void> addResource(Resource r);
 
-  /// 图生：AI 生成图片并加入资源库
-  Future<String?> generateImage({
+  /// 图生：AI 生成图片并加入资源库，返回创建的 Resource（含 thumbnailUrl）
+  Future<Resource?> generateImage({
     required String name,
     required String libraryType,
     required String modality,

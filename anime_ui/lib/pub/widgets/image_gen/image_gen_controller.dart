@@ -54,6 +54,7 @@ class ImageGenController extends ChangeNotifier {
   // ── 状态 ──
   GenControllerState status = GenControllerState.idle;
   List<GenResult> results = [];
+  Set<int> selectedIndices = {};
   String? errorMsg;
   int progress = 0;
 
@@ -215,6 +216,7 @@ class ImageGenController extends ChangeNotifier {
 
     status = GenControllerState.generating;
     results = [];
+    selectedIndices = {};
     errorMsg = null;
     progress = 0;
     notifyListeners();
@@ -248,9 +250,49 @@ class ImageGenController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── 选择操作 ──
+
+  void toggleSelection(int index) {
+    selectedIndices = {...selectedIndices};
+    if (selectedIndices.contains(index)) {
+      selectedIndices.remove(index);
+    } else {
+      selectedIndices.add(index);
+    }
+    notifyListeners();
+  }
+
+  void selectAll() {
+    selectedIndices = Set<int>.from(
+      List.generate(results.length, (i) => i),
+    );
+    notifyListeners();
+  }
+
+  void deselectAll() {
+    selectedIndices = {};
+    notifyListeners();
+  }
+
+  bool isSelected(int index) => selectedIndices.contains(index);
+
+  int get selectedCount => selectedIndices.isEmpty
+      ? results.length
+      : selectedIndices.length;
+
+  /// 获取选中的结果（未手动选择时默认全选）
+  List<GenResult> get selectedResults {
+    if (selectedIndices.isEmpty) return results;
+    return [
+      for (int i = 0; i < results.length; i++)
+        if (selectedIndices.contains(i)) results[i],
+    ];
+  }
+
   void reset() {
     status = GenControllerState.idle;
     results = [];
+    selectedIndices = {};
     errorMsg = null;
     progress = 0;
     notifyListeners();

@@ -10,8 +10,7 @@ import 'package:anime_ui/pub/theme/app_icons.dart';
 import 'package:anime_ui/pub/utils/snackbar_helpers.dart';
 import 'package:anime_ui/pub/widgets/gen_dialog_shell.dart';
 import 'components/voice_gen_input_panel.dart';
-import 'components/voice_gen_mode_tabs.dart';
-import 'components/voice_gen_result_panel.dart';
+import 'components/voice_gen_right_panel.dart';
 import 'voice_gen_config.dart';
 import 'voice_gen_controller.dart';
 
@@ -31,16 +30,15 @@ class VoiceGenView extends StatefulWidget {
   State<VoiceGenView> createState() => _VoiceGenViewState();
 }
 
-class _VoiceGenViewState extends State<VoiceGenView>
-    with SingleTickerProviderStateMixin {
+class _VoiceGenViewState extends State<VoiceGenView> {
   late final VoiceGenController _ctrl;
   late final TextEditingController _nameCtrl;
   late final TextEditingController _promptCtrl;
   late final TextEditingController _previewTextCtrl;
   late final TextEditingController _descCtrl;
   late final TextEditingController _tagInputCtrl;
-  late final TabController _tabCtrl;
   bool _isSaving = false;
+  bool _isSaved = false;
   bool _isGeneratingPreviewText = false;
 
   VoiceGenConfig get config => widget.config;
@@ -50,7 +48,7 @@ class _VoiceGenViewState extends State<VoiceGenView>
   void initState() {
     super.initState();
     _ctrl = VoiceGenController();
-    _ctrl.mode = config.defaultMode;
+    _ctrl.mode = VoiceGenMode.design;
 
     _nameCtrl = TextEditingController();
     _promptCtrl = TextEditingController();
@@ -63,19 +61,6 @@ class _VoiceGenViewState extends State<VoiceGenView>
     _previewTextCtrl
         .addListener(() => _ctrl.setPreviewText(_previewTextCtrl.text));
     _descCtrl.addListener(() => _ctrl.setDescription(_descCtrl.text));
-
-    _tabCtrl = TabController(
-      length: config.allowedModes.length,
-      vsync: this,
-      initialIndex: config.allowedModes
-          .indexOf(config.defaultMode)
-          .clamp(0, config.allowedModes.length - 1),
-    );
-    _tabCtrl.addListener(() {
-      if (!_tabCtrl.indexIsChanging) {
-        _ctrl.setMode(config.allowedModes[_tabCtrl.index]);
-      }
-    });
   }
 
   @override
@@ -86,7 +71,6 @@ class _VoiceGenViewState extends State<VoiceGenView>
     _previewTextCtrl.dispose();
     _descCtrl.dispose();
     _tagInputCtrl.dispose();
-    _tabCtrl.dispose();
     super.dispose();
   }
 
@@ -109,32 +93,19 @@ class _VoiceGenViewState extends State<VoiceGenView>
             final port = widget.ref.read(resourceListPortProvider);
             final tagsJson = tags.isEmpty ? '' : jsonEncode(tags);
 
-            if (mode == VoiceGenMode.clone) {
-              final resource = await port.generateVoice(
-                name: name,
-                sampleUrl: sampleUrl,
-                tagsJson: tagsJson,
-                description: description,
-                onProgress: onProgress,
-              );
-              final audioUrl =
-                  resource.metadata['audioUrl'] as String? ?? resource.thumbnailUrl;
-              if (audioUrl.isNotEmpty) onResult(audioUrl);
-            } else {
-              final resource = await port.generateVoiceDesign(
-                name: name,
-                prompt: designPrompt,
-                previewText: previewText,
-                provider: provider,
-                model: model,
-                tagsJson: tagsJson,
-                description: description,
-                onProgress: onProgress,
-              );
-              final audioUrl =
-                  resource.metadata['audio_url'] as String? ?? '';
-              if (audioUrl.isNotEmpty) onResult(audioUrl);
-            }
+            final resource = await port.generateVoiceDesign(
+              name: name,
+              prompt: designPrompt,
+              previewText: previewText,
+              provider: provider,
+              model: model,
+              tagsJson: tagsJson,
+              description: description,
+              onProgress: onProgress,
+            );
+            final audioUrl =
+                resource.metadata['audioUrl'] as String? ?? '';
+            if (audioUrl.isNotEmpty) onResult(audioUrl);
           },
     );
   }
@@ -160,36 +131,19 @@ class _VoiceGenViewState extends State<VoiceGenView>
     setState(() => _isSaving = true);
     try {
       await config.onSaved(_ctrl.mode);
-      if (mounted) widget.onClose?.call();
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        showToast(context, '音色已保存到素材库');
+      }
     } catch (e) {
-      if (mounted) showToast(context, '保存失败：$e', isError: true);
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+        showToast(context, '保存失败：$e', isError: true);
+      }
     }
-  }
-
-  Widget _buildInputPanel() {
-    return VoiceGenInputPanel(
-      config: config,
-      ctrl: _ctrl,
-      ref: widget.ref,
-      nameCtrl: _nameCtrl,
-      promptCtrl: _promptCtrl,
-      previewTextCtrl: _previewTextCtrl,
-      descCtrl: _descCtrl,
-      tagInputCtrl: _tagInputCtrl,
-      isGeneratingPreviewText: _isGeneratingPreviewText,
-      onGeneratePreviewText: _generatePreviewText,
-    );
-  }
-
-  Widget _buildResultPanel() {
-    return VoiceGenResultPanel(
-      ctrl: _ctrl,
-      accent: accent,
-      isSaving: _isSaving,
-      onSave: _save,
-    );
   }
 
   Widget _buildFooterLeading() {
@@ -220,7 +174,7 @@ class _VoiceGenViewState extends State<VoiceGenView>
         final narrow = MediaQuery.sizeOf(context).width < Breakpoints.md;
         return GenDialogShell(
           title: config.title,
-          subtitle: _ctrl.mode.label,
+          subtitle: '用 AI 描述你想要的声音',
           icon: AppIcons.mic,
           accent: accent,
           primaryLabel: '开始生成',
@@ -229,42 +183,84 @@ class _VoiceGenViewState extends State<VoiceGenView>
           generating: _ctrl.isGenerating,
           onClose: widget.onClose,
           footerLeading: _buildFooterLeading(),
-          maxWidth: narrow ? 520.w : 920.w,
+          maxWidth: narrow ? 520.w : 880.w,
           minWidth: narrow ? 340.w : 480.w,
-          aboveBody: config.allowedModes.length > 1
-              ? VoiceGenModeTabs(
-                  tabController: _tabCtrl,
-                  allowedModes: config.allowedModes,
-                  accent: accent,
-                )
-              : null,
           body: narrow
-              ? Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                          child: _buildInputPanel()),
-                    ),
-                    Container(
-                        height: 1.h, color: AppColors.surfaceMutedDarker),
-                    _buildResultPanel(),
-                  ],
-                )
-              : ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: 280.h),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _buildInputPanel()),
-                      Container(
-                          width: 1.w,
-                          color: AppColors.surfaceMutedDarker),
-                      Expanded(child: _buildResultPanel()),
-                    ],
-                  ),
-                ),
+              ? _buildNarrowBody()
+              : _buildWideBody(),
         );
       },
+    );
+  }
+
+  /// 窄屏：纵向堆叠
+  Widget _buildNarrowBody() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          VoiceGenInputPanel(
+            config: config,
+            ctrl: _ctrl,
+            ref: widget.ref,
+            nameCtrl: _nameCtrl,
+            promptCtrl: _promptCtrl,
+          ),
+          Container(height: 1.h, color: AppColors.surfaceMutedDarker),
+          VoiceGenRightPanel(
+            config: config,
+            ctrl: _ctrl,
+            accent: accent,
+            previewTextCtrl: _previewTextCtrl,
+            descCtrl: _descCtrl,
+            tagInputCtrl: _tagInputCtrl,
+            isGeneratingPreviewText: _isGeneratingPreviewText,
+            onGeneratePreviewText: _generatePreviewText,
+            isSaving: _isSaving,
+            isSaved: _isSaved,
+            onSave: _save,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 宽屏：左右分栏
+  Widget _buildWideBody() {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 左侧：核心输入（名称 + 描述 prompt）
+          Expanded(
+            flex: 1,
+            child: VoiceGenInputPanel(
+              config: config,
+              ctrl: _ctrl,
+              ref: widget.ref,
+              nameCtrl: _nameCtrl,
+              promptCtrl: _promptCtrl,
+            ),
+          ),
+          Container(width: 1.w, color: AppColors.surfaceMutedDarker),
+          // 右侧：参数配置 + 生成结果
+          Expanded(
+            flex: 1,
+            child: VoiceGenRightPanel(
+              config: config,
+              ctrl: _ctrl,
+              accent: accent,
+              previewTextCtrl: _previewTextCtrl,
+              descCtrl: _descCtrl,
+              tagInputCtrl: _tagInputCtrl,
+              isGeneratingPreviewText: _isGeneratingPreviewText,
+              onGeneratePreviewText: _generatePreviewText,
+              isSaving: _isSaving,
+              isSaved: _isSaved,
+              onSave: _save,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

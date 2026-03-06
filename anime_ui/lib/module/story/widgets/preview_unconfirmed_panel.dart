@@ -270,22 +270,25 @@ class _PreviewUnconfirmedPanelState extends State<PreviewUnconfirmedPanel> {
                         ),
                         child: Row(
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (_expandedBlocks.contains(ref.block)) {
-                                    _expandedBlocks.remove(ref.block);
-                                  } else {
-                                    _expandedBlocks.add(ref.block);
-                                  }
-                                });
-                              },
-                              child: Icon(
-                                isExpanded
-                                    ? AppIcons.expandMore
-                                    : AppIcons.chevronRight,
-                                size: 18.r,
-                                color: AppColors.mutedDark,
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    if (_expandedBlocks.contains(ref.block)) {
+                                      _expandedBlocks.remove(ref.block);
+                                    } else {
+                                      _expandedBlocks.add(ref.block);
+                                    }
+                                  });
+                                },
+                                child: Icon(
+                                  isExpanded
+                                      ? AppIcons.expandMore
+                                      : AppIcons.chevronRight,
+                                  size: 18.r,
+                                  color: AppColors.mutedDark,
+                                ),
                               ),
                             ),
                             SizedBox(width: Spacing.xs.w),
@@ -308,26 +311,29 @@ class _PreviewUnconfirmedPanelState extends State<PreviewUnconfirmedPanel> {
                               ),
                             ),
                             SizedBox(width: RadiusTokens.lg.w),
-                            GestureDetector(
-                              onTap: () =>
-                                  widget.onLocate(ref.episodeIdx, ref.sceneIdx),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Spacing.sm.w,
-                                  vertical: Spacing.xxs.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceContainer,
-                                  borderRadius: BorderRadius.circular(
-                                    RadiusTokens.xs.r,
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () =>
+                                    widget.onLocate(ref.episodeIdx, ref.sceneIdx),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Spacing.sm.w,
+                                    vertical: Spacing.xxs.h,
                                   ),
-                                ),
-                                child: Text(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceContainer,
+                                    borderRadius: BorderRadius.circular(
+                                      RadiusTokens.xs.r,
+                                    ),
+                                  ),
+                                  child: Text(
                                   '第${ref.episode.episodeNum}集>场${ref.scene.sceneNum}',
                                   style: AppTextStyles.tiny.copyWith(
                                     color: AppColors.info,
                                   ),
                                 ),
+                              ),
                               ),
                             ),
                             SizedBox(width: RadiusTokens.lg.w),

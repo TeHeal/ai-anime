@@ -230,12 +230,15 @@ class _CharacterBasicInfoCardState
               ),
             ),
             const Spacer(),
-            GestureDetector(
-              onTap: _showEditBioDialog,
-              child: Icon(
-                AppIcons.edit,
-                size: 14.r,
-                color: AppColors.muted,
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: _showEditBioDialog,
+                child: Icon(
+                  AppIcons.edit,
+                  size: 14.r,
+                  color: AppColors.muted,
+                ),
               ),
             ),
           ],
@@ -247,15 +250,18 @@ class _CharacterBasicInfoCardState
             style: AppTextStyles.caption.copyWith(color: AppColors.mutedDark),
           )
         else
-          GestureDetector(
-            onTap: _showEditBioDialog,
-            child: Text(
-              c.bio,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.onSurface,
-                height: 1.6,
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: _showEditBioDialog,
+              child: Text(
+                c.bio,
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.onSurface,
+                  height: 1.6,
+                ),
               ),
             ),
           ),

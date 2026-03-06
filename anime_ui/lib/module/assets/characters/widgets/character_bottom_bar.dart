@@ -123,44 +123,47 @@ class CharacterBottomBar extends StatelessWidget {
             padding: EdgeInsets.only(right: Spacing.xs.w),
             child: Tooltip(
               message: _stepDefs[i].$1,
-              child: GestureDetector(
-                onTap: () => onScrollToStep?.call(i),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 18.r,
-                      height: 18.r,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: done ? AppColors.success : AppColors.border,
-                      ),
-                      child: Center(
-                        child: done
-                            ? Icon(
-                                AppIcons.check,
-                                size: 10.r,
-                                color: Colors.white,
-                              )
-                            : Text(
-                                '${i + 1}',
-                                style: AppTextStyles.tiny.copyWith(
-                                  fontSize: 9.sp,
-                                  color: AppColors.mutedDark,
-                                  fontWeight: FontWeight.bold,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => onScrollToStep?.call(i),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 18.r,
+                        height: 18.r,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: done ? AppColors.success : AppColors.border,
+                        ),
+                        child: Center(
+                          child: done
+                              ? Icon(
+                                  AppIcons.check,
+                                  size: 10.r,
+                                  color: Colors.white,
+                                )
+                              : Text(
+                                  '${i + 1}',
+                                  style: AppTextStyles.tiny.copyWith(
+                                    fontSize: 9.sp,
+                                    color: AppColors.mutedDark,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 3.w),
-                    Text(
-                      _stepDefs[i].$1,
-                      style: AppTextStyles.tiny.copyWith(
-                        color: done ? AppColors.success : AppColors.mutedDark,
+                      SizedBox(width: 3.w),
+                      Text(
+                        _stepDefs[i].$1,
+                        style: AppTextStyles.tiny.copyWith(
+                          color: done ? AppColors.success : AppColors.mutedDark,
+                        ),
                       ),
-                    ),
-                    if (i < _stepDefs.length - 1) SizedBox(width: Spacing.sm.w),
-                  ],
+                      if (i < _stepDefs.length - 1) SizedBox(width: Spacing.sm.w),
+                    ],
+                  ),
                 ),
               ),
             ),

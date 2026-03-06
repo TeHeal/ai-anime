@@ -65,47 +65,50 @@ class _ModeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.md.w,
-          vertical: Spacing.sm.h,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : AppColors.surfaceContainer,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(
-            color: selected
-                ? AppColors.primary.withValues(alpha: 0.5)
-                : AppColors.border,
-            width: selected ? 1.5 : 1,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.md.w,
+            vertical: Spacing.sm.h,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _icon,
-              size: 14.r,
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : AppColors.surfaceContainer,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(
               color: selected
-                  ? AppColors.primary
-                  : AppColors.onSurface.withValues(alpha: 0.5),
+                  ? AppColors.primary.withValues(alpha: 0.5)
+                  : AppColors.border,
+              width: selected ? 1.5 : 1,
             ),
-            SizedBox(width: Spacing.xs.w),
-            Text(
-              mode.label,
-              style: AppTextStyles.caption.copyWith(
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _icon,
+                size: 14.r,
                 color: selected
                     ? AppColors.primary
-                    : AppColors.onSurface.withValues(alpha: 0.6),
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                    : AppColors.onSurface.withValues(alpha: 0.5),
               ),
-            ),
-          ],
+              SizedBox(width: Spacing.xs.w),
+              Text(
+                mode.label,
+                style: AppTextStyles.caption.copyWith(
+                  color: selected
+                      ? AppColors.primary
+                      : AppColors.onSurface.withValues(alpha: 0.6),
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

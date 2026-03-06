@@ -73,26 +73,29 @@ class BlockItemAiSuggestion extends StatelessWidget {
               ],
               const Spacer(),
               if (originalContent != null && originalContent!.isNotEmpty)
-                GestureDetector(
-                  onTap: onToggleDiff,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        showOriginalDiff
-                            ? AppIcons.unfoldLess
-                            : AppIcons.compareArrows,
-                        size: 14.r,
-                        color: accent.withValues(alpha: 0.6),
-                      ),
-                      const SizedBox(width: Spacing.xs),
-                      Text(
-                        showOriginalDiff ? '收起原文' : '对比原文',
-                        style: AppTextStyles.tiny.copyWith(
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: onToggleDiff,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          showOriginalDiff
+                              ? AppIcons.unfoldLess
+                              : AppIcons.compareArrows,
+                          size: 14.r,
                           color: accent.withValues(alpha: 0.6),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: Spacing.xs),
+                        Text(
+                          showOriginalDiff ? '收起原文' : '对比原文',
+                          style: AppTextStyles.tiny.copyWith(
+                            color: accent.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],

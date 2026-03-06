@@ -291,15 +291,18 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
         Positioned(
           top: 2.r,
           right: 2.r,
-          child: GestureDetector(
-            onTap: () => _removeImage(e.key),
-            child: Container(
-              padding: EdgeInsets.all(2.r),
-              decoration: const BoxDecoration(
-                color: AppColors.error,
-                shape: BoxShape.circle,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => _removeImage(e.key),
+              child: Container(
+                padding: EdgeInsets.all(2.r),
+                decoration: const BoxDecoration(
+                  color: AppColors.error,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.close, size: 12.r, color: AppColors.onPrimary),
               ),
-              child: Icon(Icons.close, size: 12.r, color: AppColors.onPrimary),
             ),
           ),
         ),
@@ -351,26 +354,31 @@ class _StyleFormDialogState extends ConsumerState<StyleFormDialog> {
   }
 
   Widget _buildUploadButton() {
-    return GestureDetector(
-      onTap: _uploading ? null : _pickAndUploadImages,
-      child: Container(
-        width: 72.w,
-        height: 72.h,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceMutedDark,
-          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(AppIcons.upload, size: 20.r, color: AppColors.muted),
-            SizedBox(height: Spacing.xxs.h),
-            Text(
-              '上传',
-              style: AppTextStyles.tiny.copyWith(color: AppColors.muted),
-            ),
-          ],
+    return MouseRegion(
+      cursor: _uploading
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: _uploading ? null : _pickAndUploadImages,
+        child: Container(
+          width: 72.w,
+          height: 72.h,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceMutedDark,
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(AppIcons.upload, size: 20.r, color: AppColors.muted),
+              SizedBox(height: Spacing.xxs.h),
+              Text(
+                '上传',
+                style: AppTextStyles.tiny.copyWith(color: AppColors.muted),
+              ),
+            ],
+          ),
         ),
       ),
     );

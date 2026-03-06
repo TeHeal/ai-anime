@@ -55,7 +55,6 @@ video:
 tts:
   volcengine_key: ""
   volcengine_appid: ""
-  cosyvoice_key: sk-7401daa96091473db288f6fc2e9508ee
   fish_audio_key: ""
   minimax_key: sk-api-y7V5-k6HA2pPNjWcB0l7RmU-VaXNyWE40yy1tL3AALRF7KkG3PN6M1ghTLkxrx5VaRQQ6X56BWewV6h_U446bz4ynqr_B1452JVzYU9TIxiD6-aC7iImlLk
 

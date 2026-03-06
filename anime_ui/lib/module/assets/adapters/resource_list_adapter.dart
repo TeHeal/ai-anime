@@ -24,7 +24,7 @@ class AssetResourceListAdapter implements ResourceListPort {
   Future<void> addResource(Resource r) => _notifier.addResource(r);
 
   @override
-  Future<String?> generateImage({
+  Future<Resource?> generateImage({
     required String name,
     required String libraryType,
     required String modality,

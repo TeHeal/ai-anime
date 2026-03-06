@@ -8,15 +8,13 @@ import 'package:anime_ui/pub/models/resource.dart';
 import 'package:anime_ui/pub/services/ai_svc.dart';
 import 'package:anime_ui/pub/services/realtime_svc.dart';
 import 'package:anime_ui/pub/services/resource_svc.dart';
-import 'package:anime_ui/pub/services/task_svc.dart';
 
+import '../models/resource_category.dart';
 import 'resource_filters.dart';
 
-final _resourceSvcProvider = Provider((_) => ResourceService());
+/// 资源服务，供 content_area 等调用试听等接口
+final resourceSvcProvider = Provider((_) => ResourceService());
 final _aiSvcProvider = Provider((_) => AiService());
-final _taskSvcProvider = Provider(
-  (_) => TaskService(),
-);
 
 /// 资源生成任务的实时状态
 class ResourceTaskState {
@@ -24,10 +22,14 @@ class ResourceTaskState {
     this.status = 'pending',
     this.progress = 0,
     this.resourceId,
+    this.type = '',
+    this.title = '',
   });
   final String status;
   final int progress;
   final String? resourceId;
+  final String type;
+  final String title;
 
   bool get isGenerating =>
       status == 'pending' || status == 'running' || status == 'processing';
@@ -56,9 +58,9 @@ final resourceTasksProvider =
   ResourceTasksNotifier.new,
 );
 
-/// 资源列表（CRUD + 生成操作 + 实时任务合并）
+/// 资源列表（CRUD + 生成操作 + WebSocket 实时任务合并）
 class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
-  ResourceService get _svc => ref.read(_resourceSvcProvider);
+  ResourceService get _svc => ref.read(resourceSvcProvider);
   StreamSubscription<Map<String, dynamic>>? _wsSub;
   Timer? _flushTimer;
 
@@ -72,7 +74,9 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
     return const AsyncValue.data([]);
   }
 
-  /// 监听 WebSocket 事件：resource_created 刷新列表，task.updated 合并生成进度
+  /// 监听 WebSocket 事件：
+  /// - resource_created → 刷新列表（后端异步完成后推送）
+  /// - task_progress / task_complete / task_error → 合并生成进度到卡片
   void _listenRealtimeEvents() {
     _wsSub?.cancel();
     _wsSub = realtimeWS.events.listen((event) {
@@ -83,34 +87,56 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
         return;
       }
 
-      if (type == 'task.updated') {
-        _handleTaskUpdate(event);
+      if (type == 'task_progress' ||
+          type == 'task_complete' ||
+          type == 'task_error') {
+        _handleTaskUpdate(event, type!);
       }
     });
   }
 
-  /// 防抖刷新（合并短时间内的多个 resource_created 事件）
   void _scheduleFlush() {
     _flushTimer?.cancel();
     _flushTimer = Timer(const Duration(milliseconds: 200), () => load());
   }
 
-  /// 处理 task.updated 事件，更新生成任务状态
-  void _handleTaskUpdate(Map<String, dynamic> event) {
-    final taskId = event['taskId'] as String? ?? '';
+  /// 处理后端推送的任务进度事件，驱动 resourceTasksProvider + taskCenterProvider
+  void _handleTaskUpdate(Map<String, dynamic> event, String eventType) {
+    final payload =
+        (event['payload'] as Map<String, dynamic>?) ?? event;
+    final taskId = (payload['taskId'] as String?) ??
+        (event['taskId'] as String?) ??
+        '';
     if (taskId.isEmpty) return;
 
-    final status = event['status'] as String? ?? '';
-    final progress = (event['progress'] as num?)?.toInt() ?? 0;
-    final resourceId = event['resourceId'] as String?;
+    String status;
+    switch (eventType) {
+      case 'task_complete':
+        status = 'completed';
+        break;
+      case 'task_error':
+        status = 'failed';
+        break;
+      default:
+        status = (payload['status'] as String?) ?? 'running';
+    }
+
+    final progress = (payload['progress'] as num?)?.toInt() ?? 0;
+    final resourceId = (payload['resourceId'] as String?) ??
+        (event['resourceId'] as String?);
+    final taskType = (payload['type'] as String?) ?? '';
+    final title = (payload['title'] as String?) ?? '';
 
     final taskState = ResourceTaskState(
       status: status,
       progress: progress,
       resourceId: resourceId,
+      type: taskType,
+      title: title,
     );
     ref.read(resourceTasksProvider.notifier).upsert(taskId, taskState);
 
+    // 完成后刷新列表 + 延迟清理进度状态
     if (taskState.isCompleted) {
       _scheduleFlush();
       Future.delayed(const Duration(seconds: 2), () {
@@ -130,8 +156,10 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
         pageSize: 200,
         search: search.isNotEmpty ? search : null,
         sortBy: sort.apiValue,
+        includeSystemVoices: libraryType == ResourceLibraryType.voice,
       );
-      state = AsyncValue.data(result.items);
+      final merged = [...result.systemVoices, ...result.items];
+      state = AsyncValue.data(merged);
     } catch (e, st) {
       debugPrint('ResourceList load failed: $e\n$st');
       state = AsyncValue.error(e, st);
@@ -238,7 +266,8 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
     state = AsyncValue.data(updated);
   }
 
-  /// 音色克隆生成，返回生成的 Resource
+  /// 音色克隆生成
+  /// 后端为异步：立即返回占位 Resource + taskId，WebSocket 推送进度
   Future<Resource> generateVoice({
     required String name,
     required String sampleUrl,
@@ -252,23 +281,28 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
       tagsJson: tagsJson,
       description: description,
     );
+
+    // 后端已创建占位资源，插入列表顶部
     final current = state.value ?? [];
-    state = AsyncValue.data([...current, result.resource]);
+    state = AsyncValue.data([result.resource, ...current]);
+
+    // 注册任务状态（WebSocket 后续会更新）
     if (result.taskId.isNotEmpty) {
-      final taskSvc = ref.read(_taskSvcProvider);
-      await for (final t in taskSvc.poll(result.taskId)) {
-        onProgress?.call(t.progress);
-        if (t.isCompleted) {
-          await load();
-          break;
-        }
-        if (t.isFailed) throw Exception('音色生成失败');
-      }
+      ref.read(resourceTasksProvider.notifier).upsert(
+            result.taskId,
+            ResourceTaskState(
+              status: 'running',
+              resourceId: result.resource.id,
+              type: 'tts',
+              title: '音色克隆: $name',
+            ),
+          );
     }
     return result.resource;
   }
 
-  /// 音色设计生成（文本提示）
+  /// 音色设计生成
+  /// 后端为异步：立即返回占位 Resource + taskId，WebSocket 推送进度
   Future<Resource> generateVoiceDesign({
     required String name,
     required String prompt,
@@ -290,27 +324,27 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
       tagsJson: tagsJson,
       description: description,
     );
+
     final current = state.value ?? [];
-    state = AsyncValue.data([...current, result.resource]);
+    state = AsyncValue.data([result.resource, ...current]);
+
     if (result.taskId.isNotEmpty) {
-      final taskSvc = ref.read(_taskSvcProvider);
-      await for (final t in taskSvc.poll(result.taskId)) {
-        onProgress?.call(t.progress);
-        if (t.isFinished) {
-          await load();
-          break;
-        }
-      }
+      ref.read(resourceTasksProvider.notifier).upsert(
+            result.taskId,
+            ResourceTaskState(
+              status: 'running',
+              resourceId: result.resource.id,
+              type: 'tts',
+              title: '音色设计: $name',
+            ),
+          );
     }
-    final latest = state.value ?? [];
-    return latest.firstWhere(
-      (r) => r.id == result.resource.id,
-      orElse: () => result.resource,
-    );
+    return result.resource;
   }
 
   /// 图生：调用统一 API /ai/generate/image，output.type=resource
-  Future<String?> generateImage({
+  /// 后端为异步：立即返回占位 Resource + taskId，WebSocket 推送进度
+  Future<Resource?> generateImage({
     required String name,
     required String libraryType,
     required String modality,
@@ -325,7 +359,7 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
     void Function(int)? onProgress,
   }) async {
     final aiSvc = ref.read(_aiSvcProvider);
-    final resource = await aiSvc.generateImage(
+    final result = await aiSvc.generateImage(
       prompt: prompt,
       negativePrompt: negativePrompt,
       referenceImageUrls:
@@ -340,9 +374,22 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
         name: name,
       ),
     );
+
     final current = state.value ?? [];
-    state = AsyncValue.data([...current, resource]);
-    return resource.id;
+    state = AsyncValue.data([result.resource, ...current]);
+
+    if (result.taskId.isNotEmpty) {
+      ref.read(resourceTasksProvider.notifier).upsert(
+            result.taskId,
+            ResourceTaskState(
+              status: 'running',
+              resourceId: result.resource.id,
+              type: 'image',
+              title: '图片生成: $name',
+            ),
+          );
+    }
+    return result.resource;
   }
 
   /// 生成预览文本
@@ -351,6 +398,7 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
   }
 
   /// LLM 提示词生成
+  /// 后端为异步：立即返回占位 Resource + taskId，WebSocket 推送进度
   Future<Resource> generatePrompt({
     required String name,
     required String instruction,
@@ -361,7 +409,7 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
     String libraryType = '',
     String language = '',
   }) async {
-    final resource = await _svc.generatePrompt(
+    final result = await _svc.generatePrompt(
       name: name,
       instruction: instruction,
       targetModel: targetModel,
@@ -371,9 +419,22 @@ class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
       libraryType: libraryType,
       language: language,
     );
+
     final current = state.value ?? [];
-    state = AsyncValue.data([...current, resource]);
-    return resource;
+    state = AsyncValue.data([result.resource, ...current]);
+
+    if (result.taskId.isNotEmpty) {
+      ref.read(resourceTasksProvider.notifier).upsert(
+            result.taskId,
+            ResourceTaskState(
+              status: 'running',
+              resourceId: result.resource.id,
+              type: 'text',
+              title: '提示词生成: $name',
+            ),
+          );
+    }
+    return result.resource;
   }
 }
 
@@ -385,7 +446,7 @@ final resourceListProvider =
 /// 提示词库资源列表（用于创作助理/提示词库弹窗，跨子库场景）
 final promptResourcesProvider =
     FutureProvider.autoDispose<List<Resource>>((ref) async {
-  final svc = ref.read(_resourceSvcProvider);
+  final svc = ref.read(resourceSvcProvider);
   final result = await svc.list(
     libraryType: 'prompt',
     modality: 'text',

@@ -112,6 +112,9 @@ class _ImageGenResultPanelState extends State<ImageGenResultPanel> {
               accent: accent,
               outputCount: ctrl.outputCount,
               onImageTap: widget.onImageTap,
+              selectedIndices: ctrl.selectedIndices,
+              selectionEnabled: ctrl.selectedIndices.isNotEmpty,
+              onToggleSelect: ctrl.toggleSelection,
             ),
           ),
 
@@ -134,28 +137,31 @@ class _ImageGenResultPanelState extends State<ImageGenResultPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: () => setState(() => _configExpanded = !_configExpanded),
-          child: Row(
-            children: [
-              Text(
-                '参数配置',
-                style: AppTextStyles.labelMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.muted,
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => setState(() => _configExpanded = !_configExpanded),
+            child: Row(
+              children: [
+                Text(
+                  '参数配置',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
                 ),
-              ),
-              SizedBox(width: Spacing.xs.w),
-              AnimatedRotation(
-                turns: _configExpanded ? 0.0 : -0.25,
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  Icons.expand_more_rounded,
-                  size: 16.r,
-                  color: AppColors.muted,
+                SizedBox(width: Spacing.xs.w),
+                AnimatedRotation(
+                  turns: _configExpanded ? 0.0 : -0.25,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.expand_more_rounded,
+                    size: 16.r,
+                    color: AppColors.muted,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         AnimatedCrossFade(
@@ -244,6 +250,11 @@ class _ImageGenResultPanelState extends State<ImageGenResultPanel> {
   }
 
   Widget _buildResultActions(BuildContext context) {
+    final hasSelection = ctrl.selectedIndices.isNotEmpty;
+    final saveCount = hasSelection
+        ? ctrl.selectedIndices.length
+        : ctrl.results.length;
+
     return Row(
       children: [
         OutlinedButton.icon(
@@ -255,6 +266,16 @@ class _ImageGenResultPanelState extends State<ImageGenResultPanel> {
             side: const BorderSide(color: AppColors.border),
           ),
         ),
+        if (ctrl.results.length > 1) ...[
+          SizedBox(width: Spacing.sm.w),
+          TextButton(
+            onPressed: hasSelection ? ctrl.deselectAll : ctrl.selectAll,
+            child: Text(
+              hasSelection ? '取消选择' : '选择',
+              style: AppTextStyles.caption.copyWith(color: accent),
+            ),
+          ),
+        ],
         const Spacer(),
         FilledButton.icon(
           onPressed: widget.isSaving ? null : widget.onSave,
@@ -268,7 +289,7 @@ class _ImageGenResultPanelState extends State<ImageGenResultPanel> {
                   ),
                 )
               : Icon(AppIcons.save, size: 14.r),
-          label: Text('保存 ${ctrl.results.length} 张'),
+          label: Text('保存 $saveCount 张'),
           style: FilledButton.styleFrom(backgroundColor: accent),
         ),
       ],

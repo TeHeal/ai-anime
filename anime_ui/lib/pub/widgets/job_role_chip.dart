@@ -45,29 +45,34 @@ class JobRoleChip extends StatelessWidget {
       );
     }
 
-    return GestureDetector(
-      onTap: () => onChanged?.call(!selected),
-      child: AnimatedContainer(
-        duration: MotionTokens.durationFast,
-        curve: MotionTokens.curveStandard,
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.chipPaddingH.w,
-          vertical: Spacing.chipPaddingV.h,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? roleColor.withValues(alpha: 0.15)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(RadiusTokens.md.r),
-          border: Border.all(
-            color: selected ? roleColor : AppColors.inputBorder,
+    return MouseRegion(
+      cursor: onChanged != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
+      child: GestureDetector(
+        onTap: () => onChanged?.call(!selected),
+        child: AnimatedContainer(
+          duration: MotionTokens.durationFast,
+          curve: MotionTokens.curveStandard,
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.chipPaddingH.w,
+            vertical: Spacing.chipPaddingV.h,
           ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.labelMedium.copyWith(
-            color: selected ? roleColor : AppColors.muted,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          decoration: BoxDecoration(
+            color: selected
+                ? roleColor.withValues(alpha: 0.15)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(RadiusTokens.md.r),
+            border: Border.all(
+              color: selected ? roleColor : AppColors.inputBorder,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: selected ? roleColor : AppColors.muted,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            ),
           ),
         ),
       ),

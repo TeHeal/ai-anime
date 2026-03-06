@@ -122,7 +122,6 @@ type VideoConfig struct {
 type TTSConfig struct {
 	VolcengineKey   string `mapstructure:"volcengine_key"`
 	VolcengineAppID string `mapstructure:"volcengine_appid"`
-	CosyVoiceKey   string `mapstructure:"cosyvoice_key"`
 	FishAudioKey   string `mapstructure:"fish_audio_key"`
 	MiniMaxKey     string `mapstructure:"minimax_key"`
 }
@@ -182,7 +181,6 @@ func Load() (*Config, error) {
 	v.SetDefault("video.cogvideo_key", "")
 	v.SetDefault("tts.volcengine_key", "")
 	v.SetDefault("tts.volcengine_appid", "")
-	v.SetDefault("tts.cosyvoice_key", "")
 	v.SetDefault("tts.fish_audio_key", "")
 	v.SetDefault("tts.minimax_key", "")
 	v.SetDefault("music.suno_key", "")

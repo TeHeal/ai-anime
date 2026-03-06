@@ -71,20 +71,23 @@ class _ResourceDetailDialog extends ConsumerWidget {
                   children: [
                     if (resource.hasThumbnail &&
                         resource.modality == 'visual') ...[
-                      GestureDetector(
-                        onTap: () => showImageLightbox(
-                          context,
-                          imageUrl: resource.thumbnailUrl,
-                        ),
-                        child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(RadiusTokens.lg.r),
-                          child: Image.network(
-                            resolveFileUrl(resource.thumbnailUrl),
-                            fit: BoxFit.contain,
-                            width: double.infinity,
-                            errorBuilder: (_, Object? e, StackTrace? s) =>
-                                const SizedBox.shrink(),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () => showImageLightbox(
+                            context,
+                            imageUrl: resource.thumbnailUrl,
+                          ),
+                          child: ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular(RadiusTokens.lg.r),
+                            child: Image.network(
+                              resolveFileUrl(resource.thumbnailUrl),
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              errorBuilder: (_, Object? e, StackTrace? s) =>
+                                  const SizedBox.shrink(),
+                            ),
                           ),
                         ),
                       ),
@@ -356,7 +359,7 @@ class _VoicePlayerSection extends StatelessWidget {
     return ListenableBuilder(
       listenable: playback,
       builder: (context, _) {
-        final isPlaying = playback.isPlayingUrl(resource.audioUrl);
+        final isPlaying = playback.isPlayingUrlFrom(resource.audioUrl, 'detail');
         return Container(
           padding: EdgeInsets.all(Spacing.lg.r),
           decoration: BoxDecoration(
@@ -379,30 +382,33 @@ class _VoicePlayerSection extends StatelessWidget {
               SizedBox(height: Spacing.md.h),
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (isPlaying) {
-                        playback.stop();
-                      } else {
-                        playback.play(resource.audioUrl);
-                      }
-                    },
-                    child: Container(
-                      width: 48.w,
-                      height: 48.h,
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(
-                          alpha: isPlaying ? 0.3 : 0.15,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (isPlaying) {
+                          playback.stop();
+                        } else {
+                          playback.play(resource.audioUrl, source: 'detail');
+                        }
+                      },
+                      child: Container(
+                        width: 48.w,
+                        height: 48.h,
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(
+                            alpha: isPlaying ? 0.3 : 0.15,
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: accentColor.withValues(alpha: 0.4),
+                          ),
                         ),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: accentColor.withValues(alpha: 0.4),
+                        child: Icon(
+                          isPlaying ? AppIcons.stop : AppIcons.playArrow,
+                          size: 26.r,
+                          color: accentColor,
                         ),
-                      ),
-                      child: Icon(
-                        isPlaying ? AppIcons.stop : AppIcons.playArrow,
-                        size: 26.r,
-                        color: accentColor,
                       ),
                     ),
                   ),

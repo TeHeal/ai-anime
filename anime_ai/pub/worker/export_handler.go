@@ -36,6 +36,7 @@ type ExportTaskDeps struct {
 	ShotVideoReader  crossmodule.ExportShotVideoReader
 	Storage          storage.Storage
 	RealtimeHub      *realtime.Hub
+	TaskNotifier     TaskNotifier
 }
 
 // ExportTaskHandler 成片导出任务 Handler
@@ -227,8 +228,14 @@ func (h *ExportTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 		h.log.Warn("更新导出完成状态失败", zap.String("composite_task_id", payload.CompositeTaskID), zap.Error(err))
 	}
 
-	// 广播完成事件
 	h.broadcastComplete(payload, outputURL)
+
+	if h.deps.TaskNotifier != nil {
+		h.deps.TaskNotifier.NotifyTaskComplete(ctx, payload.UserID, "export", payload.CompositeTaskID,
+			"成片导出完成",
+			"成片导出已完成，可前往项目查看",
+			"/projects/"+payload.ProjectID+"/composite")
+	}
 
 	h.log.Info("成片导出任务完成",
 		zap.String("composite_task_id", payload.CompositeTaskID),

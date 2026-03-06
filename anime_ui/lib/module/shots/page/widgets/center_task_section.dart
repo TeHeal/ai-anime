@@ -119,25 +119,28 @@ class CenterTaskSection extends ConsumerWidget {
     String mode,
   ) {
     final active = uiState.viewMode == mode;
-    return GestureDetector(
-      onTap: () => uiNotifier.setViewMode(mode),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.sm.w,
-          vertical: Spacing.xs.h,
-        ),
-        decoration: BoxDecoration(
-          color: active
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.tiny.copyWith(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => uiNotifier.setViewMode(mode),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.sm.w,
+            vertical: Spacing.xs.h,
+          ),
+          decoration: BoxDecoration(
             color: active
-                ? AppColors.primary
-                : AppColors.onSurface.withValues(alpha: 0.55),
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(RadiusTokens.sm.r),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.tiny.copyWith(
+              color: active
+                  ? AppColors.primary
+                  : AppColors.onSurface.withValues(alpha: 0.55),
+            ),
           ),
         ),
       ),

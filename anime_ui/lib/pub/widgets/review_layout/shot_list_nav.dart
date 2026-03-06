@@ -167,30 +167,33 @@ class ShotListNav extends StatelessWidget {
   Widget _filterChip(String label) {
     final active = activeFilter == label;
     return Expanded(
-      child: GestureDetector(
-        onTap: () => onFilterChanged(label),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: Spacing.xs.h),
-          decoration: BoxDecoration(
-            color: active
-                ? AppColors.primary.withValues(alpha: 0.2)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
-            border: Border.all(
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () => onFilterChanged(label),
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: Spacing.xs.h),
+            decoration: BoxDecoration(
               color: active
-                  ? AppColors.primary.withValues(alpha: 0.5)
-                  : AppColors.surfaceContainer,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: AppTextStyles.tiny.copyWith(
-                fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-                color: active ? AppColors.primary : AppColors.mutedDark,
+                  ? AppColors.primary.withValues(alpha: 0.2)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(RadiusTokens.xs.r),
+              border: Border.all(
+                color: active
+                    ? AppColors.primary.withValues(alpha: 0.5)
+                    : AppColors.surfaceContainer,
               ),
             ),
+            child: Center(
+              child: Text(
+                label,
+                style: AppTextStyles.tiny.copyWith(
+                  fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+                  color: active ? AppColors.primary : AppColors.mutedDark,
+                ),
+              ),
           ),
+        ),
         ),
       ),
     );

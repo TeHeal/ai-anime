@@ -63,24 +63,27 @@ class DraftContent extends StatelessWidget {
                     icon: AppIcons.checkCircleOutline,
                     selected: selectedFormat == 0,
                     onTap: () => onFormatChanged(0),
-                    action: GestureDetector(
-                      onTap: () => showFormatHelpDialog(context),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            AppIcons.book,
-                            size: 14.r,
-                            color: AppColors.primary,
-                          ),
-                          SizedBox(width: Spacing.xs.w),
-                          Text(
-                            '查看推荐格式示例',
-                            style: AppTextStyles.labelMedium.copyWith(
+                    action: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () => showFormatHelpDialog(context),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              AppIcons.book,
+                              size: 14.r,
                               color: AppColors.primary,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: Spacing.xs.w),
+                            Text(
+                              '查看推荐格式示例',
+                              style: AppTextStyles.labelMedium.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
