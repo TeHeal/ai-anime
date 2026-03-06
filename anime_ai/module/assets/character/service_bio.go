@@ -3,8 +3,6 @@ package character
 import (
 	"context"
 	"fmt"
-
-	"anime_ai/pub/pkg"
 )
 
 // ExtractBioRequest 提取小传请求
@@ -13,16 +11,16 @@ type ExtractBioRequest struct {
 }
 
 // UpdateBio 更新小传
-func (s *Service) UpdateBio(charID string, userID uint, bio string) (*Character, error) {
+func (s *Service) UpdateBio(charID string, userIDStr string, bio string) (*Character, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
@@ -58,7 +56,6 @@ func (s *Service) ExtractBio(ctx context.Context, projectIDStr, charID, userIDSt
 }
 
 // RegenerateBio 重新生成小传（占位）
-func (s *Service) RegenerateBio(ctx context.Context, charID string, userID uint, req ExtractBioRequest) (*Character, error) {
-	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+func (s *Service) RegenerateBio(ctx context.Context, charID string, userIDStr string, req ExtractBioRequest) (*Character, error) {
 	return s.ExtractBio(ctx, "", charID, userIDStr, req)
 }

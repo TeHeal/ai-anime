@@ -97,8 +97,7 @@ type UpdateCharacterRequest struct {
 }
 
 // Create 创建角色
-func (s *Service) Create(userID uint, req CreateCharacterRequest) (*Character, error) {
-	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+func (s *Service) Create(userIDStr string, req CreateCharacterRequest) (*Character, error) {
 	var projectIDStr *string
 	if req.ProjectID != nil && *req.ProjectID != "" {
 		projectIDStr = req.ProjectID
@@ -162,12 +161,12 @@ func (s *Service) CreateSkeleton(projectIDStr, userIDStr, name string) (*Charact
 }
 
 // Get 获取角色详情（需权限）
-func (s *Service) Get(id string, userID uint) (*Character, error) {
+func (s *Service) Get(id string, userIDStr string) (*Character, error) {
 	c, err := s.data.FindCharacterByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) && !c.Shared {
+	if !userIDMatchesStr(c.UserID, userIDStr) && !c.Shared {
 		return nil, fmt.Errorf("无权访问此角色")
 	}
 	return c, nil
@@ -225,21 +224,21 @@ func (s *Service) checkAssetEdit(projectIDStr, userIDStr string) error {
 }
 
 // ListLibrary 列出用户角色库（含共享）
-func (s *Service) ListLibrary(userID uint) ([]Character, error) {
-	return s.data.ListCharactersByUser(userID, true)
+func (s *Service) ListLibrary(userIDStr string) ([]Character, error) {
+	return s.data.ListCharactersByUser(userIDStr, true)
 }
 
 // Update 更新角色
-func (s *Service) Update(id string, userID uint, req UpdateCharacterRequest) (*Character, error) {
+func (s *Service) Update(id string, userIDStr string, req UpdateCharacterRequest) (*Character, error) {
 	c, err := s.data.FindCharacterByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权修改此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 		if s.frozenAssetChecker != nil {
@@ -342,16 +341,16 @@ func applyUpdate(c *Character, req UpdateCharacterRequest) {
 }
 
 // Confirm 确认角色
-func (s *Service) Confirm(id string, userID uint) (*Character, error) {
+func (s *Service) Confirm(id string, userIDStr string) (*Character, error) {
 	c, err := s.data.FindCharacterByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 		if s.frozenAssetChecker != nil {
@@ -368,14 +367,8 @@ func (s *Service) Confirm(id string, userID uint) (*Character, error) {
 	return c, nil
 }
 
-// BatchConfirm 批量确认，返回已更新的角色列表（与单条 Confirm 返回单条一致，前端直接合并 state，无需 refetch）
-// 若传入非空 ids 但全部被跳过（权限/冻结等），返回业务错误便于前端提示
-// 注意：内部调用 BatchConfirmWithUserStr，因 JWT 可能存 user_id 为 UUID 字符串，GetUint 会得 0 导致匹配失败
-func (s *Service) BatchConfirm(ids []string, userID uint) ([]*Character, error) {
-	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
-	if userIDStr == "" {
-		userIDStr = pkg.UintToStr(userID)
-	}
+// BatchConfirm 批量确认（兼容旧调用方，内部代理到 BatchConfirmWithUserStr）
+func (s *Service) BatchConfirm(ids []string, userIDStr string) ([]*Character, error) {
 	return s.BatchConfirmWithUserStr(ids, userIDStr)
 }
 
@@ -441,15 +434,14 @@ func userIDMatchesStr(fromChar, fromCtx string) bool {
 }
 
 // BatchSetStyle 批量设置风格
-func (s *Service) BatchSetStyle(ids []string, userID uint, style string) (int, error) {
-	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+func (s *Service) BatchSetStyle(ids []string, userIDStr string, style string) (int, error) {
 	count := 0
 	for _, id := range ids {
 		c, err := s.data.FindCharacterByID(id)
 		if err != nil {
 			continue
 		}
-		if !userIDMatches(c.UserID, userID) {
+		if !userIDMatchesStr(c.UserID, userIDStr) {
 			continue
 		}
 		if c.ProjectID != nil && *c.ProjectID != "" {
@@ -467,15 +459,14 @@ func (s *Service) BatchSetStyle(ids []string, userID uint, style string) (int, e
 }
 
 // BatchAIComplete 批量 AI 补全（骨架/草稿 → 草稿）
-func (s *Service) BatchAIComplete(ids []string, userID uint) (int, error) {
-	userIDStr := pkg.UUIDString(pkg.UintToUUID(userID))
+func (s *Service) BatchAIComplete(ids []string, userIDStr string) (int, error) {
 	count := 0
 	for _, id := range ids {
 		c, err := s.data.FindCharacterByID(id)
 		if err != nil {
 			continue
 		}
-		if !userIDMatches(c.UserID, userID) {
+		if !userIDMatchesStr(c.UserID, userIDStr) {
 			continue
 		}
 		if c.ProjectID != nil && *c.ProjectID != "" {
@@ -497,16 +488,16 @@ func (s *Service) BatchAIComplete(ids []string, userID uint) (int, error) {
 }
 
 // Delete 删除角色
-func (s *Service) Delete(id string, userID uint) error {
+func (s *Service) Delete(id string, userIDStr string) error {
 	c, err := s.data.FindCharacterByID(id)
 	if err != nil {
 		return fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return fmt.Errorf("无权删除此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return err
 		}
 		if s.frozenAssetChecker != nil {
@@ -520,16 +511,16 @@ func (s *Service) Delete(id string, userID uint) error {
 }
 
 // GenerateImage 形象生成（占位：仅更新状态，不实际入队）
-func (s *Service) GenerateImage(id string, userID uint, providerName, modelName string) (*Character, error) {
+func (s *Service) GenerateImage(id string, userIDStr string, providerName, modelName string) (*Character, error) {
 	c, err := s.data.FindCharacterByID(id)
 	if err != nil {
 		return nil, pkg.NewBizError("角色不存在")
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, pkg.NewBizError("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}

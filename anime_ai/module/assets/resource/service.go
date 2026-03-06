@@ -557,7 +557,7 @@ func (s *Service) GenerateImage(ctx context.Context, userID string, req Generate
 	var thumbnailURL string
 	for i := 0; i < 30; i++ {
 		time.Sleep(2 * time.Second)
-		result, err = s.imageGen.Query(ctx, taskID)
+		result, err := s.imageGen.Query(ctx, taskID)
 		if err != nil {
 			return nil, fmt.Errorf("图生查询失败: %w", err)
 		}

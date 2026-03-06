@@ -148,7 +148,8 @@ class _ImageGenViewState extends State<ImageGenView> {
 
     if (resourceId != null) {
       final resources = port.resources.value ?? [];
-      final generated = resources.where((r) => r.id == resourceId).firstOrNull;
+      final matches = resources.where((r) => r.id == resourceId);
+      final generated = matches.isEmpty ? null : matches.first;
       if (generated != null && generated.thumbnailUrl.isNotEmpty) {
         onResult(generated.thumbnailUrl);
       }

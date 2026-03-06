@@ -68,7 +68,6 @@ func (h *Handler) GetSnapshot(c *gin.Context) {
 
 // CreateSnapshot 创建快照 POST /character-snapshots
 func (h *Handler) CreateSnapshot(c *gin.Context) {
-	userID := c.GetUint("user_id")
 	userIDStr := pkg.GetUserIDStr(c)
 	if userIDStr == "" {
 		pkg.BadRequest(c, "未登录或无效用户")
@@ -79,7 +78,7 @@ func (h *Handler) CreateSnapshot(c *gin.Context) {
 		pkg.BadRequest(c, "请求参数错误")
 		return
 	}
-	snap, err := h.svc.CreateSnapshot(userID, userIDStr, req)
+	snap, err := h.svc.CreateSnapshot(userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -94,7 +93,7 @@ func (h *Handler) UpdateSnapshot(c *gin.Context) {
 		pkg.BadRequest(c, "无效的快照 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
 	var req UpdateSnapshotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -102,7 +101,7 @@ func (h *Handler) UpdateSnapshot(c *gin.Context) {
 		return
 	}
 
-	snap, err := h.svc.UpdateSnapshot(uint(id), userID, req)
+	snap, err := h.svc.UpdateSnapshot(uint(id), userIDStr, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -117,9 +116,9 @@ func (h *Handler) DeleteSnapshot(c *gin.Context) {
 		pkg.BadRequest(c, "无效的快照 ID")
 		return
 	}
-	userID := c.GetUint("user_id")
+	userIDStr := pkg.GetUserIDStr(c)
 
-	if err := h.svc.DeleteSnapshot(uint(id), userID); err != nil {
+	if err := h.svc.DeleteSnapshot(uint(id), userIDStr); err != nil {
 		pkg.HandleError(c, err)
 		return
 	}

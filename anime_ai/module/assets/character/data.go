@@ -16,7 +16,7 @@ type Data interface {
 	CreateCharacter(c *Character) error
 	FindCharacterByID(id string) (*Character, error)
 	ListCharactersByProject(projectIDStr string) ([]Character, error)
-	ListCharactersByUser(userID uint, includeShared bool) ([]Character, error)
+	ListCharactersByUser(userIDStr string, includeShared bool) ([]Character, error)
 	UpdateCharacter(c *Character) error
 	DeleteCharacter(id string) error
 	UpdateCharacterImage(id string, imageURL, taskID, status string) error
@@ -102,15 +102,13 @@ func (d *MemData) ListCharactersByProject(projectIDStr string) ([]Character, err
 	return list, nil
 }
 
-func (d *MemData) ListCharactersByUser(userID uint, includeShared bool) ([]Character, error) {
+func (d *MemData) ListCharactersByUser(userIDStr string, includeShared bool) ([]Character, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	uid := strconv.FormatUint(uint64(userID), 10)
-	uidUUID := pkg.UUIDString(pkg.UintToUUID(userID))
 	var list []Character
 	for _, c := range d.chars {
-		if c.UserID == uid || c.UserID == uidUUID || (includeShared && c.Shared) {
+		if c.UserID == userIDStr || (includeShared && c.Shared) {
 			list = append(list, *cloneCharacter(c))
 		}
 	}

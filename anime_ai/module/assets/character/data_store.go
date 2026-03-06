@@ -124,9 +124,9 @@ func (d *DBData) ListCharactersByProject(projectIDStr string) ([]Character, erro
 }
 
 // ListCharactersByUser 按用户列出角色（含共享）
-func (d *DBData) ListCharactersByUser(userID uint, includeShared bool) ([]Character, error) {
+func (d *DBData) ListCharactersByUser(userIDStr string, includeShared bool) ([]Character, error) {
 	ctx := context.Background()
-	uid := pkg.UintToUUID(userID)
+	uid := pkg.ParseUUID(userIDStr)
 	var rows []db.Character
 	var err error
 	if includeShared {

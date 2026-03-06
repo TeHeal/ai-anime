@@ -36,8 +36,10 @@ type kieCreateTaskReq struct {
 }
 
 type kieImgInput struct {
-	Prompt    string `json:"prompt"`
-	ImageSize string `json:"image_size,omitempty"`
+	Prompt      string `json:"prompt"`
+	ImageSize   string `json:"image_size,omitempty"`
+	AspectRatio string `json:"aspect_ratio,omitempty"`
+	Resolution  string `json:"resolution,omitempty"`
 }
 
 type kieCreateTaskResp struct {
@@ -98,13 +100,64 @@ func kieModelForProvider(reqModel string) string {
 	}
 }
 
+// aspectRatioForKIE 将请求参数转换为 KIE API 的 aspect_ratio 格式
+// KIE API 直接接受 "3:4", "16:9" 等标准比例格式；也支持从 Width/Height 推算
+func aspectRatioForKIE(reqAspectRatio string, w, h int) string {
+	if reqAspectRatio != "" {
+		return reqAspectRatio
+	}
+	if w > 0 && h > 0 {
+		ratio := float64(w) / float64(h)
+		switch {
+		case ratio > 1.6:
+			return "16:9"
+		case ratio > 1.2:
+			return "4:3"
+		case ratio < 0.625:
+			return "9:16"
+		case ratio < 0.83:
+			return "3:4"
+		default:
+			return "1:1"
+		}
+	}
+	return "1:1"
+}
+
+// aspectRatioToImageSize 将标准比例转为 KIE image_size 格式
+func aspectRatioToImageSize(ar string) string {
+	switch ar {
+	case "16:9":
+		return "landscape_16_9"
+	case "4:3":
+		return "landscape_4_3"
+	case "9:16":
+		return "portrait_16_9"
+	case "3:4":
+		return "portrait_4_3"
+	case "2:3":
+		return "portrait_4_3"
+	case "4:5":
+		return "portrait_4_3"
+	default:
+		return "square_hd"
+	}
+}
+
 func (p *KIEImageProvider) SubmitImageTask(ctx context.Context, req capability.ImageRequest) (string, error) {
 	model := kieModelForProvider(req.Model)
+	ar := aspectRatioForKIE(req.AspectRatio, req.Width, req.Height)
+	imgSize := imageSizeFromDimensions(req.Width, req.Height)
+	if imgSize == "square_hd" && ar != "1:1" {
+		imgSize = aspectRatioToImageSize(ar)
+	}
 	body := kieCreateTaskReq{
 		Model: model,
 		Input: kieImgInput{
-			Prompt:    req.Prompt,
-			ImageSize: imageSizeFromDimensions(req.Width, req.Height),
+			Prompt:      req.Prompt,
+			ImageSize:   imgSize,
+			AspectRatio: ar,
+			Resolution:  imgSize,
 		},
 	}
 

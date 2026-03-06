@@ -9,7 +9,7 @@ func TestCharacterService_Create(t *testing.T) {
 	svc := NewService(data, nil)
 
 	projID := "proj1"
-	c, err := svc.Create(1, CreateCharacterRequest{
+	c, err := svc.Create("user1", CreateCharacterRequest{
 		Name:      "测试角色",
 		ProjectID: &projID,
 	})
@@ -31,8 +31,8 @@ func TestCharacterService_Get(t *testing.T) {
 	data := NewMemData()
 	svc := NewService(data, nil)
 
-	c, _ := svc.Create(1, CreateCharacterRequest{Name: "角色A"})
-	got, err := svc.Get(c.ID, 1)
+	c, _ := svc.Create("user1", CreateCharacterRequest{Name: "角色A"})
+	got, err := svc.Get(c.ID, "user1")
 	if err != nil {
 		t.Fatalf("Get 失败: %v", err)
 	}
@@ -46,10 +46,10 @@ func TestCharacterService_ListByProject(t *testing.T) {
 	svc := NewService(data, nil)
 
 	projID := "proj1"
-	svc.Create(1, CreateCharacterRequest{Name: "角色1", ProjectID: &projID})
-	svc.Create(1, CreateCharacterRequest{Name: "角色2", ProjectID: &projID})
+	svc.Create("user1", CreateCharacterRequest{Name: "角色1", ProjectID: &projID})
+	svc.Create("user1", CreateCharacterRequest{Name: "角色2", ProjectID: &projID})
 
-	list, err := svc.ListByProject("proj1", "1")
+	list, err := svc.ListByProject("proj1", "user1")
 	if err != nil {
 		t.Fatalf("ListByProject 失败: %v", err)
 	}
@@ -62,10 +62,10 @@ func TestCharacterService_ListLibrary(t *testing.T) {
 	data := NewMemData()
 	svc := NewService(data, nil)
 
-	svc.Create(1, CreateCharacterRequest{Name: "角色A"})
-	svc.Create(1, CreateCharacterRequest{Name: "角色B"})
+	svc.Create("user1", CreateCharacterRequest{Name: "角色A"})
+	svc.Create("user1", CreateCharacterRequest{Name: "角色B"})
 
-	list, err := svc.ListLibrary(1)
+	list, err := svc.ListLibrary("user1")
 	if err != nil {
 		t.Fatalf("ListLibrary 失败: %v", err)
 	}

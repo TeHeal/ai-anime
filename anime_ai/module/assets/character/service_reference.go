@@ -3,8 +3,6 @@ package character
 import (
 	"encoding/json"
 	"fmt"
-
-	"anime_ai/pub/pkg"
 )
 
 // ReferenceImage 参考图结构
@@ -42,16 +40,16 @@ func (s *Service) saveReferenceImages(c *Character, imgs []ReferenceImage) error
 }
 
 // AddReferenceImage 添加参考图
-func (s *Service) AddReferenceImage(charID string, userID uint, req AddReferenceImageRequest) (*Character, error) {
+func (s *Service) AddReferenceImage(charID string, userIDStr string, req AddReferenceImageRequest) (*Character, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
@@ -69,16 +67,16 @@ func (s *Service) AddReferenceImage(charID string, userID uint, req AddReference
 }
 
 // DeleteReferenceImage 删除参考图
-func (s *Service) DeleteReferenceImage(charID string, userID uint, idx int) (*Character, error) {
+func (s *Service) DeleteReferenceImage(charID string, userIDStr string, idx int) (*Character, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, fmt.Errorf("角色不存在: %w", err)
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, fmt.Errorf("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}

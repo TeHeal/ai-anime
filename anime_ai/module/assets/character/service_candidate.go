@@ -54,16 +54,16 @@ type SelectCandidateRequest struct {
 }
 
 // GenerateCandidates 生成形象候选（占位）
-func (s *Service) GenerateCandidates(charID string, userID uint, req GenerateCandidatesRequest) (*GenerateCandidatesResponse, error) {
+func (s *Service) GenerateCandidates(charID string, userIDStr string, req GenerateCandidatesRequest) (*GenerateCandidatesResponse, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, pkg.NewBizError("角色不存在")
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, pkg.NewBizError("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
@@ -92,8 +92,8 @@ func (s *Service) GenerateCandidates(charID string, userID uint, req GenerateCan
 }
 
 // GetCandidates 获取候选列表（占位）
-func (s *Service) GetCandidates(taskID string, userID uint) (*CandidatesResponse, error) {
-	_ = userID
+func (s *Service) GetCandidates(taskID string, userIDStr string) (*CandidatesResponse, error) {
+	_ = userIDStr
 	return &CandidatesResponse{
 		TaskID:     taskID,
 		Status:     "pending",
@@ -102,16 +102,16 @@ func (s *Service) GetCandidates(taskID string, userID uint) (*CandidatesResponse
 }
 
 // SelectCandidate 选择候选（占位）
-func (s *Service) SelectCandidate(charID string, userID uint, req SelectCandidateRequest) (*Character, error) {
+func (s *Service) SelectCandidate(charID string, userIDStr string, req SelectCandidateRequest) (*Character, error) {
 	c, err := s.data.FindCharacterByID(charID)
 	if err != nil {
 		return nil, pkg.NewBizError("角色不存在")
 	}
-	if !userIDMatches(c.UserID, userID) {
+	if !userIDMatchesStr(c.UserID, userIDStr) {
 		return nil, pkg.NewBizError("无权操作此角色")
 	}
 	if c.ProjectID != nil && *c.ProjectID != "" {
-		if err := s.checkAssetEdit(*c.ProjectID, pkg.UUIDString(pkg.UintToUUID(userID))); err != nil {
+		if err := s.checkAssetEdit(*c.ProjectID, userIDStr); err != nil {
 			return nil, err
 		}
 	}
