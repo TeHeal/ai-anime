@@ -14,16 +14,27 @@ class RealtimeWSService {
   String? _token;
   final _eventController = StreamController<Map<String, dynamic>>.broadcast();
   final _statusController = StreamController<WSConnectionState>.broadcast();
+  final _reconnectedController = StreamController<void>.broadcast();
   Timer? _reconnectTimer;
   int _reconnectAttempt = 0;
   bool _manualClose = false;
   int _lastEventVersion = 0;
+
+  /// 最新收到的事件 ID（来自 project_events 表的 BIGSERIAL id）
+  int _lastEventId = 0;
+
   WSConnectionState _state = WSConnectionState.disconnected;
 
   bool get isConnected => _channel != null;
   Stream<Map<String, dynamic>> get events => _eventController.stream;
   Stream<WSConnectionState> get status => _statusController.stream;
   WSConnectionState get connectionState => _state;
+
+  /// 重连成功后触发，供 Provider 调用补拉逻辑
+  Stream<void> get onReconnected => _reconnectedController.stream;
+
+  /// 获取最后收到的事件 ID（供补拉时使用）
+  int get lastEventId => _lastEventId;
 
   void setToken(String? token) {
     final normalized = token?.trim();
@@ -60,6 +71,8 @@ class RealtimeWSService {
     final uri = _buildWsUri(token);
     debugPrint('WS connect: $uri');
 
+    final wasReconnecting = _state == WSConnectionState.reconnecting;
+
     _channel = WebSocketChannel.connect(uri);
     _subscription = _channel!.stream.listen(
       (message) {
@@ -77,9 +90,20 @@ class RealtimeWSService {
             _lastEventVersion = ver;
           }
 
+          // 追踪持久化事件 ID（来自 project_events 表）
+          if (data is Map<String, dynamic>) {
+            final eventId = data['eventId'] as int? ?? data['id'] as int?;
+            if (eventId != null && eventId > _lastEventId) {
+              _lastEventId = eventId;
+            }
+          }
+
           if (_state != WSConnectionState.connected) {
             _reconnectAttempt = 0;
             _setState(WSConnectionState.connected);
+            if (wasReconnecting) {
+              _reconnectedController.add(null);
+            }
           }
           debugPrint('WS event: $type');
           if (data is Map<String, dynamic>) {

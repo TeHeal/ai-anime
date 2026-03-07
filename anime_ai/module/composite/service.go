@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"anime_ai/pub/auth"
 	"anime_ai/pub/crossmodule"
@@ -36,8 +37,9 @@ func (dummyVerifier) Verify(projectID, userID string) error { return nil }
 
 // CreateExportRequest 创建导出任务请求
 type CreateExportRequest struct {
-	EpisodeID string          `json:"episode_id"`
-	Config    json.RawMessage `json:"config"`
+	EpisodeID   string          `json:"episode_id"`
+	Config      json.RawMessage `json:"config"`
+	ScheduledAt *time.Time      `json:"scheduled_at,omitempty"` // 定时执行时间
 }
 
 // CreateExport 创建成片导出任务，返回任务 ID（供 Worker 入队后使用）

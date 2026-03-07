@@ -28,7 +28,7 @@ type PollConfig struct {
 	Label        string
 }
 
-// ProgressFn 进度回调，用于推送任务进度（如 RealtimeHub）
+// ProgressFn 进度回调，用于推送任务进度（如 Broadcaster）
 type ProgressFn func(progress int, status string)
 
 // PollUntilDone 轮询 queryFn 直到返回 completed/failed 或 context 取消。

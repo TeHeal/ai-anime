@@ -25,6 +25,7 @@ import (
 	"anime_ai/module/organization"
 	"anime_ai/module/package_task"
 	"anime_ai/module/project"
+	"anime_ai/module/project_event"
 	"anime_ai/module/assets/prop"
 	"anime_ai/module/assets/resource"
 	"anime_ai/module/schedule"
@@ -40,6 +41,7 @@ import (
 	"anime_ai/module/usage"
 	"anime_ai/pub/config"
 	"anime_ai/pub/crossmodule"
+	"anime_ai/pub/event_recorder"
 	"anime_ai/pub/mesh"
 	"anime_ai/pub/provider/audio"
 	"anime_ai/pub/metrics"
@@ -313,9 +315,11 @@ func New(cfg *config.Config) (*App, error) {
 	}
 	log.Println("成片模块已启用")
 
-	// WebSocket
+	// WebSocket + EventRecorder（事件持久化 + 实时推送）
 	realtimeHub := realtime.NewHub(d.logger)
 	d.wsHandler = realtime.NewWSHandler(realtimeHub, cfg.App.Secret)
+	eventStore := db.New(pool)
+	recorder := event_recorder.New(realtimeHub, eventStore, d.logger)
 
 	// AI 路由
 	d.imageRouter = initImageRouter(cfg)
@@ -337,7 +341,7 @@ func New(cfg *config.Config) (*App, error) {
 		Storage:        d.store,
 		ShotImageStore: shotImageStore,
 		ShotLocker:     shotLocker,
-		RealtimeHub:    realtimeHub,
+		Broadcaster:    recorder,
 		TaskNotifier:   taskNotifier,
 		UsageRecorder:  provider_usage.NewDBRecorderWithLogger(db.New(pool), d.logger),
 	}
@@ -347,7 +351,7 @@ func New(cfg *config.Config) (*App, error) {
 		VideoRouter:      videoRouter,
 		Storage:          d.store,
 		ShotLocker:       shotLocker,
-		RealtimeHub:      realtimeHub,
+		Broadcaster:      recorder,
 		TaskNotifier:     taskNotifier,
 		ShotVideoUpdater: shotVideoStore,
 		UsageRecorder:    provider_usage.NewDBRecorderWithLogger(db.New(pool), d.logger),
@@ -357,7 +361,7 @@ func New(cfg *config.Config) (*App, error) {
 	ttsTaskDeps := worker.TTSTaskDeps{
 		TTSRouter:     ttsRouter,
 		Storage:       d.store,
-		RealtimeHub:   realtimeHub,
+		Broadcaster:   recorder,
 		TaskNotifier:  taskNotifier,
 		UsageRecorder: provider_usage.NewDBRecorderWithLogger(db.New(pool), d.logger),
 	}
@@ -370,7 +374,7 @@ func New(cfg *config.Config) (*App, error) {
 		ShotReader:       exportShotReader,
 		ShotVideoReader:  exportShotVideoReader,
 		Storage:          d.store,
-		RealtimeHub:      realtimeHub,
+		Broadcaster:      recorder,
 		TaskNotifier:     taskNotifier,
 	})
 
@@ -394,7 +398,7 @@ func New(cfg *config.Config) (*App, error) {
 		pipelineHandler = worker.NewPipelineTaskHandler(d.logger, worker.PipelineTaskDeps{
 			ScriptLockChecker: d.scriptLockCheck,
 			AsynqClient:       d.asynqClient,
-			RealtimeHub:       realtimeHub,
+			Broadcaster:       recorder,
 		})
 		d.logger.Info("Asynq Client/Server 已初始化（延迟启动 Worker）", zap.String("redis", redisAddr))
 	} else {
@@ -460,8 +464,8 @@ func New(cfg *config.Config) (*App, error) {
 	if d.store != nil {
 		resourceSvc.SetStorage(d.store)
 	}
-	d.resourceHandler = resource.NewHandler(resourceSvc, realtimeHub, d.logger)
-	d.aiHandler = ai.NewHandler(resourceSvc, realtimeHub, d.logger)
+	d.resourceHandler = resource.NewHandler(resourceSvc, recorder, d.logger)
+	d.aiHandler = ai.NewHandler(resourceSvc, recorder, d.logger)
 
 	// 素材库生成注入 asynq 入队 + asynq worker handler
 	var resourceGenHandler *worker.ResourceGenHandler
@@ -471,7 +475,7 @@ func New(cfg *config.Config) (*App, error) {
 		d.aiHandler.SetAsynq(d.asynqClient, taskAdapter)
 		resourceGenHandler = worker.NewResourceGenHandler(d.logger, worker.ResourceGenDeps{
 			ResourceSvc:  resourceSvc,
-			RealtimeHub:  realtimeHub,
+			Broadcaster:  recorder,
 			TaskNotifier: taskNotifier,
 			TaskRecorder: task.NewTaskRecorder(taskSvc),
 		})
@@ -512,11 +516,14 @@ func New(cfg *config.Config) (*App, error) {
 	d.dashboardHandler = dashboard.NewHandler(dashboardSvc)
 	log.Println("仪表盘模块已启用")
 
+	projectEventHandler := project_event.NewHandler(eventStore)
+
 	routeCfg := &route.Config{
 		AIHandler:           d.aiHandler,
 		AuthHandler:         d.authHandler,
 		NotificationHandler:   d.notificationHandler,
 		ModelCatalogHandler:  d.modelCatalogHandler,
+		ProjectEventHandler:  projectEventHandler,
 		OrgHandler:           d.orgHandler,
 		TeamHandler:         d.teamHandler,
 		TaskHandler:         d.taskHandler,

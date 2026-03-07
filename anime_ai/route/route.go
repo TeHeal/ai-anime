@@ -16,6 +16,7 @@ import (
 	"anime_ai/module/notification"
 	"anime_ai/module/organization"
 	"anime_ai/module/package_task"
+	"anime_ai/module/project_event"
 	"anime_ai/module/team"
 	"anime_ai/module/project"
 	"anime_ai/module/assets/prop"
@@ -69,6 +70,7 @@ type Config struct {
 	UsageHandler         *usage.Handler
 	ScheduleHandler      *schedule.Handler
 	ModelCatalogHandler  *model_catalog.Handler
+	ProjectEventHandler  *project_event.Handler
 	WSHandler            *realtime.WSHandler
 	AsynqClient          *asynq.Client
 	JWTSecret            string
@@ -156,6 +158,9 @@ func Register(r *gin.Engine, cfg *Config) {
 			protected.POST("/tasks/batch", cfg.TaskHandler.Batch)
 			protected.GET("/tasks/:taskId", cfg.TaskHandler.Get)
 			protected.PUT("/tasks/:taskId/cancel", cfg.TaskHandler.Cancel)
+			if cfg.ProjectEventHandler != nil {
+				protected.GET("/tasks/:taskId/events", cfg.ProjectEventHandler.ListTaskEvents)
+			}
 		}
 		if cfg.ProjectHandler != nil {
 			projects := protected.Group("/projects")
@@ -189,6 +194,11 @@ func Register(r *gin.Engine, cfg *Config) {
 				projectScoped.GET("/lock", cfg.ProjectHandler.GetLockStatus)
 				projectScoped.POST("/lock/:phase", middleware.RequireAction(auth.ActionEdit), cfg.ProjectHandler.LockPhase)
 				projectScoped.DELETE("/lock/:phase", middleware.RequireAction(auth.ActionEdit), cfg.ProjectHandler.UnlockPhase)
+			if cfg.ProjectEventHandler != nil {
+				projectScoped.GET("/events", cfg.ProjectEventHandler.ListProjectEvents)
+				projectScoped.GET("/events/recent", cfg.ProjectEventHandler.ListRecentProjectEvents)
+				projectScoped.GET("/events/latest-id", cfg.ProjectEventHandler.GetLatestEventID)
+			}
 				if cfg.AssetVersionHandler != nil {
 					projectScoped.GET("/asset-versions", cfg.AssetVersionHandler.List)
 					projectScoped.GET("/asset-versions/impact", cfg.AssetVersionHandler.Impact)

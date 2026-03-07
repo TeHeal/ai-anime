@@ -107,19 +107,24 @@ func (h *Hub) leaveAllRooms(c *Client) {
 }
 
 // Broadcast 广播事件。路由优先级：
-// 1. 若 ProjectIDStr 非空 → 仅广播给项目房间成员
-// 2. 若 UserIDStr 非空 → 仅广播给该用户的所有连接
+// 1. 若 ProjectIDStr 非空 → 广播给项目房间成员；房间为空时回退到按 UserIDStr
+// 2. 若 UserIDStr 非空 → 广播给该用户的所有连接
 // 3. 否则 → 广播给所有已连接客户端
 func (h *Hub) Broadcast(evt Event) {
 	evt = h.decorate(evt)
 
 	if evt.ProjectIDStr != "" {
+		sent := false
 		h.roomsMu.RLock()
-		if room, ok := h.rooms[evt.ProjectIDStr]; ok {
+		if room, ok := h.rooms[evt.ProjectIDStr]; ok && !room.isEmpty() {
 			room.broadcast(evt)
+			sent = true
 		}
 		h.roomsMu.RUnlock()
-		return
+		if sent {
+			return
+		}
+		// 房间为空或不存在时回退到按用户广播
 	}
 
 	h.mu.RLock()

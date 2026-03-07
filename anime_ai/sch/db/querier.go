@@ -77,6 +77,8 @@ type Querier interface {
 	GetCompositeTaskByTaskID(ctx context.Context, taskID pgtype.Text) (CompositeTask, error)
 	GetEpisodeByID(ctx context.Context, id pgtype.UUID) (Episode, error)
 	GetLatestFreezeByProject(ctx context.Context, projectID pgtype.UUID) (AssetVersion, error)
+	// 获取项目最新事件 ID（供 WebSocket 连接时返回起点）
+	GetLatestProjectEventID(ctx context.Context, projectID pgtype.UUID) (int64, error)
 	GetLocationByID(ctx context.Context, id pgtype.UUID) (Location, error)
 	GetOrgByID(ctx context.Context, id pgtype.UUID) (Organization, error)
 	GetOrgMember(ctx context.Context, arg GetOrgMemberParams) (OrgMember, error)
@@ -102,6 +104,8 @@ type Querier interface {
 	GetTeamMember(ctx context.Context, arg GetTeamMemberParams) (TeamMember, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	// 插入项目事件，返回 id（即 seq）供实时推送附带
+	InsertProjectEvent(ctx context.Context, arg InsertProjectEventParams) (ProjectEvent, error)
 	ListAssetVersionsByProject(ctx context.Context, arg ListAssetVersionsByProjectParams) ([]AssetVersion, error)
 	ListCharactersByProject(ctx context.Context, projectID pgtype.UUID) ([]Character, error)
 	ListCharactersByUser(ctx context.Context, userID pgtype.UUID) ([]Character, error)
@@ -115,12 +119,16 @@ type Querier interface {
 	ListOrgMembers(ctx context.Context, orgID pgtype.UUID) ([]ListOrgMembersRow, error)
 	ListOrgsByUser(ctx context.Context, userID pgtype.UUID) ([]Organization, error)
 	ListPackageTasksByEpisode(ctx context.Context, episodeID pgtype.UUID) ([]PackageTask, error)
+	// 按项目补拉事件（WebSocket 重连后调用）
+	ListProjectEventsAfter(ctx context.Context, arg ListProjectEventsAfterParams) ([]ProjectEvent, error)
 	ListProjectMembersByProject(ctx context.Context, projectID pgtype.UUID) ([]ProjectMember, error)
 	ListProjectsByUser(ctx context.Context, userID pgtype.UUID) ([]Project, error)
 	ListProjectsByUserOrMember(ctx context.Context, userID pgtype.UUID) ([]Project, error)
 	ListPropsByProject(ctx context.Context, projectID pgtype.UUID) ([]Prop, error)
 	// AI 用量统计（README 8.3 AI 成本控制）
 	ListProviderUsages(ctx context.Context, arg ListProviderUsagesParams) ([]ProviderUsage, error)
+	// 查询项目内最近 N 条事件（首次连接快照）
+	ListRecentProjectEvents(ctx context.Context, arg ListRecentProjectEventsParams) ([]ProjectEvent, error)
 	ListResourcesByUser(ctx context.Context, arg ListResourcesByUserParams) ([]Resource, error)
 	ListReviewRecordsByTarget(ctx context.Context, arg ListReviewRecordsByTargetParams) ([]ReviewRecord, error)
 	ListSceneBlocksByScene(ctx context.Context, sceneID pgtype.UUID) ([]SceneBlock, error)
@@ -137,6 +145,8 @@ type Querier interface {
 	ListShotsByScene(ctx context.Context, sceneID pgtype.UUID) ([]Shot, error)
 	ListShotsBySegment(ctx context.Context, segmentID pgtype.UUID) ([]Shot, error)
 	ListStylesByProject(ctx context.Context, projectID pgtype.UUID) ([]Style, error)
+	// 按任务补拉事件（单次执行的过程详情）
+	ListTaskEventsAfter(ctx context.Context, arg ListTaskEventsAfterParams) ([]ProjectEvent, error)
 	ListTasksByIDs(ctx context.Context, ids []pgtype.UUID) ([]Task, error)
 	ListTasksByProject(ctx context.Context, arg ListTasksByProjectParams) ([]Task, error)
 	ListTasksByProjectAndStatus(ctx context.Context, arg ListTasksByProjectAndStatusParams) ([]Task, error)
@@ -145,6 +155,8 @@ type Querier interface {
 	ListTasksByUser(ctx context.Context, arg ListTasksByUserParams) ([]Task, error)
 	ListTeamMembers(ctx context.Context, teamID pgtype.UUID) ([]ListTeamMembersRow, error)
 	ListTeamsByOrg(ctx context.Context, orgID pgtype.UUID) ([]Team, error)
+	// 按用户补拉无项目归属的事件（素材任务等）
+	ListUserEventsAfter(ctx context.Context, arg ListUserEventsAfterParams) ([]ProjectEvent, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	MarkAllAsReadByUser(ctx context.Context, userID pgtype.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error

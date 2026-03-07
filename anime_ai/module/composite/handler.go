@@ -80,9 +80,14 @@ func (h *Handler) CreateExport(c *gin.Context) {
 			"episode_id":        task.EpisodeID,
 			"user_id":           userID,
 		})
+		var enqueueOpts []asynq.Option
+		if req.ScheduledAt != nil && !req.ScheduledAt.IsZero() {
+			enqueueOpts = append(enqueueOpts, asynq.ProcessAt(*req.ScheduledAt))
+		}
 		asynqTask, err := h.asynqClient.EnqueueContext(
 			context.Background(),
 			asynq.NewTask(tasktypes.TypeExport, payload),
+			enqueueOpts...,
 		)
 		if err == nil {
 			asynqTaskID = asynqTask.ID

@@ -21,18 +21,18 @@ type ResourceTaskCreator interface {
 // Handler 素材库 HTTP 接口层
 type Handler struct {
 	svc         *Service
-	realtimeHub *realtime.Hub
+	broadcaster realtime.Broadcaster
 	log         *zap.Logger
 	asynqClient *asynq.Client // asynq 入队（nil 时降级为 goroutine）
 	taskCreator ResourceTaskCreator
 }
 
 // NewHandler 创建 Handler
-func NewHandler(svc *Service, realtimeHub *realtime.Hub, log *zap.Logger) *Handler {
+func NewHandler(svc *Service, broadcaster realtime.Broadcaster, log *zap.Logger) *Handler {
 	if log == nil {
 		log = zap.NewNop()
 	}
-	return &Handler{svc: svc, realtimeHub: realtimeHub, log: log.Named("resource_handler")}
+	return &Handler{svc: svc, broadcaster: broadcaster, log: log.Named("resource_handler")}
 }
 
 // SetAsynq 注入 asynq client 和任务创建器，启用 asynq 入队模式
@@ -71,8 +71,8 @@ func (h *Handler) Create(c *gin.Context) {
 		pkg.HandleError(c, err)
 		return
 	}
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, res.ID, "resource")
 	}
 	pkg.Created(c, res)
 }
@@ -239,8 +239,8 @@ func (h *Handler) GenerateVoice(c *gin.Context) {
 		return
 	}
 
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, placeholder.ID, "resource_voice")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, placeholder.ID, "resource_voice")
 	}
 
 	taskID := h.enqueueResourceTask(c, userID, placeholder.ID, "voice_clone",
@@ -262,8 +262,8 @@ func (h *Handler) completeVoiceCloneAsync(userID, resourceID string, req Generat
 		return
 	}
 	h.broadcastResourceTask(userID, resourceID, "tts", "音色克隆", 100, "completed")
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_voice")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, res.ID, "resource_voice")
 	}
 }
 
@@ -293,8 +293,8 @@ func (h *Handler) GenerateVoiceDesign(c *gin.Context) {
 		return
 	}
 
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, placeholder.ID, "resource_voice_design")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, placeholder.ID, "resource_voice_design")
 	}
 
 	taskID := h.enqueueResourceTask(c, userID, placeholder.ID, "voice_design",
@@ -325,8 +325,8 @@ func (h *Handler) completeVoiceDesignAsync(userID, resourceID string, req Genera
 
 	// 广播完成
 	h.broadcastResourceTask(userID, resourceID, "tts", "音色设计", 100, "completed")
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_voice_design")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, res.ID, "resource_voice_design")
 	}
 }
 
@@ -368,7 +368,7 @@ func (h *Handler) enqueueResourceTask(c *gin.Context, userID, resourceID, genTyp
 
 // broadcastResourceTask 推送素材生成任务进度（复用 task_progress/task_complete/task_error 事件）
 func (h *Handler) broadcastResourceTask(userID, resourceID, taskType, title string, progress int, status string) {
-	if h.realtimeHub == nil {
+	if h.broadcaster == nil {
 		return
 	}
 	data := map[string]interface{}{
@@ -381,11 +381,11 @@ func (h *Handler) broadcastResourceTask(userID, resourceID, taskType, title stri
 	}
 	switch {
 	case progress >= 100 && status == "completed":
-		h.realtimeHub.BroadcastTaskComplete(userID, nil, resourceID, data)
+		h.broadcaster.BroadcastTaskComplete(userID, nil, resourceID, data)
 	case status == "failed":
-		h.realtimeHub.BroadcastTaskError(userID, nil, resourceID, data)
+		h.broadcaster.BroadcastTaskError(userID, nil, resourceID, data)
 	default:
-		h.realtimeHub.BroadcastTaskProgress(userID, nil, resourceID, data)
+		h.broadcaster.BroadcastTaskProgress(userID, nil, resourceID, data)
 	}
 }
 
@@ -431,8 +431,8 @@ func (h *Handler) GeneratePrompt(c *gin.Context) {
 		return
 	}
 
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, placeholder.ID, "resource_prompt")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, placeholder.ID, "resource_prompt")
 	}
 
 	taskID := h.enqueueResourceTask(c, userID, placeholder.ID, "text",
@@ -454,8 +454,8 @@ func (h *Handler) completePromptAsync(userID, resourceID string, req GeneratePro
 		return
 	}
 	h.broadcastResourceTask(userID, resourceID, "text", "提示词生成", 100, "completed")
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_prompt")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, res.ID, "resource_prompt")
 	}
 }
 
@@ -482,8 +482,8 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 		return
 	}
 
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, placeholder.ID, "resource_image")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, placeholder.ID, "resource_image")
 	}
 
 	taskID := h.enqueueResourceTask(c, userID, placeholder.ID, "image",
@@ -505,7 +505,7 @@ func (h *Handler) completeImageAsync(userID, resourceID string, req GenerateImag
 		return
 	}
 	h.broadcastResourceTask(userID, resourceID, "image", "图片生成", 100, "completed")
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_image")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, res.ID, "resource_image")
 	}
 }

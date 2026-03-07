@@ -2,6 +2,7 @@ package package_task
 
 import (
 	"errors"
+	"time"
 
 	"anime_ai/pub/auth"
 	"anime_ai/pub/pkg"
@@ -51,7 +52,8 @@ func (h *Handler) RequestPackage(c *gin.Context) {
 		return
 	}
 	var req struct {
-		Config Config `json:"config"`
+		Config      Config     `json:"config"`
+		ScheduledAt *time.Time `json:"scheduled_at,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		req.Config = Config{
@@ -61,7 +63,7 @@ func (h *Handler) RequestPackage(c *gin.Context) {
 			IncludeFinal:      true,
 		}
 	}
-	task, err := h.svc.CreateAndEnqueue(c.Request.Context(), projectID, episodeID, userID, req.Config)
+	task, err := h.svc.CreateAndEnqueue(c.Request.Context(), projectID, episodeID, userID, req.Config, req.ScheduledAt)
 	if err != nil {
 		if errors.Is(err, pkg.ErrNotFound) {
 			pkg.NotFound(c, "项目或集不存在")

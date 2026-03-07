@@ -35,7 +35,7 @@ type ExportTaskDeps struct {
 	ShotReader       crossmodule.ExportShotReader
 	ShotVideoReader  crossmodule.ExportShotVideoReader
 	Storage          storage.Storage
-	RealtimeHub      *realtime.Hub
+	Broadcaster      realtime.Broadcaster
 	TaskNotifier     TaskNotifier
 }
 
@@ -303,14 +303,14 @@ func (h *ExportTaskHandler) fail(ctx context.Context, payload ExportTaskPayload,
 }
 
 func (h *ExportTaskHandler) broadcastProgress(payload ExportTaskPayload, progress int, status string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	var projectID *string
 	if payload.ProjectID != "" {
 		projectID = &payload.ProjectID
 	}
-	h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, payload.CompositeTaskID, map[string]interface{}{
+	h.deps.Broadcaster.BroadcastTaskProgress(payload.UserID, projectID, payload.CompositeTaskID, map[string]interface{}{
 		"taskId":   payload.CompositeTaskID,
 		"type":     "export",
 		"progress": progress,
@@ -320,14 +320,14 @@ func (h *ExportTaskHandler) broadcastProgress(payload ExportTaskPayload, progres
 }
 
 func (h *ExportTaskHandler) broadcastComplete(payload ExportTaskPayload, outputURL string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	var projectID *string
 	if payload.ProjectID != "" {
 		projectID = &payload.ProjectID
 	}
-	h.deps.RealtimeHub.BroadcastTaskComplete(payload.UserID, projectID, payload.CompositeTaskID, map[string]interface{}{
+	h.deps.Broadcaster.BroadcastTaskComplete(payload.UserID, projectID, payload.CompositeTaskID, map[string]interface{}{
 		"taskId":    payload.CompositeTaskID,
 		"type":      "export",
 		"progress":  100,
@@ -338,14 +338,14 @@ func (h *ExportTaskHandler) broadcastComplete(payload ExportTaskPayload, outputU
 }
 
 func (h *ExportTaskHandler) broadcastError(payload ExportTaskPayload, errMsg string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	var projectID *string
 	if payload.ProjectID != "" {
 		projectID = &payload.ProjectID
 	}
-	h.deps.RealtimeHub.BroadcastTaskError(payload.UserID, projectID, payload.CompositeTaskID, map[string]interface{}{
+	h.deps.Broadcaster.BroadcastTaskError(payload.UserID, projectID, payload.CompositeTaskID, map[string]interface{}{
 		"taskId":   payload.CompositeTaskID,
 		"type":     "export",
 		"progress": 0,

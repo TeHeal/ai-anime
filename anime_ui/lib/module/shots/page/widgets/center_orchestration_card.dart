@@ -120,6 +120,11 @@ class CenterOrchestrationCard extends ConsumerWidget {
             SizedBox(height: Spacing.sm.h),
             _referenceImageHint(),
           ],
+
+          SizedBox(height: Spacing.lg.h),
+
+          // 定时执行时间选择
+          const _ScheduledTimePicker(),
         ],
       ),
     );
@@ -328,4 +333,132 @@ class CenterOrchestrationCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// 定时执行时间选择器
+class _ScheduledTimePicker extends ConsumerWidget {
+  const _ScheduledTimePicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheduledAt = ref.watch(scheduledAtProvider);
+    final hasSchedule = scheduledAt != null;
+
+    return Container(
+      padding: EdgeInsets.all(Spacing.md.r),
+      decoration: BoxDecoration(
+        color: hasSchedule
+            ? AppColors.primary.withValues(alpha: 0.06)
+            : AppColors.surface,
+        borderRadius: BorderRadius.circular(RadiusTokens.lg.r),
+        border: Border.all(
+          color: hasSchedule
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : AppColors.border,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            AppIcons.schedule,
+            size: 18.r,
+            color: hasSchedule ? AppColors.primary : AppColors.onSurface.withValues(alpha: 0.5),
+          ),
+          SizedBox(width: Spacing.md.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '计划执行时间',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  hasSchedule ? _formatDateTime(scheduledAt) : '立即执行',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: hasSchedule
+                        ? AppColors.primary
+                        : AppColors.onSurface.withValues(alpha: 0.5),
+                    fontWeight:
+                        hasSchedule ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (hasSchedule)
+            IconButton(
+              icon: Icon(Icons.close, size: 18.r),
+              onPressed: () =>
+                  ref.read(scheduledAtProvider.notifier).clear(),
+              tooltip: '清除计划时间',
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(minWidth: 32.r, minHeight: 32.r),
+            ),
+          SizedBox(width: Spacing.sm.w),
+          FilledButton.tonalIcon(
+            onPressed: () => _pickDateTime(context, ref),
+            icon: Icon(Icons.edit_calendar, size: 16.r),
+            label: Text(hasSchedule ? '修改' : '设置'),
+            style: FilledButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: Spacing.md.w,
+                vertical: Spacing.sm.h,
+              ),
+              textStyle: AppTextStyles.caption,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickDateTime(BuildContext context, WidgetRef ref) async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: ref.read(scheduledAtProvider) ?? now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 30)),
+      helpText: '选择执行日期',
+    );
+    if (date == null || !context.mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+        ref.read(scheduledAtProvider) ?? now.add(const Duration(hours: 1)),
+      ),
+      helpText: '选择执行时间',
+    );
+    if (time == null || !context.mounted) return;
+
+    final scheduled = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+
+    if (scheduled.isBefore(DateTime.now())) {
+      if (context.mounted) {
+        showToast(context, '计划时间不能早于当前时间', isError: true);
+      }
+      return;
+    }
+
+    ref.read(scheduledAtProvider.notifier).set(scheduled);
+  }
+
+  String _formatDateTime(DateTime dt) {
+    final d = dt.toLocal();
+    return '${d.year}-${_pad(d.month)}-${_pad(d.day)} '
+        '${_pad(d.hour)}:${_pad(d.minute)}';
+  }
+
+  String _pad(int n) => n.toString().padLeft(2, '0');
 }

@@ -186,6 +186,18 @@ type Project struct {
 	ScriptLockedAt pgtype.Timestamptz `json:"script_locked_at"`
 }
 
+type ProjectEvent struct {
+	ID         int64              `json:"id"`
+	ProjectID  pgtype.UUID        `json:"project_id"`
+	TaskID     pgtype.Text        `json:"task_id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	EventType  string             `json:"event_type"`
+	TargetType pgtype.Text        `json:"target_type"`
+	TargetID   pgtype.Text        `json:"target_id"`
+	Payload    []byte             `json:"payload"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
 type ProjectMember struct {
 	ID        pgtype.UUID        `json:"id"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
@@ -432,6 +444,7 @@ type Task struct {
 	CompletedAt pgtype.Timestamptz `json:"completed_at"`
 	LockedBy    pgtype.UUID        `json:"locked_by"`
 	LockedAt    pgtype.Timestamptz `json:"locked_at"`
+	ScheduledAt pgtype.Timestamptz `json:"scheduled_at"`
 }
 
 type Team struct {

@@ -62,16 +62,28 @@ final resourceTasksProvider =
 class ResourceListNotifier extends Notifier<AsyncValue<List<Resource>>> {
   ResourceService get _svc => ref.read(resourceSvcProvider);
   StreamSubscription<Map<String, dynamic>>? _wsSub;
+  StreamSubscription<void>? _reconnectSub;
   Timer? _flushTimer;
 
   @override
   AsyncValue<List<Resource>> build() {
     _listenRealtimeEvents();
+    _listenReconnect();
     ref.onDispose(() {
       _wsSub?.cancel();
+      _reconnectSub?.cancel();
       _flushTimer?.cancel();
     });
     return const AsyncValue.data([]);
+  }
+
+  /// WebSocket 重连后刷新资源列表
+  void _listenReconnect() {
+    _reconnectSub?.cancel();
+    _reconnectSub = realtimeWS.onReconnected.listen((_) {
+      debugPrint('ResourceList: WS 重连成功，刷新列表');
+      load();
+    });
   }
 
   /// 监听 WebSocket 事件：

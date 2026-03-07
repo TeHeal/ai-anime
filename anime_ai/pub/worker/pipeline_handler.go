@@ -34,7 +34,7 @@ type PipelinePayload struct {
 type PipelineTaskDeps struct {
 	ScriptLockChecker crossmodule.ScriptLockChecker
 	AsynqClient       *asynq.Client
-	RealtimeHub       *realtime.Hub
+	Broadcaster       realtime.Broadcaster
 }
 
 // PipelineTaskHandler 流水线编排任务 Handler
@@ -207,14 +207,14 @@ func (h *PipelineTaskHandler) stageExport(ctx context.Context, payload PipelineP
 }
 
 func (h *PipelineTaskHandler) broadcastPipelineStatus(payload PipelinePayload, stage, status, message string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	var projectID *string
 	if payload.ProjectID != "" {
 		projectID = &payload.ProjectID
 	}
-	h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, "pipeline:"+payload.ProjectID, map[string]interface{}{
+	h.deps.Broadcaster.BroadcastTaskProgress(payload.UserID, projectID, "pipeline:"+payload.ProjectID, map[string]interface{}{
 		"taskId":   "pipeline:" + payload.ProjectID,
 		"type":     "pipeline",
 		"stage":    stage,

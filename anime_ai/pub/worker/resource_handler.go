@@ -35,7 +35,7 @@ type ResourceTaskRecorder interface {
 // ResourceGenDeps 素材库生成 Handler 依赖
 type ResourceGenDeps struct {
 	ResourceSvc  *resource.Service
-	RealtimeHub  *realtime.Hub
+	Broadcaster  realtime.Broadcaster
 	TaskNotifier TaskNotifier
 	TaskRecorder ResourceTaskRecorder
 }
@@ -134,8 +134,8 @@ func (h *ResourceGenHandler) handle(ctx context.Context, t *asynq.Task, expected
 			"/assets")
 	}
 
-	if h.deps.RealtimeHub != nil {
-		h.deps.RealtimeHub.BroadcastResourceCreated(payload.UserID, payload.ResourceID, "resource_"+payload.GenType)
+	if h.deps.Broadcaster != nil {
+		h.deps.Broadcaster.BroadcastResourceCreated(payload.UserID, payload.ResourceID, "resource_"+payload.GenType)
 	}
 
 	return nil
@@ -178,7 +178,7 @@ func (h *ResourceGenHandler) doText(ctx context.Context, p ResourceGenPayload) e
 }
 
 func (h *ResourceGenHandler) broadcastProgress(p ResourceGenPayload, progress int, status string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	data := map[string]interface{}{
@@ -191,11 +191,11 @@ func (h *ResourceGenHandler) broadcastProgress(p ResourceGenPayload, progress in
 	}
 	switch {
 	case progress >= 100 && status == "completed":
-		h.deps.RealtimeHub.BroadcastTaskComplete(p.UserID, nil, p.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskComplete(p.UserID, nil, p.TaskID, data)
 	case status == "failed":
-		h.deps.RealtimeHub.BroadcastTaskError(p.UserID, nil, p.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskError(p.UserID, nil, p.TaskID, data)
 	default:
-		h.deps.RealtimeHub.BroadcastTaskProgress(p.UserID, nil, p.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskProgress(p.UserID, nil, p.TaskID, data)
 	}
 }
 

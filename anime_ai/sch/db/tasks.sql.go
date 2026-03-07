@@ -24,7 +24,7 @@ func (q *Queries) BatchCancelTasks(ctx context.Context, ids []pgtype.UUID) error
 const cancelTask = `-- name: CancelTask :one
 UPDATE tasks SET status = 'cancelled', completed_at = now()
 WHERE id = $1 AND status IN ('pending', 'running')
-RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at
+RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at
 `
 
 func (q *Queries) CancelTask(ctx context.Context, id pgtype.UUID) (Task, error) {
@@ -48,6 +48,7 @@ func (q *Queries) CancelTask(ctx context.Context, id pgtype.UUID) (Task, error) 
 		&i.CompletedAt,
 		&i.LockedBy,
 		&i.LockedAt,
+		&i.ScheduledAt,
 	)
 	return i, err
 }
@@ -64,7 +65,7 @@ func (q *Queries) CountTasksByProject(ctx context.Context, projectID pgtype.UUID
 }
 
 const createTask = `-- name: CreateTask :one
-INSERT INTO tasks (project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg)
+INSERT INTO tasks (project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, scheduled_at)
 VALUES (
     $1, $2, $3,
     COALESCE($4, 'pending'),
@@ -73,22 +74,24 @@ VALUES (
     COALESCE($7, ''),
     COALESCE($8, '{}'::jsonb),
     COALESCE($9, '{}'::jsonb),
-    COALESCE($10, '')
+    COALESCE($10, ''),
+    $11
 )
-RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at
+RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at
 `
 
 type CreateTaskParams struct {
-	ProjectID   pgtype.UUID `json:"project_id"`
-	UserID      pgtype.UUID `json:"user_id"`
-	Type        string      `json:"type"`
-	Status      interface{} `json:"status"`
-	Progress    interface{} `json:"progress"`
-	Title       interface{} `json:"title"`
-	Description interface{} `json:"description"`
-	ConfigJson  interface{} `json:"config_json"`
-	ResultJson  interface{} `json:"result_json"`
-	ErrorMsg    interface{} `json:"error_msg"`
+	ProjectID   pgtype.UUID        `json:"project_id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	Type        string             `json:"type"`
+	Status      interface{}        `json:"status"`
+	Progress    interface{}        `json:"progress"`
+	Title       interface{}        `json:"title"`
+	Description interface{}        `json:"description"`
+	ConfigJson  interface{}        `json:"config_json"`
+	ResultJson  interface{}        `json:"result_json"`
+	ErrorMsg    interface{}        `json:"error_msg"`
+	ScheduledAt pgtype.Timestamptz `json:"scheduled_at"`
 }
 
 // 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
@@ -105,6 +108,7 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		arg.ConfigJson,
 		arg.ResultJson,
 		arg.ErrorMsg,
+		arg.ScheduledAt,
 	)
 	var i Task
 	err := row.Scan(
@@ -125,12 +129,13 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		&i.CompletedAt,
 		&i.LockedBy,
 		&i.LockedAt,
+		&i.ScheduledAt,
 	)
 	return i, err
 }
 
 const getTaskByID = `-- name: GetTaskByID :one
-SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at FROM tasks WHERE id = $1
+SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at FROM tasks WHERE id = $1
 `
 
 func (q *Queries) GetTaskByID(ctx context.Context, id pgtype.UUID) (Task, error) {
@@ -154,12 +159,13 @@ func (q *Queries) GetTaskByID(ctx context.Context, id pgtype.UUID) (Task, error)
 		&i.CompletedAt,
 		&i.LockedBy,
 		&i.LockedAt,
+		&i.ScheduledAt,
 	)
 	return i, err
 }
 
 const listTasksByIDs = `-- name: ListTasksByIDs :many
-SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at FROM tasks WHERE id = ANY($1::uuid[]) ORDER BY created_at DESC
+SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at FROM tasks WHERE id = ANY($1::uuid[]) ORDER BY created_at DESC
 `
 
 func (q *Queries) ListTasksByIDs(ctx context.Context, ids []pgtype.UUID) ([]Task, error) {
@@ -189,6 +195,7 @@ func (q *Queries) ListTasksByIDs(ctx context.Context, ids []pgtype.UUID) ([]Task
 			&i.CompletedAt,
 			&i.LockedBy,
 			&i.LockedAt,
+			&i.ScheduledAt,
 		); err != nil {
 			return nil, err
 		}
@@ -201,7 +208,7 @@ func (q *Queries) ListTasksByIDs(ctx context.Context, ids []pgtype.UUID) ([]Task
 }
 
 const listTasksByProject = `-- name: ListTasksByProject :many
-SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at FROM tasks
+SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at FROM tasks
 WHERE project_id = $1
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $2
@@ -240,6 +247,7 @@ func (q *Queries) ListTasksByProject(ctx context.Context, arg ListTasksByProject
 			&i.CompletedAt,
 			&i.LockedBy,
 			&i.LockedAt,
+			&i.ScheduledAt,
 		); err != nil {
 			return nil, err
 		}
@@ -252,7 +260,7 @@ func (q *Queries) ListTasksByProject(ctx context.Context, arg ListTasksByProject
 }
 
 const listTasksByProjectAndStatus = `-- name: ListTasksByProjectAndStatus :many
-SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at FROM tasks
+SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at FROM tasks
 WHERE project_id = $1 AND status = $2
 ORDER BY created_at DESC
 LIMIT $4 OFFSET $3
@@ -297,6 +305,7 @@ func (q *Queries) ListTasksByProjectAndStatus(ctx context.Context, arg ListTasks
 			&i.CompletedAt,
 			&i.LockedBy,
 			&i.LockedAt,
+			&i.ScheduledAt,
 		); err != nil {
 			return nil, err
 		}
@@ -309,7 +318,7 @@ func (q *Queries) ListTasksByProjectAndStatus(ctx context.Context, arg ListTasks
 }
 
 const listTasksByProjectAndType = `-- name: ListTasksByProjectAndType :many
-SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at FROM tasks
+SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at FROM tasks
 WHERE project_id = $1 AND type = $2
 ORDER BY created_at DESC
 LIMIT $4 OFFSET $3
@@ -354,6 +363,7 @@ func (q *Queries) ListTasksByProjectAndType(ctx context.Context, arg ListTasksBy
 			&i.CompletedAt,
 			&i.LockedBy,
 			&i.LockedAt,
+			&i.ScheduledAt,
 		); err != nil {
 			return nil, err
 		}
@@ -366,7 +376,7 @@ func (q *Queries) ListTasksByProjectAndType(ctx context.Context, arg ListTasksBy
 }
 
 const listTasksByProjectTypeAndStatus = `-- name: ListTasksByProjectTypeAndStatus :many
-SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at FROM tasks
+SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at FROM tasks
 WHERE project_id = $1 AND type = $2 AND status = $3
 ORDER BY created_at DESC
 LIMIT $5 OFFSET $4
@@ -413,6 +423,7 @@ func (q *Queries) ListTasksByProjectTypeAndStatus(ctx context.Context, arg ListT
 			&i.CompletedAt,
 			&i.LockedBy,
 			&i.LockedAt,
+			&i.ScheduledAt,
 		); err != nil {
 			return nil, err
 		}
@@ -425,7 +436,7 @@ func (q *Queries) ListTasksByProjectTypeAndStatus(ctx context.Context, arg ListT
 }
 
 const listTasksByUser = `-- name: ListTasksByUser :many
-SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at FROM tasks
+SELECT id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at FROM tasks
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $2
@@ -464,6 +475,7 @@ func (q *Queries) ListTasksByUser(ctx context.Context, arg ListTasksByUserParams
 			&i.CompletedAt,
 			&i.LockedBy,
 			&i.LockedAt,
+			&i.ScheduledAt,
 		); err != nil {
 			return nil, err
 		}
@@ -478,7 +490,7 @@ func (q *Queries) ListTasksByUser(ctx context.Context, arg ListTasksByUserParams
 const updateTaskProgress = `-- name: UpdateTaskProgress :one
 UPDATE tasks SET progress = $1
 WHERE id = $2
-RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at
+RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at
 `
 
 type UpdateTaskProgressParams struct {
@@ -507,6 +519,7 @@ func (q *Queries) UpdateTaskProgress(ctx context.Context, arg UpdateTaskProgress
 		&i.CompletedAt,
 		&i.LockedBy,
 		&i.LockedAt,
+		&i.ScheduledAt,
 	)
 	return i, err
 }
@@ -514,7 +527,7 @@ func (q *Queries) UpdateTaskProgress(ctx context.Context, arg UpdateTaskProgress
 const updateTaskResult = `-- name: UpdateTaskResult :one
 UPDATE tasks SET result_json = $1
 WHERE id = $2
-RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at
+RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at
 `
 
 type UpdateTaskResultParams struct {
@@ -543,6 +556,7 @@ func (q *Queries) UpdateTaskResult(ctx context.Context, arg UpdateTaskResultPara
 		&i.CompletedAt,
 		&i.LockedBy,
 		&i.LockedAt,
+		&i.ScheduledAt,
 	)
 	return i, err
 }
@@ -553,7 +567,7 @@ UPDATE tasks SET status = $1,
     started_at = COALESCE($3, started_at),
     completed_at = COALESCE($4, completed_at)
 WHERE id = $5
-RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at
+RETURNING id, created_at, updated_at, project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, started_at, completed_at, locked_by, locked_at, scheduled_at
 `
 
 type UpdateTaskStatusParams struct {
@@ -591,6 +605,7 @@ func (q *Queries) UpdateTaskStatus(ctx context.Context, arg UpdateTaskStatusPara
 		&i.CompletedAt,
 		&i.LockedBy,
 		&i.LockedAt,
+		&i.ScheduledAt,
 	)
 	return i, err
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anime_ui/pub/models/task.dart';
@@ -67,12 +68,17 @@ class TaskCenterState {
 class TaskCenterNotifier extends Notifier<TaskCenterState> {
   final _svc = TaskService();
   StreamSubscription<Map<String, dynamic>>? _wsSub;
+  StreamSubscription<void>? _reconnectSub;
 
   @override
   TaskCenterState build() {
     _load();
     _listenWs();
-    ref.onDispose(() => _wsSub?.cancel());
+    _listenReconnect();
+    ref.onDispose(() {
+      _wsSub?.cancel();
+      _reconnectSub?.cancel();
+    });
     return const TaskCenterState(loading: true);
   }
 
@@ -90,7 +96,9 @@ class TaskCenterNotifier extends Notifier<TaskCenterState> {
       final type = event['type'] as String?;
       if (type != 'task_progress' &&
           type != 'task_complete' &&
-          type != 'task_error') return;
+          type != 'task_error') {
+        return;
+      }
 
       final payload =
           (event['payload'] as Map<String, dynamic>?) ?? <String, dynamic>{};
@@ -122,6 +130,15 @@ class TaskCenterNotifier extends Notifier<TaskCenterState> {
         error: payload['error'] as String?,
       );
       _upsertTask(updated);
+    });
+  }
+
+  /// 监听 WebSocket 重连事件，触发事件补拉
+  void _listenReconnect() {
+    _reconnectSub?.cancel();
+    _reconnectSub = realtimeWS.onReconnected.listen((_) {
+      debugPrint('TaskCenter: WS 重连成功，刷新任务列表');
+      _load();
     });
   }
 

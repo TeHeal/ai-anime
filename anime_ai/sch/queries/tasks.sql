@@ -1,7 +1,7 @@
 -- name: CreateTask :one
 -- 统一任务 CRUD（README §2.1 任务编排，前端任务中心）
 -- project_id 可空：素材库任务无项目归属
-INSERT INTO tasks (project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg)
+INSERT INTO tasks (project_id, user_id, type, status, progress, title, description, config_json, result_json, error_msg, scheduled_at)
 VALUES (
     sqlc.narg('project_id'), sqlc.arg('user_id'), sqlc.arg('type'),
     COALESCE(sqlc.narg('status'), 'pending'),
@@ -10,7 +10,8 @@ VALUES (
     COALESCE(sqlc.narg('description'), ''),
     COALESCE(sqlc.narg('config_json'), '{}'::jsonb),
     COALESCE(sqlc.narg('result_json'), '{}'::jsonb),
-    COALESCE(sqlc.narg('error_msg'), '')
+    COALESCE(sqlc.narg('error_msg'), ''),
+    sqlc.narg('scheduled_at')
 )
 RETURNING *;
 

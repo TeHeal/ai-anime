@@ -13,6 +13,7 @@ import (
 	"anime_ai/pub/realtime"
 	"anime_ai/pub/storage"
 	"anime_ai/pub/tasktypes"
+
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )
@@ -46,10 +47,10 @@ type ImageTaskDeps struct {
 	ImageRouter    ImageRouter
 	Storage        storage.Storage
 	ShotImageStore crossmodule.ShotImageStore
-	ShotLocker     crossmodule.ShotLocker // 可选，任务完成/失败时释放锁（README 2.3）
-	RealtimeHub    *realtime.Hub
-	TaskNotifier   TaskNotifier            // 可选，任务完成时写入通知表
-	UsageRecorder  provider_usage.Recorder // 可选，AI 用量记录（README 8.3）
+	ShotLocker     crossmodule.ShotLocker      // 可选，任务完成/失败时释放锁（README 2.3）
+	Broadcaster    realtime.Broadcaster         // 事件持久化 + 实时推送
+	TaskNotifier   TaskNotifier                 // 可选，任务完成时写入通知表
+	UsageRecorder  provider_usage.Recorder      // 可选，AI 用量记录（README 8.3）
 }
 
 // ImageRouter 文生图路由接口，用于依赖注入
@@ -190,7 +191,7 @@ func (h *ImageTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 }
 
 func (h *ImageTaskHandler) broadcastProgress(payload ImageTaskPayload, progress int, status string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	var projectID *string
@@ -207,11 +208,11 @@ func (h *ImageTaskHandler) broadcastProgress(payload ImageTaskPayload, progress 
 	}
 	switch {
 	case progress >= 100 && status == "completed":
-		h.deps.RealtimeHub.BroadcastTaskComplete(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskComplete(payload.UserID, projectID, payload.TaskID, data)
 	case status == "failed":
-		h.deps.RealtimeHub.BroadcastTaskError(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskError(payload.UserID, projectID, payload.TaskID, data)
 	default:
-		h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, data)
 	}
 }
 

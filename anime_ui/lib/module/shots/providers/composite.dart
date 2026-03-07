@@ -341,6 +341,20 @@ class CompositeConfigNotifier extends Notifier<CompositeConfig> {
   }
 }
 
+// ─── 定时执行时间 ───
+
+class ScheduledAtNotifier extends Notifier<DateTime?> {
+  @override
+  DateTime? build() => null;
+
+  void set(DateTime? value) => state = value;
+  void clear() => state = null;
+}
+
+/// 可选的定时执行时间；null 表示立即执行
+final scheduledAtProvider =
+    NotifierProvider<ScheduledAtNotifier, DateTime?>(ScheduledAtNotifier.new);
+
 // ─── 复合镜头状态 ───
 
 enum CompositeShotStatus {
@@ -400,6 +414,7 @@ class CompositeShotStatesNotifier
     final pid = ref.read(currentProjectProvider).value?.id;
     if (pid == null) return;
     final config = ref.read(compositeConfigProvider);
+    final scheduledAt = ref.read(scheduledAtProvider);
 
     final updated = Map<String, CompositeShotState>.from(state);
     for (final id in shotIds) {
@@ -409,9 +424,12 @@ class CompositeShotStatesNotifier
     state = updated;
 
     try {
-      await ref
-          .read(shotCompositeServiceProvider)
-          .batchGenerate(pid, shotIds: shotIds, config: config.toJson());
+      await ref.read(shotCompositeServiceProvider).batchGenerate(
+            pid,
+            shotIds: shotIds,
+            config: config.toJson(),
+            scheduledAt: scheduledAt,
+          );
     } catch (e, st) {
       debugPrint('ShotCompositeNotifier.batchGenerate: $e');
       debugPrint(st.toString());

@@ -5,10 +5,18 @@ class ShotCompositeService {
     String projectId, {
     required List<String> shotIds,
     Map<String, dynamic> config = const {},
+    DateTime? scheduledAt,
   }) async {
+    final data = <String, dynamic>{
+      'shot_ids': shotIds,
+      'config': config,
+    };
+    if (scheduledAt != null) {
+      data['scheduled_at'] = scheduledAt.toUtc().toIso8601String();
+    }
     final resp = await dio.post(
       '/projects/$projectId/shot-composite/generate',
-      data: {'shot_ids': shotIds, 'config': config},
+      data: data,
     );
     return extractData<List>(resp);
   }

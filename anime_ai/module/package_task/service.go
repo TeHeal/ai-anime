@@ -3,6 +3,7 @@ package package_task
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"anime_ai/pub/crossmodule"
 	"anime_ai/pub/pkg"
@@ -31,7 +32,7 @@ func NewService(store Store, verifier crossmodule.ProjectVerifier, asynqClient *
 }
 
 // CreateAndEnqueue 创建打包任务并入队，返回任务 ID
-func (s *Service) CreateAndEnqueue(ctx context.Context, projectID, episodeID, userID string, cfg Config) (*Task, error) {
+func (s *Service) CreateAndEnqueue(ctx context.Context, projectID, episodeID, userID string, cfg Config, scheduledAt *time.Time) (*Task, error) {
 	if s.verifier != nil {
 		if err := s.verifier.Verify(projectID, userID); err != nil {
 			return nil, err
@@ -50,7 +51,11 @@ func (s *Service) CreateAndEnqueue(ctx context.Context, projectID, episodeID, us
 			"user_id":         userID,
 			"config":          cfg,
 		})
-		asynqTask, err := s.asynqClient.EnqueueContext(ctx, asynq.NewTask(tasktypes.TypePackage, payload))
+		var enqueueOpts []asynq.Option
+		if scheduledAt != nil && !scheduledAt.IsZero() {
+			enqueueOpts = append(enqueueOpts, asynq.ProcessAt(*scheduledAt))
+		}
+		asynqTask, err := s.asynqClient.EnqueueContext(ctx, asynq.NewTask(tasktypes.TypePackage, payload), enqueueOpts...)
 		if err == nil {
 			_ = s.store.UpdateTaskID(ctx, task.ID, asynqTask.ID)
 			task.TaskID = asynqTask.ID

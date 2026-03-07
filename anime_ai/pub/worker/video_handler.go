@@ -66,7 +66,7 @@ type VideoTaskDeps struct {
 	Storage          storage.Storage
 	ShotVideoUpdater ShotVideoUpdater            // 镜头视频状态更新
 	ShotLocker       crossmodule.ShotLocker      // 可选，任务完成/失败时释放锁（README 2.3）
-	RealtimeHub      *realtime.Hub
+	Broadcaster      realtime.Broadcaster         // 事件持久化 + 实时推送
 	TaskNotifier     TaskNotifier                // 可选，任务完成时写入通知表
 	UsageRecorder    provider_usage.Recorder     // 可选，AI 用量记录（README 8.3）
 }
@@ -217,7 +217,7 @@ func (h *VideoTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 }
 
 func (h *VideoTaskHandler) broadcastProgress(payload VideoTaskPayload, progress int, status string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	var projectID *string
@@ -234,11 +234,11 @@ func (h *VideoTaskHandler) broadcastProgress(payload VideoTaskPayload, progress 
 	}
 	switch {
 	case progress >= 100 && status == "completed":
-		h.deps.RealtimeHub.BroadcastTaskComplete(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskComplete(payload.UserID, projectID, payload.TaskID, data)
 	case status == "failed":
-		h.deps.RealtimeHub.BroadcastTaskError(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskError(payload.UserID, projectID, payload.TaskID, data)
 	default:
-		h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, data)
 	}
 }
 

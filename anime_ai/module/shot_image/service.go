@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"anime_ai/pub/auth"
 	"anime_ai/pub/crossmodule"
@@ -332,7 +333,11 @@ func (s *Service) BatchGenerate(projectID, userID string, req BatchGenerateReque
 			}
 			payloadBytes, _ := json.Marshal(payload)
 			task := asynq.NewTask(tasktypes.TypeImageGeneration, payloadBytes)
-			if _, err := s.asynqClient.Enqueue(task); err == nil {
+			var enqueueOpts []asynq.Option
+			if req.ScheduledAt != nil && !req.ScheduledAt.IsZero() {
+				enqueueOpts = append(enqueueOpts, asynq.ProcessAt(*req.ScheduledAt))
+			}
+			if _, err := s.asynqClient.Enqueue(task, enqueueOpts...); err == nil {
 				taskIDs = append(taskIDs, taskID)
 			}
 		}
@@ -343,8 +348,9 @@ func (s *Service) BatchGenerate(projectID, userID string, req BatchGenerateReque
 
 // BatchGenerateRequest 批量生成请求
 type BatchGenerateRequest struct {
-	ShotIDs []string       `json:"shot_ids" binding:"required,min=1"`
-	Config  GenerateConfig `json:"config"`
+	ShotIDs     []string       `json:"shot_ids" binding:"required,min=1"`
+	Config      GenerateConfig `json:"config"`
+	ScheduledAt *time.Time     `json:"scheduled_at,omitempty"` // 定时执行时间
 }
 
 // BatchGenerateResult 批量生成结果（占位）

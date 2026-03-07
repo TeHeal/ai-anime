@@ -17,18 +17,18 @@ import (
 // Handler AI 生成统一入口（图生、LLM、音频）
 type Handler struct {
 	resourceSvc *resource.Service
-	realtimeHub *realtime.Hub
+	broadcaster realtime.Broadcaster
 	log         *zap.Logger
 	asynqClient *asynq.Client
 	taskCreator resource.ResourceTaskCreator
 }
 
 // NewHandler 创建 Handler
-func NewHandler(resourceSvc *resource.Service, realtimeHub *realtime.Hub, log *zap.Logger) *Handler {
+func NewHandler(resourceSvc *resource.Service, broadcaster realtime.Broadcaster, log *zap.Logger) *Handler {
 	if log == nil {
 		log = zap.NewNop()
 	}
-	return &Handler{resourceSvc: resourceSvc, realtimeHub: realtimeHub, log: log.Named("ai_handler")}
+	return &Handler{resourceSvc: resourceSvc, broadcaster: broadcaster, log: log.Named("ai_handler")}
 }
 
 // SetAsynq 注入 asynq 入队能力
@@ -69,8 +69,8 @@ func (h *Handler) GenerateImage(c *gin.Context) {
 			pkg.HandleError(c, err)
 			return
 		}
-		if h.realtimeHub != nil {
-			h.realtimeHub.BroadcastResourceCreated(userID, placeholder.ID, "resource_image")
+		if h.broadcaster != nil {
+			h.broadcaster.BroadcastResourceCreated(userID, placeholder.ID, "resource_image")
 		}
 
 		taskID := h.enqueueImageTask(c, userID, placeholder.ID, req)
@@ -136,8 +136,8 @@ func (h *Handler) completeImageAsync(userID, resourceID string, req GenerateImag
 		return
 	}
 	h.broadcastResourceTask(userID, resourceID, "image", "图片生成", 100, "completed")
-	if h.realtimeHub != nil {
-		h.realtimeHub.BroadcastResourceCreated(userID, res.ID, "resource_image")
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastResourceCreated(userID, res.ID, "resource_image")
 	}
 }
 
@@ -175,7 +175,7 @@ func (h *Handler) toResourceImageReq(req GenerateImageRequest) resource.Generate
 
 // broadcastResourceTask 推送素材生成任务进度
 func (h *Handler) broadcastResourceTask(userID, resourceID, taskType, title string, progress int, status string) {
-	if h.realtimeHub == nil {
+	if h.broadcaster == nil {
 		return
 	}
 	data := map[string]interface{}{
@@ -188,11 +188,11 @@ func (h *Handler) broadcastResourceTask(userID, resourceID, taskType, title stri
 	}
 	switch {
 	case progress >= 100 && status == "completed":
-		h.realtimeHub.BroadcastTaskComplete(userID, nil, resourceID, data)
+		h.broadcaster.BroadcastTaskComplete(userID, nil, resourceID, data)
 	case status == "failed":
-		h.realtimeHub.BroadcastTaskError(userID, nil, resourceID, data)
+		h.broadcaster.BroadcastTaskError(userID, nil, resourceID, data)
 	default:
-		h.realtimeHub.BroadcastTaskProgress(userID, nil, resourceID, data)
+		h.broadcaster.BroadcastTaskProgress(userID, nil, resourceID, data)
 	}
 }
 

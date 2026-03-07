@@ -39,7 +39,7 @@ type TTSRouter interface {
 type TTSTaskDeps struct {
 	TTSRouter     TTSRouter
 	Storage       storage.Storage
-	RealtimeHub   *realtime.Hub
+	Broadcaster   realtime.Broadcaster
 	TaskNotifier  TaskNotifier
 	UsageRecorder provider_usage.Recorder
 }
@@ -158,7 +158,7 @@ func (h *TTSTaskHandler) Handle(ctx context.Context, t *asynq.Task) error {
 }
 
 func (h *TTSTaskHandler) broadcastProgress(payload TTSTaskPayload, progress int, status string) {
-	if h.deps.RealtimeHub == nil {
+	if h.deps.Broadcaster == nil {
 		return
 	}
 	var projectID *string
@@ -175,11 +175,11 @@ func (h *TTSTaskHandler) broadcastProgress(payload TTSTaskPayload, progress int,
 	}
 	switch {
 	case progress >= 100 && status == "completed":
-		h.deps.RealtimeHub.BroadcastTaskComplete(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskComplete(payload.UserID, projectID, payload.TaskID, data)
 	case status == "failed":
-		h.deps.RealtimeHub.BroadcastTaskError(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskError(payload.UserID, projectID, payload.TaskID, data)
 	default:
-		h.deps.RealtimeHub.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, data)
+		h.deps.Broadcaster.BroadcastTaskProgress(payload.UserID, projectID, payload.TaskID, data)
 	}
 }
 

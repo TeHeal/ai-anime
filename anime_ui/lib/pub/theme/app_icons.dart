@@ -148,6 +148,7 @@ abstract final class AppIcons {
   static const IconData images = SolarIconsBold.galleryMinimalistic;
   static const IconData sound = SolarIconsBold.volume;
   static const IconData clock = SolarIconsBold.clockCircle;
+  static const IconData schedule = SolarIconsBold.clockCircle;
   static const IconData camera = SolarIconsBold.camera;
   static const IconData layers = SolarIconsBold.layers;
 }
